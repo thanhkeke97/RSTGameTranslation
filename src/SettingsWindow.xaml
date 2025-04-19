@@ -188,6 +188,36 @@
                     </Grid>
                 </GroupBox>
                 
+                <!-- Block Detection Settings -->
+                <GroupBox Header="Block Detection Settings" Margin="0,0,0,15" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Block Power -->
+                        <TextBlock Text="Block Power:" Grid.Row="0" Grid.Column="0" 
+                                  VerticalAlignment="Center" Margin="0,0,10,0"
+                                  ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
+                        <TextBox x:Name="blockDetectionPowerTextBox" Grid.Row="0" Grid.Column="1" 
+                                Margin="0,5" Text="5" LostFocus="BlockDetectionPowerTextBox_LostFocus"
+                                ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
+                        
+                        <!-- Settle Time -->
+                        <TextBlock Text="Settle Time (s):" Grid.Row="1" Grid.Column="0" 
+                                  VerticalAlignment="Center" Margin="0,0,10,0"
+                                  ToolTip="Time in seconds to wait for the text to settle before capturing"/>
+                        <TextBox x:Name="settleTimeTextBox" Grid.Row="1" Grid.Column="1" 
+                                Margin="0,5" Text="0.5" LostFocus="SettleTimeTextBox_LostFocus"
+                                ToolTip="Time in seconds to wait for the text to settle before capturing"/>
+                    </Grid>
+                </GroupBox>
+                
                 <!-- Translation Service Settings -->
                 <GroupBox Header="Translation Service Settings" Margin="0,0,0,15" Padding="10">
                     <Grid>
@@ -479,36 +509,6 @@
                             <ComboBoxItem Content="Chinese (Female) - Neural2" Tag="cmn-CN-Neural2-A"/>
                             <ComboBoxItem Content="Chinese (Male) - Neural2" Tag="cmn-CN-Neural2-C"/>
                         </ComboBox>
-                    </Grid>
-                </GroupBox>
-                
-                <!-- Block Detection Settings -->
-                <GroupBox Header="Block Detection Settings" Margin="0,0,0,15" Padding="10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <!-- Block Power -->
-                        <TextBlock Text="Block Power:" Grid.Row="0" Grid.Column="0" 
-                                  VerticalAlignment="Center" Margin="0,0,10,0"
-                                  ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
-                        <TextBox x:Name="blockDetectionPowerTextBox" Grid.Row="0" Grid.Column="1" 
-                                Margin="0,5" Text="5" LostFocus="BlockDetectionPowerTextBox_LostFocus"
-                                ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
-                        
-                        <!-- Settle Time -->
-                        <TextBlock Text="Settle Time (s):" Grid.Row="1" Grid.Column="0" 
-                                  VerticalAlignment="Center" Margin="0,0,10,0"
-                                  ToolTip="Time in seconds to wait for the text to settle before capturing"/>
-                        <TextBox x:Name="settleTimeTextBox" Grid.Row="1" Grid.Column="1" 
-                                Margin="0,5" Text="0.5" LostFocus="SettleTimeTextBox_LostFocus"
-                                ToolTip="Time in seconds to wait for the text to settle before capturing"/>
                     </Grid>
                 </GroupBox>
             </StackPanel>
