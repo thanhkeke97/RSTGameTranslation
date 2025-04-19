@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class MouseManager
     {

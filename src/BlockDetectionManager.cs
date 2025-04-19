@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.IO;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     /// <summary>
     /// Advanced intelligent character and text block detection system

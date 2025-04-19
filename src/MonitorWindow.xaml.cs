@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public partial class MonitorWindow : Window
     {

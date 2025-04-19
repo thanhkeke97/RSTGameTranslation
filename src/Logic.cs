@@ -11,7 +11,7 @@ using MessageBox = System.Windows.MessageBox;
 using System.Diagnostics;
 using System.Collections.Generic;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class Logic
     {

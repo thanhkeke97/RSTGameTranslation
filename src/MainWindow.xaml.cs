@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -12,15 +10,12 @@ using Color = System.Windows.Media.Color;
 using System.Windows.Threading;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
-using System.Windows.Media.Animation;
+
 using System.Text;
 using System.Windows.Shell;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Drawing;
-using System.Reflection;
 
-namespace WPFScreenCapture
+
+namespace UGTLive
 {
     public partial class MainWindow : Window
     {

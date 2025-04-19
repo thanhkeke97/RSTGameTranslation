@@ -12,7 +12,7 @@ using System.Threading;
 using NAudio.Wave;
 using MessageBox = System.Windows.MessageBox;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class GoogleTTSService
     {

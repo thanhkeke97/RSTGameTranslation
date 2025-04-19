@@ -13,7 +13,7 @@ using ComboBox = System.Windows.Controls.ComboBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public partial class SettingsWindow : Window
     {

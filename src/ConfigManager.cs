@@ -9,7 +9,7 @@ using System.Windows;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class ConfigManager
     {

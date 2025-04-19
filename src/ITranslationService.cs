@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     /// <summary>
     /// Interface for translation services to provide a common API for all translation providers

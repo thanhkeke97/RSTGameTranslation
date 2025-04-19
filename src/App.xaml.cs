@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using Application = System.Windows.Application;
 
-namespace WPFScreenCapture;
+namespace UGTLive;
 
 /// <summary>
 /// Interaction logic for App.xaml

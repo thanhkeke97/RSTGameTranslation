@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class OllamaTranslationService : ITranslationService
     {

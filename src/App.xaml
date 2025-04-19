@@ -1,7 +1,7 @@
-﻿<Application x:Class="WPFScreenCapture.App"
+﻿<Application x:Class="UGTLive.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WPFScreenCapture">
+             xmlns:local="clr-namespace:UGTLive">
     <Application.Resources>
          
     </Application.Resources>

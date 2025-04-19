@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     /// <summary>
     /// Factory class for creating translation service instances based on configuration

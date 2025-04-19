@@ -20,7 +20,7 @@ using TextBox = System.Windows.Controls.TextBox;
 using WinCursors = System.Windows.Input.Cursors;
 using WinForms = System.Windows.Forms;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public partial class ChatBoxWindow : Window
     {

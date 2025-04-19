@@ -1,6 +1,6 @@
 using System;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class TranslationEventArgs : EventArgs
     {

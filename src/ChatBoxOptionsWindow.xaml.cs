@@ -12,7 +12,7 @@ using FontFamily = System.Windows.Media.FontFamily;
 using Brushes = System.Windows.Media.Brushes;
 using MessageBox = System.Windows.MessageBox;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public partial class ChatBoxOptionsWindow : Window
     {

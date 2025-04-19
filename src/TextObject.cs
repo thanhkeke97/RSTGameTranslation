@@ -14,7 +14,7 @@ using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 using FontFamily = System.Windows.Media.FontFamily;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class TextObject
     {

@@ -9,7 +9,7 @@ using System.Windows.Media;
 using MessageBox = System.Windows.MessageBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class OllamaModelDownloader
     {

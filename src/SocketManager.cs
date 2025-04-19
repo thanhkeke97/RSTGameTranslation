@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class SocketManager
     {

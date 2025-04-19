@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 
-namespace WPFScreenCapture
+namespace UGTLive
 {
     public class LogManager
     {
