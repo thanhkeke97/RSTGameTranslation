@@ -1,5 +1,5 @@
 {
     "name":"Universal Game Translator Live",
     "latest_version":0.1,
-    "message":"Download {VERSION_STRING} now from rtsoft.com?"
+    "message":"Download V{VERSION_STRING} now from rtsoft.com?"
 }
