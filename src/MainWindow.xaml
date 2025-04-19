@@ -1,0 +1,138 @@
+<Window x:Class="WPFScreenCapture.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFScreenCapture"
+        mc:Ignorable="d"
+        Title="Transparent Screen Capture" 
+        Height="600" Width="800"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        Icon="/media/Icon1.ico">
+    <WindowChrome.WindowChrome>
+        <WindowChrome ResizeBorderThickness="15" CaptionHeight="10" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+      
+    
+    <Grid Background="Transparent">
+        <!-- Main border for resizing - ALWAYS VISIBLE -->
+        <Border Name="MainBorder" BorderThickness="1" BorderBrush="#CFFF0000" Background="Transparent">
+            <Grid>
+                <!-- Top control bar with dedicated resize area -->
+                <Grid Height="50" VerticalAlignment="Top">
+                    <!-- Top resize strip - 10px height -->
+                    <Border Height="10" VerticalAlignment="Top" Background="#50FF0000" Cursor="SizeNS"
+                           WindowChrome.IsHitTestVisibleInChrome="False"/>
+                    
+                    <!-- Actual header with content - shifted down by 10px -->
+                    <Border Name="HeaderBorder" Background="#CC202020" Margin="0,10,0,0"
+                            MouseLeftButtonDown="Header_MouseLeftButtonDown"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Grid>
+                        <TextBlock Text="" 
+                                  Foreground="White" FontWeight="Bold"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                    Margin="10,0" WindowChrome.IsHitTestVisibleInChrome="True">
+                            <Button x:Name="hideButton" Content="Hide" Padding="8,3" Margin="5,0"
+                                    Background="#FF5F5F5F" Foreground="White" BorderThickness="1" BorderBrush="White"
+                                    Click="HideButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                    
+                            <Button x:Name="toggleButton" Content="Start" Padding="8,3" Margin="5,0"
+                                    Background="#FF14B414" Foreground="White" BorderThickness="1" BorderBrush="White"
+                                    Click="OnStartButtonToggleClicked" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            
+                            <!-- Hidden Language ComboBoxes (for settings synchronization) -->
+                            <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
+                                      WindowChrome.IsHitTestVisibleInChrome="True"
+                                      SelectionChanged="SourceLanguageComboBox_SelectionChanged">
+                                <ComboBoxItem Content="ja"/>
+                                <ComboBoxItem Content="en"/>
+                                <ComboBoxItem Content="ch_sim"/>
+                                <ComboBoxItem Content="es"/>
+                                <ComboBoxItem Content="fr"/>
+                                <ComboBoxItem Content="it"/>
+                                <ComboBoxItem Content="de"/>
+                                <ComboBoxItem Content="ru"/>
+                                <ComboBoxItem Content="id"/>
+                                <ComboBoxItem Content="pl"/>
+                                <ComboBoxItem Content="hi"/>
+                                <ComboBoxItem Content="ko"/>
+                            </ComboBox>
+                            
+                            <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
+                                      WindowChrome.IsHitTestVisibleInChrome="True"
+                                      SelectionChanged="TargetLanguageComboBox_SelectionChanged">
+                                <ComboBoxItem Content="ja"/>
+                                <ComboBoxItem Content="en"/>
+                                <ComboBoxItem Content="ch_sim"/>
+                                <ComboBoxItem Content="es"/>
+                                <ComboBoxItem Content="fr"/>
+                                <ComboBoxItem Content="it"/>
+                                <ComboBoxItem Content="de"/>
+                                <ComboBoxItem Content="ru"/>
+                                <ComboBoxItem Content="id"/>
+                                <ComboBoxItem Content="pl"/>
+                                <ComboBoxItem Content="hi"/>
+                                <ComboBoxItem Content="ko"/>
+                            </ComboBox>
+                         
+                            <!-- Monitor Toggle Button -->
+                            <Button x:Name="monitorButton" Content="Monitor" Padding="8,3" Margin="5,0"
+                                    Background="#FF4569B0" Foreground="White" BorderThickness="1" BorderBrush="White"
+                                    Click="MonitorButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                    
+                            <!-- ChatBox Toggle Button -->
+                            <Button x:Name="chatBoxButton" Content="ChatBox" Padding="8,3" Margin="5,0"
+                                    Background="#FF45B069" Foreground="White" BorderThickness="1" BorderBrush="White"
+                                    Click="ChatBoxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                    
+                            <!-- Log Console Toggle Button -->
+                            <Button x:Name="logButton" Content="Log" Padding="8,3" Margin="5,0"
+                                    Background="#FF9945B0" Foreground="White" BorderThickness="1" BorderBrush="White"
+                                    Click="LogButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                    
+                            <!-- Settings Toggle Button -->
+                            <Button x:Name="settingsButton" Content="Settings" Padding="8,3" Margin="5,0"
+                                    Background="#FFB07D45" Foreground="White" BorderThickness="1" BorderBrush="White"
+                                    Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        </StackPanel>
+                        
+                        <Button Content="X" Width="30" Height="30" 
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="#CCE63232" Foreground="White" FontWeight="Bold"
+                                Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                    </Grid>
+                </Border>
+                </Grid>
+                
+                <!-- UI elements to hide during capture - HIDDEN DURING SCREENSHOT -->
+                <Grid Name="OverlayContent" Margin="0,50,0,0">
+                    <!-- Overlay text (will not appear in screenshots) -->
+                    <!-- 
+                    <TextBlock Text="This overlay text will NOT appear in screenshots"
+                              Foreground="#FFFF0000" FontWeight="Bold" FontSize="24"
+                              HorizontalAlignment="Left" VerticalAlignment="Top"
+                              Margin="50,60,0,0"/> 
+                    -->
+                    
+                    <!-- Add other elements here that should not appear in screenshots -->
+                </Grid>
+                
+                
+                <!-- Resize grip indicators -->
+                <Rectangle Width="24" Height="24" Fill="#80808080"
+                          HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                          Cursor="SizeNWSE"/>
+                
+                <!-- Resize borders - visual indicators only -->
+                <Border BorderBrush="#8FFF0000" BorderThickness="7" Background="Transparent" IsHitTestVisible="False"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,438 @@
+﻿using System.Net;
+using System.Net.Sockets;
+using System.Text;
+
+namespace WPFScreenCapture
+{
+    public class SocketManager
+    {
+        private static SocketManager? _instance;
+        private Socket? _clientSocket;
+        private readonly int _port;
+        private readonly string _host;
+        public bool _isConnected;
+        private bool _tryingToConnect = false;
+        // Semaphore to prevent concurrent connect/disconnect operations
+        private SemaphoreSlim _connectionSemaphore = new SemaphoreSlim(1, 1);
+        
+        // Events for data received and connection status changes
+        public event EventHandler<string>? DataReceived;
+        public event EventHandler<bool>? ConnectionChanged;
+        
+        // Singleton pattern
+        public static SocketManager Instance 
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new SocketManager();
+                }
+                return _instance;
+            }
+        }
+        
+        // Constructor
+        private SocketManager()
+        {
+            _host = "localhost";
+            _port = 9999;
+            _isConnected = false;
+        }
+
+
+        public bool IsWaitingForSomething()
+        {
+            return _tryingToConnect;
+        }
+
+        // Connect to server
+        public async Task ConnectAsync()
+        {
+
+            if (_tryingToConnect) return;
+
+                 if (_isConnected && _clientSocket != null) 
+                {
+                    Console.WriteLine("Already connected, ignoring connect request");
+                    return;
+                }
+                
+                // Reset connection state to prevent state conflicts
+                _isConnected = false;
+                
+                Console.WriteLine($"Connecting to {_host}:{_port}...");
+
+            // If there's an existing socket, close it properly first
+            if (_clientSocket != null)
+            {
+                try
+                {
+                    _clientSocket.Close();
+                    _clientSocket.Dispose();
+                }
+                catch (Exception)
+                {
+                    _clientSocket = null;
+                }
+            }
+                
+                // Initialize the socket
+                _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                
+                // Set socket options for reliability
+                _clientSocket.NoDelay = true; // Disable Nagle's algorithm
+                _clientSocket.ReceiveTimeout = 10000; // 10 second timeout
+                _clientSocket.SendTimeout = 10000; // 10 second timeout
+                
+                // Connect to the server
+                await _clientSocket.ConnectAsync(IPAddress.Parse("127.0.0.1"), _port);
+                
+                //_isConnected = true;
+                ConnectionChanged?.Invoke(this, true);
+
+                try
+                { 
+                // Start listening for incoming data
+                _ = StartListeningAsync();
+                
+                Console.WriteLine($"Connected to {_host}:{_port}");
+                MainWindow.Instance.SetStatus($"Connected to {_host}:{_port}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Connection error: {ex.Message}");
+                _isConnected = false;
+                ConnectionChanged?.Invoke(this, false);
+            }
+           
+        }
+         public void Disconnect()
+        {
+           //disconnect
+           _isConnected = false;
+            ConnectionChanged?.Invoke(this, false);
+            _clientSocket?.Close();
+            _clientSocket?.Dispose();
+            _clientSocket = null;
+            _tryingToConnect = false;
+        }
+        
+        // Send data to server
+        public async Task<bool> SendDataAsync(string data)
+        {
+            if (!_isConnected || _clientSocket == null) 
+            {
+                Console.WriteLine("Not connected when trying to send data. Reconnect will be attempted automatically.");
+                // Signal that we're not connected - the reconnect timer in Logic will handle reconnection
+                ConnectionChanged?.Invoke(this, false);
+                return false;
+            }
+            
+            try
+            {
+                byte[] messageBytes = Encoding.UTF8.GetBytes(data);
+                await _clientSocket.SendAsync(messageBytes, SocketFlags.None);
+                //Console.WriteLine($"Sent data: {data}");
+                return true;
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"Socket error when sending data: {ex.Message}");
+                _isConnected = false;
+                ConnectionChanged?.Invoke(this, false);
+                return false;
+            }
+            catch (ObjectDisposedException ex)
+            {
+               
+                Console.WriteLine($"Socket was closed. Reconnect will be attempted automatically. {ex.Message}");
+                _isConnected = false;
+                ConnectionChanged?.Invoke(this, false);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Send error: {ex.Message}");
+                _isConnected = false;
+                ConnectionChanged?.Invoke(this, false);
+                return false;
+            }
+        }
+        
+        // Listen for incoming data
+        private async Task StartListeningAsync()
+        {
+            if (_clientSocket == null) return;
+            
+            try
+            {
+                byte[] buffer = new byte[4096];
+                
+                while (_isConnected)
+                {
+                    try
+                    {
+                        // First, receive the size header (terminated by \r\n)
+                        byte[] sizeBuffer = new byte[128]; // Buffer for size header (should be much smaller)
+                        int sizeBytesRead = 0;
+                        bool sizeComplete = false;
+                        
+                        // Read until we find \r\n sequence
+                        while (!sizeComplete && sizeBytesRead < sizeBuffer.Length && _clientSocket != null)
+                        {
+                            
+                            try
+                            {
+                                // Read one byte at a time for reliable header detection
+                                int b = await _clientSocket.ReceiveAsync(
+                                    new ArraySegment<byte>(sizeBuffer, sizeBytesRead, 1), 
+                                    SocketFlags.None);
+                                
+                                if (b <= 0)
+                                {
+                                    // Connection closed
+                                    _isConnected = false;
+                                    ConnectionChanged?.Invoke(this, false);
+                                    Console.WriteLine("Server disconnected (received 0 bytes)");
+                                    break;
+                                }
+                                
+                                sizeBytesRead++;
+                                
+                                // Check for \r\n sequence
+                                if (sizeBytesRead >= 2 && 
+                                    sizeBuffer[sizeBytesRead - 2] == '\r' && 
+                                    sizeBuffer[sizeBytesRead - 1] == '\n')
+                                {
+                                    sizeComplete = true;
+                                    sizeBytesRead -= 2; // Remove \r\n from size
+                                    //Console.WriteLine($"Found \\r\\n at position {sizeBytesRead}");
+                                }
+                            }
+                            catch (SocketException sockEx)
+                            {
+                                Console.WriteLine($"Socket error while receiving header: {sockEx.Message}");
+                                _isConnected = false;
+                                ConnectionChanged?.Invoke(this, false);
+                                break;
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                Console.WriteLine("Socket was closed while receiving header");
+                                _isConnected = false;
+                                ConnectionChanged?.Invoke(this, false);
+                                break;
+                            }
+                        }
+                        
+                        if (!_isConnected || _clientSocket == null)
+                        {
+                            break; // Exit the outer loop if we're not connected anymore
+                        }
+                        
+                        if (!sizeComplete)
+                        {
+                            // Failed to get complete size header
+                            Console.WriteLine("Failed to receive complete size header");
+                            continue;
+                        }
+                        
+                        // Convert the size header to an integer
+                        string sizeStr = Encoding.UTF8.GetString(sizeBuffer, 0, sizeBytesRead);
+                        
+                        // Debug: Print all bytes in the size buffer for troubleshooting
+                        //Console.WriteLine($"Size buffer content: {BitConverter.ToString(sizeBuffer, 0, Math.Min(100, sizeBytesRead))}");
+                        
+                        if (!int.TryParse(sizeStr, out int messageSize))
+                        {
+                            Console.WriteLine($"Invalid size header: '{sizeStr}'");
+                            continue;
+                        }
+                        
+                        //Console.WriteLine($"Expecting JSON response of {messageSize} bytes");
+                        
+                        // Now receive the actual JSON message
+                        byte[] jsonBuffer = new byte[messageSize];
+                        int jsonBytesRead = 0;
+                        
+                        // Read until we have the entire message
+                        while (jsonBytesRead < messageSize && _clientSocket != null)
+                        {
+                            try
+                            {
+                                int remainingBytes = messageSize - jsonBytesRead;
+                                
+                                // Read in chunks of up to 4096 bytes
+                                int chunkSize = Math.Min(4096, remainingBytes);
+                                int b = await _clientSocket.ReceiveAsync(
+                                    new ArraySegment<byte>(jsonBuffer, jsonBytesRead, chunkSize), 
+                                    SocketFlags.None);
+                                    
+                                if (b <= 0)
+                                {
+                                    // Connection closed
+                                    _isConnected = false;
+                                    ConnectionChanged?.Invoke(this, false);
+                                    Console.WriteLine("Server disconnected during JSON read");
+                                    break;
+                                }
+                                
+                                jsonBytesRead += b;
+                            }
+                            catch (SocketException sockEx)
+                            {
+                                Console.WriteLine($"Socket error while receiving JSON data: {sockEx.Message}");
+                                _isConnected = false;
+                                ConnectionChanged?.Invoke(this, false);
+                                break;
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                Console.WriteLine("Socket was closed while receiving JSON data");
+                                _isConnected = false;
+                                ConnectionChanged?.Invoke(this, false);
+                                break;
+                            }
+                        }
+                        
+                        if (!_isConnected || _clientSocket == null )
+                        {
+                            break; // Exit the outer loop if we're not connected anymore
+                        }
+                        
+                        if (jsonBytesRead == messageSize)
+                        {
+                            // Successfully received the entire message
+                            string jsonData = Encoding.UTF8.GetString(jsonBuffer);
+                            
+                            // For debugging, we'll still save the response to a file
+                            try
+                            {
+                                System.IO.File.WriteAllText("last_ocr_response.json", jsonData);
+                            }
+                            catch (Exception) { /* Ignore file saving errors */ }
+                            
+                            // Raise the event with the received data
+                            DataReceived?.Invoke(this, jsonData);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Incomplete message: received {jsonBytesRead} of {messageSize} bytes");
+                        }
+                    }
+                   
+                    catch (SocketException sockEx)
+                    {
+                        Console.WriteLine($"Socket error in main listening loop: {sockEx.Message}");
+                        _isConnected = false;
+                        ConnectionChanged?.Invoke(this, false);
+                        break; // Break out of the loop to allow reconnection
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        Console.WriteLine("Socket was closed in main listening loop");
+                        _isConnected = false;
+                        ConnectionChanged?.Invoke(this, false);
+                        break; // Break out of the loop to allow reconnection
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        Console.WriteLine($"Error receiving data: {ex.Message}");
+                        // Don't break here for general exceptions - just continue the loop
+                    }
+                }
+            }
+          
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Listening error: {ex.Message}");
+                _isConnected = false;
+                ConnectionChanged?.Invoke(this, false);
+            }
+            finally
+            {
+                Console.WriteLine("Listening loop has ended. Reconnect timer will attempt to reconnect if needed.");
+            }
+        }
+        
+        // Check if connected
+        public bool IsConnected => _isConnected;
+        
+        // Get the port number
+        public int GetPort() => _port;
+
+        // Try to reconnect if disconnected
+        public async Task<bool> TryReconnectAsync()
+        {
+
+            if (_isConnected && _clientSocket != null && _clientSocket.Connected)
+            {
+                Console.WriteLine("TryReconnectAsync: Already connected");
+                return true;
+            }
+
+            if (_tryingToConnect) return false;
+
+            // Reset connection state
+            Disconnect();
+
+            _tryingToConnect = true;
+
+            try
+            {
+             
+                _isConnected = false;
+
+                // Small delay to ensure clean state
+                await Task.Delay(300);
+
+                // Create a new socket
+                _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                // Set socket options for reliability
+                _clientSocket.NoDelay = true; // Disable Nagle's algorithm
+                _clientSocket.ReceiveTimeout = 10000; // 10 second timeout
+                _clientSocket.SendTimeout = 10000; // 10 second timeout
+
+                Console.WriteLine("TryReconnectAsync: Connecting to server...");
+
+                // Connect with timeout
+                var connectTask = _clientSocket.ConnectAsync(IPAddress.Parse("127.0.0.1"), _port);
+                if (await Task.WhenAny(connectTask, Task.Delay(5000)) != connectTask)
+                {
+                    Console.WriteLine("TryReconnectAsync: Connection timed out");
+                    _tryingToConnect = false;
+                    return false;
+                }
+                if (_clientSocket != null)
+                {
+                    if (!_clientSocket.Connected)
+                    {
+                        _tryingToConnect = false;
+
+                        Console.WriteLine("TryReconnectAsync: Failed to connect");
+                        return false;
+                    }
+                }
+
+                _isConnected = true;
+                _tryingToConnect = false;
+                ConnectionChanged?.Invoke(this, true);
+                _ = StartListeningAsync();
+                Console.WriteLine("TryReconnectAsync: Successfully connected");
+                return true;
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"TryReconnectAsync: Error during reconnection: {ex.Message}");
+                _tryingToConnect = false;
+                _isConnected = false;
+                return false;
+            }
+        }
+
+    }
+}

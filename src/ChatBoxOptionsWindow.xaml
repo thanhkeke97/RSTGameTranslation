@@ -1,0 +1,170 @@
+<Window x:Class="WPFScreenCapture.ChatBoxOptionsWindow"         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFScreenCapture"
+        mc:Ignorable="d"
+        Title="Chat Box Options" Height="420" Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Icon="/media/Icon1.ico">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Chat Box Appearance Options" 
+                   Grid.Row="0"
+                   FontSize="16" 
+                   FontWeight="SemiBold" 
+                   Margin="0,0,0,10"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Background settings -->
+                <GroupBox Header="Background Settings" Margin="0,5,0,10" Padding="5">
+                    <StackPanel>
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Background Color:" VerticalAlignment="Center" Width="120" />
+                            <Button x:Name="backgroundColorButton" 
+                                    Width="30" Height="20" 
+                                    Margin="5,0,0,0"
+                                    Click="BackgroundColorButton_Click"/>
+                            <TextBlock x:Name="backgroundColorText" 
+                                       Text="#80000000" 
+                                       VerticalAlignment="Center" 
+                                       Margin="10,0,0,0"/>
+                        </DockPanel>
+                        
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Background Opacity:" VerticalAlignment="Center" Width="120" />
+                            <Slider x:Name="backgroundOpacitySlider" 
+                                    Minimum="0" Maximum="1" 
+                                    Value="0.5" 
+                                    Width="150" 
+                                    TickPlacement="BottomRight"
+                                    TickFrequency="0.05"
+                                    IsSnapToTickEnabled="True"
+                                    ValueChanged="BackgroundOpacitySlider_ValueChanged"/>
+                            <TextBlock x:Name="backgroundOpacityText" 
+                                       Text="50%" 
+                                       VerticalAlignment="Center" 
+                                       Margin="10,0,0,0"/>
+                        </DockPanel>
+                        
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Window Opacity:" VerticalAlignment="Center" Width="120" />
+                            <Slider x:Name="windowOpacitySlider" 
+                                    Minimum="0.1" Maximum="1" 
+                                    Value="1.0" 
+                                    Width="150" 
+                                    TickPlacement="BottomRight"
+                                    TickFrequency="0.1"
+                                    IsSnapToTickEnabled="True"
+                                    ValueChanged="WindowOpacitySlider_ValueChanged"/>
+                            <TextBlock x:Name="windowOpacityText" 
+                                       Text="100%" 
+                                       VerticalAlignment="Center" 
+                                       Margin="10,0,0,0"/>
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Text settings -->
+                <GroupBox Header="Text Settings" Margin="0,5,0,10" Padding="5">
+                    <StackPanel>
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Font Family:" VerticalAlignment="Center" Width="120" />
+                            <ComboBox x:Name="fontFamilyComboBox" 
+                                      Width="200" 
+                                      SelectionChanged="FontFamilyComboBox_SelectionChanged"/>
+                        </DockPanel>
+                        
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Font Size:" VerticalAlignment="Center" Width="120" />
+                            <Slider x:Name="fontSizeSlider" 
+                                    Minimum="8" Maximum="48" 
+                                    Value="14" 
+                                    Width="150" 
+                                    TickPlacement="BottomRight"
+                                    TickFrequency="2"
+                                    IsSnapToTickEnabled="True"
+                                    ValueChanged="FontSizeSlider_ValueChanged"/>
+                            <TextBlock x:Name="fontSizeText" 
+                                       Text="14" 
+                                       VerticalAlignment="Center" 
+                                       Margin="10,0,0,0"/>
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Original text color -->
+                <GroupBox Header="Original Text Settings" Margin="0,5,0,10" Padding="5">
+                    <DockPanel Margin="0,5">
+                        <TextBlock Text="Text Color:" VerticalAlignment="Center" Width="120" />
+                        <Button x:Name="originalTextColorButton" 
+                                Width="30" Height="20" 
+                                Margin="5,0,0,0"
+                                Click="OriginalTextColorButton_Click"/>
+                        <TextBlock x:Name="originalTextColorText" 
+                                   Text="#FFF8E0A0" 
+                                   VerticalAlignment="Center" 
+                                   Margin="10,0,0,0"/>
+                    </DockPanel>
+                </GroupBox>
+
+                <!-- Translated text color -->
+                <GroupBox Header="Translated Text Settings" Margin="0,5,0,10" Padding="5">
+                    <DockPanel Margin="0,5">
+                        <TextBlock Text="Text Color:" VerticalAlignment="Center" Width="120" />
+                        <Button x:Name="translatedTextColorButton" 
+                                Width="30" Height="20" 
+                                Margin="5,0,0,0"
+                                Click="TranslatedTextColorButton_Click"/>
+                        <TextBlock x:Name="translatedTextColorText" 
+                                   Text="#FFFFFFFF" 
+                                   VerticalAlignment="Center" 
+                                   Margin="10,0,0,0"/>
+                    </DockPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons section -->
+        <Grid Grid.Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button x:Name="defaultsButton" 
+                    Content="Set Defaults" 
+                    Width="100" 
+                    Height="25" 
+                    HorizontalAlignment="Left"
+                    Click="DefaultsButton_Click"
+                    ToolTip="Reset all settings to default values"
+                    Grid.Column="0"/>
+            
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Right"
+                        Grid.Column="1">
+                <Button x:Name="applyButton" 
+                        Content="Apply" 
+                        Width="80" 
+                        Height="25" 
+                        Margin="5,0" 
+                        Click="ApplyButton_Click"/>
+                <Button x:Name="cancelButton" 
+                        Content="Cancel" 
+                        Width="80" 
+                        Height="25" 
+                        Margin="5,0" 
+                        Click="CancelButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

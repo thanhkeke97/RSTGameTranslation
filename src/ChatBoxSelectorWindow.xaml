@@ -1,0 +1,44 @@
+<Window x:Class="WPFScreenCapture.ChatBoxSelectorWindow"         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFScreenCapture"
+        mc:Ignorable="d"
+        Title="Select ChatBox Area" 
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="#01000000"
+        Topmost="True"
+        WindowState="Normal"
+        Cursor="Cross"
+        Icon="/media/Icon1.ico">
+
+    <Grid>
+        <Rectangle x:Name="selectionRectangle" 
+                 Fill="#3000A0FF" 
+                 Stroke="#FFFFFF" 
+                 StrokeThickness="1"
+                 Visibility="Collapsed"/>
+
+        <TextBlock x:Name="instructionText" 
+                  Text="Click and drag to select area for the ChatBox display" 
+                  Foreground="#FFFFFF" 
+                  FontSize="24" 
+                  HorizontalAlignment="Left" 
+                  VerticalAlignment="Top"
+                  Background="#80000000"
+                  Padding="15,8"
+                  FontWeight="Bold"/>
+
+        <Button x:Name="cancelButton" 
+               Content="Cancel" 
+               Width="109" 
+               Height="48"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Center"
+               Background="#CCE63232"
+               Foreground="White"
+               FontWeight="Bold"
+               Click="CancelButton_Click" Margin="-143,0,0,0"/>
+    </Grid>
+</Window>

@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.22621.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnablePreviewWinRT>true</EnablePreviewWinRT>
+    <AssemblyName>ugtlive</AssemblyName>
+    <OutputPath>app</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <RootNamespace>WPFScreenCapture</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <ApplicationIcon>media\Icon1.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <AssemblyName>ugtlive_debug</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.0.6" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="src\**\*.cs" />
+    <None Remove="src\**\*.xaml" />
+    <ApplicationDefinition Include="src\App.xaml" />
+    <Page Include="src\**\*.xaml" Exclude="src\App.xaml" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Resource Include="media\Icon1.ico" />
+  </ItemGroup>
+
+</Project>
