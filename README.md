@@ -70,7 +70,7 @@ You can also do dumb things like ask that every character talk like a drunk pira
 
 * Open the solution with Visual Studio 2022 and click compile.  I can't remember if it's going to automatically download the libraries it needs or not.
 
-* For the python server, I use VSCode to write/debug it.  It's super simple, EasyOCR is doing the heavy lifting. I feel like the OCR could be better; does anybody know what settings I should tweak?
+* For the python server, I use VSCode to write/debug it.  It's super simple, EasyOCR is doing the heavy lifting. 
 
 ## AI usage disclosure ##
 
@@ -79,6 +79,14 @@ Claude code wrote about 90% of this app.  It's weird, AI both makes the job easi
 I find myself adding little extras that I'd never bother with pre-AI, like the color and transparency settings of the chat window, that every setting can be done in the app, no weird config.txt files to edit like I normally do.  Programming has changed forever and I like it.
 
 ChatGPT created the log and the .ico file itself.  It also added the "Play" button to the YouTube screenshot above, it was just faster than opening Photoshop.
+
+## Things that should be added/fixed ##
+
+* User whisper to dynamically generate translated subtitles for spoken dialog
+* Figure out how to draw and capture the same part of the screen without ugly flashes
+* Make the capture process faster, the "Monitor" window loses FPS on large areas, I haven't even tried to optimize this yet
+* I feel like the OCR (both EasyOCR and Windows OCR) should be better; does anybody know what settings/preprocessing I should tweak?
+* I've barely tested with anything besides Japanese to English, stuff is probably weird or broken with other languages
 
 **Credits and links**
 - Written by Seth A. Robinson (seth@rtsoft.com) twitter: @rtsoft - [Codedojo](https://www.codedojo.com), Seth's blog
