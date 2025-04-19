@@ -472,9 +472,12 @@ namespace UGTLive
 
             if (isStarted)
             {
+                Logic.Instance.ResetHash();
                 isStarted = false;
                 btn.Content = "Start";
                 btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+                //erase any active text objects
+                Logic.Instance.ClearAllTextObjects();
             }
             else
             {
@@ -483,6 +486,7 @@ namespace UGTLive
                 UpdateCaptureRect();
                 SetOCRCheckIsWanted(true);
                 btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+
             }
         }
 

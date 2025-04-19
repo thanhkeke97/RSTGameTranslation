@@ -385,10 +385,7 @@ namespace UGTLive
                                 // Looks like new stuff
                                 _lastOcrHash = contentHash;
 
-                                if (GetWaitingForTranslationToFinish())
-                                {
-                                    Console.WriteLine("Huh? Translation in progress!");
-                                }
+                               
 
                                 // Process character-level OCR data using CharacterBlockDetectionManager
                                 // Use the same filtered results for consistency
@@ -682,7 +679,8 @@ namespace UGTLive
                 // Raise event to notify listeners (MonitorWindow)
                 TextObjectAdded?.Invoke(this, textObject);
 
-                if (ConfigManager.Instance.IsLeaveTranslationOnscreenEnabled())
+                if (ConfigManager.Instance.IsLeaveTranslationOnscreenEnabled()
+                    && ConfigManager.Instance.IsAutoTranslateEnabled())
                 {
                     //do nothing, don't want to show the source language
                 } else
@@ -840,9 +838,18 @@ namespace UGTLive
 
                 foreach (char c in textElement.GetString() ?? string.Empty)
                 {
-                    if (!g_charsToStripFromHash.Contains(c))
+                    //replace ツ with ッ because OCR confuses them but the LLM won't
+                    if (c == 'ツ')
                     {
-                        contentBuilder.Append(c);
+                        contentBuilder.Append('ッ');
+                    }
+                    else
+                    {
+
+                        if (!g_charsToStripFromHash.Contains(c))
+                        {
+                            contentBuilder.Append(c);
+                        }
                     }
                 }
             }
