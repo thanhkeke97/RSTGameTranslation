@@ -16,7 +16,7 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 *Things to know:*
 
  * This is experimental, mostly tested with Japanese to English translations
- * Windows and NVIDIA card only (it will probably work with any card, but I don't know if EasyOCR will be hardware accelerated, would likely need to tweak the conda setup .bat)
+ * Windows and NVIDIA cards only (it will probably work with any card, but I don't know if EasyOCR will be hardware accelerated, would likely need to tweak the conda setup .bat)
  * Your privacy is important. The only web calls this app makes are to check this GitHub's media/latest_version_checker.json file to see if a new version is available. Be aware that if you use a cloud service for the translation (Gemini is recommended), they will see what you're translating. If you use Ollama, nothing at all is sent out.
  
 ## How to install and use it (Windows) ##
@@ -54,7 +54,7 @@ Ollama and ChatGPT are other LLM options. For Ollama, install it, and set a mode
 
 Unfortunately I've hardcoded all the models so when new ones come out uh... well, maybe I'll move those to an editable file later.
 
-All the OCR is done at a character-by-character level then I have a "Block detection" function that sticks things together to make words and paragraphs.  You can edit the "Block Power" to make it more likely to stick things together or break them apart.  (Dialog is good stuck together, other things are better not stuck together, so depends on what you're doing)
+All the OCR is done at a character-by-character level.  Then there is a "Block detection" function that sticks things together to make words and paragraphs.  You can edit the "Block Power" to make it more likely to stick things together or break them apart.  (Dialog is good stuck together, other things are better not stuck together, so depends on what you're doing)
 
 ## Why are you using an LLM instead of DeepL/Google Translate? ##
 
@@ -62,9 +62,13 @@ I think this is the obvious way of the future - by editing the LLM prompt templa
 
 It intelligently understands the difference between a block of dialog and three options that the user can choose from and inserts linefeeds at the correct positions.
 
+Another important advantage is spatial understanding - instead of just sending individual lines to be translated, the LLM is sent all the text at once, complete with positioning/rect information.  We allow the LLM to make decisions like "move this text over to that block" or even create its own new blocks.
+
 One key setting is the "Max previous context".  This is recent earlier dialog being sent along with the new request, this allows the LLM to understand "the story thus far" which allows it to give more accurate translations.  In general, you don't want buttons like "Options" "Talk" "X" to be sent in this "context", so the "Min Context Size" allows you to have it ignore smaller words and only send larger dialog.
 
 You can also do dumb things like ask that every character talk like a drunk pirate and that's no problem too.
+
+In the future, we can probably send the entire screenshot directly to an LLM and get answers at a high FPS, but for now, due to speed/cost it makes sense to do our own (lower quality) OCR and send text only.
 
 ## For developers - How to compile it ##
 
@@ -78,7 +82,7 @@ Claude code wrote about 90% of this app.  It's weird, AI both makes the job easi
 
 I find myself adding little extras that I'd never bother with pre-AI, like the color and transparency settings of the chat window, that every setting can be done in the app, no weird config.txt files to edit like I normally do.  Programming has changed forever and I like it.
 
-ChatGPT created the log and the .ico file itself.  It also added the "Play" button to the YouTube screenshot above, it was just faster than opening Photoshop.
+ChatGPT created the logo and the .ico file itself.  It also added the "Play" button to the YouTube screenshot above, it was just faster than opening Photoshop.
 
 ## Things that should be added/fixed ##
 
