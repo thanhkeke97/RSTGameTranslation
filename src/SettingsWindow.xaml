@@ -153,6 +153,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         
                         <!-- Context Settings -->
@@ -190,7 +191,7 @@
                                   VerticalAlignment="Center" Margin="0,8,10,0"
                                   ToolTip="Clear all translation history and context. Forces new translation on next capture."/>
                         <Button x:Name="clearContextButton" Content="Clear Context" Grid.Row="4" Grid.Column="1"
-                               HorizontalAlignment="Left" Margin="0,8,0,0" Padding="10,3" Click="ClearContextButton_Click"
+                               HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="ClearContextButton_Click"
                                ToolTip="Clear all translation history and context. Forces new translation on next capture."/>
                     </Grid>
                 </GroupBox>
