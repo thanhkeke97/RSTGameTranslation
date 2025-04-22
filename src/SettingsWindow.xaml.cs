@@ -726,14 +726,30 @@ namespace UGTLive
                     
                     // Set selected Gemini model
                     string geminiModel = ConfigManager.Instance.GetGeminiModel();
+                    
+                        // Temporarily remove event handlers to avoid triggering changes
+                    geminiModelComboBox.SelectionChanged -= GeminiModelComboBox_SelectionChanged;
+                    
+                    // First try to find exact match in dropdown items
+                    bool found = false;
                     foreach (ComboBoxItem item in geminiModelComboBox.Items)
                     {
-                        if (string.Equals(item.Tag?.ToString(), geminiModel, StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(item.Content?.ToString(), geminiModel, StringComparison.OrdinalIgnoreCase))
                         {
                             geminiModelComboBox.SelectedItem = item;
+                            found = true;
                             break;
                         }
                     }
+                    
+                    // If not found in dropdown, set as custom text
+                    if (!found)
+                    {
+                        geminiModelComboBox.Text = geminiModel;
+                    }
+                    
+                    // Reattach event handler
+                    geminiModelComboBox.SelectionChanged += GeminiModelComboBox_SelectionChanged;
                 }
                 else if (isOllamaSelected)
                 {
@@ -931,11 +947,22 @@ namespace UGTLive
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+                
+                string model;
+                
+                // Handle both dropdown selection and manually typed values
                 if (geminiModelComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    string model = selectedItem.Tag?.ToString() ?? "gemini-2.0-flash";
-                    
+                    model = selectedItem.Content?.ToString() ?? "gemini-2.0-flash";
+                }
+                else
+                {
+                    // For manually entered text
+                    model = geminiModelComboBox.Text?.Trim() ?? "gemini-2.0-flash";
+                }
+                
+                if (!string.IsNullOrWhiteSpace(model))
+                {
                     // Save to config
                     ConfigManager.Instance.SetGeminiModel(model);
                     Console.WriteLine($"Gemini model set to: {model}");
@@ -962,6 +989,39 @@ namespace UGTLive
         private void ViewGeminiModelsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ai.google.dev/gemini-api/docs/models");
+        }
+        
+        private void GeminiModelComboBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+                
+                string model = geminiModelComboBox.Text?.Trim() ?? "";
+                
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetGeminiModel(model);
+                    Console.WriteLine($"Gemini model set from text input to: {model}");
+                    
+                    // Trigger retranslation if the current service is Gemini
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Gemini")
+                    {
+                        // Reset the hash to force a retranslation
+                        Logic.Instance.ResetHash();
+                        
+                        // Clear any existing text objects to refresh the display
+                        Logic.Instance.ClearAllTextObjects();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Gemini model from text input: {ex.Message}");
+            }
         }
         
         private void OllamaDownloadLink_Click(object sender, RoutedEventArgs e)

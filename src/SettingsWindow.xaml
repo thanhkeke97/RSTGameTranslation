@@ -278,12 +278,14 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <ComboBox x:Name="geminiModelComboBox" Grid.Column="0"
-                                    SelectionChanged="GeminiModelComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Gemini 1.5 Flash" Tag="gemini-1.5-flash"/>
-                                <ComboBoxItem Content="Gemini 1.5 Pro" Tag="gemini-1.5-pro"/>
-                                <ComboBoxItem Content="Gemini 2.0 Flash" Tag="gemini-2.0-flash"/>
-                                <ComboBoxItem Content="Gemini 2.5 Pro Preview 3-25" Tag="gemini-2.5-pro-preview-03-25"/>
-                                <ComboBoxItem Content="Gemini 2.5 Flash Preview" Tag="gemini-2.5-flash-preview-04-17"/>
+                                    SelectionChanged="GeminiModelComboBox_SelectionChanged"
+                                    LostFocus="GeminiModelComboBox_LostFocus"
+                                    IsEditable="True">
+                                <ComboBoxItem Content="gemini-1.5-flash"/>
+                                <ComboBoxItem Content="gemini-1.5-pro"/>
+                                <ComboBoxItem Content="gemini-2.0-flash"/>
+                                <ComboBoxItem Content="gemini-2.5-pro-preview-03-25"/>
+                                <ComboBoxItem Content="gemini-2.5-flash-preview-04-17"/>
                             </ComboBox>
                             <Button x:Name="viewGeminiModelsButton" Content="View Models" Grid.Column="1"
                                    Margin="5,0,0,0" Padding="5,0" Click="ViewGeminiModelsButton_Click"
