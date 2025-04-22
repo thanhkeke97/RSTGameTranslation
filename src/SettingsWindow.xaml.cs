@@ -115,6 +115,7 @@ namespace UGTLive
             // Remove focus event handlers
             maxContextPiecesTextBox.LostFocus -= MaxContextPiecesTextBox_LostFocus;
             minContextSizeTextBox.LostFocus -= MinContextSizeTextBox_LostFocus;
+            minChatBoxTextSizeTextBox.LostFocus -= MinChatBoxTextSizeTextBox_LostFocus;
             gameInfoTextBox.TextChanged -= GameInfoTextBox_TextChanged;
             minTextFragmentSizeTextBox.LostFocus -= MinTextFragmentSizeTextBox_LostFocus;
             minLetterConfidenceTextBox.LostFocus -= MinLetterConfidenceTextBox_LostFocus;
@@ -125,6 +126,7 @@ namespace UGTLive
             // Set context settings
             maxContextPiecesTextBox.Text = ConfigManager.Instance.GetMaxContextPieces().ToString();
             minContextSizeTextBox.Text = ConfigManager.Instance.GetMinContextSize().ToString();
+            minChatBoxTextSizeTextBox.Text = ConfigManager.Instance.GetChatBoxMinTextSize().ToString();
             gameInfoTextBox.Text = ConfigManager.Instance.GetGameInfo();
             minTextFragmentSizeTextBox.Text = ConfigManager.Instance.GetMinTextFragmentSize().ToString();
             minLetterConfidenceTextBox.Text = ConfigManager.Instance.GetMinLetterConfidence().ToString();
@@ -133,6 +135,7 @@ namespace UGTLive
             // Reattach focus event handlers
             maxContextPiecesTextBox.LostFocus += MaxContextPiecesTextBox_LostFocus;
             minContextSizeTextBox.LostFocus += MinContextSizeTextBox_LostFocus;
+            minChatBoxTextSizeTextBox.LostFocus += MinChatBoxTextSizeTextBox_LostFocus;
             gameInfoTextBox.TextChanged += GameInfoTextBox_TextChanged;
             minTextFragmentSizeTextBox.LostFocus += MinTextFragmentSizeTextBox_LostFocus;
             minLetterConfidenceTextBox.LostFocus += MinLetterConfidenceTextBox_LostFocus;
@@ -1235,6 +1238,31 @@ namespace UGTLive
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating min context size: {ex.Message}");
+            }
+        }
+        
+        private void MinChatBoxTextSizeTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+                    
+                if (int.TryParse(minChatBoxTextSizeTextBox.Text, out int minChatBoxTextSize) && minChatBoxTextSize >= 0)
+                {
+                    ConfigManager.Instance.SetChatBoxMinTextSize(minChatBoxTextSize);
+                    Console.WriteLine($"Min ChatBox text size set to: {minChatBoxTextSize}");
+                }
+                else
+                {
+                    // Reset to current value from config if invalid
+                    minChatBoxTextSizeTextBox.Text = ConfigManager.Instance.GetChatBoxMinTextSize().ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating min ChatBox text size: {ex.Message}");
             }
         }
         

@@ -68,6 +68,7 @@ namespace UGTLive
         public const string CHATBOX_WINDOW_OPACITY = "chatbox_window_opacity";
         public const string CHATBOX_LINES_OF_HISTORY = "chatbox_lines_of_history";
         public const string CHATBOX_OPACITY = "chatbox_opacity";
+        public const string CHATBOX_MIN_TEXT_SIZE = "chatbox_min_text_size";
         public const string SOURCE_LANGUAGE = "source_language";
         public const string TARGET_LANGUAGE = "target_language";
 
@@ -184,6 +185,7 @@ namespace UGTLive
             _configValues[CHATBOX_TRANSLATED_TEXT_COLOR] = "#FFFFFFFF";
             _configValues[CHATBOX_BACKGROUND_OPACITY] = "0.35";
             _configValues[CHATBOX_WINDOW_OPACITY] = "1";
+            _configValues[CHATBOX_MIN_TEXT_SIZE] = "2";
             _configValues[TRANSLATION_SERVICE] = "Gemini";
             _configValues[OLLAMA_URL] = "http://localhost";
             _configValues[OLLAMA_PORT] = "11434";
@@ -808,6 +810,28 @@ namespace UGTLive
                 return historySize;
             }
             return 20; // Default history size
+        }
+        
+        // Get min ChatBox text size
+        public int GetChatBoxMinTextSize()
+        {
+            string value = GetValue(CHATBOX_MIN_TEXT_SIZE, "2"); // Default: 2 characters
+            if (int.TryParse(value, out int minSize) && minSize >= 0)
+            {
+                return minSize;
+            }
+            return 2; // Default min size
+        }
+        
+        // Set min ChatBox text size
+        public void SetChatBoxMinTextSize(int value)
+        {
+            if (value >= 0)
+            {
+                _configValues[CHATBOX_MIN_TEXT_SIZE] = value.ToString();
+                SaveConfig();
+                Console.WriteLine($"Min ChatBox text size set to: {value}");
+            }
         }
         
         // Get/Set translation context settings

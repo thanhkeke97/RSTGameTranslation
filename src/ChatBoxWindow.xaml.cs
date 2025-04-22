@@ -772,9 +772,18 @@ namespace UGTLive
                 // Get only the most recent entries for display (based on _maxHistorySize)
                 var displayHistory = mainWindowHistory.Reverse().Take(_maxHistorySize).Reverse();
                 
+                // Get Min ChatBox Text Size setting
+                int minChatBoxTextSize = ConfigManager.Instance.GetChatBoxMinTextSize();
+                
                 // Create a paragraph for each entry to display
                 foreach (var entry in displayHistory)
                 {
+                    // Skip entries with source text smaller than minimum size
+                    if (!string.IsNullOrEmpty(entry.OriginalText) && entry.OriginalText.Length < minChatBoxTextSize)
+                    {
+                        continue;
+                    }
+                    
                     // Create a new paragraph for this entry
                     Paragraph para = new Paragraph();
                     

@@ -169,20 +169,27 @@
                         <TextBox x:Name="minContextSizeTextBox" Grid.Row="1" Grid.Column="1" 
                                 Margin="0,5" Text="20" LostFocus="MinContextSizeTextBox_LostFocus"
                                 ToolTip="Minimum size in characters for a text piece to be included as context. Helps avoid adding tiny menu labels or buttons as context."/>
+                                
+                        <TextBlock Text="Min ChatBox Text Size:" Grid.Row="2" Grid.Column="0" 
+                                  VerticalAlignment="Center" Margin="0,0,10,0"
+                                  ToolTip="Minimum size in characters for text to be shown in ChatBox. Smaller text will be ignored."/>
+                        <TextBox x:Name="minChatBoxTextSizeTextBox" Grid.Row="2" Grid.Column="1" 
+                                Margin="0,5" Text="2" LostFocus="MinChatBoxTextSizeTextBox_LostFocus"
+                                ToolTip="Minimum size in characters for text to be shown in ChatBox. Smaller text will be ignored."/>
                         
-                        <TextBlock Text="Info about the game:" Grid.Row="2" Grid.Column="0" 
+                        <TextBlock Text="Info about the game:" Grid.Row="3" Grid.Column="0" 
                                   VerticalAlignment="Top" Margin="0,8,10,0" 
                                   ToolTip="Information about the game being played to help the LLM translate more accurately."/>
-                        <TextBox x:Name="gameInfoTextBox" Grid.Row="2" Grid.Column="1" 
+                        <TextBox x:Name="gameInfoTextBox" Grid.Row="3" Grid.Column="1" 
                                 Margin="0,5" TextChanged="GameInfoTextBox_TextChanged"
                                 ToolTip="Information about the game being played to help the LLM translate more accurately."
                                 AcceptsReturn="True" TextWrapping="Wrap" Height="60" VerticalScrollBarVisibility="Auto"/>
                         
                         <!-- Clear Context Button -->
-                        <TextBlock Text="Clear Translation Context:" Grid.Row="3" Grid.Column="0" 
+                        <TextBlock Text="Clear Translation Context:" Grid.Row="4" Grid.Column="0" 
                                   VerticalAlignment="Center" Margin="0,8,10,0"
                                   ToolTip="Clear all translation history and context. Forces new translation on next capture."/>
-                        <Button x:Name="clearContextButton" Content="Clear Context" Grid.Row="3" Grid.Column="1"
+                        <Button x:Name="clearContextButton" Content="Clear Context" Grid.Row="4" Grid.Column="1"
                                HorizontalAlignment="Left" Margin="0,8,0,0" Padding="10,3" Click="ClearContextButton_Click"
                                ToolTip="Clear all translation history and context. Forces new translation on next capture."/>
                     </Grid>
