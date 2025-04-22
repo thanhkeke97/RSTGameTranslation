@@ -50,8 +50,7 @@ namespace UGTLive
             
             // Load block detection power and settle time from BlockDetectionManager
             // These values are already loaded from config in BlockDetectionManager's constructor
-            _settleTimeSeconds = BlockDetectionManager.Instance.GetSettleTime();
-            
+           
             Console.WriteLine($"Loaded block detection power: {BlockDetectionManager.Instance.GetBlockDetectionScale()}");
             Console.WriteLine($"Loaded settle time: {_settleTimeSeconds} seconds");
             
@@ -735,8 +734,21 @@ namespace UGTLive
         }
         
         // Show the translation status
-        public void ShowTranslationStatus()
+        public void ShowTranslationStatus(bool bSettling)
         {
+
+            if (bSettling)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    translationStatusLabel.Text = $"Settling...";
+                    translationStatusBorder.Visibility = Visibility.Visible;
+                });
+
+                    return;
+            }
+
+
             _translationStartTime = DateTime.Now;
             string service = ConfigManager.Instance.GetCurrentTranslationService();
             

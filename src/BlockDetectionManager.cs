@@ -79,8 +79,9 @@ namespace UGTLive
         
         public void SetBaseLineVerticalGap(double value)
         {
-            if (value < 0) {
-                Console.WriteLine("Line vertical gap must be positive");
+            if (value < 0)
+            {
+            //    Console.WriteLine("Line vertical gap must be positive");
                 return;
             }
             _config.BaseLineVerticalGap = value;
@@ -425,13 +426,13 @@ namespace UGTLive
                                               previousWord.Bounds.Width / Math.Max(1, previousWord.Text.Length)) / 2.0;
                         
                         // Log for debugging
-                        Console.WriteLine($"Horizontal gap between words: {gap:F1}px, Average char width: {averageCharWidth:F1}px, Threshold: {largeHorizontalGapThreshold:F1}px");
+                        //Console.WriteLine($"Horizontal gap between words: {gap:F1}px, Average char width: {averageCharWidth:F1}px, Threshold: {largeHorizontalGapThreshold:F1}px");
                         
                         // Check if the gap exceeds the threshold or is unusually large compared to character width
                         if (gap > largeHorizontalGapThreshold || gap > (averageCharWidth * 10))
                         {
                             // Gap is large enough to split the line
-                            Console.WriteLine($"Large horizontal gap ({gap:F1}px) detected - splitting line");
+                            //Console.WriteLine($"Large horizontal gap ({gap:F1}px) detected - splitting line");
                             
                             // Add the current segment to splitLines if it has words
                             if (currentSegment.Count > 0)
@@ -560,7 +561,7 @@ namespace UGTLive
                     double verticalGap = centerDistance - normalLineSpacing;
                     
                     // Log for debugging
-                    Console.WriteLine($"Line vertical gap (adjusted): {verticalGap:F1}px, Center distance: {centerDistance:F1}px, Normal spacing: {normalLineSpacing:F1}px, Threshold: {lineVerticalGapThreshold:F1}px");
+                    //Console.WriteLine($"Line vertical gap (adjusted): {verticalGap:F1}px, Center distance: {centerDistance:F1}px, Normal spacing: {normalLineSpacing:F1}px, Threshold: {lineVerticalGapThreshold:F1}px");
                     
                     // Large center distance indicates paragraph break
                     if (centerDistance > (averageHeight * 1.5) + paragraphBreakThreshold)

@@ -478,6 +478,7 @@ namespace UGTLive
                 btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
                 //erase any active text objects
                 Logic.Instance.ClearAllTextObjects();
+                MonitorWindow.Instance.HideTranslationStatus();
             }
             else
             {
@@ -1128,7 +1129,7 @@ namespace UGTLive
                 _translationHistory.Dequeue();
             }
 
-            Console.WriteLine($"Translation added to history. History size: {_translationHistory.Count}");
+            //Console.WriteLine($"Translation added to history. History size: {_translationHistory.Count}");
             ChatBoxWindow.Instance!.OnTranslationWasAdded(originalText, translatedText);
         }
         // Handle translation events from Logic

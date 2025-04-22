@@ -1192,12 +1192,12 @@ namespace UGTLive
         // Get Block Detection Settle Time
         public double GetBlockDetectionSettleTime()
         {
-            string value = GetValue(BLOCK_DETECTION_SETTLE_TIME, "0.5");
+            string value = GetValue(BLOCK_DETECTION_SETTLE_TIME, "0.15");
             if (double.TryParse(value, out double time) && time >= 0)
             {
                 return time;
             }
-            return 0.5; // Default
+            return 0.15; // Default
         }
         
         // Set Block Detection Settle Time

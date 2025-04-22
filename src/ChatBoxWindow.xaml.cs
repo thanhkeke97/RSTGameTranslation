@@ -590,11 +590,11 @@ namespace UGTLive
         }
         
         // Show translation status indicator with animation
-        public void ShowTranslationStatus()
+        public void ShowTranslationStatus(bool bSettling)
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(() => ShowTranslationStatus());
+                Dispatcher.Invoke(() => ShowTranslationStatus(bSettling));
                 return;
             }
             
@@ -834,9 +834,9 @@ namespace UGTLive
                     chatHistoryText.Document.Blocks.Add(para);
                     
                     // Debug output
-                    Console.WriteLine($"Added entry: {para.Inlines.Count} inlines, " +
-                        $"Orig: {(entry.OriginalText?.Length ?? 0)} chars, " + 
-                        $"Trans: {(entry.TranslatedText?.Length ?? 0)} chars");
+                  //  Console.WriteLine($"Added entry: {para.Inlines.Count} inlines, " +
+                    //    $"Orig: {(entry.OriginalText?.Length ?? 0)} chars, " + 
+                      //  $"Trans: {(entry.TranslatedText?.Length ?? 0)} chars");
                 }
                 
                 // Scroll to the bottom to see newest entries

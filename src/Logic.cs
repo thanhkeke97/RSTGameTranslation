@@ -68,6 +68,7 @@ namespace UGTLive
             }
         }
         Stopwatch _translationStopwatch = new Stopwatch();
+        Stopwatch _ocrProcessingStopwatch = new Stopwatch();
 
         // Constructor
         private Logic()
@@ -286,13 +287,16 @@ namespace UGTLive
             }
         }
         
-        void OnFinishedThings()
+        void OnFinishedThings(bool bResetTranslationStatus)
         {
             SetWaitingForTranslationToFinish(false);
             MonitorWindow.Instance.RefreshOverlays();
-            
+
             // Hide translation status
-            MonitorWindow.Instance.HideTranslationStatus();
+            if (bResetTranslationStatus)
+            {
+                MonitorWindow.Instance.HideTranslationStatus();
+            }
         }
 
         public void ResetHash()
@@ -304,6 +308,7 @@ namespace UGTLive
         //! Process the OCR text data, this is before it's been translated
         public void ProcessReceivedTextJsonData(string data)
         {
+            _ocrProcessingStopwatch.Restart();
             MainWindow.Instance.SetOCRCheckIsWanted(true);
 
             if (GetWaitingForTranslationToFinish())
@@ -349,7 +354,7 @@ namespace UGTLive
                                     {
                                         if (_lastChangeTime == DateTime.MinValue)
                                         {
-                                            OnFinishedThings();
+                                            OnFinishedThings(true);
                                             return; // Already rendered it, just ignore until it changes again
                                         }
                                         else
@@ -371,14 +376,23 @@ namespace UGTLive
                                     {
                                         _lastChangeTime = DateTime.Now;
                                         _lastOcrHash = contentHash;
-                                        OnFinishedThings();
+
+                                        //only run if translation is still active
+                                        if (MainWindow.Instance.GetIsStarted())
+                                        {
+
+                                            MonitorWindow.Instance.ShowTranslationStatus(true);
+                                            ChatBoxWindow.Instance?.ShowTranslationStatus(true);
+                                        }
+
+                                        OnFinishedThings(false);
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
                                 }
 
                                 if (contentHash == _lastOcrHash && bForceRender == false)
                                 {
-                                    OnFinishedThings();
+                                    OnFinishedThings(true);
                                     return;
                                 }
                                
@@ -424,6 +438,10 @@ namespace UGTLive
                                     {
                                         DisplayOcrResults(newDoc.RootElement);
                                     }
+
+                                    _ocrProcessingStopwatch.Stop();
+                                    Console.WriteLine($"OCR JSON processing took {_ocrProcessingStopwatch.ElapsedMilliseconds} ms");
+
                                 }
 
                                 // Add the detected text to the ChatBox
@@ -445,7 +463,7 @@ namespace UGTLive
                                             // If translation is enabled, translate the text
                                             if (!GetWaitingForTranslationToFinish())
                                             {
-                                                Console.WriteLine($"Translating text: {combinedText}");
+                                                //Console.WriteLine($"Translating text: {combinedText}");
                                                 // Translate the text objects
                                                 _lastChangeTime = DateTime.MinValue;
                                                 _ = TranslateTextObjectsAsync();
@@ -465,11 +483,11 @@ namespace UGTLive
                                         }
                                     }
                                     
-                                    OnFinishedThings();
+                                    OnFinishedThings(true);
                                 }
                                 else
                                 {
-                                    OnFinishedThings();
+                                    OnFinishedThings(true);
                                 }
                             }
                             else if (status == "error" && root.TryGetProperty("message", out JsonElement messageElement))
@@ -496,7 +514,8 @@ namespace UGTLive
             {
                 Console.WriteLine($"Error processing socket data: {ex.Message}");
             }
-        }
+            
+           }
         
         // Display OCR results from JSON - processes character-level blocks
         private void DisplayOcrResults(JsonElement root)
@@ -592,7 +611,7 @@ namespace UGTLive
             catch (Exception ex)
             {
                 Console.WriteLine($"Error displaying OCR results: {ex.Message}");
-                OnFinishedThings();
+                OnFinishedThings(true);
             }
         }
         
@@ -1141,7 +1160,7 @@ namespace UGTLive
                             
                             if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(translatedText))
                             {
-                                Console.WriteLine($"Processing text block with id={id}, text={translatedText}");
+                                //Console.WriteLine($"Processing text block with id={id}, text={translatedText}");
                                 
                                 // Find the matching text object by ID
                                 var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
@@ -1196,7 +1215,7 @@ namespace UGTLive
                 // Only add to chatbox if we have both texts and translation is not empty
                 if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
                 {
-                    Console.WriteLine($"Adding to chatbox: Original: '{originalText}', Translated: '{translatedText}'");
+                    //Console.WriteLine($"Adding to chatbox: Original: '{originalText}', Translated: '{translatedText}'");
                     // Add to TranslationCompleted, this will add it to the chatbox also
                     TranslationCompleted?.Invoke(this, new TranslationEventArgs
                     {
@@ -1329,7 +1348,7 @@ namespace UGTLive
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in ProcessTranslatedJSON: {ex.Message}");
-                OnFinishedThings();
+                OnFinishedThings(true);
             }
 
         }
@@ -1340,18 +1359,18 @@ namespace UGTLive
             try
             {
                 // Show translation status at the beginning
-                MonitorWindow.Instance.ShowTranslationStatus();
+                MonitorWindow.Instance.ShowTranslationStatus(false);
                 
                 // Also show translation status in ChatBoxWindow if it's open
                 if (ChatBoxWindow.Instance != null)
                 {
-                    ChatBoxWindow.Instance.ShowTranslationStatus();
+                    ChatBoxWindow.Instance.ShowTranslationStatus(false);
                 }
                 
                 if (_textObjects.Count == 0)
                 {
                     Console.WriteLine("No text objects to translate");
-                    OnFinishedThings();
+                    OnFinishedThings(true);
                     return;
                 }
 
@@ -1427,7 +1446,7 @@ namespace UGTLive
                 if (string.IsNullOrEmpty(translationResponse))
                 {
                     Console.WriteLine($"Translation failed with {currentService} - empty response");
-                    OnFinishedThings();
+                    OnFinishedThings(true);
                     return;
                 }
 
@@ -1444,11 +1463,11 @@ namespace UGTLive
             catch (Exception ex)
             {
                 Console.WriteLine($"Error translating text objects: {ex.Message}");
-                OnFinishedThings();
+                OnFinishedThings(true);
             }
 
             //all done
-            OnFinishedThings();
+            OnFinishedThings(true);
         }
 
         public string GetGeminiApiKey()
