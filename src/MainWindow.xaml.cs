@@ -1099,7 +1099,18 @@ namespace UGTLive
         
         public void AddTranslationToHistory(string originalText, string translatedText)
         {
-            // Always store translations in our history queue
+            // Check for duplicate with most recent entry
+            if (_translationHistory.Count > 0)
+            {
+                var lastEntry = _translationHistory.Last();
+                if (lastEntry.OriginalText == originalText)
+                {
+                    Console.WriteLine("Skipping duplicate translation entry");
+                    return;
+                }
+            }
+            
+            // Create new entry
             var entry = new TranslationEntry
             {
                 OriginalText = originalText,
