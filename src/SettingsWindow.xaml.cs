@@ -224,9 +224,9 @@ namespace UGTLive
             blockDetectionPowerTextBox.LostFocus -= BlockDetectionPowerTextBox_LostFocus;
             settleTimeTextBox.LostFocus -= SettleTimeTextBox_LostFocus;
             
-            // Load values directly from BlockDetectionManager (which loads from config) with formatting
+           
             blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString("F2");
-            settleTimeTextBox.Text = BlockDetectionManager.Instance.GetSettleTime().ToString("F2");
+            settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2");
             
             Console.WriteLine($"SettingsWindow: Loaded block detection power: {blockDetectionPowerTextBox.Text}");
             Console.WriteLine($"SettingsWindow: Loaded settle time: {settleTimeTextBox.Text}");
@@ -549,22 +549,19 @@ namespace UGTLive
                 return;
             }
             
-            // Update settle time in MonitorWindow
-            if (MonitorWindow.Instance.settleTimeTextBox != null)
+            // Update settle time in ConfigManager
+            if (float.TryParse(settleTimeTextBox.Text, out float settleTime) && settleTime >= 0)
             {
-                MonitorWindow.Instance.settleTimeTextBox.Text = settleTimeTextBox.Text;
-            }
-            
-            // Update BlockDetectionManager if applicable
-            if (float.TryParse(settleTimeTextBox.Text, out float time))
-            {
-                // Note: SetSettleTime will save to config
-                BlockDetectionManager.Instance.SetSettleTime(time);
+                ConfigManager.Instance.SetBlockDetectionSettleTime(settleTime);
+                Console.WriteLine($"Block detection settle time set to: {settleTime:F2} seconds");
+                
+                // Reset hash to force recalculation of text blocks
+                Logic.Instance.ResetHash();
             }
             else
             {
-                // If text is invalid, reset to the current value from BlockDetectionManager
-                settleTimeTextBox.Text = BlockDetectionManager.Instance.GetSettleTime().ToString("F2");
+                // If text is invalid, reset to the current value from ConfigManager
+                settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2");
             }
         }
         

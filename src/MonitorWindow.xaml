@@ -40,8 +40,6 @@
             <TextBox x:Name="blockDetectionPowerTextBox" Width="0" Height="0" Margin="0" Visibility="Collapsed" 
                      Text="5" VerticalContentAlignment="Center"/>
             
-            <TextBox x:Name="settleTimeTextBox" Width="0" Height="0" Margin="0" Visibility="Collapsed" 
-                     Text="0.5" VerticalContentAlignment="Center"/>
             
             <!-- Status Text -->
             <TextBlock x:Name="statusText" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>

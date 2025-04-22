@@ -854,17 +854,15 @@ namespace UGTLive
 
         // Configuration parameters for block detection
         private double _scaleModToApplyToAllBlockDetectionParameters; // Global scale modifier for all parameters
-        private double _settleTime; // Time in seconds to wait for text to settle before capturing
         
         // Constructor - load values from config
         private BlockDetectionManager()
         {
             // Load values from config - these will use defaults if not found in config
             _scaleModToApplyToAllBlockDetectionParameters = ConfigManager.Instance.GetBlockDetectionScale();
-            _settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
             
             Console.WriteLine($"Loaded block detection scale from config: {_scaleModToApplyToAllBlockDetectionParameters}");
-            Console.WriteLine($"Loaded block detection settle time from config: {_settleTime} seconds");
+            Console.WriteLine($"Loaded block detection settle time from config: {ConfigManager.Instance.GetBlockDetectionSettleTime()} seconds");
         }
         
         // Base threshold values (before scaling)
@@ -875,35 +873,7 @@ namespace UGTLive
         private readonly double _baseIsolatedTextThreshold = 30.0; // Width threshold to identify isolated text like buttons
         private readonly double _baseHorizontalGapThreshold = 30.0; // Maximum horizontal gap between text chunks to consider them part of the same line
         private double _baseHorizontalXPositionThreshold = 10.0; // Maximum difference in X starting positions to consider text in the same paragraph
-        
-        /// <summary>
-        /// Set the settle time (time to wait for text to settle before capturing)
-        /// </summary>
-        /// <param name="seconds">Time in seconds</param>
-        public void SetSettleTime(double seconds)
-        {
-            if (seconds < 0)
-            {
-                Console.WriteLine($"Invalid settle time: {seconds}. Must be non-negative. Using 0.");
-                _settleTime = 0;
-                ConfigManager.Instance.SetBlockDetectionSettleTime(0);
-            }
-            else
-            {
-                _settleTime = seconds;
-                // Save to config to persist between sessions
-                ConfigManager.Instance.SetBlockDetectionSettleTime(seconds);
-                Console.WriteLine($"Settle time set to {seconds} seconds");
-            }
-        }
-        
-        /// <summary>
-        /// Get the current settle time in seconds
-        /// </summary>
-        public double GetSettleTime()
-        {
-            return _settleTime;
-        }
+      
         
         /// <summary>
         /// Set the horizontal X position threshold
@@ -1198,113 +1168,7 @@ namespace UGTLive
             }
         }
         
-        /// <summary>
-        /// Determine if a new paragraph should be started based on the relationship between two text blocks
-        /// </summary>
-        private bool ShouldStartNewParagraph(TextBlockInfo previous, TextBlockInfo current)
-        {
-            // Calculate the current scaled thresholds
-            double verticalProximityThreshold = _baseVerticalProximityThreshold * _scaleModToApplyToAllBlockDetectionParameters;
-            double paragraphBreakThreshold = _baseParagraphBreakThreshold * _scaleModToApplyToAllBlockDetectionParameters;
-            double indentationThreshold = _baseIndentationThreshold * _scaleModToApplyToAllBlockDetectionParameters;
-            double horizontalAlignmentThreshold = _baseHorizontalAlignmentThreshold * _scaleModToApplyToAllBlockDetectionParameters;
-            double horizontalGapThreshold = _baseHorizontalGapThreshold * _scaleModToApplyToAllBlockDetectionParameters;
-            double xPositionDiffThreshold = _baseHorizontalXPositionThreshold * _scaleModToApplyToAllBlockDetectionParameters;
-            
-            // Check vertical distance
-            double verticalGap = current.Y - (previous.Y + previous.Height);
-            
-            // If there's a large vertical gap, it's likely a new paragraph
-            if (verticalGap > paragraphBreakThreshold)
-            {
-                return true;
-            }
-            
-            // Check X position difference - if starting points differ significantly, consider as different paragraphs
-            double xPositionDiff = Math.Abs(current.X - previous.X);
-            
-            // If starting X positions differ significantly, consider them different paragraphs
-            // This is critical for handling character names, columns, and other horizontal layout patterns
-            if (xPositionDiff > xPositionDiffThreshold)
-            {
-                return true;
-            }
-            
-            // Check if blocks are on different lines but close enough vertically to be in the same paragraph
-            double centerYPrev = previous.Y + previous.Height / 2;
-            double centerYCurr = current.Y + current.Height / 2;
-            
-            // If vertical centers differ significantly, these are different lines
-            if (Math.Abs(centerYCurr - centerYPrev) > verticalProximityThreshold)
-            {
-                // If on different lines, check horizontal gap
-                // If horizontally far apart, start a new paragraph 
-                double horizontalGap = Math.Min(
-                    Math.Abs(current.X - (previous.X + previous.Width)), // gap if current is to the right
-                    Math.Abs(previous.X - (current.X + current.Width))   // gap if current is to the left
-                );
-                
-                // Large horizontal gap indicates these blocks don't belong together
-                if (horizontalGap > horizontalGapThreshold)
-                {
-                    return true;
-                }
-            }
-            
-            // Check horizontal alignment
-            // If the current line starts significantly to the right, it might be indented (first line of a paragraph)
-            if (current.X > previous.X + indentationThreshold)
-            {
-                // Only consider as a new paragraph if it's also on a new line
-                // (to avoid breaking on spaces within a line)
-                if (verticalGap > 0)
-                {
-                    return true;
-                }
-            }
-            
-            // If the current line starts significantly to the left, it might be a new paragraph or element
-            if (previous.X > current.X + horizontalAlignmentThreshold)
-            {
-                // Only consider as a new paragraph if it's also on a new line
-                if (verticalGap > 0)
-                {
-                    return true;
-                }
-            }
-            
-            // If we've gotten here, the blocks are probably part of the same paragraph
-            return false;
-        }
-        
-        /// <summary>
-        /// Determine if a paragraph contains isolated elements like buttons or headers
-        /// </summary>
-        private bool IsProbablyIsolatedText(List<TextBlockInfo> paragraph)
-        {
-            // Calculate the current scaled thresholds
-            double isolatedTextThreshold = _baseIsolatedTextThreshold * _scaleModToApplyToAllBlockDetectionParameters;
-            
-            // If it's a single, short text block, it might be a button or header
-            if (paragraph.Count == 1)
-            {
-                var block = paragraph[0];
-                
-                // Short text and short width might indicate a button or isolated element
-                if (block.Text.Length < 20 && block.Width < isolatedTextThreshold)
-                {
-                    return true;
-                }
-                
-                // Potential character name or label - often no spaces and positioned left
-                if (block.Text.Length < 15 && !block.Text.Contains(" "))
-                {
-                    return true;
-                }
-            }
-            
-            return false;
-        }
+      
         
         /// <summary>
         /// Class to hold text block information for processing

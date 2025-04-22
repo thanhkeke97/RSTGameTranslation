@@ -348,7 +348,8 @@ namespace UGTLive
                                 string contentHash = GenerateContentHash(filteredResults);
 
                                 // Handle settle time if enabled
-                                if (MonitorWindow.Instance.GetSettleTimeSeconds() > 0)
+                                double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
+                                if (settleTime > 0)
                                 {
                                     if (contentHash == _lastOcrHash)
                                     {
@@ -360,7 +361,7 @@ namespace UGTLive
                                         else
                                         {
                                             // Check if we are within the settling time
-                                            if ((DateTime.Now - _lastChangeTime).TotalSeconds < MonitorWindow.Instance.GetSettleTimeSeconds())
+                                            if ((DateTime.Now - _lastChangeTime).TotalSeconds < settleTime)
                                             {
                                                 return;
                                             }

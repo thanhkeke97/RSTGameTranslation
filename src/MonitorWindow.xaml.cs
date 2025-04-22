@@ -29,8 +29,7 @@ namespace UGTLive
             }
         }
         
-        // Private field to store settle time in seconds
-        private double _settleTimeSeconds = 0.5; // Default to 0.5 seconds
+        // Settle time is stored in ConfigManager, no need for a local variable
         
         public MonitorWindow()
         {
@@ -47,24 +46,7 @@ namespace UGTLive
             
             // Set initial status
             UpdateStatus("Ready");
-            
-            // Load block detection power and settle time from BlockDetectionManager
-            // These values are already loaded from config in BlockDetectionManager's constructor
-           
-            Console.WriteLine($"Loaded block detection power: {BlockDetectionManager.Instance.GetBlockDetectionScale()}");
-            Console.WriteLine($"Loaded settle time: {_settleTimeSeconds} seconds");
-            
-            // Set textbox values - don't trigger the TextChanged events for these initial settings
-            blockDetectionPowerTextBox.TextChanged -= BlockDetectionPowerTextBox_TextChanged;
-            settleTimeTextBox.TextChanged -= SettleTimeTextBox_TextChanged;
-            
-            blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString();
-            settleTimeTextBox.Text = _settleTimeSeconds.ToString();
-            
-            // Reattach event handlers
-            blockDetectionPowerTextBox.TextChanged += BlockDetectionPowerTextBox_TextChanged;
-            settleTimeTextBox.TextChanged += SettleTimeTextBox_TextChanged;
-            
+             
             // Add loaded event handler
             this.Loaded += MonitorWindow_Loaded;
             
@@ -75,21 +57,13 @@ namespace UGTLive
             ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
             autoTranslateCheckBox.Checked += AutoTranslateCheckBox_CheckedChanged;
             autoTranslateCheckBox.Unchecked += AutoTranslateCheckBox_CheckedChanged;
-            blockDetectionPowerTextBox.TextChanged += BlockDetectionPowerTextBox_TextChanged;
-            blockDetectionPowerTextBox.LostFocus += BlockDetectionPowerTextBox_LostFocus;
             
             // Add event handlers for the zoom TextBox
             zoomTextBox.TextChanged += ZoomTextBox_TextChanged;
             zoomTextBox.LostFocus += ZoomTextBox_LostFocus;
             
-            // Add event handlers for the settle time TextBox
-            settleTimeTextBox.TextChanged += SettleTimeTextBox_TextChanged;
-            settleTimeTextBox.LostFocus += SettleTimeTextBox_LostFocus;
-            
             // Add KeyDown event handlers for TextBoxes to handle Enter key
-            blockDetectionPowerTextBox.KeyDown += TextBox_KeyDown;
             zoomTextBox.KeyDown += TextBox_KeyDown;
-            settleTimeTextBox.KeyDown += TextBox_KeyDown;
 
             SocketManager.Instance.ConnectionChanged += OnSocketConnectionChanged;
 
@@ -793,48 +767,16 @@ namespace UGTLive
             Console.WriteLine("Monitor window closing operation converted to hide");
         }
         
-        // Validate block detection power input and update when changed
-        private void BlockDetectionPowerTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // Only check format, but don't apply yet - will apply on LostFocus
-            if (double.TryParse(blockDetectionPowerTextBox.Text, out double value))
-            {
-                // Valid number
-                if (value < 0.1 || value > 1000)
-                {
-                    // Out of range - highlight but don't change yet
-                    blockDetectionPowerTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(200, 100, 100));
-                }
-                else
-                {
-                    // Valid range
-                    blockDetectionPowerTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(64, 64, 64));
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(blockDetectionPowerTextBox.Text))
-            {
-                // Invalid number
-                blockDetectionPowerTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(200, 100, 100));
-            }
-        }
+       
         
         // Handle Enter key press in TextBoxes
         private void TextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.Enter)
             {
-                // Handle the Enter key press for each TextBox
-                if (sender == blockDetectionPowerTextBox)
-                {
-                    ApplyBlockDetectionPower();
-                }
-                else if (sender == zoomTextBox)
+                if (sender == zoomTextBox)
                 {
                     ApplyZoomFromTextBox();
-                }
-                else if (sender == settleTimeTextBox)
-                {
-                    ApplySettleTime();
                 }
                 
                 // Remove focus from the TextBox
@@ -918,152 +860,6 @@ namespace UGTLive
             }
         }
         
-        // Apply block detection power value when focus is lost
-        private void BlockDetectionPowerTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            ApplyBlockDetectionPower();
-        }
-        
-        // Handle TextChanged event for settle time TextBox
-        private void SettleTimeTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // Only check format, but don't apply yet - will apply on LostFocus
-            if (double.TryParse(settleTimeTextBox.Text, out double value))
-            {
-                // Valid number
-                if (value < 0 || value > 60)
-                {
-                    // Out of range - highlight but don't change yet
-                    settleTimeTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(200, 100, 100));
-                }
-                else
-                {
-                    // Valid range
-                    settleTimeTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(64, 64, 64));
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(settleTimeTextBox.Text))
-            {
-                // Invalid number
-                settleTimeTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(200, 100, 100));
-            }
-        }
-        
-        // Apply settle time when focus is lost
-        private void SettleTimeTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            ApplySettleTime();
-        }
-        
-        // Apply settle time from TextBox value
-        private void ApplySettleTime()
-        {
-            // Skip if initializing to prevent setting defaults over existing values
-            if (_isInitializing)
-            {
-                Console.WriteLine("Skipping settle time change during initialization");
-                return;
-            }
-            
-            if (double.TryParse(settleTimeTextBox.Text, out double value))
-            {
-                // Clamp to valid range
-                value = Math.Max(0, Math.Min(60, value));
-                
-                // Update value and display
-                settleTimeTextBox.Text = value.ToString();
-                settleTimeTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(64, 64, 64));
-                
-                // Store the value
-                _settleTimeSeconds = value;
-                
-                // Apply to block detection manager (this will save to config)
-                BlockDetectionManager.Instance.SetSettleTime(value);
-                
-                // Update status
-                UpdateStatus($"Settle time set to {value} seconds");
-                
-                Console.WriteLine($"Settle time set to {value} seconds");
-            }
-            else
-            {
-                // Invalid input, revert to default
-                settleTimeTextBox.Text = "0";
-                settleTimeTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(64, 64, 64));
-                
-                // Store default value
-                _settleTimeSeconds = 0;
-                
-                // Update status
-                UpdateStatus("Settle time reset to default (0 seconds)");
-            }
-        }
-        
-        // Public getter for settle time
-        public double GetSettleTimeSeconds()
-        {
-            return _settleTimeSeconds;
-        }
-        
-        // Public setter for settle time
-        public void SetSettleTimeSeconds(double seconds)
-        {
-            // Ensure we're on the UI thread
-            if (!Dispatcher.CheckAccess())
-            {
-                Dispatcher.Invoke(() => SetSettleTimeSeconds(seconds));
-                return;
-            }
-            
-            // Clamp and set the value
-            _settleTimeSeconds = Math.Max(0, Math.Min(60, seconds));
-            settleTimeTextBox.Text = _settleTimeSeconds.ToString();
-            
-            // Update UI (background color will be handled by the TextChanged event)
-        }
-        
-        // Apply block detection power value
-        private void ApplyBlockDetectionPower()
-        {
-            // Skip if initializing to prevent setting defaults over existing values
-            if (_isInitializing)
-            {
-                Console.WriteLine("Skipping block detection power change during initialization");
-                return;
-            }
-            
-            if (double.TryParse(blockDetectionPowerTextBox.Text, out double value))
-            {
-                // Clamp to valid range
-                value = Math.Max(0.1, Math.Min(1000, value));
-                
-                // Update value and display
-                blockDetectionPowerTextBox.Text = value.ToString();
-                blockDetectionPowerTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(64, 64, 64));
-                
-                // Apply to block detection manager (this will save to config)
-                BlockDetectionManager.Instance.SetBlockDetectionScale(value);
-                
-                // Update status
-                UpdateStatus($"Block detection power set to {value}");
-                
-                // Clear any existing text objects and reset hash to force re-rendering
-                Logic.Instance.ClearAllTextObjects();
-                Logic.Instance.ResetHash();
-              
-            }
-            else
-            {
-                // Invalid input, revert to default
-                blockDetectionPowerTextBox.Text = "5";
-                blockDetectionPowerTextBox.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(64, 64, 64));
-                
-                // Apply default value
-                BlockDetectionManager.Instance.SetBlockDetectionScale(5);
-                
-                // Update status
-                UpdateStatus("Block detection power reset to default (5)");
-            }
-        }
+       
     }
 }
