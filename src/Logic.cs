@@ -343,9 +343,18 @@ namespace UGTLive
                             
                             if (status == "success" && root.TryGetProperty("results", out JsonElement resultsElement))
                             {
-                                // Pre-filter low-confidence characters before generating hash
+                                // Pre-filter low-confidence characters before block detection
                                 JsonElement filteredResults = FilterLowConfidenceCharacters(resultsElement);
-                                string contentHash = GenerateContentHash(filteredResults);
+                                
+                                // Process character-level OCR data using CharacterBlockDetectionManager
+                                // Use the filtered results for consistency
+                                JsonElement modifiedResults = CharacterBlockDetectionManager.Instance.ProcessCharacterResults(filteredResults);
+                                
+                                // Filter out text objects that should be ignored based on ignore phrases
+                                modifiedResults = FilterIgnoredPhrases(modifiedResults);
+                                
+                                // Generate content hash AFTER block detection and filtering
+                                string contentHash = GenerateContentHash(modifiedResults);
 
                                 // Handle settle time if enabled
                                 double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
@@ -399,12 +408,6 @@ namespace UGTLive
                                
                                 // Looks like new stuff
                                 _lastOcrHash = contentHash;
-
-                               
-
-                                // Process character-level OCR data using CharacterBlockDetectionManager
-                                // Use the same filtered results for consistency
-                                JsonElement modifiedResults = CharacterBlockDetectionManager.Instance.ProcessCharacterResults(filteredResults);
                                 double scale = BlockDetectionManager.Instance.GetBlockDetectionScale();
                                 Console.WriteLine($"Character-level processing (scale={scale:F2}): {resultsElement.GetArrayLength()} characters → {modifiedResults.GetArrayLength()} blocks");
                                 
@@ -518,6 +521,93 @@ namespace UGTLive
             
            }
         
+        // Filter results array to remove objects that should be ignored based on ignore phrases
+        private JsonElement FilterIgnoredPhrases(JsonElement resultsElement)
+        {
+            if (resultsElement.ValueKind != JsonValueKind.Array)
+                return resultsElement;
+                
+            try
+            {
+                // Create a new JSON array for filtered results
+                using (var ms = new MemoryStream())
+                {
+                    using (var writer = new Utf8JsonWriter(ms))
+                    {
+                        writer.WriteStartArray();
+                        
+                        // Process each element in the array
+                        for (int i = 0; i < resultsElement.GetArrayLength(); i++)
+                        {
+                            var item = resultsElement[i];
+                            
+                            // Skip items that don't have the text property
+                            if (!item.TryGetProperty("text", out var textElement))
+                            {
+                                // Include items without text values (might be non-character elements)
+                                item.WriteTo(writer);
+                                continue;
+                            }
+                            
+                            // Get the text from the element
+                            string text = textElement.GetString() ?? "";
+                            
+                            // Check if we should ignore this text
+                            var (shouldIgnore, filteredText) = ShouldIgnoreText(text);
+                            
+                            if (shouldIgnore)
+                            {
+                                // Skip this element entirely
+                                continue;
+                            }
+                            
+                            // If the text was filtered but not ignored completely
+                            if (filteredText != text)
+                            {
+                                // We need to create a new JSON object with the filtered text
+                                writer.WriteStartObject();
+                                
+                                // Copy all properties except 'text'
+                                foreach (var property in item.EnumerateObject())
+                                {
+                                    if (property.Name != "text")
+                                    {
+                                        property.WriteTo(writer);
+                                    }
+                                }
+                                
+                                // Write the filtered text
+                                writer.WritePropertyName("text");
+                                writer.WriteStringValue(filteredText);
+                                
+                                writer.WriteEndObject();
+                            }
+                            else
+                            {
+                                // No change to the text, write the entire item
+                                item.WriteTo(writer);
+                            }
+                        }
+                        
+                        writer.WriteEndArray();
+                        writer.Flush();
+                        
+                        // Read the filtered JSON back
+                        ms.Position = 0;
+                        using (JsonDocument doc = JsonDocument.Parse(ms))
+                        {
+                            return doc.RootElement.Clone();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error filtering ignored phrases: {ex.Message}");
+                return resultsElement; // Return original on error
+            }
+        }
+        
         // Check if a text should be ignored based on ignore phrases
         private (bool ShouldIgnore, string FilteredText) ShouldIgnoreText(string text)
         {
@@ -532,7 +622,7 @@ namespace UGTLive
                 
             string filteredText = text;
             
-            Console.WriteLine($"Checking text '{text}' against {ignorePhrases.Count} ignore phrases");
+            //Console.WriteLine($"Checking text '{text}' against {ignorePhrases.Count} ignore phrases");
             
             foreach (var (phrase, exactMatch) in ignorePhrases)
             {
@@ -544,7 +634,7 @@ namespace UGTLive
                     // Check for exact match
                     if (text.Equals(phrase, StringComparison.OrdinalIgnoreCase))
                     {
-                        Console.WriteLine($"Ignoring text due to exact match: '{phrase}'");
+                        //Console.WriteLine($"Ignoring text due to exact match: '{phrase}'");
                         return (true, string.Empty);
                     }
                 }
@@ -556,7 +646,7 @@ namespace UGTLive
                     
                     if (before != filteredText)
                     {
-                        Console.WriteLine($"Applied non-exact match filter: '{phrase}' removed from text");
+                        //Console.WriteLine($"Applied non-exact match filter: '{phrase}' removed from text");
                     }
                 }
             }
@@ -571,7 +661,7 @@ namespace UGTLive
             // Return the filtered text if it changed
             if (filteredText != text)
             {
-                Console.WriteLine($"Text filtered: '{text}' -> '{filteredText}'");
+                //Console.WriteLine($"Text filtered: '{text}' -> '{filteredText}'");
                 return (false, filteredText);
             }
             
@@ -619,21 +709,10 @@ namespace UGTLive
                                 continue;
                             }
                             
-                            // Check if we should ignore this text based on ignore phrases
-                            var (shouldIgnore, filteredText) = ShouldIgnoreText(text);
-                            
-                            if (shouldIgnore)
-                            {
-                                // Skip this text entirely
-                                continue;
-                            }
-                            
-                            // Use the filtered text if it was changed
-                            if (filteredText != text)
-                            {
-                                text = filteredText;
-                            }
-                           
+                            // Note: We no longer need to filter ignore phrases here
+                            // as it's now done earlier in ProcessReceivedTextJsonData before hash generation
+
+
                             double confidence = confElement.GetDouble();
                             
                             // Extract bounding box coordinates if available
@@ -909,8 +988,9 @@ namespace UGTLive
                 return resultsElement; // Return original on error
             }
         }
+
         static readonly HashSet<char> g_charsToStripFromHash =
-             new(" \n\r,.-:;ー・…。、~』!");
+             new(" \n\r,.-:;ー・…。、~』!^へ");
 
 
         private string GenerateContentHash(JsonElement resultsElement)
