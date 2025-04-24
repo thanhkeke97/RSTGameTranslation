@@ -9,12 +9,26 @@ using System.Windows.Media;
 using System.Windows.Documents;
 using System.Windows.Navigation;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
 using ComboBox = System.Windows.Controls.ComboBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
 
 namespace UGTLive
 {
+    // Class to represent an ignore phrase
+    public class IgnorePhrase
+    {
+        public string Phrase { get; set; } = string.Empty;
+        public bool ExactMatch { get; set; } = true;
+        
+        public IgnorePhrase(string phrase, bool exactMatch)
+        {
+            Phrase = phrase;
+            ExactMatch = exactMatch;
+        }
+    }
+
     public partial class SettingsWindow : Window
     {
         private static SettingsWindow? _instance;
@@ -53,6 +67,9 @@ namespace UGTLive
         
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
+        
+        // Collection to hold the ignore phrases
+        private ObservableCollection<IgnorePhrase> _ignorePhrases = new ObservableCollection<IgnorePhrase>();
         
         private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -328,6 +345,9 @@ namespace UGTLive
             ttsServiceComboBox.SelectionChanged += TtsServiceComboBox_SelectionChanged;
             elevenLabsVoiceComboBox.SelectionChanged += ElevenLabsVoiceComboBox_SelectionChanged;
             googleTtsVoiceComboBox.SelectionChanged += GoogleTtsVoiceComboBox_SelectionChanged;
+            
+            // Load ignore phrases
+            LoadIgnorePhrases();
         }
         
         // Language settings
@@ -1455,6 +1475,178 @@ namespace UGTLive
                 Console.WriteLine($"Error clearing translation context: {ex.Message}");
                 MessageBox.Show($"Error clearing context: {ex.Message}", 
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        // Ignore Phrases methods
+        
+        // Load ignore phrases from ConfigManager
+        private void LoadIgnorePhrases()
+        {
+            try
+            {
+                _ignorePhrases.Clear();
+                
+                // Get phrases from ConfigManager
+                var phrases = ConfigManager.Instance.GetIgnorePhrases();
+                
+                // Add each phrase to the collection
+                foreach (var (phrase, exactMatch) in phrases)
+                {
+                    if (!string.IsNullOrEmpty(phrase))
+                    {
+                        _ignorePhrases.Add(new IgnorePhrase(phrase, exactMatch));
+                    }
+                }
+                
+                // Set the ListView's ItemsSource
+                ignorePhraseListView.ItemsSource = _ignorePhrases;
+                
+                Console.WriteLine($"Loaded {_ignorePhrases.Count} ignore phrases");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading ignore phrases: {ex.Message}");
+            }
+        }
+        
+        // Save all ignore phrases to ConfigManager
+        private void SaveIgnorePhrases()
+        {
+            try
+            {
+                if (_isInitializing)
+                    return;
+                    
+                // Convert collection to list of tuples
+                var phrases = _ignorePhrases.Select(p => (p.Phrase, p.ExactMatch)).ToList();
+                
+                // Save to ConfigManager
+                ConfigManager.Instance.SaveIgnorePhrases(phrases);
+                
+                // Force the Logic to refresh
+                Logic.Instance.ResetHash();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving ignore phrases: {ex.Message}");
+            }
+        }
+        
+        // Add a new ignore phrase
+        private void AddIgnorePhraseButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string phrase = newIgnorePhraseTextBox.Text.Trim();
+                
+                if (string.IsNullOrEmpty(phrase))
+                {
+                    MessageBox.Show("Please enter a phrase to ignore.", 
+                        "Missing Phrase", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                
+                // Check if the phrase already exists
+                if (_ignorePhrases.Any(p => p.Phrase == phrase))
+                {
+                    MessageBox.Show($"The phrase '{phrase}' is already in the list.", 
+                        "Duplicate Phrase", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                
+                bool exactMatch = newExactMatchCheckBox.IsChecked ?? true;
+                
+                // Add to the collection
+                _ignorePhrases.Add(new IgnorePhrase(phrase, exactMatch));
+                
+                // Save to ConfigManager
+                SaveIgnorePhrases();
+                
+                // Clear the input
+                newIgnorePhraseTextBox.Text = "";
+                
+                Console.WriteLine($"Added ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding ignore phrase: {ex.Message}");
+                MessageBox.Show($"Error adding phrase: {ex.Message}", 
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        // Remove a selected ignore phrase
+        private void RemoveIgnorePhraseButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (ignorePhraseListView.SelectedItem is IgnorePhrase selectedPhrase)
+                {
+                    string phrase = selectedPhrase.Phrase;
+                    
+                    // Ask for confirmation
+                    MessageBoxResult result = MessageBox.Show($"Are you sure you want to remove the phrase '{phrase}'?", 
+                        "Confirm Remove", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        // Remove from the collection
+                        _ignorePhrases.Remove(selectedPhrase);
+                        
+                        // Save to ConfigManager
+                        SaveIgnorePhrases();
+                        
+                        Console.WriteLine($"Removed ignore phrase: '{phrase}'");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error removing ignore phrase: {ex.Message}");
+                MessageBox.Show($"Error removing phrase: {ex.Message}", 
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        // Handle selection changed event
+        private void IgnorePhraseListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Enable or disable the Remove button based on selection
+            removeIgnorePhraseButton.IsEnabled = ignorePhraseListView.SelectedItem != null;
+        }
+        
+        // Handle checkbox changed event
+        private void IgnorePhrase_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_isInitializing)
+                    return;
+                    
+                if (sender is System.Windows.Controls.CheckBox checkbox && checkbox.Tag is string phrase)
+                {
+                    bool exactMatch = checkbox.IsChecked ?? false;
+                    
+                    // Find and update the phrase in the collection
+                    foreach (var ignorePhrase in _ignorePhrases)
+                    {
+                        if (ignorePhrase.Phrase == phrase)
+                        {
+                            ignorePhrase.ExactMatch = exactMatch;
+                            
+                            // Save to ConfigManager
+                            SaveIgnorePhrases();
+                            
+                            Console.WriteLine($"Updated ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating ignore phrase: {ex.Message}");
             }
         }
     }

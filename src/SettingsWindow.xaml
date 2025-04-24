@@ -196,6 +196,57 @@
                     </Grid>
                 </GroupBox>
                 
+                <!-- Ignore Phrases Settings -->
+                <GroupBox Header="Ignore Phrases Settings" Margin="0,0,0,15" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Header for list -->
+                        <TextBlock Text="Phrases to ignore:" Grid.Row="0" Grid.Column="0" 
+                                  VerticalAlignment="Center" Margin="0,0,10,0"
+                                  ToolTip="List of phrases that will be ignored during translation. If exact match is enabled, the whole text will be ignored if it matches. If disabled, the phrase will be removed from the text."/>
+                        
+                        <!-- ListView for phrases -->
+                        <ListView x:Name="ignorePhraseListView" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
+                                 Margin="0,5" Height="150" SelectionMode="Single" SelectionChanged="IgnorePhraseListView_SelectionChanged">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Phrase" Width="350" DisplayMemberBinding="{Binding Phrase}"/>
+                                    <GridViewColumn Header="Exact Match" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding ExactMatch}" Checked="IgnorePhrase_CheckedChanged" Unchecked="IgnorePhrase_CheckedChanged" Tag="{Binding Phrase}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                        
+                        <!-- Input for new phrase -->
+                        <TextBlock Text="Add new phrase:" Grid.Row="2" Grid.Column="0" 
+                                  VerticalAlignment="Center" Margin="0,8,10,0"/>
+                        <TextBox x:Name="newIgnorePhraseTextBox" Grid.Row="2" Grid.Column="1" 
+                                Margin="0,8,10,0"/>
+                        <CheckBox x:Name="newExactMatchCheckBox" Content="Exact Match" Grid.Row="2" Grid.Column="2" 
+                                 VerticalAlignment="Center" Margin="0,8,10,0" IsChecked="True"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="3">
+                            <Button x:Name="addIgnorePhraseButton" Content="Add" Margin="0,8,5,0" Width="60" Click="AddIgnorePhraseButton_Click"/>
+                            <Button x:Name="removeIgnorePhraseButton" Content="Remove" Margin="0,8,0,0" Width="60" Click="RemoveIgnorePhraseButton_Click" IsEnabled="False"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                
                 <!-- Block Detection Settings -->
                 <GroupBox Header="Block Detection Settings" Margin="0,0,0,15" Padding="10">
                     <Grid>

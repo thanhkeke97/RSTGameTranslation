@@ -48,6 +48,7 @@ namespace UGTLive
         public const string MIN_LETTER_CONFIDENCE = "min_letter_confidence";
         public const string MIN_LINE_CONFIDENCE = "min_line_confidence";
         public const string AUTO_TRANSLATE_ENABLED = "auto_translate_enabled";
+        public const string IGNORE_PHRASES = "ignore_phrases";
         
         // Text-to-Speech configuration keys
         public const string TTS_ENABLED = "tts_enabled";
@@ -213,6 +214,7 @@ namespace UGTLive
             _configValues[MIN_LETTER_CONFIDENCE] = "0.1";
             _configValues[MIN_LINE_CONFIDENCE] = "0.1";
             _configValues[AUTO_TRANSLATE_ENABLED] = "true";
+            _configValues[IGNORE_PHRASES] = "";
             
             // Save the default configuration
             SaveConfig();
@@ -273,9 +275,25 @@ namespace UGTLive
                     
                     // Parse config entries in format "key|value|"
                     string[] parts = line.Split('|');
-                    if (parts.Length >= 3 && !string.IsNullOrWhiteSpace(parts[0]))
+                    if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[0]))
                     {
                         string key = parts[0].Trim();
+                        
+                        // Special handling for IGNORE_PHRASES
+                        if (key == IGNORE_PHRASES)
+                        {
+                            // For IGNORE_PHRASES, we need to capture the full line after the key
+                            string phraseValue = line.Substring(key.Length + 1);
+                            // Remove trailing delimiter if present
+                            if (phraseValue.EndsWith("|"))
+                                phraseValue = phraseValue.Substring(0, phraseValue.Length - 1);
+                                
+                            _configValues[key] = phraseValue;
+                            Console.WriteLine($"Loaded ignore phrases config: {key}");
+                            continue;
+                        }
+                        
+                        // Normal key-value pairs
                         string value = parts[1].Trim();
                         
                         // Only add if not already added by multiline processing
@@ -1208,6 +1226,119 @@ namespace UGTLive
                 _configValues[BLOCK_DETECTION_SETTLE_TIME] = seconds.ToString("F2");
                 SaveConfig();
                 Console.WriteLine($"Block detection settle time set to: {seconds:F2} seconds");
+            }
+        }
+        
+        // Get all ignore phrases as a list of tuples (phrase, exactMatch)
+        public List<(string Phrase, bool ExactMatch)> GetIgnorePhrases()
+        {
+            List<(string, bool)> result = new List<(string, bool)>();
+            string value = GetValue(IGNORE_PHRASES, "");
+            
+            if (!string.IsNullOrEmpty(value))
+            {
+                // Fix the format if it contains the key prefix (from old format)
+                if (value.StartsWith(IGNORE_PHRASES + "|"))
+                {
+                    value = value.Substring((IGNORE_PHRASES + "|").Length);
+                }
+                
+                // Format should be: phrase1|True|phrase2|False
+                string[] parts = value.Split('|');
+                
+                // Process in pairs
+                for (int i = 0; i < parts.Length - 1; i += 2)
+                {
+                    if (i + 1 < parts.Length)
+                    {
+                        string phrase = parts[i];
+                        bool exactMatch = bool.TryParse(parts[i + 1], out bool match) && match;
+                        
+                        if (!string.IsNullOrEmpty(phrase))
+                        {
+                            result.Add((phrase, exactMatch));
+                            Console.WriteLine($"Loaded ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
+                        }
+                    }
+                }
+            }
+            
+            return result;
+        }
+        
+        // Save all ignore phrases
+        public void SaveIgnorePhrases(List<(string Phrase, bool ExactMatch)> phrases)
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            foreach (var (phrase, exactMatch) in phrases)
+            {
+                if (!string.IsNullOrEmpty(phrase))
+                {
+                    sb.Append(phrase);
+                    sb.Append('|');
+                    sb.Append(exactMatch.ToString());
+                    sb.Append('|');
+                }
+            }
+            
+            _configValues[IGNORE_PHRASES] = sb.ToString();
+            SaveConfig();
+            Console.WriteLine($"Saved {phrases.Count} ignore phrases: {sb.ToString()}");
+        }
+        
+        // Add a single ignore phrase
+        public void AddIgnorePhrase(string phrase, bool exactMatch)
+        {
+            if (string.IsNullOrEmpty(phrase))
+                return;
+                
+            var phrases = GetIgnorePhrases();
+            
+            // Check if the phrase already exists
+            if (!phrases.Any(p => p.Phrase == phrase))
+            {
+                phrases.Add((phrase, exactMatch));
+                SaveIgnorePhrases(phrases);
+                Console.WriteLine($"Added ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
+            }
+        }
+        
+        // Remove a single ignore phrase
+        public void RemoveIgnorePhrase(string phrase)
+        {
+            if (string.IsNullOrEmpty(phrase))
+                return;
+                
+            var phrases = GetIgnorePhrases();
+            var originalCount = phrases.Count;
+            
+            phrases.RemoveAll(p => p.Phrase == phrase);
+            
+            if (phrases.Count < originalCount)
+            {
+                SaveIgnorePhrases(phrases);
+                Console.WriteLine($"Removed ignore phrase: '{phrase}'");
+            }
+        }
+        
+        // Update exact match setting for a phrase
+        public void UpdateIgnorePhraseExactMatch(string phrase, bool exactMatch)
+        {
+            if (string.IsNullOrEmpty(phrase))
+                return;
+                
+            var phrases = GetIgnorePhrases();
+            
+            for (int i = 0; i < phrases.Count; i++)
+            {
+                if (phrases[i].Phrase == phrase)
+                {
+                    phrases[i] = (phrase, exactMatch);
+                    SaveIgnorePhrases(phrases);
+                    Console.WriteLine($"Updated ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
+                    break;
+                }
             }
         }
     }

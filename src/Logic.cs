@@ -518,6 +518,66 @@ namespace UGTLive
             
            }
         
+        // Check if a text should be ignored based on ignore phrases
+        private (bool ShouldIgnore, string FilteredText) ShouldIgnoreText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return (true, string.Empty);
+                
+            // Get all ignore phrases from ConfigManager
+            var ignorePhrases = ConfigManager.Instance.GetIgnorePhrases();
+            
+            if (ignorePhrases.Count == 0)
+                return (false, text); // No phrases to check, keep the text as is
+                
+            string filteredText = text;
+            
+            Console.WriteLine($"Checking text '{text}' against {ignorePhrases.Count} ignore phrases");
+            
+            foreach (var (phrase, exactMatch) in ignorePhrases)
+            {
+                if (string.IsNullOrEmpty(phrase))
+                    continue;
+                    
+                if (exactMatch)
+                {
+                    // Check for exact match
+                    if (text.Equals(phrase, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"Ignoring text due to exact match: '{phrase}'");
+                        return (true, string.Empty);
+                    }
+                }
+                else
+                {
+                    // Remove the phrase from the text
+                    string before = filteredText;
+                    filteredText = filteredText.Replace(phrase, "", StringComparison.OrdinalIgnoreCase);
+                    
+                    if (before != filteredText)
+                    {
+                        Console.WriteLine($"Applied non-exact match filter: '{phrase}' removed from text");
+                    }
+                }
+            }
+            
+            // Check if after removing non-exact-match phrases, the text is empty or whitespace
+            if (string.IsNullOrWhiteSpace(filteredText))
+            {
+                Console.WriteLine("Ignoring text because it's empty after filtering");
+                return (true, string.Empty);
+            }
+            
+            // Return the filtered text if it changed
+            if (filteredText != text)
+            {
+                Console.WriteLine($"Text filtered: '{text}' -> '{filteredText}'");
+                return (false, filteredText);
+            }
+            
+            return (false, text);
+        }
+        
         // Display OCR results from JSON - processes character-level blocks
         private void DisplayOcrResults(JsonElement root)
         {
@@ -557,6 +617,21 @@ namespace UGTLive
                             if (text.Length < minTextFragmentSize)
                             {
                                 continue;
+                            }
+                            
+                            // Check if we should ignore this text based on ignore phrases
+                            var (shouldIgnore, filteredText) = ShouldIgnoreText(text);
+                            
+                            if (shouldIgnore)
+                            {
+                                // Skip this text entirely
+                                continue;
+                            }
+                            
+                            // Use the filtered text if it was changed
+                            if (filteredText != text)
+                            {
+                                text = filteredText;
                             }
                            
                             double confidence = confElement.GetDouble();
