@@ -1228,8 +1228,10 @@ namespace UGTLive
                 Console.WriteLine($"Block detection settle time set to: {seconds:F2} seconds");
             }
         }
-        
+
         // Get all ignore phrases as a list of tuples (phrase, exactMatch)
+
+        //OPTIMIZE:  Why is the AI doing all this work over and over?  Should be caching the results
         public List<(string Phrase, bool ExactMatch)> GetIgnorePhrases()
         {
             List<(string, bool)> result = new List<(string, bool)>();
@@ -1257,7 +1259,7 @@ namespace UGTLive
                         if (!string.IsNullOrEmpty(phrase))
                         {
                             result.Add((phrase, exactMatch));
-                            Console.WriteLine($"Loaded ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
+                            //Console.WriteLine($"Loaded ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
                         }
                     }
                 }
