@@ -7,6 +7,8 @@ using System.Windows.Media.Animation;
 using System.Media;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Color = System.Windows.Media.Color;
 using Cursors = System.Windows.Input.Cursors;
 using Clipboard = System.Windows.Forms.Clipboard;
@@ -123,6 +125,9 @@ namespace UGTLive
 
             // Add click event handler
             Border.MouseLeftButtonDown += Border_MouseLeftButtonDown;
+            
+            // Add context menu for right-click options
+            Border.ContextMenu = CreateContextMenu();
 
             // Scale font if needed after rendering
             Border.Loaded += (s, e) => AdjustFontSize(Border, TextBlock);
@@ -323,6 +328,163 @@ namespace UGTLive
         private static readonly ConditionalWeakTable<Border, SolidColorBrush> _originalBackgrounds = 
             new ConditionalWeakTable<Border, SolidColorBrush>();
             
+        // Create the context menu with Copy Source, Copy Translated, Speak Source, and Learn Source options
+        private ContextMenu CreateContextMenu()
+        {
+            ContextMenu contextMenu = new ContextMenu();
+            
+            // Copy Source menu item
+            MenuItem copySourceMenuItem = new MenuItem();
+            copySourceMenuItem.Header = "Copy Source";
+            copySourceMenuItem.Click += CopySourceMenuItem_Click;
+            contextMenu.Items.Add(copySourceMenuItem);
+            
+            // Copy Translated menu item
+            MenuItem copyTranslatedMenuItem = new MenuItem();
+            copyTranslatedMenuItem.Header = "Copy Translated";
+            copyTranslatedMenuItem.Click += CopyTranslatedMenuItem_Click;
+            contextMenu.Items.Add(copyTranslatedMenuItem);
+            
+            // Add a separator
+            contextMenu.Items.Add(new Separator());
+            
+            // Learn Source menu item
+            MenuItem learnSourceMenuItem = new MenuItem();
+            learnSourceMenuItem.Header = "Learn Source";
+            learnSourceMenuItem.Click += LearnSourceMenuItem_Click;
+            contextMenu.Items.Add(learnSourceMenuItem);
+            
+            // Speak Source menu item
+            MenuItem speakSourceMenuItem = new MenuItem();
+            speakSourceMenuItem.Header = "Speak Source";
+            speakSourceMenuItem.Click += SpeakSourceMenuItem_Click;
+            contextMenu.Items.Add(speakSourceMenuItem);
+            
+            // Update menu item states when context menu is opened
+            contextMenu.Opened += (s, e) => {
+                copyTranslatedMenuItem.IsEnabled = !string.IsNullOrEmpty(this.TextTranslated);
+            };
+            
+            return contextMenu;
+        }
+        
+        // Click handler for Copy Source menu item
+        private void CopySourceMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText(this.Text);
+            PlayClickSound();
+        }
+        
+        // Click handler for Copy Translated menu item
+        private void CopyTranslatedMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(this.TextTranslated))
+            {
+                Clipboard.SetText(this.TextTranslated);
+                PlayClickSound();
+            }
+        }
+        
+        // Click handler for Learn Source menu item
+        private void LearnSourceMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(this.Text))
+                {
+                    // Construct the ChatGPT URL with the selected text and instructions
+                    string chatGptPrompt = $"Create a lesson to help me learn about this text and its translation: {this.Text}";
+                    string encodedPrompt = System.Web.HttpUtility.UrlEncode(chatGptPrompt);
+                    string chatGptUrl = $"https://chat.openai.com/?q={encodedPrompt}";
+                    
+                    // Open in default browser
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = chatGptUrl,
+                        UseShellExecute = true
+                    });
+                    
+                    Console.WriteLine($"Opening ChatGPT with text: {this.Text.Substring(0, Math.Min(50, this.Text.Length))}...");
+                }
+                else
+                {
+                    Console.WriteLine("No text available for Learn function");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Learn function: {ex.Message}");
+            }
+        }
+        
+        // Click handler for Speak Source menu item
+        private async void SpeakSourceMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(this.Text))
+                {
+                    string text = this.Text.Trim();
+                    Console.WriteLine($"Speak function called with text: {text.Substring(0, Math.Min(50, text.Length))}...");
+                    
+                    // Check if TTS is enabled in config
+                    if (ConfigManager.Instance.IsTtsEnabled())
+                    {
+                        string ttsService = ConfigManager.Instance.GetTtsService();
+                        
+                        try
+                        {
+                            bool success = false;
+                            
+                            if (ttsService == "ElevenLabs")
+                            {
+                                success = await ElevenLabsService.Instance.SpeakText(text);
+                            }
+                            else if (ttsService == "Google Cloud TTS")
+                            {
+                                success = await GoogleTTSService.Instance.SpeakText(text);
+                            }
+                            else
+                            {
+                                System.Windows.MessageBox.Show($"Text-to-Speech service '{ttsService}' is not supported yet.",
+                                    "Unsupported Service", MessageBoxButton.OK, MessageBoxImage.Information);
+                                return;
+                            }
+                            
+                            if (!success)
+                            {
+                                System.Windows.MessageBox.Show($"Failed to generate speech using {ttsService}. Please check the API key and settings.",
+                                    "Text-to-Speech Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"TTS error: {ex.Message}");
+                            System.Windows.MessageBox.Show($"Text-to-Speech error: {ex.Message}", 
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Text-to-Speech is disabled in settings. Please enable it first.",
+                            "TTS Disabled", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No text available for Speak function");
+                    System.Windows.MessageBox.Show("No text available to speak.",
+                        "No Text Available", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Speak function: {ex.Message}");
+                System.Windows.MessageBox.Show($"Error: {ex.Message}", "Text-to-Speech Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
         // Animate the border when clicked
         private void AnimateBorderOnClick(Border border)
         {
