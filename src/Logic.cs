@@ -1482,59 +1482,59 @@ namespace UGTLive
         {
             try
             {
-                // Kiểm tra dịch vụ đang sử dụng để xác định định dạng
+                // Check the service we're using to determine the format
                 string currentService = ConfigManager.Instance.GetCurrentTranslationService();
                 //Console.WriteLine($"Processing translation response from {currentService} service");
                 
-                // Ghi log phản hồi đầy đủ để gỡ lỗi
+                // Log full response for debugging
                 //Console.WriteLine($"Raw translationResponse: {translationResponse}");
                 
-                // Phân tích phản hồi dịch
+                // Parse the translation response
                 using JsonDocument doc = JsonDocument.Parse(translationResponse);
                 JsonElement textToProcess;
                 
-                // Các dịch vụ khác nhau có định dạng phản hồi khác nhau
+                // Different services have different response formats
                 if (currentService == "ChatGPT")
                 {
-                    // Định dạng ChatGPT: {"translated_text": "...", "original_text": "...", "detected_language": "..."}
+                    // ChatGPT format: {"translated_text": "...", "original_text": "...", "detected_language": "..."}
                     if (doc.RootElement.TryGetProperty("translated_text", out JsonElement translatedTextElement))
                     {
                         string translatedTextJson = translatedTextElement.GetString() ?? "";
                         Console.WriteLine($"ChatGPT translated_text: {translatedTextJson}");
                         
-                        // Nếu translated_text là chuỗi JSON, phân tích nó
+                        // If the translated_text is a JSON string, parse it
                         if (!string.IsNullOrEmpty(translatedTextJson) && 
                             translatedTextJson.StartsWith("{") && 
                             translatedTextJson.EndsWith("}"))
                         {
                             try
                             {
-                                // Tạo tùy chọn để xử lý ký tự thoát đúng cách
+                                // Create options to handle escaped characters properly
                                 var options = new JsonDocumentOptions
                                 {
                                     AllowTrailingCommas = true,
                                     CommentHandling = JsonCommentHandling.Skip
                                 };
                                 
-                                // Phân tích JSON bên trong
+                                // Parse the inner JSON
                                 using JsonDocument innerDoc = JsonDocument.Parse(translatedTextJson, options);
                                 textToProcess = innerDoc.RootElement;
                                 
-                                // Xử lý trực tiếp với JSON này
+                                // Process directly with this JSON
                                 ProcessStructuredJsonTranslation(textToProcess);
                                 return;
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Error parsing inner JSON from translated_text: {ex.Message}");
-                                // Quay lại xử lý bình thường
+                                // Fall back to normal processing
                             }
                         }
                     }
                 }
                 else if (currentService == "Gemini" || currentService == "Ollama")
                 {
-                    // Cấu trúc phản hồi Gemini và Ollama:
+                    // Gemini and Ollama response structure:
                     // { "candidates": [ { "content": { "parts": [ { "text": "..." } ] } } ] }
                     if (doc.RootElement.TryGetProperty("candidates", out JsonElement candidates) && 
                         candidates.GetArrayLength() > 0)
@@ -1547,19 +1547,19 @@ namespace UGTLive
                         {
                             var text = parts[0].GetProperty("text").GetString();
 
-                            // Ghi log văn bản thô để gỡ lỗi
+                            // Log the raw text for debugging
                             //Console.WriteLine($"Raw text from {currentService} API: {text}");
 
-                            // Thử trích xuất đối tượng JSON từ văn bản
-                            // Mô hình có thể bao quanh nó bằng markdown hoặc văn bản giải thích
+                            // Try to extract the JSON object from the text
+                            // The model might surround it with markdown or explanatory text
                             if (text != null)
                             {
-                                // Kiểm tra xem chúng ta đã có bản dịch đúng với source_language, target_language, text_blocks chưa
+                                // Check if we already have a proper translation with source_language, target_language, text_blocks
                                 if (text.Contains("\"source_language\"") && text.Contains("\"text_blocks\""))
                                 {
                                     Console.WriteLine("Direct translation detected, using it as is");
                                     
-                                    // Tìm JSON trong văn bản
+                                    // Look for JSON within the text
                                     int directJsonStart = text.IndexOf('{');
                                     int directJsonEnd = text.LastIndexOf('}');
                                     
@@ -1572,14 +1572,14 @@ namespace UGTLive
                                             using JsonDocument translatedDoc = JsonDocument.Parse(directJsonText);
                                             var translatedRoot = translatedDoc.RootElement;
                                             
-                                            // Cập nhật các đối tượng văn bản với bản dịch
+                                            // Now update the text objects with the translation
                                             ProcessStructuredJsonTranslation(translatedRoot);
                                             return; // Bỏ qua xử lý tiếp theo
                                         }
                                         catch (JsonException ex)
                                         {
                                             Console.WriteLine($"Error parsing direct translation JSON: {ex.Message}");
-                                            // Tiếp tục xử lý bình thường
+                                            // Continue with normal processing
                                         }
                                     }
                                 }
