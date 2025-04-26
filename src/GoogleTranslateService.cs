@@ -33,36 +33,41 @@ namespace UGTLive
         {
             try
             {
-                // Parse the input JSON
+                // Phân tích JSON đầu vào
                 using JsonDocument doc = JsonDocument.Parse(jsonData);
                 JsonElement root = doc.RootElement;
 
-                // Create a new JSON document for the translated text
+                // Tạo một tài liệu JSON mới cho văn bản đã dịch
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 using var memoryStream = new MemoryStream();
                 using var outputJson = new System.Text.Json.Utf8JsonWriter(memoryStream);
                 
                 outputJson.WriteStartObject();
                 
-                // Copy metadata from input
+                // Sao chép metadata từ đầu vào nếu có
                 if (root.TryGetProperty("metadata", out JsonElement metadata))
                 {
                     outputJson.WritePropertyName("metadata");
                     JsonSerializer.Serialize(outputJson, metadata, options);
                 }
                 
-                // Get source and target languages
-                string sourceLanguage = ConfigManager.Instance.GetSourceLanguage();
-                string targetLanguage = ConfigManager.Instance.GetTargetLanguage();
+                // Lấy ngôn ngữ nguồn và đích
+                string sourceLanguage = root.TryGetProperty("source_language", out JsonElement srcLang) 
+                    ? srcLang.GetString() ?? "ja" 
+                    : ConfigManager.Instance.GetSourceLanguage();
+                    
+                string targetLanguage = root.TryGetProperty("target_language", out JsonElement tgtLang) 
+                    ? tgtLang.GetString() ?? "en" 
+                    : ConfigManager.Instance.GetTargetLanguage();
                 
-                // Map language codes to Google Translate format if auto-mapping is enabled
+                // Ánh xạ mã ngôn ngữ sang định dạng Google Translate nếu auto-mapping được bật
                 if (_autoMapLanguages)
                 {
                     sourceLanguage = MapLanguageToGoogleCode(sourceLanguage);
                     targetLanguage = MapLanguageToGoogleCode(targetLanguage);
                 }
                 
-                // Start translating text blocks
+                // Bắt đầu dịch các khối văn bản
                 outputJson.WritePropertyName("translations");
                 outputJson.WriteStartArray();
                 
@@ -83,13 +88,13 @@ namespace UGTLive
                             blockId = id.GetString() ?? "";
                         }
                         
-                        // Skip empty text
+                        // Bỏ qua văn bản trống
                         if (string.IsNullOrWhiteSpace(originalText))
                         {
                             continue;
                         }
                         
-                        // Translate the text using Google Translate
+                        // Dịch văn bản bằng Google Translate
                         string translatedText;
                         if (_useCloudApi)
                         {
@@ -100,21 +105,29 @@ namespace UGTLive
                             translatedText = await TranslateWithFreeServiceAsync(originalText, sourceLanguage, targetLanguage);
                         }
                         
-                        // Write the translated block to output
+                        // Ghi khối đã dịch vào đầu ra
                         outputJson.WriteStartObject();
                         outputJson.WriteString("id", blockId);
                         outputJson.WriteString("original_text", originalText);
                         outputJson.WriteString("translated_text", translatedText);
                         outputJson.WriteEndObject();
+                        
+                        // Ghi log để gỡ lỗi
+                        Console.WriteLine($"Google translated: '{originalText}' -> '{translatedText}'");
                     }
                 }
                 
                 outputJson.WriteEndArray();
                 outputJson.WriteEndObject();
                 
-                // Convert to string and return
+                // Chuyển đổi thành chuỗi và trả về
                 outputJson.Flush();
-                return Encoding.UTF8.GetString(memoryStream.ToArray());
+                string result = Encoding.UTF8.GetString(memoryStream.ToArray());
+                
+                // Ghi log kết quả cuối cùng
+                Console.WriteLine($"Google Translate final JSON result: {result.Substring(0, Math.Min(100, result.Length))}...");
+                
+                return result;
             }
             catch (Exception ex)
             {
