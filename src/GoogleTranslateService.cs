@@ -188,9 +188,38 @@ namespace UGTLive
         {
             try
             {
+                // Store original text format information
+                bool hasLineBreaks = text.Contains("\n");
+                string[] originalLines = hasLineBreaks ? text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None) : null;
+                
+                // Normalize text for translation - replace line breaks with special marker
+                // Using a marker that's unlikely to appear in normal text
+                const string LINE_BREAK_MARKER = "§§LINEBREAK§§";
+                string normalizedText = text;
+                
+                if (hasLineBreaks)
+                {
+                    // Replace line breaks with marker instead of removing them
+                    normalizedText = normalizedText.Replace("\r\n", LINE_BREAK_MARKER).Replace("\n", LINE_BREAK_MARKER);
+                }
+                
                 // Prepare the URL for the free translation service
-                string encodedText = HttpUtility.UrlEncode(text);
+                string encodedText = HttpUtility.UrlEncode(normalizedText);
+                
+                // Add User-Agent to make request look more like a browser
+                if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+                }
+                
+                // Use a more robust URL with additional parameters
                 string url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sourceLanguage}&tl={targetLanguage}&dt=t&q={encodedText}";
+                
+                // Log translation attempt (truncate long texts)
+                string logText = normalizedText.Length > 50 
+                    ? normalizedText.Substring(0, 50) + "..." 
+                    : normalizedText;
+                Console.WriteLine($"Translating with free service: {logText}");
                 
                 // Send the request
                 var response = await _httpClient.GetAsync(url);
@@ -200,33 +229,154 @@ namespace UGTLive
                 {
                     string jsonResponse = await response.Content.ReadAsStringAsync();
                     
-                    // The response is a nested JSON array, not a proper JSON object
-                    // Format: [[[translated_text, original_text, ...], ...], ...]
-                    using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                    
-                    // Build the full translated text from all segments
-                    StringBuilder translatedText = new StringBuilder();
-                    
-                    // Navigate through the nested arrays
-                    JsonElement outerArray = doc.RootElement;
-                    if (outerArray.GetArrayLength() > 0)
+                    try
                     {
-                        JsonElement translationArray = outerArray[0];
+                        // The response is a nested JSON array, not a proper JSON object
+                        // Format: [[[translated_text, original_text, ...], ...], ...]
+                        using JsonDocument doc = JsonDocument.Parse(jsonResponse);
                         
-                        // Iterate through each translation segment
-                        foreach (JsonElement segment in translationArray.EnumerateArray())
+                        // Build the full translated text from all segments
+                        StringBuilder translatedText = new StringBuilder();
+                        
+                        // Navigate through the nested arrays
+                        JsonElement outerArray = doc.RootElement;
+                        if (outerArray.GetArrayLength() > 0)
                         {
-                            if (segment.GetArrayLength() > 0)
+                            JsonElement translationArray = outerArray[0];
+                            
+                            // Iterate through each translation segment
+                            foreach (JsonElement segment in translationArray.EnumerateArray())
                             {
-                                translatedText.Append(segment[0].GetString());
+                                if (segment.GetArrayLength() > 0 && segment[0].ValueKind == JsonValueKind.String)
+                                {
+                                    string segmentText = segment[0].GetString() ?? "";
+                                    translatedText.Append(segmentText);
+                                }
                             }
                         }
+                        
+                        string result = translatedText.ToString();
+                        
+                        // Log the result for debugging (truncate long results)
+                        string logResult = result.Length > 50 
+                            ? result.Substring(0, 50) + "..." 
+                            : result;
+                        Console.WriteLine($"Translation result: {logResult}");
+                        
+                        if (!string.IsNullOrEmpty(result))
+                        {
+                            // If we used line break markers, restore them now
+                            if (hasLineBreaks && result.Contains(LINE_BREAK_MARKER))
+                            {
+                                // Simply replace markers with actual line breaks
+                                result = result.Replace(LINE_BREAK_MARKER, "\n");
+                            }
+                            // If the original had line breaks but they weren't preserved in translation
+                            else if (hasLineBreaks && !result.Contains("\n") && originalLines.Length > 1)
+                            {
+                                // Try to restore line breaks based on original text structure
+                                
+                                // First, count characters per line in original text (excluding line breaks)
+                                double[] originalLineCharRatios = new double[originalLines.Length];
+                                int totalOriginalChars = text.Replace("\r", "").Replace("\n", "").Length;
+                                
+                                for (int i = 0; i < originalLines.Length; i++)
+                                {
+                                    originalLineCharRatios[i] = (double)originalLines[i].Length / totalOriginalChars;
+                                }
+                                
+                                // Distribute translated text based on original character ratios
+                                StringBuilder formattedResult = new StringBuilder();
+                                int charPosition = 0;
+                                
+                                for (int i = 0; i < originalLines.Length - 1; i++) // Process all but last line
+                                {
+                                    int charsToTake = (int)Math.Round(result.Length * originalLineCharRatios[i]);
+                                    
+                                    // Ensure we take at least 1 character and don't exceed remaining length
+                                    charsToTake = Math.Max(1, Math.Min(charsToTake, result.Length - charPosition));
+                                    
+                                    // Try to find a space near the calculated position to break naturally
+                                    int breakPos = FindNaturalBreakPosition(result, charPosition + charsToTake);
+                                    
+                                    // Add the line with a line break
+                                    formattedResult.AppendLine(result.Substring(charPosition, breakPos - charPosition));
+                                    charPosition = breakPos;
+                                }
+                                
+                                // Add the remaining text
+                                if (charPosition < result.Length)
+                                {
+                                    formattedResult.Append(result.Substring(charPosition));
+                                }
+                                
+                                result = formattedResult.ToString();
+                            }
+                            
+                            return result;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Translated text was empty after processing");
+                            return $"[EMPTY RESULT] {text}";
+                        }
                     }
-                    
-                    return translatedText.ToString();
+                    catch (JsonException jsonEx)
+                    {
+                        Console.WriteLine($"JSON parsing error: {jsonEx.Message}");
+                        Console.WriteLine($"Response content: {jsonResponse}");
+                        return $"[JSON ERROR] {text}";
+                    }
                 }
                 
                 Console.WriteLine($"Google Translate free service error: {response.StatusCode}");
+                
+                // Try alternative endpoint if the first one fails
+                if (response.StatusCode == System.Net.HttpStatusCode.Forbidden || 
+                    response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    Console.WriteLine("Trying alternative endpoint...");
+                    url = $"https://translate.google.com/translate_a/single?client=at&dt=t&dt=ld&dt=qca&dt=rm&dt=bd&dj=1&sl={sourceLanguage}&tl={targetLanguage}&q={encodedText}";
+                    
+                    response = await _httpClient.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        try
+                        {
+                            using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+                            
+                            if (doc.RootElement.TryGetProperty("sentences", out JsonElement sentences))
+                            {
+                                StringBuilder translatedText = new StringBuilder();
+                                
+                                foreach (JsonElement sentence in sentences.EnumerateArray())
+                                {
+                                    if (sentence.TryGetProperty("trans", out JsonElement trans))
+                                    {
+                                        translatedText.Append(trans.GetString());
+                                    }
+                                }
+                                
+                                string result = translatedText.ToString();
+                                if (!string.IsNullOrEmpty(result))
+                                {
+                                    // Apply the same line break restoration logic as above
+                                    if (hasLineBreaks && result.Contains(LINE_BREAK_MARKER))
+                                    {
+                                        result = result.Replace(LINE_BREAK_MARKER, "\n");
+                                    }
+                                    return result;
+                                }
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // Fall through to error return
+                        }
+                    }
+                }
+                
                 return $"[ERROR] {text}";
             }
             catch (Exception ex)
@@ -234,6 +384,44 @@ namespace UGTLive
                 Console.WriteLine($"Error translating text with free service: {ex.Message}");
                 return $"[ERROR] {text}";
             }
+        }
+
+        /// <summary>
+        /// Find a good position to break text, preferably at a space or punctuation
+        /// </summary>
+        private int FindNaturalBreakPosition(string text, int targetPosition)
+        {
+            // If the target position is already at the end, return it
+            if (targetPosition >= text.Length)
+                return text.Length;
+            
+            // Look for a space within 10 characters of the target position
+            int searchRange = 10;
+            
+            // Search backward first
+            for (int i = 0; i < searchRange; i++)
+            {
+                int pos = targetPosition - i;
+                if (pos <= 0)
+                    break;
+                    
+                if (char.IsWhiteSpace(text[pos - 1]))
+                    return pos;
+            }
+            
+            // Then search forward
+            for (int i = 1; i < searchRange; i++)
+            {
+                int pos = targetPosition + i;
+                if (pos >= text.Length)
+                    return text.Length;
+                    
+                if (char.IsWhiteSpace(text[pos - 1]))
+                    return pos;
+            }
+            
+            // If no good break point found, just use the target position
+            return targetPosition;
         }
         
         /// <summary>
