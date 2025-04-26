@@ -107,7 +107,107 @@ namespace UGTLive
                 _isInitializing = false; // Ensure we don't get stuck in initialization mode
             }
         }
+
+        // Google Translate API Key changed
+        private void GoogleTranslateApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+                    
+                string apiKey = googleTranslateApiKeyPasswordBox.Password.Trim();
+                
+                // Update the config
+                ConfigManager.Instance.SetGoogleTranslateApiKey(apiKey);
+                Console.WriteLine("Google Translate API key updated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Google Translate API key: {ex.Message}");
+            }
+        }
+
+        // Google Translate Service Type changed
+        private void GoogleTranslateServiceTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+                    
+                if (googleTranslateServiceTypeComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    bool isCloudApi = selectedItem.Content.ToString() == "Cloud API (paid)";
+                    
+                    // Show/hide API key field based on selection
+                    googleTranslateApiKeyLabel.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
+                    googleTranslateApiKeyGrid.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
+                    
+                    // Save to config
+                    ConfigManager.Instance.SetGoogleTranslateUseCloudApi(isCloudApi);
+                    Console.WriteLine($"Google Translate service type set to: {(isCloudApi ? "Cloud API" : "Free Web Service")}");
+                    
+                    // Trigger retranslation if the current service is Google Translate
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Google Translate")
+                    {
+                        Console.WriteLine("Google Translate service type changed. Triggering retranslation...");
+                        
+                        // Reset the hash to force a retranslation
+                        Logic.Instance.ResetHash();
+                        
+                        // Clear any existing text objects to refresh the display
+                        Logic.Instance.ClearAllTextObjects();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Google Translate service type: {ex.Message}");
+            }
+        }
         
+// Google Translate language mapping checkbox changed
+        private void GoogleTranslateMappingCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+                    
+                bool isEnabled = googleTranslateMappingCheckBox.IsChecked ?? true;
+                
+                // Save to config
+                ConfigManager.Instance.SetGoogleTranslateAutoMapLanguages(isEnabled);
+                Console.WriteLine($"Google Translate auto language mapping set to: {isEnabled}");
+                
+                // Trigger retranslation if the current service is Google Translate
+                if (ConfigManager.Instance.GetCurrentTranslationService() == "Google Translate")
+                {
+                    Console.WriteLine("Google Translate language mapping changed. Triggering retranslation...");
+                    
+                    // Reset the hash to force a retranslation
+                    Logic.Instance.ResetHash();
+                    
+                    // Clear any existing text objects to refresh the display
+                    Logic.Instance.ClearAllTextObjects();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Google Translate language mapping: {ex.Message}");
+            }
+        }
+
+        // Google Translate API link click
+        private void GoogleTranslateApiLink_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://cloud.google.com/translate/docs/setup");
+        }
+
         // Helper method to check if a window instance is still valid
         private static bool IsWindowValid(Window window)
         {
@@ -705,6 +805,7 @@ namespace UGTLive
                 bool isOllamaSelected = selectedService == "Ollama";
                 bool isGeminiSelected = selectedService == "Gemini";
                 bool isChatGptSelected = selectedService == "ChatGPT";
+                bool isGoogleTranslateSelected = selectedService == "Google Translate";
                 
                 // Make sure the window is fully loaded and controls are initialized
                 if (ollamaUrlLabel == null || ollamaUrlTextBox == null || 
@@ -713,7 +814,10 @@ namespace UGTLive
                     geminiApiKeyLabel == null || geminiApiKeyPasswordBox == null ||
                     geminiModelLabel == null || geminiModelGrid == null ||
                     chatGptApiKeyLabel == null || chatGptApiKeyGrid == null ||
-                    chatGptModelLabel == null || chatGptModelGrid == null)
+                    chatGptModelLabel == null || chatGptModelGrid == null ||
+                    googleTranslateApiKeyLabel == null || googleTranslateApiKeyGrid == null ||
+                    googleTranslateServiceTypeLabel == null || googleTranslateServiceTypeComboBox == null ||
+                    googleTranslateMappingLabel == null || googleTranslateMappingCheckBox == null)
                 {
                     Console.WriteLine("UI elements not initialized yet. Skipping visibility update.");
                     return;
@@ -738,6 +842,19 @@ namespace UGTLive
                 chatGptApiKeyGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptModelLabel.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptModelGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
+                
+                // Show/hide Google Translate-specific settings
+                googleTranslateServiceTypeLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
+                googleTranslateServiceTypeComboBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
+                googleTranslateMappingLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
+                googleTranslateMappingCheckBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
+                
+                // API key is only visible for Google Translate if Cloud API is selected
+                bool showGoogleTranslateApiKey = isGoogleTranslateSelected && 
+                    (googleTranslateServiceTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() == "Cloud API (paid)";
+                    
+                googleTranslateApiKeyLabel.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
+                googleTranslateApiKeyGrid.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
                 
                 // Load service-specific settings if they're being shown
                 if (isGeminiSelected)
@@ -791,6 +908,28 @@ namespace UGTLive
                             break;
                         }
                     }
+                }
+                else if (isGoogleTranslateSelected)
+                {
+                    // Set Google Translate service type
+                    bool useCloudApi = ConfigManager.Instance.GetGoogleTranslateUseCloudApi();
+                    
+                    // Temporarily remove event handler
+                    googleTranslateServiceTypeComboBox.SelectionChanged -= GoogleTranslateServiceTypeComboBox_SelectionChanged;
+                    
+                    googleTranslateServiceTypeComboBox.SelectedIndex = useCloudApi ? 1 : 0; // 0 = Free, 1 = Cloud API
+                    
+                    // Reattach event handler
+                    googleTranslateServiceTypeComboBox.SelectionChanged += GoogleTranslateServiceTypeComboBox_SelectionChanged;
+                    
+                    // Set API key if using Cloud API
+                    if (useCloudApi)
+                    {
+                        googleTranslateApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTranslateApiKey();
+                    }
+                    
+                    // Set language mapping checkbox
+                    googleTranslateMappingCheckBox.IsChecked = ConfigManager.Instance.GetGoogleTranslateAutoMapLanguages();
                 }
             }
             catch (Exception ex)
