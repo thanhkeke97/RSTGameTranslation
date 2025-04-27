@@ -42,6 +42,7 @@
                             <ComboBoxItem Content="pl"/>
                             <ComboBoxItem Content="hi"/>
                             <ComboBoxItem Content="ko"/>
+                            <ComboBoxItem Content="vi"/>
                         </ComboBox>
                         
                         <!-- Swap Languages Button placed between source and target in its own column -->
@@ -68,6 +69,7 @@
                             <ComboBoxItem Content="pl"/>
                             <ComboBoxItem Content="hi"/>
                             <ComboBoxItem Content="ko"/>
+                            <ComboBoxItem Content="vi"/>
                         </ComboBox>
                     </Grid>
                 </GroupBox>
@@ -301,6 +303,7 @@
                             <ComboBoxItem Content="Gemini"/>
                             <ComboBoxItem Content="Ollama"/>
                             <ComboBoxItem Content="ChatGPT"/>
+                            <ComboBoxItem Content="Google Translate"/>
                         </ComboBox>
                         
                         <!-- Gemini API Key - Only visible when Gemini is selected -->
@@ -433,6 +436,44 @@
                                    Margin="5,0,0,0" Padding="5,0" Click="ViewChatGptModelsButton_Click"
                                    ToolTip="Open OpenAI models documentation in browser"/>
                         </Grid>
+                        
+                        <!-- Google Translate API Key - Only visible when Google Translate is selected -->
+                        <TextBlock x:Name="googleTranslateApiKeyLabel" Text="Google Cloud API Key:" Grid.Row="1" Grid.Column="0" 
+                                  VerticalAlignment="Top" Margin="0,8,10,0" Visibility="Collapsed"/>
+                        <Grid Grid.Row="1" Grid.Column="1" Visibility="Collapsed" x:Name="googleTranslateApiKeyGrid" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <PasswordBox x:Name="googleTranslateApiKeyPasswordBox" Grid.Row="0"
+                                     VerticalAlignment="Top" Margin="0,0,0,2" 
+                                     PasswordChanged="GoogleTranslateApiKeyPasswordBox_PasswordChanged"/>
+                            <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                                <Run>Get API key from </Run>
+                                <Hyperlink Click="GoogleTranslateApiLink_Click">https://cloud.google.com/translate/docs/setup</Hyperlink>
+                                <Run> (optional, free version available)</Run>
+                            </TextBlock>
+                        </Grid>
+
+                        <!-- Google Translate Service Type - Only visible when Google Translate is selected -->
+                        <TextBlock x:Name="googleTranslateServiceTypeLabel" Text="Google Translate Service:" Grid.Row="2" Grid.Column="0" 
+                                  VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"
+                                  ToolTip="Choose between cloud API (paid) or free web service"/>
+                        <ComboBox x:Name="googleTranslateServiceTypeComboBox" Grid.Row="2" Grid.Column="1" 
+                                 Margin="0,5" Visibility="Collapsed" SelectionChanged="GoogleTranslateServiceTypeComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Free Web Service"/>
+                            <ComboBoxItem Content="Cloud API (paid)"/>
+                        </ComboBox>
+                        
+                        <!-- Google Translate Language Mapping -->
+                        <TextBlock x:Name="googleTranslateMappingLabel" Text="Language Mapping:" Grid.Row="3" Grid.Column="0" 
+                                  VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"
+                                  ToolTip="OCR and Google Translate use different language codes. This automatically maps between them."/>
+                        <CheckBox x:Name="googleTranslateMappingCheckBox" Grid.Row="3" Grid.Column="1" 
+                                 Margin="0,5" IsChecked="True" Content="Auto-map language codes" Visibility="Collapsed"
+                                 Checked="GoogleTranslateMappingCheckBox_CheckedChanged" 
+                                 Unchecked="GoogleTranslateMappingCheckBox_CheckedChanged"
+                                 ToolTip="OCR and Google Translate use different language codes. This automatically maps between them."/>
                         
                         <!-- Prompt Label -->
                         <TextBlock Text="Prompt Template:" Grid.Row="4" Grid.Column="0" 
@@ -569,6 +610,10 @@
                             <!-- Chinese Voices -->
                             <ComboBoxItem Content="Chinese (Female) - Neural2" Tag="cmn-CN-Neural2-A"/>
                             <ComboBoxItem Content="Chinese (Male) - Neural2" Tag="cmn-CN-Neural2-C"/>
+                            
+                            <!-- Vietnamese Voices -->
+                            <ComboBoxItem Content="Vietnamese (Female) - Neural2" Tag="vi-VN-Neural2-A"/>
+                            <ComboBoxItem Content="Vietnamese (Male) - Neural2" Tag="vi-VN-Neural2-D"/>
                         </ComboBox>
                     </Grid>
                 </GroupBox>

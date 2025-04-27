@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UGTLive
 {
@@ -20,6 +20,7 @@ namespace UGTLive
                 "Gemini" => new GeminiTranslationService(),
                 "Ollama" => new OllamaTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
+                "Google Translate" => new GoogleTranslateService(),
                 _ => new GeminiTranslationService() // Default to Gemini if unknown
             };
         }
@@ -27,7 +28,7 @@ namespace UGTLive
         /// <summary>
         /// Create a specific translation service by name
         /// </summary>
-        /// <param name="serviceName">Name of the service (Gemini, Ollama, or ChatGPT)</param>
+        /// <param name="serviceName">Name of the service (Gemini, Ollama, ChatGPT, or Google Translate)</param>
         /// <returns>An implementation of ITranslationService</returns>
         public static ITranslationService CreateService(string serviceName)
         {
@@ -36,6 +37,7 @@ namespace UGTLive
                 "Gemini" => new GeminiTranslationService(),
                 "Ollama" => new OllamaTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
+                "Google Translate" => new GoogleTranslateService(),
                 _ => throw new ArgumentException($"Unknown translation service: {serviceName}")
             };
         }

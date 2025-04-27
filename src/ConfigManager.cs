@@ -18,6 +18,7 @@ namespace UGTLive
         private readonly string _geminiConfigFilePath;
         private readonly string _ollamaConfigFilePath;
         private readonly string _chatgptConfigFilePath;
+        private readonly string _googleTranslateConfigFilePath;
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
@@ -33,6 +34,10 @@ namespace UGTLive
         public const string CHATGPT_MODEL = "chatgpt_model";
         public const string FORCE_CURSOR_VISIBLE = "force_cursor_visible";
         public const string AUTO_SIZE_TEXT_BLOCKS = "auto_size_text_blocks";
+        public const string GOOGLE_TRANSLATE_API_KEY = "google_translate_api_key";
+        // Google Translate settings
+        public const string GOOGLE_TRANSLATE_USE_CLOUD_API = "google_translate_use_cloud_api";
+        public const string GOOGLE_TRANSLATE_AUTO_MAP_LANGUAGES = "google_translate_auto_map_languages";
         
         // Translation context keys
         public const string MAX_CONTEXT_PIECES = "max_context_pieces";
@@ -97,11 +102,13 @@ namespace UGTLive
             _geminiConfigFilePath = Path.Combine(appDirectory, "gemini_config.txt");
             _ollamaConfigFilePath = Path.Combine(appDirectory, "ollama_config.txt");
             _chatgptConfigFilePath = Path.Combine(appDirectory, "chatgpt_config.txt");
+            _googleTranslateConfigFilePath = Path.Combine(appDirectory, "google_translate_config.txt");
             
             Console.WriteLine($"Config file path: {_configFilePath}");
             Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
             Console.WriteLine($"Ollama config file path: {_ollamaConfigFilePath}");
             Console.WriteLine($"ChatGPT config file path: {_chatgptConfigFilePath}");
+            Console.WriteLine($"Google Translate config file path: {_googleTranslateConfigFilePath}");
             
             // Load main config values
             LoadConfig();
@@ -129,6 +136,13 @@ namespace UGTLive
             
             // Create service-specific config files if they don't exist
             EnsureServiceConfigFilesExist();
+        }
+
+        // Get a boolean configuration value
+        public bool GetBoolValue(string key, bool defaultValue = false)
+        {
+            string value = GetValue(key, defaultValue.ToString().ToLower());
+            return value.ToLower() == "true";
         }
 
         // Load configuration from file
@@ -170,6 +184,31 @@ namespace UGTLive
             Console.WriteLine("===============================");
         }
         
+        public bool GetGoogleTranslateUseCloudApi()
+        {
+            return GetBoolValue(GOOGLE_TRANSLATE_USE_CLOUD_API, false);
+        }
+
+        public void SetGoogleTranslateUseCloudApi(bool useCloudApi)
+        {
+            _configValues[GOOGLE_TRANSLATE_USE_CLOUD_API] = useCloudApi.ToString();
+            SaveConfig();
+            Console.WriteLine($"Google Translate Cloud API usage set to: {useCloudApi}");
+        }
+
+        // Set/Get Google Translate auto language mapping
+        public bool GetGoogleTranslateAutoMapLanguages()
+        {
+            return GetBoolValue(GOOGLE_TRANSLATE_AUTO_MAP_LANGUAGES, true);
+        }
+
+        public void SetGoogleTranslateAutoMapLanguages(bool autoMap)
+        {
+            _configValues[GOOGLE_TRANSLATE_AUTO_MAP_LANGUAGES] = autoMap.ToString();
+            SaveConfig();
+            Console.WriteLine($"Google Translate auto language mapping set to: {autoMap}");
+        }
+
         // Create default configuration
         private void CreateDefaultConfig()
         {
@@ -453,7 +492,7 @@ namespace UGTLive
         // Set current translation service
         public void SetTranslationService(string service)
         {
-            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT")
+            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate")
             {
                 _currentTranslationService = service;
                 _configValues[TRANSLATION_SERVICE] = service;
@@ -502,6 +541,7 @@ namespace UGTLive
                 string defaultGeminiPrompt = "You are a translator. Translate the text I'll provide into English. Keep it simple and conversational.";
                 string defaultOllamaPrompt = "You are a translator. Translate the text I'll provide into English. Keep it simple and conversational.";
                 string defaultChatGptPrompt = "You are a translator. Translate the text I'll provide into English. Keep it simple and conversational.";
+                string defaultGoogleTranslatePrompt = "You are a translator using Google Translate API. Translate the text from the source language to the target language accurately while maintaining the original meaning and context.";
                 
                 // Check and create Gemini config file
                 if (!File.Exists(_geminiConfigFilePath))
@@ -525,6 +565,14 @@ namespace UGTLive
                     string chatgptContent = $"<llm_prompt_multi_start>\n{defaultChatGptPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_chatgptConfigFilePath, chatgptContent);
                     Console.WriteLine("Created default ChatGPT config file");
+                }
+                
+                // Check and create Google Translate config file
+                if (!File.Exists(_googleTranslateConfigFilePath))
+                {
+                    string googleTranslateContent = $"<llm_prompt_multi_start>\n{defaultGoogleTranslatePrompt}\n<llm_prompt_multi_end>";
+                    File.WriteAllText(_googleTranslateConfigFilePath, googleTranslateContent);
+                    Console.WriteLine("Created default Google Translate config file");
                 }
             }
             catch (Exception ex)
@@ -554,6 +602,9 @@ namespace UGTLive
                     break;
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
+                    break;
+                case "Google Translate":
+                    filePath = _googleTranslateConfigFilePath;
                     break;
                 default:
                     filePath = _geminiConfigFilePath;
@@ -601,6 +652,9 @@ namespace UGTLive
                     break;
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
+                    break;
+                case "Google Translate":
+                    filePath = _googleTranslateConfigFilePath;
                     break;
                 default:
                     filePath = _geminiConfigFilePath;
@@ -1342,6 +1396,17 @@ namespace UGTLive
                     break;
                 }
             }
+        }
+        public string GetGoogleTranslateApiKey()
+        {
+            return GetValue(GOOGLE_TRANSLATE_API_KEY, "");
+        }
+
+        public void SetGoogleTranslateApiKey(string apiKey)
+        {
+            _configValues[GOOGLE_TRANSLATE_API_KEY] = apiKey;
+            SaveConfig();
+            Console.WriteLine("Google Translate API key updated");
         }
     }
 }

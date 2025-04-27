@@ -305,6 +305,95 @@ namespace UGTLive
             _lastChangeTime = DateTime.Now;
         }
         
+
+        // Thêm phương thức xử lý kết quả từ Google Translate
+        private void ProcessGoogleTranslateJson(JsonElement translatedRoot)
+        {
+            try
+            {
+                Console.WriteLine("Processing Google Translate JSON response");
+                
+                // Kiểm tra nếu có mảng 'translations' trong JSON
+                if (translatedRoot.TryGetProperty("translations", out JsonElement translationsElement) &&
+                    translationsElement.ValueKind == JsonValueKind.Array)
+                {
+                    Console.WriteLine($"Found {translationsElement.GetArrayLength()} translations in Google Translate JSON");
+                    
+                    // Xử lý từng phần tử dịch
+                    for (int i = 0; i < translationsElement.GetArrayLength(); i++)
+                    {
+                        var translation = translationsElement[i];
+                        
+                        if (translation.TryGetProperty("id", out JsonElement idElement) &&
+                            translation.TryGetProperty("original_text", out JsonElement originalTextElement) &&
+                            translation.TryGetProperty("translated_text", out JsonElement translatedTextElement))
+                        {
+                            string id = idElement.GetString() ?? "";
+                            string originalText = originalTextElement.GetString() ?? "";
+                            string translatedText = translatedTextElement.GetString() ?? "";
+                            
+                            if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(translatedText))
+                            {
+                                // Tìm text object tương ứng theo ID
+                                var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
+                                if (matchingTextObj != null)
+                                {
+                                    // Cập nhật text object với bản dịch
+                                    matchingTextObj.TextTranslated = translatedText;
+                                    matchingTextObj.UpdateUIElement();
+                                    Console.WriteLine($"Updated text object {id} with Google translation");
+                                }
+                                else if (id.StartsWith("text_"))
+                                {
+                                    // Thử trích xuất index từ ID (định dạng text_X)
+                                    string indexStr = id.Substring(5); // Bỏ tiền tố "text_"
+                                    if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
+                                    {
+                                        // Cập nhật theo index nếu ID khớp định dạng
+                                        _textObjects[index].TextTranslated = translatedText;
+                                        _textObjects[index].UpdateUIElement();
+                                        Console.WriteLine($"Updated text object at index {index} with Google translation");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"Could not find text object with ID {id}");
+                                    }
+                                }
+                                
+                                // Thêm vào lịch sử dịch
+                                if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
+                                {
+                                    TranslationCompleted?.Invoke(this, new TranslationEventArgs
+                                    {
+                                        OriginalText = originalText,
+                                        TranslatedText = translatedText
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Cập nhật ChatBox với bản dịch mới
+                    if (ChatBoxWindow.Instance != null)
+                    {
+                        ChatBoxWindow.Instance.UpdateChatHistory();
+                    }
+                    
+                    // Cập nhật MonitorWindow
+                    MonitorWindow.Instance.RefreshOverlays();
+                }
+                else
+                {
+                    Console.WriteLine("No translations array found in Google Translate JSON");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing Google Translate JSON: {ex.Message}");
+            }
+        }
+
+
         //! Process the OCR text data, this is before it's been translated
         public void ProcessReceivedTextJsonData(string data)
         {
@@ -1485,7 +1574,7 @@ namespace UGTLive
                                             
                                             // Now update the text objects with the translation
                                             ProcessStructuredJsonTranslation(translatedRoot);
-                                            return; // Skip further processing
+                                            return; // Bỏ qua xử lý tiếp theo
                                         }
                                         catch (JsonException ex)
                                         {
@@ -1493,11 +1582,20 @@ namespace UGTLive
                                             // Continue with normal processing
                                         }
                                     }
-                               
-                                
                                 }
                             }
                         }
+                    }
+                }
+                else if (currentService == "Google Translate")
+                {
+                    // Xử lý phản hồi từ Google Translate
+                    // Google Translate trả về định dạng: {"translations": [{"id": "...", "original_text": "...", "translated_text": "..."}]}
+                    if (doc.RootElement.TryGetProperty("translations", out JsonElement _))
+                    {
+                        Console.WriteLine("Google Translate response detected");
+                        ProcessGoogleTranslateJson(doc.RootElement);
+                        return; // Bỏ qua xử lý tiếp theo
                     }
                 }
             }
@@ -1506,7 +1604,6 @@ namespace UGTLive
                 Console.WriteLine($"Error in ProcessTranslatedJSON: {ex.Message}");
                 OnFinishedThings(true);
             }
-
         }
 
         //!Convert textobjects to json and send for translation
