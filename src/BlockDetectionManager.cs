@@ -37,11 +37,11 @@ namespace UGTLive
         {
             // Character grouping thresholds (base values before scaling)
             public double BaseCharacterHorizontalGap = 2.0;  // Horizontal gap for letter-to-letter
-            public double BaseCharacterVerticalGap = 8.0;     // Vertical alignment tolerance for characters
+            public double BaseCharacterVerticalGap = 4.0;     // Vertical alignment tolerance for characters
             
             // Word grouping thresholds
             public double BaseWordHorizontalGap = 3.0;       // Horizontal gap for word-to-word
-            public double BaseWordVerticalGap = 10.0;         // Vertical alignment for word-to-word
+            public double BaseWordVerticalGap = 6.0;         // Vertical alignment for word-to-word
             
             // Large gap detection
             public double BaseLargeHorizontalGapThreshold = 40.0; // Large horizontal gap that should split text into separate blocks
