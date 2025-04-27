@@ -228,11 +228,28 @@ namespace UGTLive
                                      "The server window should remain open while using UGTLive with EasyOCR.\n\n" +
                                      "Alternatively, you can switch to Windows OCR in the settings (no server needed).";
                     
-                    MessageBoxResult result = MessageBox.Show(message + "\n\nWould you like to open the GitHub page for more detailed instructions?", 
-                                              "Server Connection Error", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    MessageBoxResult result = MessageBox.Show(message + "\n\nAttempt to start server using RunServer.bat?", 
+                                              "Server Connection Error", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
                     
-                    // Open web browser with documentation link only if user chooses Yes
                     if (result == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            // Try to run the RunServer.bat file
+                            System.Diagnostics.Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "RunServer.bat",
+                                UseShellExecute = true,
+                                WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory+"webserver\\"
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to start server: {ex.Message}");
+                            MessageBox.Show($"Failed to start server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    else if (result == MessageBoxResult.Cancel)
                     {
                         try
                         {
