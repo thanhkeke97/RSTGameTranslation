@@ -1,14 +1,17 @@
-<Window x:Class="UGTLive.SettingsWindow"         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:UGTLive"
-        mc:Ignorable="d"
-        Title="Settings" 
-        Height="400" Width="500"
-        WindowStyle="SingleBorderWindow"
-        ResizeMode="CanResizeWithGrip"
-        Icon="/media/Icon1.ico">
+<Window
+    x:Class="UGTLive.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:UGTLive"
+    mc:Ignorable="d"
+    Title="Settings"
+    Height="400"
+    Width="500"
+    WindowStyle="SingleBorderWindow"
+    ResizeMode="CanResizeWithGrip"
+    Icon="/media/Icon1.ico">
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="20">
@@ -317,7 +320,7 @@
                             <PasswordBox x:Name="geminiApiKeyPasswordBox" Grid.Row="0"
                                      VerticalAlignment="Top" Margin="0,0,0,2" 
                                      PasswordChanged="GeminiApiKeyPasswordBox_PasswordChanged"/>
-                            <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                            <TextBlock x:Name="geminiApiKeyHelpText" Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                 <Run>Get API key from </Run>
                                 <Hyperlink Click="GeminiApiLink_Click">https://ai.google.dev/tutorials/setup</Hyperlink>
                             </TextBlock>
@@ -430,7 +433,7 @@
                                 <ComboBoxItem Content="GPT-4.5 Preview" Tag="gpt-4.5-preview"/>
                                 <ComboBoxItem Content="O3" Tag="o3"/>
                                 <ComboBoxItem Content="O3 Mini" Tag="o3-mini"/>
-                                <ComboBoxItem Content="O3 Mini" Tag="o3-mini"/>
+                               
                             </ComboBox>
                             <Button x:Name="viewChatGptModelsButton" Content="View Models" Grid.Column="1"
                                    Margin="5,0,0,0" Padding="5,0" Click="ViewChatGptModelsButton_Click"
@@ -451,7 +454,6 @@
                             <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                 <Run>Get API key from </Run>
                                 <Hyperlink Click="GoogleTranslateApiLink_Click">https://cloud.google.com/translate/docs/setup</Hyperlink>
-                                <Run> (optional, free version available)</Run>
                             </TextBlock>
                         </Grid>
 
@@ -476,7 +478,7 @@
                                  ToolTip="OCR and Google Translate use different language codes. This automatically maps between them."/>
                         
                         <!-- Prompt Label -->
-                        <TextBlock Text="Prompt Template:" Grid.Row="4" Grid.Column="0" 
+                        <TextBlock x:Name="promptLabel" Text="Prompt Template:" Grid.Row="4" Grid.Column="0" 
                                   VerticalAlignment="Top" Margin="0,10,10,0"/>
                         
                         <!-- Prompt Editor -->

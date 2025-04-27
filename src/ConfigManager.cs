@@ -567,13 +567,7 @@ namespace UGTLive
                     Console.WriteLine("Created default ChatGPT config file");
                 }
                 
-                // Check and create Google Translate config file
-                if (!File.Exists(_googleTranslateConfigFilePath))
-                {
-                    string googleTranslateContent = $"<llm_prompt_multi_start>\n{defaultGoogleTranslatePrompt}\n<llm_prompt_multi_end>";
-                    File.WriteAllText(_googleTranslateConfigFilePath, googleTranslateContent);
-                    Console.WriteLine("Created default Google Translate config file");
-                }
+                // Google Translate doesn't use prompts, so no need to create config file
             }
             catch (Exception ex)
             {
@@ -590,6 +584,12 @@ namespace UGTLive
         // Get prompt for specific translation service
         public string GetServicePrompt(string service)
         {
+            // Google Translate doesn't use prompts
+            if (service == "Google Translate")
+            {
+                return "";
+            }
+            
             string filePath;
             
             switch (service)
@@ -602,9 +602,6 @@ namespace UGTLive
                     break;
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
-                    break;
-                case "Google Translate":
-                    filePath = _googleTranslateConfigFilePath;
                     break;
                 default:
                     filePath = _geminiConfigFilePath;
@@ -640,6 +637,12 @@ namespace UGTLive
         // Save prompt for specific translation service
         public bool SaveServicePrompt(string service, string prompt)
         {
+            // Google Translate doesn't use prompts
+            if (service == "Google Translate")
+            {
+                return true;
+            }
+            
             string filePath;
             
             switch (service)
@@ -652,9 +655,6 @@ namespace UGTLive
                     break;
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
-                    break;
-                case "Google Translate":
-                    filePath = _googleTranslateConfigFilePath;
                     break;
                 default:
                     filePath = _geminiConfigFilePath;

@@ -826,6 +826,7 @@ namespace UGTLive
                 // Show/hide Gemini-specific settings
                 geminiApiKeyLabel.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiApiKeyPasswordBox.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+                geminiApiKeyHelpText.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiModelLabel.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 
@@ -849,12 +850,20 @@ namespace UGTLive
                 googleTranslateMappingLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateMappingCheckBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 
+                // Hide prompt template for Google Translate
+                bool showPromptTemplate = !isGoogleTranslateSelected;
+                
                 // API key is only visible for Google Translate if Cloud API is selected
                 bool showGoogleTranslateApiKey = isGoogleTranslateSelected && 
                     (googleTranslateServiceTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() == "Cloud API (paid)";
                     
                 googleTranslateApiKeyLabel.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateApiKeyGrid.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
+                
+                // Show/hide prompt template and related controls for Google Translate
+                promptLabel.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
+                promptTemplateTextBox.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
+                savePromptButton.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
                 
                 // Load service-specific settings if they're being shown
                 if (isGeminiSelected)
@@ -923,7 +932,7 @@ namespace UGTLive
                     googleTranslateServiceTypeComboBox.SelectionChanged += GoogleTranslateServiceTypeComboBox_SelectionChanged;
                     
                     // Set API key if using Cloud API
-                    if (useCloudApi)
+                   // if (useCloudApi)
                     {
                         googleTranslateApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTranslateApiKey();
                     }
