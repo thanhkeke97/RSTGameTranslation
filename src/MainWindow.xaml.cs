@@ -274,8 +274,66 @@ namespace UGTLive
             
             // Get reference to the already initialized ChatBoxWindow
             chatBoxWindow = ChatBoxWindow.Instance;
+
+            // Register keyboard shortcuts handle
+            this.KeyDown += (s, e) => KeyboardShortcuts.HandleKeyDown(e);
+            
+            // Register keyboard shortcuts event
+            KeyboardShortcuts.StartStopRequested += (s, e) => OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
+            KeyboardShortcuts.MonitorToggleRequested += (s, e) => MonitorButton_Click(monitorButton, new RoutedEventArgs());
+            KeyboardShortcuts.ChatBoxToggleRequested += (s, e) => ChatBoxButton_Click(chatBoxButton, new RoutedEventArgs());
+            KeyboardShortcuts.SettingsToggleRequested += (s, e) => SettingsButton_Click(settingsButton, new RoutedEventArgs());
+            KeyboardShortcuts.LogToggleRequested += (s, e) => LogButton_Click(logButton, new RoutedEventArgs());
+            KeyboardShortcuts.MainWindowVisibilityToggleRequested += (s, e) => ToggleMainWindowVisibility();
         }
        
+        // add method for show/hide the main window
+        private void ToggleMainWindowVisibility()
+        {
+            if (MainBorder.Visibility == System.Windows.Visibility.Visible)
+            {
+                MainBorder.Visibility = System.Windows.Visibility.Collapsed;
+                
+                // add "Show" button if it doesn't exist yet
+                if (FindName("showButton") == null)
+                {
+                    var showBtn = new System.Windows.Controls.Button
+                    {
+                        Name = "showButton",
+                        Content = "Show",
+                        Width = 30,
+                        Height = 20,
+                        Margin = new System.Windows.Thickness(10),
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
+                        VerticalAlignment = System.Windows.VerticalAlignment.Top
+                    };
+                    
+                    showBtn.Click += (s, e) => ToggleMainWindowVisibility();
+                    
+                    var grid = Content as System.Windows.Controls.Grid;
+                    if (grid != null)
+                    {
+                        grid.Children.Add(showBtn);
+                        System.Windows.Controls.Panel.SetZIndex(showBtn, 1000);
+                    }
+                }
+                else
+                {
+                    var showBtn = FindName("showButton") as System.Windows.Controls.Button;
+                    if (showBtn != null)
+                        showBtn.Visibility = System.Windows.Visibility.Visible;
+                }
+            }
+            else
+            {
+                MainBorder.Visibility = System.Windows.Visibility.Visible;
+                
+                var showBtn = FindName("showButton") as System.Windows.Controls.Button;
+                if (showBtn != null)
+                    showBtn.Visibility = System.Windows.Visibility.Collapsed;
+            }
+        }
+
         public void SetStatus(string text)
         {
             if (socketStatusText != null)

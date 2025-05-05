@@ -74,6 +74,8 @@ namespace UGTLive
             if (this.Height == 0)
                 this.Height = 500;
                 
+            this.KeyDown += (s, e) => KeyboardShortcuts.HandleKeyDown(e);
+
             Console.WriteLine("MonitorWindow constructor completed");
         }
 
