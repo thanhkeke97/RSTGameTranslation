@@ -42,6 +42,8 @@ namespace UGTLive
             Instance = this;
             InitializeComponent();
             
+            this.KeyDown += (s, e) => KeyboardShortcuts.HandleKeyDown(e);
+
             // Get max history size from configuration for display purposes
             _maxHistorySize = ConfigManager.Instance.GetChatBoxHistorySize();
             

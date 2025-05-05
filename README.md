@@ -50,6 +50,21 @@ del .\miniconda.exe
 
 NOTE: The first time you use EasyOCR with a newlanguage, it has to download it first!  So it might seem broken, just wait a minute or two and start/stop UGTLive's translation and it should work.
 
+## Keyboard Shortcuts for UGTLive
+
+The following shortcuts have been added to UGTLive to help you use the application more quickly and efficiently:
+
+* Main Shortcuts:
+
+| Shortcut  | Function  |
+|-----------|-----------|
+| Shift+S | Start/Stop OCR |
+| Shift+M | Show/Hide Monitor Window |
+| Shift+C | Show/Hide ChatBox |
+| Shift+P | Show/Hide Settings |
+| Shift+L | Show/Hide Log Console |
+| Shift+H | Show/Hide Main Window |
+
 ## Advanced setup info ##
 
 While personally I recommend Gemini Flash 2 and EasyOCR, there are a lot of options at your disposal.  You can use Windows' built-in OCR instead of the python server, this doesn't work great for Japanese I've found, but might be ok for other languages.  It's fast.
