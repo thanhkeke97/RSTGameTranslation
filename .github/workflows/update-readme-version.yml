@@ -30,6 +30,9 @@ jobs:
           sed "s/\[!\[Version\].*\]/\[!\[Version\](https:\/\/img.shields.io\/badge\/version-${{ steps.version.outputs.version }}-blue.svg)\]/" README.md > README.md.tmp
           mv README.md.tmp README.md
       
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
