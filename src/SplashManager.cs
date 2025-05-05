@@ -29,7 +29,7 @@ namespace UGTLive
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const double CurrentVersion = 0.23;
+        public const double CurrentVersion = 0.24;
         private const string VersionCheckerUrl = "https://raw.githubusercontent.com/SethRobinson/UGTLive/refs/heads/main/media/latest_version_checker.json";
         private const string DownloadUrl = "https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip";
 

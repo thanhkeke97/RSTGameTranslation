@@ -1,5 +1,7 @@
 ## Universal Game Translator Live
 
+[![Version](https://img.shields.io/badge/version-0.23-blue.svg)](https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip)
+
 [![Watch the video](media/5e565177-6ead-48b1-86c0-7dbdebe1f554.png)](https://www.youtube.com/watch?v=PFrWheMeT5k)
 
 A complete rewrite of Universal Game Translator with the following features:
@@ -49,6 +51,17 @@ del .\miniconda.exe
 * Now you should be ready.  Click Start and see what happens!  Click "Log" to see errors and things.  If stuff doesn't work or you have questions, try posting here on GitHub.
 
 NOTE: The first time you use EasyOCR with a newlanguage, it has to download it first!  So it might seem broken, just wait a minute or two and start/stop UGTLive's translation and it should work.
+
+## How to update your version ##
+
+UGTLive will automatically check for updates when you start it. If a new version is available, you'll see a notification asking if you want to download it. To update:
+
+1. Download the latest version from the notification or from [here](https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip)
+2. Close UGTLive if it's running
+3. Extract the new files over your existing installation
+4. That's it! Your settings and preferences will be preserved
+
+The update process is simple and safe - you won't lose any of your settings or customizations.
 
 ## Keyboard Shortcuts for UGTLive
 
@@ -113,5 +126,6 @@ ChatGPT created the logo and the .ico file itself.  It also added the "Play" but
 
 **Credits and links**
 - Written by Seth A. Robinson (seth@rtsoft.com) twitter: @rtsoft - [Codedojo](https://www.codedojo.com), Seth's blog
+- [thanhkeke97](https://github.com/thanhkeke97)
 - [EasyOCR](https://github.com/JaidedAI/EasyOCR)
 - [Claude code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview)

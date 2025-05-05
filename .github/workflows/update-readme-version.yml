@@ -1,0 +1,35 @@
+name: Update README Version
+
+on:
+  push:
+    paths:
+      - 'media/latest_version_checker.json'
+    branches:
+      - main
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Read version from JSON
+        id: version
+        run: |
+          VERSION=$(cat media/latest_version_checker.json | jq -r '.latest_version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Update README
+        run: |
+          # Create temporary file
+          sed "s/\[!\[Version\].*\]/\[!\[Version\](https:\/\/img.shields.io\/badge\/version-${{ steps.version.outputs.version }}-blue.svg)\]/" README.md > README.md.tmp
+          mv README.md.tmp README.md
+      
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update version badge to ${{ steps.version.outputs.version }}" && git push) 
