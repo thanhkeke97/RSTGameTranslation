@@ -10,10 +10,13 @@ on:
 jobs:
   update-readme:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Read version from JSON
         id: version
@@ -29,7 +32,7 @@ jobs:
       
       - name: Commit and push if changed
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add README.md
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update version badge to ${{ steps.version.outputs.version }}" && git push) 
