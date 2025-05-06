@@ -639,7 +639,7 @@
                         <TextBlock Text="OpenAI API Key:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <PasswordBox x:Name="openAiRealtimeApiKeyPasswordBox" Grid.Row="1" Grid.Column="1" Margin="0,5" PasswordChanged="OpenAiRealtimeApiKeyPasswordBox_PasswordChanged"/>
                         <CheckBox x:Name="audioServiceAutoTranslateCheckBox" Grid.Row="2" Grid.Column="1" Margin="0,5"
-                                 Content="Auto translate" 
+                                 Content="Auto translate (using Google Translate)" 
                                  Checked="AudioServiceAutoTranslateCheckBox_CheckedChanged"
                                  Unchecked="AudioServiceAutoTranslateCheckBox_CheckedChanged"/>
                     </Grid>
