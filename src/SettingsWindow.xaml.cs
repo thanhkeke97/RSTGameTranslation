@@ -80,6 +80,10 @@ namespace UGTLive
                 // Set initialization flag to prevent saving during setup
                 _isInitializing = true;
                 
+                // Make sure keyboard shortcuts work from this window too
+                PreviewKeyDown -= Application_KeyDown;
+                PreviewKeyDown += Application_KeyDown;
+                
                 // Set initial values only after the window is fully loaded
                 LoadSettingsFromMainWindow();
                 
@@ -106,6 +110,13 @@ namespace UGTLive
                 Console.WriteLine($"Error initializing Settings window: {ex.Message}");
                 _isInitializing = false; // Ensure we don't get stuck in initialization mode
             }
+        }
+        
+        // Handler for application-level keyboard shortcuts
+        private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // Forward to the central keyboard shortcuts handler
+            KeyboardShortcuts.HandleKeyDown(e);
         }
 
         // Google Translate API Key changed

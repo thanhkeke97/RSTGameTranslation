@@ -42,7 +42,8 @@ namespace UGTLive
             Instance = this;
             InitializeComponent();
             
-            this.KeyDown += (s, e) => KeyboardShortcuts.HandleKeyDown(e);
+            // Register application-wide keyboard shortcut handler
+            this.PreviewKeyDown += Application_KeyDown;
 
             // Get max history size from configuration for display purposes
             _maxHistorySize = ConfigManager.Instance.GetChatBoxHistorySize();
@@ -404,6 +405,13 @@ namespace UGTLive
             
             // Add SizeChanged event handler for reflowing text when window is resized
             this.SizeChanged += ChatBoxWindow_SizeChanged;
+        }
+        
+        // Handler for application-level keyboard shortcuts
+        private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // Forward to the central keyboard shortcuts handler
+            KeyboardShortcuts.HandleKeyDown(e);
         }
         
         private void ChatBoxWindow_SizeChanged(object sender, SizeChangedEventArgs e)

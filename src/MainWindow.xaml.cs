@@ -10,7 +10,6 @@ using Color = System.Windows.Media.Color;
 using System.Windows.Threading;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
-
 using System.Text;
 using System.Windows.Shell;
 
@@ -123,6 +122,29 @@ namespace UGTLive
         
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr GetStdHandle(int nStdHandle);
+        
+        // Console mode control
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+        
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+        
+        // Standard input handle constant
+        public const int STD_INPUT_HANDLE = -10;
+        
+        // Console input mode flags
+        public const uint ENABLE_ECHO_INPUT = 0x0004;
+        public const uint ENABLE_LINE_INPUT = 0x0002;
+        public const uint ENABLE_PROCESSED_INPUT = 0x0001;
+        public const uint ENABLE_WINDOW_INPUT = 0x0008;
+        public const uint ENABLE_MOUSE_INPUT = 0x0010;
+        public const uint ENABLE_INSERT_MODE = 0x0020;
+        public const uint ENABLE_QUICK_EDIT_MODE = 0x0040;
+        public const uint ENABLE_EXTENDED_FLAGS = 0x0080;
+        public const uint ENABLE_AUTO_POSITION = 0x0100;
+        
+        // Keyboard hooks are now managed in KeyboardShortcuts.cs
         
         // We'll use a different approach that doesn't rely on SetConsoleCtrlHandler
         
@@ -241,6 +263,8 @@ namespace UGTLive
             }
         }
         
+        // The global keyboard hooks are now managed by KeyboardShortcuts class
+        
         public MainWindow()
         {
             // Make sure the initialization flag is set before anything else
@@ -255,6 +279,7 @@ namespace UGTLive
             
             // Hide the console window initially
             consoleWindow = GetConsoleWindow();
+            KeyboardShortcuts.SetConsoleWindowHandle(consoleWindow);
             ShowWindow(consoleWindow, SW_HIDE);
 
             // Initialize helper
@@ -275,16 +300,19 @@ namespace UGTLive
             // Get reference to the already initialized ChatBoxWindow
             chatBoxWindow = ChatBoxWindow.Instance;
 
-            // Register keyboard shortcuts handle
-            this.KeyDown += (s, e) => KeyboardShortcuts.HandleKeyDown(e);
+            // Register application-wide keyboard shortcut handler
+            this.PreviewKeyDown += Application_KeyDown;
             
-            // Register keyboard shortcuts event
+            // Register keyboard shortcuts events
             KeyboardShortcuts.StartStopRequested += (s, e) => OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
             KeyboardShortcuts.MonitorToggleRequested += (s, e) => MonitorButton_Click(monitorButton, new RoutedEventArgs());
             KeyboardShortcuts.ChatBoxToggleRequested += (s, e) => ChatBoxButton_Click(chatBoxButton, new RoutedEventArgs());
             KeyboardShortcuts.SettingsToggleRequested += (s, e) => SettingsButton_Click(settingsButton, new RoutedEventArgs());
             KeyboardShortcuts.LogToggleRequested += (s, e) => LogButton_Click(logButton, new RoutedEventArgs());
             KeyboardShortcuts.MainWindowVisibilityToggleRequested += (s, e) => ToggleMainWindowVisibility();
+            
+            // Set up global keyboard hook to handle shortcuts even when console has focus
+            KeyboardShortcuts.InitializeGlobalHook();
         }
        
         // add method for show/hide the main window
@@ -426,6 +454,13 @@ namespace UGTLive
             
             // Load auto-translate setting from config
             isAutoTranslateEnabled = ConfigManager.Instance.IsAutoTranslateEnabled();
+        }
+        
+        // Handler for application-level keyboard shortcuts
+        private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // Forward to the central keyboard shortcuts handler
+            KeyboardShortcuts.HandleKeyDown(e);
         }
        
         private void TestConfigLoading()
@@ -626,6 +661,9 @@ namespace UGTLive
 
         protected override void OnClosed(EventArgs e)
         {
+            // Remove global keyboard hook
+            KeyboardShortcuts.CleanupGlobalHook();
+            
             // Clean up MouseManager resources
             MouseManager.Instance.Cleanup();
             
@@ -945,6 +983,9 @@ namespace UGTLive
                 Console.WriteLine("\n=== Console Log Visible ===");
                 Console.WriteLine("Application log messages will appear here.");
                 Console.WriteLine("==========================\n");
+                
+                // Ensure console input is disabled to prevent freezing
+                DisableConsoleInput();
             }
         }
         
@@ -952,6 +993,9 @@ namespace UGTLive
         private void InitializeConsole()
         {
             AllocConsole();
+            
+            // Disable console input to prevent the app from freezing
+            DisableConsoleInput();
             
             // Set Windows console code page to UTF-8 (65001)
             SetConsoleCP(65001);
@@ -980,6 +1024,50 @@ namespace UGTLive
             
             // Write initial message
             Console.WriteLine("Console output initialized. Toggle visibility with the Log button.");
+            Console.WriteLine("Note: Console input is disabled to prevent application freeze.");
+        }
+        
+        // Disable console input to prevent app freezing when focus is in the console
+        private void DisableConsoleInput()
+        {
+            try
+            {
+                // Get the console input handle
+                IntPtr hStdIn = GetStdHandle(STD_INPUT_HANDLE);
+                if (hStdIn == IntPtr.Zero || hStdIn == new IntPtr(-1))
+                {
+                    Console.WriteLine("Error getting console input handle");
+                    return;
+                }
+                
+                // Get current console mode
+                uint mode;
+                if (!GetConsoleMode(hStdIn, out mode))
+                {
+                    Console.WriteLine($"Error getting console mode: {Marshal.GetLastWin32Error()}");
+                    return;
+                }
+                
+                // Disable input modes that would cause the app to wait for input
+                // This prevents the console from freezing when it gets focus
+                // We're turning off all input processing to make the console display-only
+                uint newMode = 0; // Set to 0 to disable all input
+                
+                // You can selectively re-enable certain input features if needed:
+                // newMode = ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT;
+                
+                if (!SetConsoleMode(hStdIn, newMode))
+                {
+                    Console.WriteLine($"Error setting console mode: {Marshal.GetLastWin32Error()}");
+                    return;
+                }
+                
+                Console.WriteLine("Console input disabled successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disabling console input: {ex.Message}");
+            }
         }
         
         // Position the monitor window to the right of the main window

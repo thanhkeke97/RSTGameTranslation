@@ -10,32 +10,53 @@ on:
 permissions:
   contents: write
 
+# <--- NEW --->
+concurrency:
+  # one run per branch at a time
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+# ^^^^^^^^^^^^^^^
+
 jobs:
   update-readme:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-      
+          fetch-depth: 0          # full history for rebases
+
       - name: Read version from JSON
         id: version
         run: |
-          VERSION=$(cat media/latest_version_checker.json | jq -r '.latest_version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-      
-      - name: Update README
-        run: |
-          # Create temporary file
-          sed "s/\[!\[Version\].*\]/\[!\[Version\](https:\/\/img.shields.io\/badge\/version-${{ steps.version.outputs.version }}-blue.svg)\]/" README.md > README.md.tmp
-          mv README.md.tmp README.md
-      
-      - name: Pull latest changes
-        run: git pull --rebase origin main
+          VERSION=$(jq -r '.latest_version' media/latest_version_checker.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Commit and push if changed
+      - name: Update README badge
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i -E \
+            "s|\[!\[Version\]\([^)]+\)\]|\[!\[Version\](https://img.shields.io/badge/version-${VERSION}-blue.svg)\]|" \
+            README.md
+
+      # <--- REWORKED STEP --->
+      - name: Commit, rebase & push if changed
         run: |
           git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.name  "GitHub Action"
+
+          # Stage only if README actually changed
           git add README.md
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update version badge to ${{ steps.version.outputs.version }}" && git push)
+          if git diff --cached --quiet
+          then
+            echo "Badge already up-to-date – nothing to commit."
+            exit 0
+          fi
+
+          git commit -m "Update version badge to ${{ steps.version.outputs.version }}"
+
+          # Make sure we’re on top of the *current* main
+          git pull --rebase --autostash origin main
+
+          # Fast-forward push (will succeed unless someone
+          # pushes again in the last split-second)
+          git push

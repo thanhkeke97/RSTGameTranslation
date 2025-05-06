@@ -74,7 +74,8 @@ namespace UGTLive
             if (this.Height == 0)
                 this.Height = 500;
                 
-            this.KeyDown += (s, e) => KeyboardShortcuts.HandleKeyDown(e);
+            // Register application-wide keyboard shortcut handler
+            this.PreviewKeyDown += Application_KeyDown;
 
             Console.WriteLine("MonitorWindow constructor completed");
         }
@@ -211,6 +212,10 @@ namespace UGTLive
             // Set initialization flag to true to prevent saving during setup
             _isInitializing = true;
             
+            // Make sure keyboard shortcuts work from this window too
+            PreviewKeyDown -= Application_KeyDown;
+            PreviewKeyDown += Application_KeyDown;
+            
             // Try to load the last screenshot if available
             if (!string.IsNullOrEmpty(lastImagePath) && File.Exists(lastImagePath))
             {
@@ -296,6 +301,13 @@ namespace UGTLive
             }
             
             Console.WriteLine("MonitorWindow initialization complete");
+        }
+        
+        // Handler for application-level keyboard shortcuts
+        private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // Forward to the central keyboard shortcuts handler
+            KeyboardShortcuts.HandleKeyDown(e);
         }
         
         private void MonitorWindow_SizeChanged(object sender, SizeChangedEventArgs e)

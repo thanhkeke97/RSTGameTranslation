@@ -416,3 +416,5 @@ app/webserver/*
 !app/chatgpt_config.txt
 
 UniversalGameTranslatorLive_Windows.zip
+
+**/.claude/settings.local.json

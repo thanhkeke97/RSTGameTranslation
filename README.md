@@ -1,6 +1,6 @@
 ## Universal Game Translator Live
 
-[![Version](https://img.shields.io/badge/version-0.23-blue.svg)](https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip)
+[![Version](https://img.shields.io/badge/version-0.24-blue.svg)](https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip)
 
 [![Watch the video](media/5e565177-6ead-48b1-86c0-7dbdebe1f554.png)](https://www.youtube.com/watch?v=PFrWheMeT5k)
 
@@ -79,7 +79,7 @@ The following shortcuts have been added to UGTLive to help you use the applicati
 | Shift+H | Show/Hide Main Window |
 
 ## Advanced setup info ##
-
+P
 While personally I recommend Gemini Flash 2 and EasyOCR, there are a lot of options at your disposal.  You can use Windows' built-in OCR instead of the python server, this doesn't work great for Japanese I've found, but might be ok for other languages.  It's fast.
 
 Ollama and ChatGPT are other LLM options. For Ollama, install it, and set a model like gemma3:12b.  On an RTX 4090 it takes around 5 seconds to return a translation.  (the settings contain directions and buttons to get started)  For ChatGPT/OpenAI, choose a model like GPT-4.1 Nano.
