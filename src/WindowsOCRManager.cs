@@ -302,7 +302,7 @@ namespace UGTLive
                 // If no text blocks were found, try line-by-line approach with simple layout
                 if (results.Count == 0)
                 {
-                    Console.WriteLine("No lines found with Windows OCR, creating a simple layout");
+                    //Console.WriteLine("No lines found with Windows OCR, creating a simple layout");
                 }
 
                 // Create a JSON response

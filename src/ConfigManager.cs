@@ -77,6 +77,9 @@ namespace UGTLive
         public const string CHATBOX_MIN_TEXT_SIZE = "chatbox_min_text_size";
         public const string SOURCE_LANGUAGE = "source_language";
         public const string TARGET_LANGUAGE = "target_language";
+        public const string AUDIO_PROCESSING_PROVIDER = "audio_processing_provider";
+        public const string OPENAI_REALTIME_API_KEY = "openai_realtime_api_key";
+        public const string AUDIO_SERVICE_AUTO_TRANSLATE = "audio_service_auto_translate";
 
         // Singleton instance
         public static ConfigManager Instance
@@ -1407,6 +1410,37 @@ namespace UGTLive
             _configValues[GOOGLE_TRANSLATE_API_KEY] = apiKey;
             SaveConfig();
             Console.WriteLine("Google Translate API key updated");
+        }
+
+        public string GetAudioProcessingProvider()
+        {
+            return GetValue(AUDIO_PROCESSING_PROVIDER, "OpenAI Realtime API");
+        }
+        public void SetAudioProcessingProvider(string provider)
+        {
+            _configValues[AUDIO_PROCESSING_PROVIDER] = provider;
+            SaveConfig();
+        }
+        public string GetOpenAiRealtimeApiKey()
+        {
+            return GetValue(OPENAI_REALTIME_API_KEY, "");
+        }
+        public void SetOpenAiRealtimeApiKey(string apiKey)
+        {
+            _configValues[OPENAI_REALTIME_API_KEY] = apiKey;
+            SaveConfig();
+        }
+        // Get whether audio service should auto-translate transcripts
+        public bool IsAudioServiceAutoTranslateEnabled()
+        {
+            return GetBoolValue(AUDIO_SERVICE_AUTO_TRANSLATE, false);
+        }
+        // Set whether audio service should auto-translate transcripts
+        public void SetAudioServiceAutoTranslateEnabled(bool enabled)
+        {
+            _configValues[AUDIO_SERVICE_AUTO_TRANSLATE] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Audio service auto-translate enabled: {enabled}");
         }
     }
 }

@@ -97,6 +97,11 @@
                                     Background="#FF9945B0" Foreground="White" BorderThickness="1" BorderBrush="White"
                                     Click="LogButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                     
+                            <!-- Listen Toggle Button -->
+                            <Button x:Name="listenButton" Content="Listen" Padding="8,3" Margin="5,0"
+                                    Background="#FF4577B0" Foreground="White" BorderThickness="1" BorderBrush="White"
+                                    Click="ListenButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                    
                             <!-- Settings Toggle Button -->
                             <Button x:Name="settingsButton" Content="Settings" Padding="8,3" Margin="5,0"
                                     Background="#FFB07D45" Foreground="White" BorderThickness="1" BorderBrush="White"

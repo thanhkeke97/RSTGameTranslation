@@ -459,6 +459,12 @@ namespace UGTLive
             
             // Load ignore phrases
             LoadIgnorePhrases();
+
+            // Audio Processing settings
+            audioProcessingProviderComboBox.SelectedIndex = 0; // Only one for now
+            openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
+            // Load Auto-translate for audio service
+            audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
         }
         
         // Language settings
@@ -1807,6 +1813,29 @@ namespace UGTLive
             {
                 Console.WriteLine($"Error updating ignore phrase: {ex.Message}");
             }
+        }
+
+        private void AudioProcessingProviderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (audioProcessingProviderComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                ConfigManager.Instance.SetAudioProcessingProvider(selectedItem.Content.ToString() ?? "OpenAI Realtime API");
+            }
+        }
+
+        private void OpenAiRealtimeApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetOpenAiRealtimeApiKey(openAiRealtimeApiKeyPasswordBox.Password.Trim());
+        }
+
+        // Handle Auto-translate checkbox change for audio service
+        private void AudioServiceAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = audioServiceAutoTranslateCheckBox.IsChecked ?? false;
+            ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
+            Console.WriteLine($"Settings window: Audio service auto-translate set to {enabled}");
         }
     }
 }
