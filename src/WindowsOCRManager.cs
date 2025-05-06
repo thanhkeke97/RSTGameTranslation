@@ -120,10 +120,7 @@ namespace UGTLive
                             attributes);
                     }
                 }
-                
-                // Apply a sharpening filter to the result bitmap
-                ApplySmoothing(result, 3);
-                
+                               
                 return result;
             }
             catch (Exception ex)
@@ -131,48 +128,6 @@ namespace UGTLive
                 Console.WriteLine($"Image optimization failed: {ex.Message}");
                 result.Dispose();
                 return new System.Drawing.Bitmap(source);
-            }
-        }
-
-
-        // Apply a smoothing filter to the bitmap
-        private void ApplySmoothing(System.Drawing.Bitmap bitmap, int kernelSize)
-        {
-            // Check if the bitmap is large enough to apply smoothing
-            // If the bitmap is too small, don't apply smoothing to avoid artifacts
-            if (bitmap.Width < 100 || bitmap.Height < 100)
-                return;
-            
-            try
-            {
-                // Create a temporary bitmap to hold the smoothed image
-                using (var tempBitmap = new System.Drawing.Bitmap(bitmap))
-                {
-                    // Create a graphics object for drawing on the temporary bitmap
-                    using (var graphics = System.Drawing.Graphics.FromImage(bitmap))
-                    {
-                        // Set the graphics object to use high-quality interpolation and smoothing
-                        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                        
-                        float blurAmount = 0.5f;
-                        
-                        // Create a color matrix to apply the blur effect
-                        using (var attributes = new System.Drawing.Imaging.ImageAttributes())
-                        {
-                            graphics.DrawImage(
-                                tempBitmap,
-                                new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                                0, 0, tempBitmap.Width, tempBitmap.Height,
-                                System.Drawing.GraphicsUnit.Pixel,
-                                attributes);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Smoothing failed: {ex.Message}");
             }
         }
 
