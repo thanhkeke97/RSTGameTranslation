@@ -46,21 +46,22 @@ namespace UGTLive
         {
             try
             {
-                // Create a memory stream to hold the bitmap data
-                using (MemoryStream memoryStream = new MemoryStream())
+                // Convert the bitmap to a SoftwareBitmap
+                using (var enhancedBitmap = OptimizeImageForOcr(bitmap))
                 {
-                    // Save the bitmap to the memory stream as PNG
-                    bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
-                    memoryStream.Position = 0;
-                    
-                    // Convert MemoryStream to RandomAccessStream
-                    using (var randomAccessStream = memoryStream.AsRandomAccessStream())
+                    using (MemoryStream memoryStream = new MemoryStream())
                     {
-                        // Create a decoder from the stream
-                        var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
+                        // Using BMP because it's faster and doesn't require compression/decompression
+                        enhancedBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
+                        memoryStream.Position = 0;
                         
-                        // Get the SoftwareBitmap
-                        return await decoder.GetSoftwareBitmapAsync();
+                        using (var randomAccessStream = memoryStream.AsRandomAccessStream())
+                        {
+                            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
+                            return await decoder.GetSoftwareBitmapAsync(
+                                BitmapPixelFormat.Bgra8,
+                                BitmapAlphaMode.Premultiplied);
+                        }
                     }
                 }
             }
@@ -70,7 +71,66 @@ namespace UGTLive
                 throw; // Rethrow to be handled by caller
             }
         }
-        
+
+        // Optimize the image for OCR by applying a sharpening filter and adjusting brightness and contrast
+        private System.Drawing.Bitmap OptimizeImageForOcr(System.Drawing.Bitmap source)
+        {
+            // Create a new bitmap to hold the optimized image
+            var result = new System.Drawing.Bitmap(source.Width, source.Height);
+            
+            try
+            {
+                // Create a graphics object for drawing on the result bitmap
+                using (var graphics = System.Drawing.Graphics.FromImage(result))
+                {
+                    // Set the graphics object to use high-quality interpolation and smoothing
+                    graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                    graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+                    
+                    // Create a color matrix to adjust brightness and contrast
+                    using (var attributes = new System.Drawing.Imaging.ImageAttributes())
+                    {
+                        // Increase contrast and brightness
+                        float contrast = 1.2f;
+                        // Increase brightness
+                        float brightness = 0.02f;
+                        
+                        // Create a color matrix to adjust brightness and contrast
+                        float[][] colorMatrix = {
+                            new float[] {contrast, 0, 0, 0, 0},
+                            new float[] {0, contrast, 0, 0, 0},
+                            new float[] {0, 0, contrast, 0, 0},
+                            new float[] {0, 0, 0, 1, 0},
+                            new float[] {brightness, brightness, brightness, 0, 1}
+                        };
+                        
+                        attributes.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix(colorMatrix));
+                        
+                        // Increase gamma to make the image brighter
+                        attributes.SetGamma(1.1f);
+                        
+                        // Draw the source bitmap onto the result bitmap, applying the color matrix and gamma correction
+                        graphics.DrawImage(
+                            source,
+                            new System.Drawing.Rectangle(0, 0, result.Width, result.Height),
+                            0, 0, source.Width, source.Height,
+                            System.Drawing.GraphicsUnit.Pixel,
+                            attributes);
+                    }
+                }
+                               
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Image optimization failed: {ex.Message}");
+                result.Dispose();
+                return new System.Drawing.Bitmap(source);
+            }
+        }
+
         // Get OCR engine for the specified language
         private OcrEngine GetOcrEngine(string languageCode)
         {
@@ -167,20 +227,27 @@ namespace UGTLive
                                 addSpaceMarker = true;
                             }
                                 
+                            // Calculate the width of each character in the word
+                            double totalWidth = wordRect.Width;
+                            double charWidth = totalWidth / wordText.Length;
+                            
+                    
+                            double charPadding = charWidth * 0.15; //15% of character width
+                            double effectiveCharWidth = charWidth - charPadding;
+
                             // Process each character in the word
                             for (int i = 0; i < wordText.Length; i++)
                             {
                                 string charText = wordText[i].ToString();
                                 
-                                // Estimate this character's position within the word
-                                double charWidth = wordRect.Width / wordText.Length;
-                                double charX = wordRect.X + (i * charWidth);
+                                // Calculate the X-coordinate of the character
+                                double charX = wordRect.X + (i * charWidth) + (charPadding / 2);
                                 
                                 // Create bounding rectangle for this character
                                 var charRect = new Windows.Foundation.Rect(
                                     charX, 
                                     wordRect.Y, 
-                                    charWidth,
+                                    effectiveCharWidth,
                                     wordRect.Height
                                 );
                                 
@@ -192,7 +259,7 @@ namespace UGTLive
                                     new[] { (double)charRect.X, (double)(charRect.Y + charRect.Height) }
                                 };
                                 
-                                // Add the character to results
+                                // Add the character to the results
                                 results.Add(new
                                 {
                                     text = charText,
@@ -201,14 +268,15 @@ namespace UGTLive
                                     is_character = true
                                 });
                             }
+                                
                             
                             // Add space marker after word if needed (for English/Western languages)
                             if (addSpaceMarker)
                             {
                                 // Create space character after the word
                                 // Position it just to the right of the last character
-                                double spaceWidth = (wordRect.Width / wordText.Length) * 0.5; // Half the width of a normal character
-                                double spaceX = wordRect.X + wordRect.Width;
+                                double spaceWidth = charWidth * 0.6; 
+                                double spaceX = wordRect.X + wordRect.Width + (charWidth * 0.1);
                                 
                                 var spaceRect = new Windows.Foundation.Rect(
                                     spaceX,
