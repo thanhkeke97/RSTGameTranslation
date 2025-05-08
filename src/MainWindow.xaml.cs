@@ -422,19 +422,19 @@ namespace UGTLive
             Logic.Instance.TranslationCompleted += Logic_TranslationCompleted;
             
             // Make sure monitor window is shown on startup to the right of the main window
-            if (!MonitorWindow.Instance.IsVisible)
-            {
-                // Position to the right of the main window, only for initial startup
-                PositionMonitorWindowToTheRight();
-                MonitorWindow.Instance.Show();
+            // if (!MonitorWindow.Instance.IsVisible)
+            // {
+            //     // Position to the right of the main window, only for initial startup
+            //     PositionMonitorWindowToTheRight();
+            //     MonitorWindow.Instance.Show();
                 
-                // Consider this the initial position for the monitor window toggle
-                monitorWindowLeft = MonitorWindow.Instance.Left;
-                monitorWindowTop = MonitorWindow.Instance.Top;
+            //     // Consider this the initial position for the monitor window toggle
+            //     monitorWindowLeft = MonitorWindow.Instance.Left;
+            //     monitorWindowTop = MonitorWindow.Instance.Top;
                 
-                // Update monitor button color to red since the monitor is now active
-                monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-            }
+            //     // Update monitor button color to red since the monitor is now active
+            //     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+            // }
             
             // Test configuration loading
             TestConfigLoading();
