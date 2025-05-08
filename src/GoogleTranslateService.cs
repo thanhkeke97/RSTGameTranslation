@@ -203,11 +203,13 @@ namespace UGTLive
             {
                 // Store original text format information
                 bool hasLineBreaks = text.Contains("\n");
-                string[] originalLines = hasLineBreaks ? text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None) : null;
+                string[] originalLines = hasLineBreaks 
+                    ? text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None) 
+                    : Array.Empty<string>();
                 
                 // Normalize text for translation - replace line breaks with special marker
-                // Using a marker that's unlikely to appear in normal text
-                const string LINE_BREAK_MARKER = "§§LINEBREAK§§";
+                // Using a marker that's unlikely to appear in normal text and more likely to be preserved
+                const string LINE_BREAK_MARKER = "|||LINEBREAK|||";
                 string normalizedText = text;
                 
                 if (hasLineBreaks)
@@ -285,32 +287,37 @@ namespace UGTLive
                                 result = result.Replace(LINE_BREAK_MARKER, "\n");
                             }
                             // If the original had line breaks but they weren't preserved in translation
-                            else if (hasLineBreaks && !result.Contains("\n") && originalLines.Length > 1)
+                            else if (hasLineBreaks && originalLines.Length > 1)
                             {
-                                // Try to restore line breaks based on original text structure
+                                // Try two approaches to restore line breaks
                                 
-                                // First, count characters per line in original text (excluding line breaks)
-                                double[] originalLineCharRatios = new double[originalLines.Length];
-                                int totalOriginalChars = text.Replace("\r", "").Replace("\n", "").Length;
-                                
-                                for (int i = 0; i < originalLines.Length; i++)
+                                // APPROACH 1: Try to match sentence boundaries
+                                if (originalLines.Length <= 10) // Only for reasonable number of lines
                                 {
-                                    originalLineCharRatios[i] = (double)originalLines[i].Length / totalOriginalChars;
+                                    string? sentenceRestored = TryRestoreLineBreaksBySentences(result, originalLines);
+                                    if (!string.IsNullOrEmpty(sentenceRestored))
+                                    {
+                                        return sentenceRestored;
+                                    }
                                 }
                                 
-                                // Distribute translated text based on original character ratios
+                                // APPROACH 2: Improved character ratio-based approach
                                 StringBuilder formattedResult = new StringBuilder();
+                                int totalOriginalChars = text.Replace("\r", "").Replace("\n", "").Length;
+                                int totalTranslatedChars = result.Length;
                                 int charPosition = 0;
                                 
-                                for (int i = 0; i < originalLines.Length - 1; i++) // Process all but last line
+                                for (int i = 0; i < originalLines.Length - 1; i++)
                                 {
-                                    int charsToTake = (int)Math.Round(result.Length * originalLineCharRatios[i]);
+                                    // Calculate proportion based on original text
+                                    double ratio = (double)originalLines[i].Length / totalOriginalChars;
+                                    int charsToTake = (int)Math.Round(totalTranslatedChars * ratio);
                                     
                                     // Ensure we take at least 1 character and don't exceed remaining length
                                     charsToTake = Math.Max(1, Math.Min(charsToTake, result.Length - charPosition));
                                     
-                                    // Try to find a space near the calculated position to break naturally
-                                    int breakPos = FindNaturalBreakPosition(result, charPosition + charsToTake);
+                                    // Find better break position
+                                    int breakPos = FindImprovedBreakPosition(result, charPosition + charsToTake);
                                     
                                     // Add the line with a line break
                                     formattedResult.AppendLine(result.Substring(charPosition, breakPos - charPosition));
@@ -390,6 +397,7 @@ namespace UGTLive
                     }
                 }
                 
+                // Nếu tất cả các nỗ lực đều thất bại, trả về thông báo lỗi
                 return $"[ERROR] {text}";
             }
             catch (Exception ex)
@@ -397,6 +405,115 @@ namespace UGTLive
                 Console.WriteLine($"Error translating text with free service: {ex.Message}");
                 return $"[ERROR] {text}";
             }
+        }
+
+        /// <summary>
+        /// Try to restore line breaks by matching sentence patterns
+        /// </summary>
+        private string? TryRestoreLineBreaksBySentences(string translatedText, string[] originalLines)
+        {
+            try
+            {
+                // Simple sentence splitter (not perfect but works for many cases)
+                string[] translatedSentences = System.Text.RegularExpressions.Regex.Split(
+                    translatedText, @"(?<=[.!?])\s+");
+                    
+                // Count sentences in original lines
+                List<int> sentencesPerLine = new List<int>();
+                foreach (string line in originalLines)
+                {
+                    int count = System.Text.RegularExpressions.Regex.Matches(line, @"[.!?]").Count;
+                    // If no sentence endings, count as at least one sentence fragment
+                    sentencesPerLine.Add(Math.Max(1, count));
+                }
+                
+                // If we have more sentences in translation than original lines, this approach won't work well
+                if (translatedSentences.Length < sentencesPerLine.Sum())
+                    return null;
+                    
+                // Try to distribute sentences according to original pattern
+                StringBuilder result = new StringBuilder();
+                int sentenceIndex = 0;
+                
+                for (int lineIndex = 0; lineIndex < originalLines.Length; lineIndex++)
+                {
+                    int sentencesToTake = sentencesPerLine[lineIndex];
+                    
+                    for (int i = 0; i < sentencesToTake && sentenceIndex < translatedSentences.Length; i++)
+                    {
+                        result.Append(translatedSentences[sentenceIndex++]);
+                        result.Append(" ");
+                    }
+                    
+                    // Add line break except for last line
+                    if (lineIndex < originalLines.Length - 1)
+                        result.AppendLine();
+                }
+                
+                // Add any remaining sentences
+                while (sentenceIndex < translatedSentences.Length)
+                {
+                    result.Append(translatedSentences[sentenceIndex++]);
+                    result.Append(" ");
+                }
+                
+                return result.ToString().Trim();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in sentence-based line break restoration: {ex.Message}");
+                return null; // Fall back to ratio-based approach
+            }
+        }
+
+        /// <summary>
+        /// Find an improved position to break text, considering punctuation and sentence structure
+        /// </summary>
+        private int FindImprovedBreakPosition(string text, int targetPosition)
+        {
+            // If the target position is already at the end, return it
+            if (targetPosition >= text.Length)
+                return text.Length;
+            
+            // Define break characters in priority order
+            char[] breakChars = new[] { '.', '!', '?', ';', ',', ':', ' ' };
+            
+            // Look for break characters within reasonable range of target position
+            int searchRange = Math.Min(20, text.Length / 10); // Adaptive search range
+            
+            // Search backward first (preferred)
+            for (int i = 0; i < searchRange; i++)
+            {
+                int pos = targetPosition - i;
+                if (pos <= 0)
+                    break;
+                    
+                char currentChar = text[pos - 1];
+                // Check for any break character
+                if (Array.IndexOf(breakChars, currentChar) >= 0)
+                {
+                    // For space, we want the position after it
+                    return currentChar == ' ' ? pos : pos;
+                }
+            }
+            
+            // Then search forward
+            for (int i = 0; i < searchRange; i++)
+            {
+                int pos = targetPosition + i;
+                if (pos >= text.Length)
+                    return text.Length;
+                    
+                char currentChar = text[pos - 1];
+                if (Array.IndexOf(breakChars, currentChar) >= 0)
+                {
+                    // For space, we want the position after it
+                    return currentChar == ' ' ? pos : pos;
+                }
+            }
+            
+            // If no good break point found, just use the target position
+            return targetPosition;
         }
 
         /// <summary>

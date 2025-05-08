@@ -175,7 +175,9 @@ namespace UGTLive
 
                 if (versionInfo.LatestVersion > CurrentVersion)
                 {
-                    string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString());
+                    string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString()) 
+                    ?? $"New version {versionInfo.LatestVersion} is available. Would you like to download it now?";
+                    
                     
                     // Update status text
                     UpdateStatusText($"New version V{versionInfo.LatestVersion} available!");
