@@ -7,7 +7,7 @@
         Title="Chat Box Options" Height="420" Width="400"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        Icon="/media/Icon1.ico">
+        Icon="/media/AppIcon.ico">
     
     <Grid Margin="10">
         <Grid.RowDefinitions>

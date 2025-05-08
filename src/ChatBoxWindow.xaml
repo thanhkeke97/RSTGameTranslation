@@ -11,7 +11,7 @@
         Background="#80000000"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
-        Icon="/media/Icon1.ico">
+        Icon="/media/AppIcon.ico">
     
     <WindowChrome.WindowChrome>
         <WindowChrome ResizeBorderThickness="8" CaptionHeight="0" GlassFrameThickness="0" UseAeroCaptionButtons="False" />

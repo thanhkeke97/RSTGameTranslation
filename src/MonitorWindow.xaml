@@ -9,7 +9,7 @@
         WindowStyle="SingleBorderWindow"
         AllowsTransparency="False"
         Background="Black"
-        Icon="/media/Icon1.ico">
+        Icon="/media/AppIcon.ico">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

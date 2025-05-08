@@ -11,7 +11,7 @@
         Topmost="True"
         WindowState="Normal"
         Cursor="Cross"
-        Icon="/media/Icon1.ico">
+        Icon="/media/AppIcon.ico">
 
     <Grid>
         <Rectangle x:Name="selectionRectangle" 

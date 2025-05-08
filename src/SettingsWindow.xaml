@@ -11,7 +11,7 @@
     Width="500"
     WindowStyle="SingleBorderWindow"
     ResizeMode="CanResizeWithGrip"
-    Icon="/media/Icon1.ico">
+    Icon="/media/AppIcon.ico">
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="20">

@@ -9,21 +9,21 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <EnablePreviewWinRT>true</EnablePreviewWinRT>
-    <AssemblyName>ugtlive</AssemblyName>
+    <AssemblyName>rst</AssemblyName>
     <OutputPath>app</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <RootNamespace>WPFScreenCapture</RootNamespace>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
-    <ApplicationIcon>media\Icon1.ico</ApplicationIcon>
+    <ApplicationIcon>media\AppIcon.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <AssemblyName>ugtlive_debug</AssemblyName>
+    <AssemblyName>rst_debug</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,7 +39,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Resource Include="media\Icon1.ico" />
+    <Resource Include="media\AppIcon.ico" />
   </ItemGroup>
 
 </Project>

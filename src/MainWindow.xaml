@@ -12,7 +12,7 @@
         AllowsTransparency="True"
         Background="Transparent"
         Topmost="True"
-        Icon="/media/Icon1.ico">
+        Icon="/media/AppIcon.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome ResizeBorderThickness="15" CaptionHeight="10" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
