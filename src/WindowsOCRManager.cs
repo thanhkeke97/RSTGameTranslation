@@ -93,9 +93,9 @@ namespace UGTLive
                     using (var attributes = new System.Drawing.Imaging.ImageAttributes())
                     {
                         // Increase contrast and brightness
-                        float contrast = 1.2f;
+                        float contrast = 1.5f;
                         // Increase brightness
-                        float brightness = 0.02f;
+                        float brightness = 0.05f;
                         
                         // Create a color matrix to adjust brightness and contrast
                         float[][] colorMatrix = {
@@ -109,7 +109,9 @@ namespace UGTLive
                         attributes.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix(colorMatrix));
                         
                         // Increase gamma to make the image brighter
-                        attributes.SetGamma(1.1f);
+                        attributes.SetGamma(1.3f);
+                        // Apply a sharpening filter to the image
+                        attributes.SetColorMatrix(CreateSharpenMatrix(0.5f), System.Drawing.Imaging.ColorMatrixFlag.Default, System.Drawing.Imaging.ColorAdjustType.Bitmap);
                         
                         // Draw the source bitmap onto the result bitmap, applying the color matrix and gamma correction
                         graphics.DrawImage(
@@ -129,6 +131,25 @@ namespace UGTLive
                 result.Dispose();
                 return new System.Drawing.Bitmap(source);
             }
+        }
+
+        private System.Drawing.Imaging.ColorMatrix CreateSharpenMatrix(float amount)
+        {
+            // Sharpen matrix
+            float[][] matrix = {
+                new float[] {1, 0, 0, 0, 0},
+                new float[] {0, 1, 0, 0, 0},
+                new float[] {0, 0, 1, 0, 0},
+                new float[] {0, 0, 0, 1, 0},
+                new float[] {0, 0, 0, 0, 1}
+            };
+            
+            // Adjust the sharpening amount
+            matrix[0][0] += amount;
+            matrix[1][1] += amount;
+            matrix[2][2] += amount;
+            
+            return new System.Drawing.Imaging.ColorMatrix(matrix);
         }
 
         // Get OCR engine for the specified language
