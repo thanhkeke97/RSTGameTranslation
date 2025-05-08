@@ -22,7 +22,7 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
  
 ## How to install and use it (Windows) ##
 
-* Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslate/releases) and unzip it somewhere
+* Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslation/releases) and unzip it somewhere
 
 * Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(more info)](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions):
 ```
