@@ -36,6 +36,11 @@ def initialize_ocr_engine(lang='japan'):
 
     # Only reinitialize if language has changed
     if OCR_ENGINE is None or CURRENT_LANG != lang:
+        # Giải phóng tài nguyên của engine cũ nếu có
+        if OCR_ENGINE is not None and torch.cuda.is_available():
+            # Giải phóng bộ nhớ GPU
+            torch.cuda.empty_cache()
+            print("Released GPU resources from previous OCR engine")
         # Check for GPU availability using PyTorch
         if torch.cuda.is_available():
             device_name = torch.cuda.get_device_name(0)
@@ -59,6 +64,13 @@ def initialize_ocr_engine(lang='japan'):
         print(f"Using existing EasyOCR engine with language: {easy_lang}")
 
     return OCR_ENGINE
+
+def release_gpu_resources():
+    """
+    Giải phóng tài nguyên GPU sau khi xử lý OCR.
+    """
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 def preprocess_image(image):
     """
@@ -201,7 +213,7 @@ def process_image(image_path, lang='japan', font_path='./fonts/NotoSansJP-Regula
                         "confidence": confidence,
                         "is_character": False
                     })
-        
+        release_gpu_resources()
         return {
             "status": "success",
             "results": ocr_results,
@@ -217,7 +229,7 @@ def process_image(image_path, lang='japan', font_path='./fonts/NotoSansJP-Regula
             "message": str(e)
         }
 
-def split_into_characters(text, box, confidence):
+def split_into_characters(text, box, confidence, max_chars=500):
     """
     Split a text string into individual characters with estimated bounding boxes.
     
@@ -225,6 +237,7 @@ def split_into_characters(text, box, confidence):
         text (str): The text to split.
         box (list): Bounding box for the entire text as [[x1,y1],[x2,y2],[x3,y3],[x4,y4]].
         confidence (float): Confidence score for the text.
+        max_chars (int): Maximum number of characters to process (default: 500).
     
     Returns:
         list: List of dictionary items for each character with its estimated position.
@@ -237,6 +250,11 @@ def split_into_characters(text, box, confidence):
             "is_character": True
         }]
     
+    # Giới hạn số lượng ký tự để tránh quá tải
+    if len(text) > max_chars:
+        text = text[:max_chars]
+        print(f"Warning: Text truncated to {max_chars} characters to avoid performance issues")
+    
     char_results = []
     
     # Extract coordinates from the box
@@ -245,37 +263,37 @@ def split_into_characters(text, box, confidence):
     br = box[2]  # bottom-right
     bl = box[3]  # bottom-left
     
-    # Calculate width and height
-    width = ((tr[0] - tl[0]) + (br[0] - bl[0])) / 2
-    height = ((bl[1] - tl[1]) + (br[1] - tr[1])) / 2
+    # Tính toán trước các giá trị không đổi
+    text_len = len(text)
+    x_increment_top = (tr[0] - tl[0]) / text_len
+    x_increment_bottom = (br[0] - bl[0]) / text_len
     
-    # Calculate average character width
-    char_width = width / len(text)
+    y_diff_top = tr[1] - tl[1]
+    y_diff_bottom = br[1] - bl[1]
     
-    # Calculate starting positions for left-to-right text
-    # This is a simplification assuming text is horizontal and left-to-right
     start_x_top = tl[0]
     start_x_bottom = bl[0]
     
-    # Calculate x-increments between characters
-    x_increment_top = (tr[0] - tl[0]) / len(text)
-    x_increment_bottom = (br[0] - bl[0]) / len(text)
+    # Tạo trước danh sách kết quả với kích thước cố định
+    char_results = [{} for _ in range(text_len)]
     
     # Generate character boxes
     for i, char in enumerate(text):
-        # Calculate the four corners of this character's bounding box
+        # Tính toán tọa độ cho mỗi ký tự
+        ratio1 = i / text_len
+        ratio2 = (i + 1) / text_len
+        
         x1_top = start_x_top + (i * x_increment_top)
         x2_top = start_x_top + ((i + 1) * x_increment_top)
         x1_bottom = start_x_bottom + (i * x_increment_bottom)
         x2_bottom = start_x_bottom + ((i + 1) * x_increment_bottom)
         
-        # Interpolate y-coordinates (handle any slope)
-        y_top_left = tl[1] + ((tr[1] - tl[1]) * (i / len(text)))
-        y_top_right = tl[1] + ((tr[1] - tl[1]) * ((i + 1) / len(text)))
-        y_bottom_left = bl[1] + ((br[1] - bl[1]) * (i / len(text)))
-        y_bottom_right = bl[1] + ((br[1] - bl[1]) * ((i + 1) / len(text)))
+        y_top_left = tl[1] + (y_diff_top * ratio1)
+        y_top_right = tl[1] + (y_diff_top * ratio2)
+        y_bottom_left = bl[1] + (y_diff_bottom * ratio1)
+        y_bottom_right = bl[1] + (y_diff_bottom * ratio2)
         
-        # Create the character bounding box
+        # Tạo bounding box cho ký tự
         char_box = [
             [x1_top, y_top_left],       # top-left
             [x2_top, y_top_right],      # top-right
@@ -283,12 +301,12 @@ def split_into_characters(text, box, confidence):
             [x1_bottom, y_bottom_left]   # bottom-left
         ]
         
-        # Add to results
-        char_results.append({
+        # Thêm vào kết quả
+        char_results[i] = {
             "rect": char_box,
             "text": char,
             "confidence": confidence,
             "is_character": True
-        })
+        }
     
     return char_results

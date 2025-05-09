@@ -4,9 +4,13 @@ import logging
 import requests
 import os
 import time
+import threading
+import queue
+import signal
+import sys
 
 # Import EasyOCR implementation
-from process_image_easyocr import process_image
+from process_image_easyocr import process_image, release_gpu_resources  # Giả sử đã thêm hàm này
 
 # Configure logging
 logging.basicConfig(
@@ -16,24 +20,37 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Server configuration
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost) (change to 0.0.0.0 to be remotely accessible)
-PORT = 9999         # Port to listen on (non-privileged ports are > 1023)
+HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
+PORT = 9999         # Port to listen on
 BUFFER_SIZE = 1024  # Buffer size for receiving data
+MAX_CONNECTIONS = 5  # Maximum number of concurrent connections
+CONNECTION_TIMEOUT = 60  # Connection timeout in seconds
+MAX_WORKERS = 2  # Maximum number of worker threads for OCR processing
+
+# Queue for OCR tasks
+ocr_task_queue = queue.Queue(maxsize=10)  # Limit queue size to prevent memory issues
+active_connections = 0  # Track active connections
+server_running = True  # Flag to control server shutdown
 
 def handle_client_connection(conn, addr):
     """
     Handle a client connection.
-    
-    Args:
-        conn: The client connection socket
-        addr: The client address
     """
-    logger.info(f"Connected by {addr}")
+    global active_connections
+    active_connections += 1
+    logger.info(f"Connected by {addr}. Active connections: {active_connections}")
+    
+    # Set connection timeout
+    conn.settimeout(CONNECTION_TIMEOUT)
     
     try:
-        while True:
+        while server_running:
             # Receive data from the client
-            data = conn.recv(BUFFER_SIZE)
+            try:
+                data = conn.recv(BUFFER_SIZE)
+            except socket.timeout:
+                logger.warning(f"Connection with {addr} timed out")
+                break
             
             # If no data, the client has closed the connection
             if not data:
@@ -45,8 +62,12 @@ def handle_client_connection(conn, addr):
             logger.info(f"Received command: {command}")
             
             if command.startswith("read_image"):
-                # Start timing the process
-                start_time = time.time()
+                # Check if server is too busy
+                if ocr_task_queue.full():
+                    error_msg = json.dumps({"status": "error", "message": "Server is busy, try again later"}).encode('utf-8')
+                    send_response(conn, error_msg)
+                    logger.warning("Rejected task due to server load")
+                    continue
                 
                 # Parse parameters if provided
                 lang = 'japan'  # Default language
@@ -56,7 +77,6 @@ def handle_client_connection(conn, addr):
                     parts = command.split("|")
                     if len(parts) > 1 and parts[1]:
                         lang = parts[1]
-                    # Still parse implementation for future extensibility
                     if len(parts) > 2 and parts[2]:
                         implementation = parts[2].lower()
                 
@@ -67,29 +87,15 @@ def handle_client_connection(conn, addr):
                 logger.info(f"Using EasyOCR with language: {lang}, character-level: {char_level}")
                 
                 # Process image with EasyOCR
+                start_time = time.time()
                 result = process_image("image_to_process.png", lang=lang, char_level=char_level)
                 
+                # Giải phóng tài nguyên GPU sau khi xử lý
+                release_gpu_resources()
+                
                 # Send results back to client as JSON
-                # Set ensure_ascii=False to keep Japanese characters as they are
                 response = json.dumps(result, ensure_ascii=False).encode('utf-8')
-                
-                # First send the size of the response
-                response_size = len(response)
-                size_header = str(response_size).encode('utf-8') + b'\r\n'
-                logger.info(f"Sending response size: {response_size}")
-                
-                # Clear socket buffers before sending
-                conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                
-                # Send size header
-                conn.sendall(size_header)
-                
-                # Small delay to ensure header and data don't get merged
-                time.sleep(0.01)
-                
-                # Then send the actual response
-                logger.info(f"Sending response with actual length: {len(response)}")
-                conn.sendall(response)
+                send_response(conn, response)
                 
                 # Calculate time taken and log it
                 time_taken = time.time() - start_time
@@ -97,8 +103,7 @@ def handle_client_connection(conn, addr):
             else:
                 # Unknown command
                 error_msg = json.dumps({"status": "error", "message": "Unknown command"}).encode('utf-8')
-                conn.sendall(str(len(error_msg)).encode('utf-8') + b'\r\n')
-                conn.sendall(error_msg)
+                send_response(conn, error_msg)
                 logger.info(f"Unknown command: {command}")
     
     except Exception as e:
@@ -107,10 +112,58 @@ def handle_client_connection(conn, addr):
     finally:
         # Clean up the connection
         conn.close()
-        logger.info(f"Connection with {addr} closed")
+        active_connections -= 1
+        logger.info(f"Connection with {addr} closed. Active connections: {active_connections}")
+
+def send_response(conn, response):
+    """
+    Send response to client with proper headers and chunking for large data.
+    """
+    try:
+        # First send the size of the response
+        response_size = len(response)
+        size_header = str(response_size).encode('utf-8') + b'\r\n'
+        
+        # Clear socket buffers before sending
+        conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        
+        # Send size header
+        conn.sendall(size_header)
+        
+        # Small delay to ensure header and data don't get merged
+        time.sleep(0.01)
+        
+        # Send data in chunks for large responses
+        chunk_size = 8192  # 8KB chunks
+        for i in range(0, len(response), chunk_size):
+            chunk = response[i:i+chunk_size]
+            conn.sendall(chunk)
+            # Small yield to prevent CPU hogging
+            if i + chunk_size < len(response):
+                time.sleep(0.001)
+        
+        logger.debug(f"Sent response with size: {response_size}")
+    except Exception as e:
+        logger.error(f"Error sending response: {e}")
+
+def signal_handler(sig, frame):
+    """
+    Handle termination signals gracefully.
+    """
+    global server_running
+    logger.info("Shutting down server...")
+    server_running = False
+    # Give connections time to close
+    time.sleep(1)
+    sys.exit(0)
 
 def main():
     """Start the server and listen for connections."""
+    global server_running
+    
+    # Set up signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     
     # Create a TCP/IP socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -120,24 +173,40 @@ def main():
         # Bind the socket to the address and port
         s.bind((HOST, PORT))
         
-        # Listen for incoming connections (5 is the backlog size)
-        s.listen(5)
+        # Listen for incoming connections
+        s.listen(MAX_CONNECTIONS)
+        s.settimeout(1)  # Set a timeout so we can check server_running flag periodically
         
         logger.info(f"Server started on {HOST}:{PORT}")
         
         try:
-            while True:
-                # Wait for a connection
-                conn, addr = s.accept()
+            while server_running:
+                try:
+                    # Wait for a connection
+                    conn, addr = s.accept()
+                    
+                    # Check if we can handle more connections
+                    if active_connections >= MAX_CONNECTIONS:
+                        logger.warning(f"Maximum connections reached. Rejecting connection from {addr}")
+                        conn.close()
+                        continue
+                    
+                    # Handle the connection in a new thread
+                    client_thread = threading.Thread(target=handle_client_connection, args=(conn, addr))
+                    client_thread.daemon = True
+                    client_thread.start()
                 
-                # Handle the connection
-                handle_client_connection(conn, addr)
-        
-        except KeyboardInterrupt:
-            logger.info("Server shutting down...")
+                except socket.timeout:
+                    # This is expected due to the timeout we set
+                    continue
+                except Exception as e:
+                    logger.error(f"Error accepting connection: {e}")
         
         except Exception as e:
             logger.error(f"Error in main server loop: {e}")
+        
+        finally:
+            logger.info("Server shutdown complete")
 
 if __name__ == "__main__":
     main()

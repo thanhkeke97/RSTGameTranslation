@@ -201,21 +201,13 @@ namespace UGTLive
         {
             try
             {
-                // Store original text format information
-                bool hasLineBreaks = text.Contains("\n");
-                string[] originalLines = hasLineBreaks 
-                    ? text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None) 
-                    : Array.Empty<string>();
+                // Loại bỏ hoàn toàn các ký tự xuống dòng và nối thành một văn bản liên tục
+                string normalizedText = text.Replace("\r\n", " ").Replace("\n", " ");
                 
-                // Normalize text for translation - replace line breaks with special marker
-                // Using a marker that's unlikely to appear in normal text and more likely to be preserved
-                const string LINE_BREAK_MARKER = "|||LINEBREAK|||";
-                string normalizedText = text;
-                
-                if (hasLineBreaks)
+                // Đảm bảo không có nhiều khoảng trắng liên tiếp
+                while (normalizedText.Contains("  "))
                 {
-                    // Replace line breaks with marker instead of removing them
-                    normalizedText = normalizedText.Replace("\r\n", LINE_BREAK_MARKER).Replace("\n", LINE_BREAK_MARKER);
+                    normalizedText = normalizedText.Replace("  ", " ");
                 }
                 
                 // Prepare the URL for the free translation service
@@ -280,59 +272,6 @@ namespace UGTLive
                         
                         if (!string.IsNullOrEmpty(result))
                         {
-                            // If we used line break markers, restore them now
-                            if (hasLineBreaks && result.Contains(LINE_BREAK_MARKER))
-                            {
-                                // Simply replace markers with actual line breaks
-                                result = result.Replace(LINE_BREAK_MARKER, "\n");
-                            }
-                            // If the original had line breaks but they weren't preserved in translation
-                            else if (hasLineBreaks && originalLines.Length > 1)
-                            {
-                                // Try two approaches to restore line breaks
-                                
-                                // APPROACH 1: Try to match sentence boundaries
-                                if (originalLines.Length <= 10) // Only for reasonable number of lines
-                                {
-                                    string? sentenceRestored = TryRestoreLineBreaksBySentences(result, originalLines);
-                                    if (!string.IsNullOrEmpty(sentenceRestored))
-                                    {
-                                        return sentenceRestored;
-                                    }
-                                }
-                                
-                                // APPROACH 2: Improved character ratio-based approach
-                                StringBuilder formattedResult = new StringBuilder();
-                                int totalOriginalChars = text.Replace("\r", "").Replace("\n", "").Length;
-                                int totalTranslatedChars = result.Length;
-                                int charPosition = 0;
-                                
-                                for (int i = 0; i < originalLines.Length - 1; i++)
-                                {
-                                    // Calculate proportion based on original text
-                                    double ratio = (double)originalLines[i].Length / totalOriginalChars;
-                                    int charsToTake = (int)Math.Round(totalTranslatedChars * ratio);
-                                    
-                                    // Ensure we take at least 1 character and don't exceed remaining length
-                                    charsToTake = Math.Max(1, Math.Min(charsToTake, result.Length - charPosition));
-                                    
-                                    // Find better break position
-                                    int breakPos = FindImprovedBreakPosition(result, charPosition + charsToTake);
-                                    
-                                    // Add the line with a line break
-                                    formattedResult.AppendLine(result.Substring(charPosition, breakPos - charPosition));
-                                    charPosition = breakPos;
-                                }
-                                
-                                // Add the remaining text
-                                if (charPosition < result.Length)
-                                {
-                                    formattedResult.Append(result.Substring(charPosition));
-                                }
-                                
-                                result = formattedResult.ToString();
-                            }
-                            
                             return result;
                         }
                         else
@@ -379,15 +318,7 @@ namespace UGTLive
                                 }
                                 
                                 string result = translatedText.ToString();
-                                if (!string.IsNullOrEmpty(result))
-                                {
-                                    // Apply the same line break restoration logic as above
-                                    if (hasLineBreaks && result.Contains(LINE_BREAK_MARKER))
-                                    {
-                                        result = result.Replace(LINE_BREAK_MARKER, "\n");
-                                    }
-                                    return result;
-                                }
+                                return !string.IsNullOrEmpty(result) ? result : $"[EMPTY RESULT] {text}";
                             }
                         }
                         catch (JsonException)
