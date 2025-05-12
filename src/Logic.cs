@@ -21,6 +21,8 @@ namespace UGTLive
         private Random _random;
         private Grid? _overlayContainer;
         private int _textIDCounter = 0;
+        private DateTime _lastOcrRequestTime = DateTime.MinValue;
+        private readonly TimeSpan _minOcrInterval = TimeSpan.FromSeconds(1);
         
         private DispatcherTimer _reconnectTimer;
         private string _lastOcrHash = string.Empty;
@@ -90,7 +92,6 @@ namespace UGTLive
             SocketManager.Instance.ConnectionChanged += OnSocketConnectionChanged;
         }
 
-        
         // Set reference to the overlay container
         public void SetOverlayContainer(Grid overlayContainer)
         {
@@ -505,13 +506,12 @@ namespace UGTLive
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
                                 }
-
-                                if (contentHash == _lastOcrHash && bForceRender == false)
+                                if (IsTextSimilar(contentHash, _lastOcrHash, 0.7) && bForceRender == false)
                                 {
+                                    Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);
                                     return;
                                 }
-                               
                                 // Looks like new stuff
                                 _lastOcrHash = contentHash;
                                 double scale = BlockDetectionManager.Instance.GetBlockDetectionScale();
@@ -627,6 +627,197 @@ namespace UGTLive
             
            }
         
+        /// <summary>
+        /// Kiểm tra xem hai chuỗi có đủ tương đồng không sử dụng thuật toán kết hợp tối ưu cho tiếng Anh
+        /// </summary>
+        private bool IsTextSimilar(string text1, string text2, double threshold = 0.7)
+        {
+            // Nếu chuỗi giống hệt nhau
+            if (text1 == text2) return true;
+            
+            // Nếu một trong hai chuỗi rỗng
+            if (string.IsNullOrEmpty(text1) || string.IsNullOrEmpty(text2))
+                return false;
+            
+            // Chuẩn hóa văn bản
+            string normalized1 = NormalizeTextForHash(text1);
+            string normalized2 = NormalizeTextForHash(text2);
+            
+            // Nếu chuỗi giống hệt nhau sau khi chuẩn hóa
+            if (normalized1 == normalized2) return true;
+            
+            // Tính các điểm tương đồng khác nhau
+            double diceScore = DiceCoefficient(normalized1, normalized2);
+            double wordOverlapScore = WordOverlapSimilarity(normalized1, normalized2);
+            double keywordScore = KeywordSimilarity(normalized1, normalized2);
+            
+            // Tính điểm trung bình có trọng số - tối ưu cho tiếng Anh
+            double combinedScore = (diceScore * 0.25) + (wordOverlapScore * 0.5) + (keywordScore * 0.25);
+            
+            // So sánh với ngưỡng
+            return combinedScore >= threshold;
+        }
+
+        /// <summary>
+        /// Tính độ tương đồng dựa trên từ khóa quan trọng (loại bỏ stop words)
+        /// </summary>
+        private double KeywordSimilarity(string s1, string s2)
+        {
+            // Danh sách stop words tiếng Anh phổ biến
+            HashSet<string> stopWords = new HashSet<string>(new[] {
+                "a", "an", "the", "and", "or", "but", "is", "are", "was", "were", 
+                "be", "been", "being", "in", "on", "at", "to", "for", "with", "by",
+                "about", "against", "between", "into", "through", "during", "before",
+                "after", "above", "below", "from", "up", "down", "of", "off", "over",
+                "under", "again", "further", "then", "once", "here", "there", "when",
+                "where", "why", "how", "all", "any", "both", "each", "few", "more",
+                "most", "other", "some", "such", "no", "nor", "not", "only", "own",
+                "same", "so", "than", "too", "very", "can", "will", "just", "should",
+                "now", "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
+                "you", "your", "yours", "yourself", "yourselves", "he", "him", "his",
+                "himself", "she", "her", "hers", "herself", "it", "its", "itself",
+                "they", "them", "their", "theirs", "themselves", "what", "which", "who",
+                "whom", "this", "that", "these", "those", "am", "have", "has", "had",
+                "do", "does", "did", "doing", "would", "could", "should", "ought",
+                "i'm", "you're", "he's", "she's", "it's", "we're", "they're", "i've",
+                "you've", "we've", "they've", "i'd", "you'd", "he'd", "she'd", "we'd",
+                "they'd", "i'll", "you'll", "he'll", "she'll", "we'll", "they'll",
+                "isn't", "aren't", "wasn't", "weren't", "hasn't", "haven't", "hadn't",
+                "doesn't", "don't", "didn't", "won't", "wouldn't", "shan't", "shouldn't",
+                "can't", "cannot", "couldn't", "mustn't", "let's", "that's", "who's",
+                "what's", "here's", "there's", "when's", "where's", "why's", "how's"
+            });
+            
+            // Trường hợp đặc biệt
+            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
+            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
+            if (s1 == s2) return 1.0;
+            
+            // Tách từ
+            string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+                StringSplitOptions.RemoveEmptyEntries);
+            string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+                StringSplitOptions.RemoveEmptyEntries);
+            
+            // Lọc ra các từ khóa (không phải stop words)
+            var keywords1 = new HashSet<string>(words1
+                .Select(w => w.ToLowerInvariant())
+                .Where(w => !stopWords.Contains(w)));
+            
+            var keywords2 = new HashSet<string>(words2
+                .Select(w => w.ToLowerInvariant())
+                .Where(w => !stopWords.Contains(w)));
+            
+            // Nếu không có từ khóa nào
+            if (keywords1.Count == 0 || keywords2.Count == 0)
+            {
+                // Quay lại so sánh thông thường nếu không có từ khóa
+                return DiceCoefficient(s1, s2);
+            }
+            
+            // Đếm số từ khóa chung
+            int commonKeywords = 0;
+            foreach (var keyword in keywords1)
+            {
+                if (keywords2.Contains(keyword))
+                {
+                    commonKeywords++;
+                }
+            }
+            
+            // Tính điểm Jaccard cho từ khóa
+            return (double)commonKeywords / (keywords1.Count + keywords2.Count - commonKeywords);
+        }
+
+        /// <summary>
+        /// Tính hệ số Dice dựa trên bigrams - phù hợp với cấu trúc từ tiếng Anh
+        /// </summary>
+        private double DiceCoefficient(string s1, string s2)
+        {
+            // Trường hợp đặc biệt
+            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
+            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
+            if (s1 == s2) return 1.0;
+            
+            // Xử lý chuỗi quá ngắn
+            if (s1.Length < 2 || s2.Length < 2)
+            {
+                // Nếu chuỗi quá ngắn để tạo bigram, so sánh trực tiếp
+                int sameChars = 0;
+                for (int i = 0; i < s1.Length; i++)
+                {
+                    if (s2.Contains(s1[i])) sameChars++;
+                }
+                return (double)sameChars / Math.Max(s1.Length, s2.Length);
+            }
+
+            // Tạo tập hợp bigrams cho cả hai chuỗi
+            var bigrams1 = new HashSet<string>();
+            var bigrams2 = new HashSet<string>();
+
+            // Tạo bigrams cho chuỗi thứ nhất
+            for (int i = 0; i < s1.Length - 1; i++)
+            {
+                bigrams1.Add(s1.Substring(i, 2));
+            }
+
+            // Tạo bigrams cho chuỗi thứ hai
+            for (int i = 0; i < s2.Length - 1; i++)
+            {
+                bigrams2.Add(s2.Substring(i, 2));
+            }
+
+            // Đếm số bigram chung
+            int intersectionCount = 0;
+            foreach (var bigram in bigrams1)
+            {
+                if (bigrams2.Contains(bigram))
+                {
+                    intersectionCount++;
+                }
+            }
+
+            // Tính hệ số Dice
+            return (2.0 * intersectionCount) / (bigrams1.Count + bigrams2.Count);
+        }
+
+        /// <summary>
+        /// Tính độ tương đồng dựa trên sự trùng lặp từ - đặc biệt hiệu quả cho tiếng Anh
+        /// </summary>
+        private double WordOverlapSimilarity(string s1, string s2)
+        {
+            // Trường hợp đặc biệt
+            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
+            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
+            if (s1 == s2) return 1.0;
+            
+            // Tách từ (cho tiếng Anh)
+            string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+                StringSplitOptions.RemoveEmptyEntries);
+            string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+                StringSplitOptions.RemoveEmptyEntries);
+            
+            // Nếu không có từ nào
+            if (words1.Length == 0 || words2.Length == 0) return 0.0;
+            
+            // Chuyển thành tập hợp từ (loại bỏ trùng lặp)
+            var wordSet1 = new HashSet<string>(words1.Select(w => w.ToLowerInvariant()));
+            var wordSet2 = new HashSet<string>(words2.Select(w => w.ToLowerInvariant()));
+            
+            // Đếm số từ chung
+            int commonWords = 0;
+            foreach (var word in wordSet1)
+            {
+                if (wordSet2.Contains(word))
+                {
+                    commonWords++;
+                }
+            }
+            
+            // Tính điểm Jaccard (số từ chung / tổng số từ khác nhau)
+            return (double)commonWords / (wordSet1.Count + wordSet2.Count - commonWords);
+        }
+
         // Filter results array to remove objects that should be ignored based on ignore phrases
         private JsonElement FilterIgnoredPhrases(JsonElement resultsElement)
         {
@@ -1096,7 +1287,7 @@ namespace UGTLive
         }
 
         static readonly HashSet<char> g_charsToStripFromHash =
-             new(" \n\r,.-:;ー・…。、~』!^へ");
+             new(" \n\r\t,.-:;ー・…。、~』!^へ?\"'`()[]{}【】「」『』<>+=*/\\|_@#$%&");
 
 
         private string GenerateContentHash(JsonElement resultsElement)
@@ -1104,11 +1295,11 @@ namespace UGTLive
             if (resultsElement.ValueKind != JsonValueKind.Array)
                 return string.Empty;
 
-
-         
             StringBuilder contentBuilder = new();
 
-            // Add the length to the hash to detect array size changes
+            // Thêm số lượng phần tử vào hash để phát hiện thay đổi kích thước mảng
+            contentBuilder.Append(resultsElement.GetArrayLength());
+            contentBuilder.Append('|');
 
             foreach (JsonElement element in resultsElement.EnumerateArray())
             {
@@ -1117,27 +1308,74 @@ namespace UGTLive
                     continue;
                 }
 
-                foreach (char c in textElement.GetString() ?? string.Empty)
+                string text = textElement.GetString() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(text))
                 {
-                    //replace ツ with ッ because OCR confuses them but the LLM won't
-                    if (c == 'ツ')
-                    {
-                        contentBuilder.Append('ッ');
-                    }
-                    else
-                    {
+                    continue;
+                }
 
-                        if (!g_charsToStripFromHash.Contains(c))
-                        {
-                            contentBuilder.Append(c);
-                        }
-                    }
+                // Chuẩn hóa văn bản trước khi thêm vào hash
+                string normalizedText = NormalizeTextForHash(text);
+                if (!string.IsNullOrEmpty(normalizedText))
+                {
+                    contentBuilder.Append(normalizedText);
+                    // Thêm dấu phân cách giữa các phần tử văn bản
+                    contentBuilder.Append('|');
                 }
             }
 
             string hash = contentBuilder.ToString();
             //Console.WriteLine($"Generated hash: {hash}");
             return hash;
+        }
+
+        /// <summary>
+        /// Chuẩn hóa văn bản để so sánh nhất quán
+        /// </summary>
+        private string NormalizeTextForHash(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            // Chuyển về chữ thường
+            text = text.ToLowerInvariant();
+            
+            StringBuilder sb = new StringBuilder();
+            bool lastWasSpace = true; // Bắt đầu với true để loại bỏ khoảng trắng đầu tiên
+            
+            foreach (char c in text)
+            {
+                // Thay thế ツ bằng ッ vì OCR thường nhầm lẫn chúng
+                if (c == 'ツ')
+                {
+                    sb.Append('ッ');
+                    lastWasSpace = false;
+                }
+                // Xử lý khoảng trắng (chỉ giữ một khoảng trắng liên tiếp)
+                else if (char.IsWhiteSpace(c))
+                {
+                    if (!lastWasSpace)
+                    {
+                        sb.Append(' '); // Chỉ thêm một khoảng trắng
+                        lastWasSpace = true;
+                    }
+                }
+                // Chỉ giữ lại các ký tự không nằm trong danh sách loại bỏ
+                else if (!g_charsToStripFromHash.Contains(c))
+                {
+                    sb.Append(c);
+                    lastWasSpace = false;
+                }
+            }
+            
+            // Loại bỏ khoảng trắng ở cuối chuỗi nếu có
+            string result = sb.ToString();
+            if (result.Length > 0 && result[result.Length - 1] == ' ')
+            {
+                result = result.Substring(0, result.Length - 1);
+            }
+            
+            return result;
         }
        
         // Process bitmap directly with Windows OCR (no file saving)
@@ -1254,7 +1492,15 @@ namespace UGTLive
                             Console.WriteLine("Successfully reconnected to socket server");
                         }
                     }
+                    if (DateTime.Now - _lastOcrRequestTime < _minOcrInterval)
+                    {
+                        Console.WriteLine($"Throttling OCR request, too soon after last request");
+                        MainWindow.Instance.SetOCRCheckIsWanted(true);
+                        return;
+                    }
                     
+                    // Cập nhật thời gian yêu cầu OCR
+                    _lastOcrRequestTime = DateTime.Now;
                     // If we got here, socket is connected - explicitly request character-level OCR
                     await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|easyocr|char_level");
                 }

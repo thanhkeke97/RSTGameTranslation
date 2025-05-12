@@ -119,10 +119,9 @@ def upscale_image(image, min_width=1024, min_height=768):
     return image, scale
 
 # Initialize with default language at module load time
-initialize_ocr_engine('japan')
+initialize_ocr_engine('english')
 
-def process_image(image_path, lang='japan', font_path='./fonts/NotoSansJP-Regular.ttf',
-                  preprocess_images=False, upscale_if_needed=False, char_level=True):
+def process_image(image_path, lang='english', preprocess_images=False, upscale_if_needed=False, char_level=True):
     """
     Process an image using EasyOCR and return the OCR results.
     
