@@ -22,7 +22,7 @@ namespace UGTLive
         private Grid? _overlayContainer;
         private int _textIDCounter = 0;
         private DateTime _lastOcrRequestTime = DateTime.MinValue;
-        private readonly TimeSpan _minOcrInterval = TimeSpan.FromSeconds(1);
+        private readonly TimeSpan _minOcrInterval = TimeSpan.FromSeconds(0.5);
         
         private DispatcherTimer _reconnectTimer;
         private string _lastOcrHash = string.Empty;

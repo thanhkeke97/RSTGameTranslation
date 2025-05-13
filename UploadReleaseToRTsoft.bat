@@ -1,1 +1,0 @@
-call %RT_PROJECTS%\UploadFileToRTsoftSSH.bat UniversalGameTranslatorLive_Windows.zip files
