@@ -100,6 +100,7 @@
                                  Margin="0,5" SelectedIndex="1" SelectionChanged="OcrMethodComboBox_SelectionChanged">
                             <ComboBoxItem Content="EasyOCR"/>
                             <ComboBoxItem Content="Windows OCR"/>
+                            <ComboBoxItem Content="PaddleOCR"/>
                         </ComboBox>
                         
                         <!-- Auto Translate -->

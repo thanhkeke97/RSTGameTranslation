@@ -28,8 +28,9 @@ call conda install -y -c conda-forge opencv pillow matplotlib scipy
 call conda install -y tqdm pyyaml requests
 
 REM Install EasyOCR via pip
-echo Installing EasyOCR...
-pip install easyocr
+echo Installing PaddleOCR...
+pip install paddleocr
+python -m pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
 
 REM Download language models for EasyOCR (Japanese and English)
 echo Installing language models for EasyOCR...

@@ -191,9 +191,13 @@ namespace UGTLive
                 {
                     SetStatus("Using Windows OCR (built-in)");
                 }
-                else
+                else if (method == "EasyOCR")
                 {
                     SetStatus("Using EasyOCR");
+                }
+                else
+                {
+                    SetStatus("Using PaddleOCR");
                 }
                 return;
             }
@@ -210,7 +214,7 @@ namespace UGTLive
                 }
                 else
                 {
-                    SetStatus("Using EasyOCR");
+                    SetStatus($"Using {method}");
                     
                     // Ensure we're connected when switching to EasyOCR
                     if (!SocketManager.Instance.IsConnected)
@@ -919,7 +923,7 @@ namespace UGTLive
                     }
                     else
                     {
-                        // Using EasyOCR, try to connect to the socket server
+                        // Using EasyOCR or PaddleOCR, try to connect to the socket server
                         if (!SocketManager.Instance.IsConnected)
                         {
                             _ = SocketManager.Instance.TryReconnectAsync();

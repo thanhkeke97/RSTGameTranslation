@@ -140,11 +140,11 @@ namespace UGTLive
             }
             else
             {
-                // Using EasyOCR, check connection status first
+                // Using EasyOCR or PaddleOCR, check connection status first
                 _ = Task.Run(async () => 
                 {
                    
-                        Console.WriteLine("Switching to EasyOCR, checking socket connection...");
+                        Console.WriteLine("Switching to new OCR, checking socket connection...");
 
                         // If already connected, we're good to go
                         if (SocketManager.Instance.IsConnected)

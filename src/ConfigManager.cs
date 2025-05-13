@@ -522,7 +522,7 @@ namespace UGTLive
         public void SetOcrMethod(string method)
         {
             Console.WriteLine($"ConfigManager.SetOcrMethod called with method: {method}");
-            if (method == "Windows OCR" || method == "EasyOCR")
+            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR")
             {
                 _configValues[OCR_METHOD] = method;
                 SaveConfig();
@@ -530,7 +530,7 @@ namespace UGTLive
             }
             else
             {
-                Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR'");
+                Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR' or 'PaddleOCR'");
             }
         }
         
@@ -544,7 +544,7 @@ namespace UGTLive
                 string defaultGeminiPrompt = "You are a translator. Translate the text I'll provide into English. Keep it simple and conversational.";
                 string defaultOllamaPrompt = "You are a translator. Translate the text I'll provide into English. Keep it simple and conversational.";
                 string defaultChatGptPrompt = "You are a translator. Translate the text I'll provide into English. Keep it simple and conversational.";
-                string defaultGoogleTranslatePrompt = "You are a translator using Google Translate API. Translate the text from the source language to the target language accurately while maintaining the original meaning and context.";
+                // string defaultGoogleTranslatePrompt = "You are a translator using Google Translate API. Translate the text from the source language to the target language accurately while maintaining the original meaning and context.";
                 
                 // Check and create Gemini config file
                 if (!File.Exists(_geminiConfigFilePath))

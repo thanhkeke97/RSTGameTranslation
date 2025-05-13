@@ -33,6 +33,7 @@
             <ComboBox x:Name="ocrMethodComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed" SelectedIndex="1">
                 <ComboBoxItem Content="EasyOCR"/>
                 <ComboBoxItem Content="Windows OCR"/>
+                <ComboBoxItem Content="PaddleOCR"/>
             </ComboBox>
             
             <CheckBox x:Name="autoTranslateCheckBox" IsChecked="True" Visibility="Collapsed"/>

@@ -127,8 +127,8 @@ namespace UGTLive
                 // Load force cursor visible setting
                 // Force cursor visibility is now handled by MouseManager
                 
-                // Only connect to socket server if using EasyOCR
-                if (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR")
+                // Only connect to socket server if using EasyOCR or PaddleOCR
+                if (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR")
                 {
                     await ConnectToSocketServerAsync();
                 }
@@ -194,8 +194,8 @@ namespace UGTLive
         // Reconnect timer tick event
         private async void ReconnectTimer_Tick(object? sender, EventArgs e)
         {
-            // Only try to reconnect if we're using EasyOCR
-            if (MainWindow.Instance.GetSelectedOcrMethod() != "EasyOCR")
+            // Only try to reconnect if we're using EasyOCR or PaddleOCR
+            if (MainWindow.Instance.GetSelectedOcrMethod() != "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() != "PaddleOCR")
             {
                 _reconnectTimer.Stop();
                 _reconnectAttempts = 0;
@@ -288,8 +288,8 @@ namespace UGTLive
         // Socket connection changed event handler
         private void OnSocketConnectionChanged(object? sender, bool isConnected)
         {
-            // If not connected and we're using EasyOCR, start the reconnect timer
-            if (!isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR")
+            // If not connected and we're using EasyOCR or PaddleOCR, start the reconnect timer
+            if (!isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR")
             {
                 Console.WriteLine("Connection status changed to disconnected. Starting reconnect timer.");
                 SocketManager.Instance._isConnected = false;
@@ -1436,7 +1436,7 @@ namespace UGTLive
           
             try
             {
-                // Check if we're using Windows OCR or EasyOCR
+                // Check if we're using Windows OCR or EasyOCR or PaddleOCR
                 string ocrMethod = MainWindow.Instance.GetSelectedOcrMethod();
                 
                 if (ocrMethod == "Windows OCR")
@@ -1459,7 +1459,7 @@ namespace UGTLive
                     
                     Console.WriteLine($"Processing screenshot with EasyOCR character-level OCR, language: {sourceLanguage}");
                     
-                    // Check socket connection for EasyOCR
+                    // Check socket connection for EasyOCR or PaddleOCR
                     if (!SocketManager.Instance.IsConnected)
                     {
                         Console.WriteLine("Socket not connected, attempting to reconnect...");
