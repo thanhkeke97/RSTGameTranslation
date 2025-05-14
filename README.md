@@ -49,7 +49,7 @@ To use PaddleOCR instead of EasyOCR:
 
 * Did that look like it installed ok?  It runs a self-test at the end.  If it did, you're now ready to run the server.
 
-* Run *app/webserver/RunServer.bat* for EasyOCR or *app/webserver/RunServerPaddle.bat* for PaddleOCR (recommended for better performance with Asian languages)
+* Run *app/webserver/RunServerEasy.bat* for EasyOCR or *app/webserver/RunServerPaddle.bat* for PaddleOCR (recommended for better performance with Asian languages)
 
 * Now run *app/rst.exe*
 
