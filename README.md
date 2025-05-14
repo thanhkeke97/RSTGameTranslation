@@ -17,8 +17,15 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 *Things to know:*
 
  * This is experimental, mostly tested with Japanese to English translations and English to Vietnamese translations
- * Windows and NVIDIA cards only (it will probably work with any card, but I don't know if EasyOCR/PaddleOCR will be hardware accelerated, would likely need to tweak the conda setup .bat)
  * Your privacy is important. The only web calls this app makes are to check this GitHub's media/latest_version_checker.json file to see if a new version is available. Be aware that if you use a cloud service for the translation (Gemini is recommended), they will see what you're translating. If you use Ollama, nothing at all is sent out.
+
+## Important
+* It will only work on Windows 10 and above.
+* It works best when you have an NVIDIA GPU.
+* If you don't have a dedicated GPU or your GPU is not NVIDIA, it will use the CPU but will provide very poor performance (you will lose 30-50% of your CPU power to use it).
+* You can use Windows OCR (Windows OCR will be very lightweight) instead of Easy OCR or Paddle OCR, but the recognition results in games are very poor. I suggest only using Windows OCR for tasks other than gaming.
+* The smaller the translation area you select, the faster the translation speed, and vice versa.
+* To use Easy OCR and Paddle OCR, you need to run the server first. Instructions are provided below.
 
 ## OCR Methods
 
