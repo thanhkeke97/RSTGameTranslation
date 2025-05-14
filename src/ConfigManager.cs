@@ -1194,7 +1194,7 @@ namespace UGTLive
         // Get Gemini model
         public string GetGeminiModel()
         {
-            return GetValue(GEMINI_MODEL, "gemini-2.0-flash"); // Default to 2.0 Flash
+            return GetValue(GEMINI_MODEL, "gemini-2.0-flash-lite"); // Default to 2.0 Flash-lite
         }
         
         // Set Gemini model

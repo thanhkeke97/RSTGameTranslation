@@ -29,9 +29,9 @@ namespace UGTLive
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const string CurrentVersion = "1.0";
-        private const string VersionCheckerUrl = "https://raw.githubusercontent.com/SethRobinson/UGTLive/refs/heads/main/media/latest_version_checker.json";
-        private const string DownloadUrl = "https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip";
+        public const string CurrentVersion = "1.0.1";
+        // private const string VersionCheckerUrl = "https://raw.githubusercontent.com/SethRobinson/UGTLive/refs/heads/main/media/latest_version_checker.json";
+        // private const string DownloadUrl = "https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip";
 
         private class VersionInfo
         {
@@ -242,16 +242,16 @@ namespace UGTLive
         //     }
         // }
 
-        private void UpdateStatusText(string text)
-        {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (_statusTextBlock != null)
-                {
-                    _statusTextBlock.Text = text;
-                }
-            });
-        }
+        // private void UpdateStatusText(string text)
+        // {
+        //     System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        //     {
+        //         if (_statusTextBlock != null)
+        //         {
+        //             _statusTextBlock.Text = text;
+        //         }
+        //     });
+        // }
 
         // private void DownloadUpdate()
         // {

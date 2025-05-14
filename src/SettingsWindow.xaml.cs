@@ -1130,12 +1130,12 @@ namespace UGTLive
                 // Handle both dropdown selection and manually typed values
                 if (geminiModelComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    model = selectedItem.Content?.ToString() ?? "gemini-2.0-flash";
+                    model = selectedItem.Content?.ToString() ?? "gemini-2.0-flash-lite";
                 }
                 else
                 {
                     // For manually entered text
-                    model = geminiModelComboBox.Text?.Trim() ?? "gemini-2.0-flash";
+                    model = geminiModelComboBox.Text?.Trim() ?? "gemini-2.0-flash-lite";
                 }
                 
                 if (!string.IsNullOrWhiteSpace(model))
