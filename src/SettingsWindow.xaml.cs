@@ -538,58 +538,66 @@ namespace UGTLive
             }
         }
         
-        // OCR settings
-        private void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Skip event if we're initializing
-            Console.WriteLine($"SettingsWindow.OcrMethodComboBox_SelectionChanged called (isInitializing: {_isInitializing})");
             if (_isInitializing)
             {
                 Console.WriteLine("Skipping OCR method change during initialization");
                 return;
             }
             
-            if (sender is ComboBox comboBox)
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
-                string? ocrMethod = (comboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
+                string? ocrMethod = selectedItem.Content?.ToString();
                 
                 if (!string.IsNullOrEmpty(ocrMethod))
                 {
-                    Console.WriteLine($"SettingsWindow OCR method changed to: '{ocrMethod}'");
+                    Console.WriteLine($"Setting OCR method to: {ocrMethod}");
                     
-                    // Update MonitorWindow OCR method
-                    if (MonitorWindow.Instance.ocrMethodComboBox != null)
+                    // Lưu vào config
+                    ConfigManager.Instance.SetOcrMethod(ocrMethod);
+                    
+                    // Cập nhật UI
+                    MainWindow.Instance.SetOcrMethod(ocrMethod);
+                    UpdateMonitorWindowOcrMethod(ocrMethod);
+                    
+                    // Hiển thị đang xử lý (có thể thêm progress bar/indication nếu cần)
+                    
+                    try
                     {
-                        // Find and select the matching item by content, not index
-                        foreach (ComboBoxItem item in MonitorWindow.Instance.ocrMethodComboBox.Items)
+                        // Gọi phương thức chuyển OCR và đợi kết quả
+                        bool success = await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
+                        
+                        if (!success && ocrMethod != "Windows OCR")
                         {
-                            if (string.Equals(item.Content.ToString(), ocrMethod, StringComparison.OrdinalIgnoreCase))
-                            {
-                                MonitorWindow.Instance.ocrMethodComboBox.SelectedItem = item;
-                                break;
-                            }
+                            // Hiển thị thông báo lỗi nếu không thành công
+                            MessageBox.Show($"Failed to connect to {ocrMethod} server. Please check that the server is running.",
+                                "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
-                    
-                    // Set OCR method in MainWindow
-                    MainWindow.Instance.SetOcrMethod(ocrMethod);
-                    
-                    // Only save to config if not during initialization
-                    if (!_isInitializing)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"SettingsWindow: Saving OCR method '{ocrMethod}'");
-                        ConfigManager.Instance.SetOcrMethod(ocrMethod);
+                        Console.WriteLine($"Error switching OCR method: {ex.Message}");
+                        MessageBox.Show($"Error switching OCR method: {ex.Message}",
+                            "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
-                    else
+                }
+            }
+        }
+
+        private void UpdateMonitorWindowOcrMethod(string ocrMethod)
+        {
+            // Update MonitorWindow OCR method selection
+            if (MonitorWindow.Instance.ocrMethodComboBox != null)
+            {
+                foreach (ComboBoxItem item in MonitorWindow.Instance.ocrMethodComboBox.Items)
+                {
+                    if (string.Equals(item.Content.ToString(), ocrMethod, StringComparison.OrdinalIgnoreCase))
                     {
-                        Console.WriteLine($"SettingsWindow: Skipping save during initialization for OCR method '{ocrMethod}'");
+                        MonitorWindow.Instance.ocrMethodComboBox.SelectedItem = item;
+                        break;
                     }
-                    
-                    // Reset the OCR hash to force a fresh comparison after changing OCR method
-                    Logic.Instance.ResetHash();
-                    
-                    // Clear any existing text objects
-                    Logic.Instance.ClearAllTextObjects();
                 }
             }
         }

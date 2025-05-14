@@ -929,6 +929,10 @@ namespace UGTLive
                             _ = SocketManager.Instance.TryReconnectAsync();
                             SetStatus("Connecting to Python backend...");
                         }
+                        else
+                        {
+                            SetStatus($"Using {ocrMethod}");
+                        }
                     }
                 }
             }

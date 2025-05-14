@@ -28,9 +28,15 @@ call conda install -y -c conda-forge opencv pillow matplotlib scipy
 call conda install -y tqdm pyyaml requests
 
 REM Install EasyOCR via pip
+echo Installing EasyOCR...
+pip install easyocr==1.7.2
+
+REM Install PaddleOCR via pip
 echo Installing PaddleOCR...
 pip install paddleocr
 python -m pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+python -m pip install paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
+
 
 REM Download language models for EasyOCR (Japanese and English)
 echo Installing language models for EasyOCR...
@@ -40,8 +46,9 @@ REM Verify installations
 echo Verifying installations...
 python -c "import torch; print('PyTorch Version:', torch.__version__); print('CUDA Version:', torch.version.cuda); print('CUDA Available:', torch.cuda.is_available()); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0)"
 python -c "import easyocr; print('EasyOCR imported successfully')"
+python -c "from paddleocr import PaddleOCR; print('PaddleOCR imported successfully')"
 python -c "import cv2; print('OpenCV Version:', cv2.__version__)"
 
 echo ===== Setup Complete =====
-echo If the above looks looks like the test worked, you can now double click "RunServer.bat" and it will load this conda env and run the python server.
+echo If the above looks looks like the test worked, you can now double click "server_paddle.py" for paddle ocr or "server_easy.py" for easy ocr and it will load this conda env and run the python server.
 pause

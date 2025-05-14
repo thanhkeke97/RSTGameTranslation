@@ -140,6 +140,15 @@ namespace UGTLive
             }
             else
             {
+                try
+                    {
+                       SocketManager.Instance.Disconnect();
+                        UpdateStatus($"Using {ocrMethod}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error disconnecting socket: {ex.Message}");
+                    }
                 // Using EasyOCR or PaddleOCR, check connection status first
                 _ = Task.Run(async () => 
                 {

@@ -8,12 +8,16 @@ namespace UGTLive
     {
         private static SocketManager? _instance;
         private Socket? _clientSocket;
-        private readonly int _port;
+        private int _port;
         private readonly string _host;
         public bool _isConnected;
         private bool _tryingToConnect = false;
         // Semaphore to prevent concurrent connect/disconnect operations
         private SemaphoreSlim _connectionSemaphore = new SemaphoreSlim(1, 1);
+        
+        // Constants for OCR server ports
+        public const int EASYOCR_PORT = 9999;
+        public const int PADDLEOCR_PORT = 9998;
         
         // Events for data received and connection status changes
         public event EventHandler<string>? DataReceived;
@@ -36,10 +40,189 @@ namespace UGTLive
         private SocketManager()
         {
             _host = "localhost";
-            _port = 9999;
+            // Lấy phương thức OCR từ ConfigManager
+            string ocrMethod = ConfigManager.Instance.GetOcrMethod();
+            Console.WriteLine($"SocketManager initializing with OCR method: {ocrMethod}");
+            // Thiết lập cổng dựa trên phương thức OCR
+            _port = ocrMethod switch
+            {
+                "PaddleOCR" => PADDLEOCR_PORT,
+                "EasyOCR" => EASYOCR_PORT,
+                _ => EASYOCR_PORT // Mặc định sử dụng cổng EasyOCR
+            };
+            Console.WriteLine($"SocketManager initialized with port: {_port} for {ocrMethod}");
             _isConnected = false;
         }
 
+        // Method to set the port based on OCR method
+        public void UpdatePortBasedOnOcrMethod(string ocrMethod)
+        {
+            int newPort = ocrMethod switch
+            {
+                "PaddleOCR" => PADDLEOCR_PORT,
+                "EasyOCR" => EASYOCR_PORT,
+                _ => EASYOCR_PORT // Default to EasyOCR port
+            };
+
+            if (_port != newPort)
+            {
+                Console.WriteLine($"Changing OCR server port from {_port} to {newPort} for {ocrMethod}");
+                SetPort(newPort);
+            }
+        }
+
+        // Method to set the port directly
+        public void SetPort(int port)
+        {
+            if (_port != port)
+            {
+                // If we're changing the port and currently connected, disconnect first
+                if (_isConnected)
+                {
+                    Disconnect();
+                }
+                _port = port;
+                Console.WriteLine($"OCR server port set to: {_port}");
+            }
+        }
+
+        
+        public async Task<bool> SwitchOcrMethod(string ocrMethod)
+        {
+            // Lấy phương thức OCR hiện tại
+            string currentOcrMethod = ConfigManager.Instance.GetOcrMethod();
+            Console.WriteLine($"Switching OCR method from {currentOcrMethod} to {ocrMethod}");
+            
+            // Bước 1: Reset trạng thái OCR hiện tại
+            Logic.Instance.ResetHash();
+            Logic.Instance.ClearAllTextObjects();
+            
+            // Bước 2: Nếu không phải Windows OCR, cập nhật port và kết nối
+            if (ocrMethod != "Windows OCR")
+            {
+                
+                // Cập nhật port trước khi kết nối
+                UpdatePortBasedOnOcrMethod(ocrMethod);
+                
+                // Ngắt kết nối hiện tại nếu đang kết nối
+                bool wasConnected = _isConnected;
+                if (wasConnected)
+                {
+                    Console.WriteLine("Disconnecting from current OCR server...");
+                    Disconnect();
+                    
+                    // Xử lý đặc biệt khi chuyển từ EasyOCR sang PaddleOCR
+                    if (ocrMethod == "PaddleOCR")
+                    {
+                        Console.WriteLine("Special case: EasyOCR to PaddleOCR switch detected - performing complete reconnect cycle");
+                        
+                        // Đóng hoàn toàn socket và đảm bảo tài nguyên được giải phóng
+                        _clientSocket?.Close();
+                        _clientSocket?.Dispose();
+                        _clientSocket = null;
+                        
+                        // Đảm bảo socket được giải phóng hoàn toàn trước khi kết nối lại
+                        await Task.Delay(3000);  // Đợi 3 giây
+                        Console.WriteLine("Socket resources released, proceeding with fresh connection");
+                        
+                        // Khởi tạo mới hoàn toàn socket thay vì sử dụng lại
+                        _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        
+                        try
+                        {
+                            // Kết nối với timeout
+                            Console.WriteLine($"Establishing fresh connection to PaddleOCR on port {_port}...");
+                            var connectTask = _clientSocket.ConnectAsync(IPAddress.Parse("127.0.0.1"), _port);
+                            
+                            // Thêm timeout cho kết nối
+                            if (await Task.WhenAny(connectTask, Task.Delay(5000)) != connectTask)
+                            {
+                                Console.WriteLine("Connection attempt timed out after 5 seconds");
+                                Disconnect();
+                                return false;
+                            }
+                            
+                            // Kiểm tra kết nối thành công
+                            if (!_clientSocket.Connected)
+                            {
+                                Console.WriteLine("Socket connected state is false after connection attempt");
+                                Disconnect();
+                                return false;
+                            }
+                            
+                            // Kết nối thành công
+                            _isConnected = true;
+                            ConnectionChanged?.Invoke(this, true);
+                            
+                            // Khởi động thread lắng nghe
+                            _ = StartListeningAsync();
+                            
+                            Console.WriteLine("Successfully connected to PaddleOCR with fresh connection");
+                            
+                            // Nếu đang ở chế độ Started, kích hoạt OCR check
+                            if (MainWindow.Instance.GetIsStarted())
+                            {
+                                Console.WriteLine("OCR process active, triggering new OCR check");
+                                MainWindow.Instance.SetOCRCheckIsWanted(true);
+                            }
+                            
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error during fresh connection attempt: {ex.Message}");
+                            Disconnect();
+                            return false;
+                        }
+                    }
+                }
+                
+                // Cho các trường hợp không phải chuyển từ EasyOCR sang PaddleOCR
+                if (ocrMethod != "PaddleOCR")
+                {
+                    // Kết nối lại với port mới
+                    Console.WriteLine($"Connecting to {ocrMethod} server on port {_port}...");
+                    bool connected = await TryReconnectAsync();
+                    
+                    // Thông báo kết quả
+                    if (connected)
+                    {
+                        Console.WriteLine($"Successfully connected to {ocrMethod} server");
+                        
+                        // Nếu đang ở chế độ Started, kích hoạt OCR check
+                        if (MainWindow.Instance.GetIsStarted())
+                        {
+                            Console.WriteLine("OCR process active, triggering new OCR check");
+                            MainWindow.Instance.SetOCRCheckIsWanted(true);
+                        }
+                        
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to connect to {ocrMethod} server");
+                        return false;
+                    }
+                }
+                
+                // Nếu đã xử lý trường hợp EasyOCR sang PaddleOCR ở trên, trả về true
+                return _isConnected;
+            }
+            else
+            {
+                // Trường hợp Windows OCR, không cần kết nối socket
+                Console.WriteLine("Switched to Windows OCR (no socket connection required)");
+                
+                // Nếu đang ở chế độ Started, kích hoạt OCR check
+                if (MainWindow.Instance.GetIsStarted())
+                {
+                    Console.WriteLine("OCR process active, triggering new Windows OCR check");
+                    MainWindow.Instance.SetOCRCheckIsWanted(true);
+                }
+                
+                return true;
+            }
+        }
 
         public bool IsWaitingForSomething()
         {

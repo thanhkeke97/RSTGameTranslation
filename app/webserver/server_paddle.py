@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Server configuration
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 9999         # Port to listen on
+PORT = 9998         # Port to listen on
 BUFFER_SIZE = 1024  # Buffer size for receiving data
 MAX_CONNECTIONS = 5  # Maximum number of concurrent connections
 CONNECTION_TIMEOUT = 60  # Connection timeout in seconds
