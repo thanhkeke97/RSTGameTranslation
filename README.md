@@ -41,7 +41,7 @@ To use PaddleOCR instead of EasyOCR:
 
 * Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslate/releases) and unzip it somewhere
 
-* Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(more info)](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions): curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -o .\miniconda.exe start /wait "" .\miniconda.exe /S del .\miniconda.exe
+* Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(more info)](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions)
 
 * Note:  When running .bat files you might get an ugly "This is dangerous, don't run it" message - the .exe itself is signed by RTsoft, but bat files don't have a way to be signed so you'll have to just trust me and click "More info" and run it anyway.  This message only happens the first time per .bat file.
 
