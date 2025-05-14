@@ -562,26 +562,10 @@ namespace UGTLive
                     MainWindow.Instance.SetOcrMethod(ocrMethod);
                     UpdateMonitorWindowOcrMethod(ocrMethod);
                     
-                    // Hiển thị đang xử lý (có thể thêm progress bar/indication nếu cần)
                     
-                    try
-                    {
-                        // Gọi phương thức chuyển OCR và đợi kết quả
-                        bool success = await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
+                    await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
                         
-                        if (!success && ocrMethod != "Windows OCR")
-                        {
-                            // Hiển thị thông báo lỗi nếu không thành công
-                            MessageBox.Show($"Failed to connect to {ocrMethod} server. Please check that the server is running.",
-                                "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error switching OCR method: {ex.Message}");
-                        MessageBox.Show($"Error switching OCR method: {ex.Message}",
-                            "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                
                 }
             }
         }

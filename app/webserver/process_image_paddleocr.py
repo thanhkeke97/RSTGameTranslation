@@ -45,13 +45,15 @@ def initialize_ocr_engine(lang='japan'):
         if torch.cuda.is_available():
             device_name = torch.cuda.get_device_name(0)
             print(f"GPU is available: {device_name}. Using GPU for OCR.")
+            usegpu = True;
         else:
             print("GPU is not available. PaddleOCR will use CPU.")
+            usegpu = False;
         print(f"Initializing PaddleOCR engine with language: {paddle_lang}...")
         start_time = time.time()
 
         # Initialize PaddleOCR with the specified language
-        OCR_ENGINE = PaddleOCR(use_angle_cls=True, lang=paddle_lang, use_gpu=True)
+        OCR_ENGINE = PaddleOCR(use_angle_cls=True, lang=paddle_lang, use_gpu=usegpu)
         CURRENT_LANG = lang
         initialization_time = time.time() - start_time
         print(f"PaddleOCR initialization completed in {initialization_time:.2f} seconds")

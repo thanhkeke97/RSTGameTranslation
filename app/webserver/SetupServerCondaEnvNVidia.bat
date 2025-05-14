@@ -29,7 +29,7 @@ call conda install -y tqdm pyyaml requests
 
 REM Install EasyOCR via pip
 echo Installing EasyOCR...
-pip install easyocr==1.7.2
+pip install easyocr --user
 
 REM Install PaddleOCR via pip
 echo Installing PaddleOCR...
