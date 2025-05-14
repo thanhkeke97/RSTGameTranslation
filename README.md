@@ -1,8 +1,6 @@
 ## RST Game Translator
 This is a project inspired by [sethRobinson's UGTLive](https://github.com/SethRobinson/UGTLive) 
 
-[![Watch the video](media/5e565177-6ead-48b1-86c0-7dbdebe1f554.png)](https://www.youtube.com/watch?v=PFrWheMeT5k)
-
 RST Game Translator with the following features:
 
 * Runs EasyOCR or PaddleOCR locally via a Python server to facilitate live automatic translations
