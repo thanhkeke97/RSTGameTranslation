@@ -1,4 +1,4 @@
-name: Sign BAT and EXE Files
+name: Sign EXE Files
 
 on:
   push:
@@ -60,22 +60,20 @@ jobs:
         Export-PfxCertificate -Cert "Cert:\CurrentUser\My\$thumbprint" -FilePath certificate.pfx -Password $pwd
         Write-Host "Certificate exported to certificate.pfx"
       
-    - name: Find and Sign Files
+    - name: Find and Sign EXE Files
       run: |
         # Hiển thị đường dẫn SignTool
         Write-Host "Sử dụng SignTool tại: $env:SIGNTOOL_PATH"
         
-        # Tìm tất cả file .bat và .exe trong repository
-        $filesToSign = @()
-        $filesToSign += Get-ChildItem -Path . -Filter "*.bat" -Recurse
-        $filesToSign += Get-ChildItem -Path . -Filter "*.exe" -Recurse
+        # Tìm tất cả file .exe trong repository
+        $exeFiles = Get-ChildItem -Path . -Filter "*.exe" -Recurse
         
-        if ($filesToSign.Count -eq 0) {
-          Write-Host "Không tìm thấy file .bat hoặc .exe nào để ký"
+        if ($exeFiles.Count -eq 0) {
+          Write-Host "Không tìm thấy file .exe nào để ký"
         } else {
-          Write-Host "Tìm thấy $($filesToSign.Count) file để ký"
+          Write-Host "Tìm thấy $($exeFiles.Count) file .exe để ký"
           
-          foreach ($file in $filesToSign) {
+          foreach ($file in $exeFiles) {
             Write-Host "Đang ký file: $($file.FullName)"
             # Sử dụng đường dẫn đầy đủ đến SignTool
             & "$env:SIGNTOOL_PATH" sign /f certificate.pfx /p "RST@2025" /t http://timestamp.digicert.com /v $file.FullName
@@ -89,14 +87,14 @@ jobs:
           }
         }
     
-    - name: Upload Signed BAT Files
-      uses: actions/upload-artifact@master
-      with:
-        name: signed-bat-files
-        path: "**/*.bat"
-        
     - name: Upload Signed EXE Files
       uses: actions/upload-artifact@master
       with:
         name: signed-exe-files
         path: "**/*.exe"
+        
+    - name: Upload BAT Files (Không ký)
+      uses: actions/upload-artifact@master
+      with:
+        name: bat-files
+        path: "**/*.bat"
