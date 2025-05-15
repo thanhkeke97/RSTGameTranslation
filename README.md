@@ -44,7 +44,7 @@ To use PaddleOCR instead of EasyOCR:
 
 ## How to install and use it (Windows) ##
 
-* Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslate/releases) and unzip it somewhere
+* Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslation/releases) and unzip it somewhere
 
 * Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(more info)](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions)
 
@@ -71,7 +71,7 @@ NOTE: The first time you use EasyOCR or PaddleOCR with a new language, it has to
 ## How to update your version
 RSTGameTranslation will automatically check for updates when you start it. If a new version is available, you'll see a notification asking if you want to download it. To update:
 
-Download the latest version from the notification or from [here](https://github.com/thanhkeke97/RSTGameTranslate/releases)
+Download the latest version from the notification or from [here](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 Close RSTGameTranslation if it's running
 Extract the new files over your existing installation
 That's it! Your settings and preferences will be preserved
