@@ -71,11 +71,11 @@ NOTE: The first time you use EasyOCR or PaddleOCR with a new language, it has to
 ## How to update your version
 RSTGameTranslation will automatically check for updates when you start it. If a new version is available, you'll see a notification asking if you want to download it. To update:
 
-Download the latest version from the notification or from [here](https://github.com/thanhkeke97/RSTGameTranslation/releases)
-Close RSTGameTranslation if it's running
-Extract the new files over your existing installation
-That's it! Your settings and preferences will be preserved
-The update process is simple and safe - you won't lose any of your settings or customizations.
+* Download the latest version from the notification or from [here](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+* Close RSTGameTranslation if it's running
+* Extract the new files over your existing installation
+* That's it! Your settings and preferences will be preserved
+* The update process is simple and safe - you won't lose any of your settings or customizations.
 
 ## Keyboard Shortcuts
 
