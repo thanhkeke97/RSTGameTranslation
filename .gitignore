@@ -410,7 +410,6 @@ app/webserver/*
 !app/webserver/*.bat
 !app/webserver/*.py
 
-UniversalGameTranslatorLive_Windows.zip
 
 **/.claude/settings.local.json
 
