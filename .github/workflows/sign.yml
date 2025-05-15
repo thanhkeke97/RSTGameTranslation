@@ -64,14 +64,14 @@ jobs:
         }
     
     - name: Upload Signed BAT Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@master
       with:
         name: signed-bat-files
         path: "**/*.bat"
         if-no-files-found: warn
         
     - name: Upload Signed EXE Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@master
       with:
         name: signed-exe-files
         path: "**/*.exe"
