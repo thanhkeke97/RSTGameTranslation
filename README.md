@@ -34,7 +34,7 @@ The application now supports new OCR engines:
 - Runs on port 9998
 
 To use PaddleOCR instead of EasyOCR:
-1. Run `app/webserver/RunServerPaddle.bat` instead of the regular server
+1. Run `app/webserver/RunServerPaddleOCR.bat` instead of the regular server
 2. In the application settings, select PaddleOCR as the OCR method
 
 ## How to install and use it (Windows) ##
@@ -49,7 +49,7 @@ To use PaddleOCR instead of EasyOCR:
 
 * Did that look like it installed ok?  It runs a self-test at the end.  If it did, you're now ready to run the server.
 
-* Run *app/webserver/RunServerEasy.bat* for EasyOCR or *app/webserver/RunServerPaddle.bat* for PaddleOCR (recommended for better performance with Asian languages)
+* Run *app/webserver/RunServerEasyOCR.bat* for EasyOCR or *app/webserver/RunServerPaddleOCR.bat* for PaddleOCR (recommended for better performance with Asian languages)
 
 * Now run *app/rst.exe*
 

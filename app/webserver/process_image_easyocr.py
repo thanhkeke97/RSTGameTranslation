@@ -45,8 +45,10 @@ def initialize_ocr_engine(lang='japan'):
         if torch.cuda.is_available():
             device_name = torch.cuda.get_device_name(0)
             print(f"GPU is available: {device_name}. Using GPU for OCR.")
+            usegpu = True;
         else:
             print("GPU is not available. EasyOCR will use CPU.")
+            usegpu = False;
 
         print(f"Initializing EasyOCR engine with language: {easy_lang}...")
         start_time = time.time()
@@ -56,7 +58,7 @@ def initialize_ocr_engine(lang='japan'):
         if easy_lang == 'ja':
             languages.append('en')
 
-        OCR_ENGINE = easyocr.Reader(languages, gpu=True)
+        OCR_ENGINE = easyocr.Reader(languages, gpu=usegpu)
         CURRENT_LANG = lang
         initialization_time = time.time() - start_time
         print(f"EasyOCR initialization completed in {initialization_time:.2f} seconds")

@@ -70,8 +70,8 @@ def handle_client_connection(conn, addr):
                     continue
                 
                 # Parse parameters if provided
-                lang = 'japan'  # Default language
-                implementation = 'paddleocr'  # Now using PaddleOCR
+                lang = 'english'  # Default language
+                implementation = 'paddleocr'
                 
                 if "|" in command:
                     parts = command.split("|")
@@ -79,12 +79,12 @@ def handle_client_connection(conn, addr):
                         lang = parts[1]
                     if len(parts) > 2 and parts[2]:
                         implementation = parts[2].lower()
-                
+
                 # Check if character-level OCR is requested
                 char_level = True  # Default to character-level
                 
                 # Log the OCR engine and language being used
-                logger.info(f"Using PaddleOCR with language: {lang}, character-level: {char_level}")
+                logger.info(f"Using PaddleOCR with language: {lang}, character-level: {char_level}, OCR engine: {implementation}")
                 
                 # Process image with PaddleOCR
                 start_time = time.time()

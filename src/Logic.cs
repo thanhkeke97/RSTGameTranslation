@@ -199,7 +199,7 @@ namespace UGTLive
             {
                 _reconnectTimer.Stop();
                 _reconnectAttempts = 0;
-                //_hasShownConnectionErrorMessage = false;
+                _hasShownConnectionErrorMessage = false;
                 return;
             }
             
@@ -213,7 +213,7 @@ namespace UGTLive
                 {
                     _reconnectTimer.Stop();
                     _reconnectAttempts = 0;
-                    //_hasShownConnectionErrorMessage = false;
+                    _hasShownConnectionErrorMessage = false;
                 }
                 // Show error message after several failed attempts (approximately 15 seconds)
                 else if (_reconnectAttempts >= 1 && !_hasShownConnectionErrorMessage)
@@ -225,8 +225,9 @@ namespace UGTLive
                                      "To fix this problem:\n\n" +
                                      "1. Navigate to the 'app/webserver' folder in your UGTLive installation\n" +
                                      "2. Run \"SetupServerCondaEnv.bat\" (only need to do this once during initial setup)\n" +
-                                     "3. Run \"RunServer.bat\" to start the EasyOCR server\n\n" +
-                                     "The server window should remain open while using UGTLive with EasyOCR.\n\n" +
+                                     "3. Run \"RunServerEasyOCR.bat\" to start the EasyOCR server\n\n" +
+                                     "4. Run \"RunServerPaddleOCR.bat\" to start the PaddleOCR server\n\n" +
+                                     "The server window should remain open while using RST with EasyOCR or PaddleOCR.\n\n" +
                                      "Alternatively, you can switch to Windows OCR in the settings (no server needed).";
                     
                     MessageBoxResult result = MessageBox.Show(message + "\n\nAttempt to start server using RunServer.bat?", 
@@ -234,12 +235,13 @@ namespace UGTLive
                     
                     if (result == MessageBoxResult.Yes)
                     {
+                        String OcrMethod = ConfigManager.Instance.GetOcrMethod();
                         try
                         {
                             // Try to run the RunServer.bat file
                             System.Diagnostics.Process.Start(new ProcessStartInfo
                             {
-                                FileName = "RunServer.bat",
+                                FileName = $"RunServer{OcrMethod}.bat",
                                 UseShellExecute = true,
                                 WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory+"webserver\\"
                             });
@@ -256,7 +258,7 @@ namespace UGTLive
                         {
                             System.Diagnostics.Process.Start(new ProcessStartInfo
                             {
-                                FileName = "https://github.com/SethRobinson/UGTLive",
+                                FileName = "https://github.com/thanhkeke97/RSTGameTranslation",
                                 UseShellExecute = true
                             });
                         }
@@ -1457,7 +1459,7 @@ namespace UGTLive
                     // Get the source language from MainWindow
                     string sourceLanguage = GetSourceLanguage()!;
                     
-                    Console.WriteLine($"Processing screenshot with EasyOCR character-level OCR, language: {sourceLanguage}");
+                    Console.WriteLine($"Processing screenshot with {ocrMethod} character-level OCR, language: {sourceLanguage}");
                     
                     // Check socket connection for EasyOCR or PaddleOCR
                     if (!SocketManager.Instance.IsConnected)
@@ -1502,7 +1504,7 @@ namespace UGTLive
                     // Cập nhật thời gian yêu cầu OCR
                     _lastOcrRequestTime = DateTime.Now;
                     // If we got here, socket is connected - explicitly request character-level OCR
-                    await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|easyocr|char_level");
+                    await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|{ocrMethod}|char_level");
                 }
             }
             catch (Exception ex)

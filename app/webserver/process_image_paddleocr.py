@@ -10,12 +10,12 @@ import torch
 OCR_ENGINE = None
 CURRENT_LANG = None
 
-def initialize_ocr_engine(lang='japan'):
+def initialize_ocr_engine(lang='english'):
     """
     Initialize or reinitialize the OCR engine with the specified language.
     
     Args:
-        lang (str): Language to use for OCR (default: 'japan')
+        lang (str): Language to use for OCR (default: 'english')
     
     Returns:
         PaddleOCR: Initialized OCR engine
@@ -28,7 +28,8 @@ def initialize_ocr_engine(lang='japan'):
         'korean': 'korean',
         'chinese': 'ch',
         'english': 'en',
-        'vietnamese': 'vi'
+        'vietnamese': 'vi',
+        'ch_sim': 'ch'
     }
 
     # Use mapped language or default to input if not in map
@@ -144,7 +145,7 @@ def process_image(image_path, lang='english', preprocess_images=False, upscale_i
         image = Image.open(image_path)
         
         # Store original size for coordinate scaling later
-        original_width, original_height = image.size
+        # original_width, original_height = image.size
         
         # Preprocess image if the flag is set
         if preprocess_images:
