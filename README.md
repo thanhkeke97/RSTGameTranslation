@@ -1,7 +1,7 @@
-## RST Game Translator
+## RSTGameTranslation (Realtime Screen Translation)
 This product includes software from developed by Seth A. Robinson [sethRobinson's UGTLive](https://github.com/SethRobinson/UGTLive) 
 
-RST Game Translator with the following features:
+RSTGameTranslation with the following features:
 
 * Runs EasyOCR or PaddleOCR locally via a Python server to facilitate live automatic translations
 * All translation is done with Large Language Models (LLMs) (Supports Gemini, ChatGPT, Ollama) and support google translate
@@ -44,7 +44,7 @@ To use PaddleOCR instead of EasyOCR:
 
 ## How to install and use it (Windows) ##
 
-* Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslate/releases) and unzip it somewhere
+* Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslation/releases) and unzip it somewhere
 
 * Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(more info)](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions)
 
@@ -67,6 +67,15 @@ To use PaddleOCR instead of EasyOCR:
 * Now you should be ready.  Click Start and see what happens!  Click "Log" to see errors and things.  If stuff doesn't work or you have questions, try posting here on GitHub.
 
 NOTE: The first time you use EasyOCR or PaddleOCR with a new language, it has to download it first!  So it might seem broken, just wait a minute or two and start/stop application's translation and it should work.
+
+## How to update your version
+RSTGameTranslation will automatically check for updates when you start it. If a new version is available, you'll see a notification asking if you want to download it. To update:
+
+* Download the latest version from the notification or from [here](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+* Close RSTGameTranslation if it's running
+* Extract the new files over your existing installation
+* That's it! Your settings and preferences will be preserved
+* The update process is simple and safe - you won't lose any of your settings or customizations.
 
 ## Keyboard Shortcuts
 
@@ -91,20 +100,6 @@ Ollama and ChatGPT are other LLM options. For Ollama, install it, and set a mode
 Unfortunately I've hardcoded all the models so when new ones come out uh... well, maybe I'll move those to an editable file later.
 
 All the OCR is done at a character-by-character level.  Then there is a "Block detection" function that sticks things together to make words and paragraphs.  You can edit the "Block Power" to make it more likely to stick things together or break them apart.  (Dialog is good stuck together, other things are better not stuck together, so depends on what you're doing)
-
-## Why are you using an LLM instead of DeepL/Google Translate? ##
-
-I think this is the obvious way of the future - by editing the LLM prompt template in settings, you have amazing control.  For example, you can ask it to translate things more literally (good for language learning) if needed. 
-
-It intelligently understands the difference between a block of dialog and three options that the user can choose from and inserts linefeeds at the correct positions.
-
-Another important advantage is spatial understanding - instead of just sending individual lines to be translated, the LLM is sent all the text at once, complete with positioning/rect information.  We allow the LLM to make decisions like "move this text over to that block" or even create its own new blocks.
-
-One key setting is the "Max previous context".  This is recent earlier dialog being sent along with the new request, this allows the LLM to understand "the story thus far" which allows it to give more accurate translations.  In general, you don't want buttons like "Options" "Talk" "X" to be sent in this "context", so the "Min Context Size" allows you to have it ignore smaller words and only send larger dialog.
-
-You can also do dumb things like ask that every character talk like a drunk pirate and that's no problem too.
-
-In the future, we can probably send the entire screenshot directly to an LLM and get answers at a high FPS, but for now, due to speed/cost it makes sense to do our own (lower quality) OCR and send text only.
 
 ## For developers - How to compile it ##
 
