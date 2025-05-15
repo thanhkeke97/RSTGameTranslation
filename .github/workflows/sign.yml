@@ -12,17 +12,38 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Setup SignTool
+    - name: Locate SignTool
       run: |
-        # Sử dụng SignTool có sẵn trong Windows SDK của GitHub Actions
-        $signtoolPath = Get-Command -Name signtool.exe -ErrorAction SilentlyContinue
+        # Tìm SignTool có sẵn trong Windows SDK của GitHub Actions
+        $signtoolPath = Get-Command -Name signtool.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+        
         if (-not $signtoolPath) {
-          Write-Host "Đang cài đặt Windows SDK để có SignTool..."
-          choco install windows-sdk-10-netfx-4-7-2 -y
-          # Thêm đường dẫn vào PATH
-          $env:PATH = "$env:PATH;C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x64"
+          Write-Host "Tìm kiếm SignTool trong các đường dẫn phổ biến..."
+          $possiblePaths = @(
+            "C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x64\signtool.exe",
+            "C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe",
+            "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe",
+            "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64\signtool.exe",
+            "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          )
+          
+          foreach ($path in $possiblePaths) {
+            if (Test-Path $path) {
+              $signtoolPath = $path
+              Write-Host "Tìm thấy SignTool tại: $signtoolPath"
+              $env:PATH = "$env:PATH;$(Split-Path -Parent $signtoolPath)"
+              break
+            }
+          }
+        } else {
+          Write-Host "SignTool đã có sẵn tại: $signtoolPath"
         }
-        Write-Host "SignTool path: $(Get-Command signtool.exe | Select-Object -ExpandProperty Source)"
+        
+        if (-not $signtoolPath) {
+          Write-Host "Không tìm thấy SignTool. Sử dụng đường dẫn mặc định."
+          $defaultPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x64"
+          $env:PATH = "$env:PATH;$defaultPath"
+        }
       
     - name: Create Self-Signed Certificate
       run: |
@@ -64,15 +85,13 @@ jobs:
         }
     
     - name: Upload Signed BAT Files
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: signed-bat-files
         path: "**/*.bat"
-        if-no-files-found: warn
         
     - name: Upload Signed EXE Files
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: signed-exe-files
         path: "**/*.exe"
-        if-no-files-found: warn
