@@ -396,7 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-
 7-Zip/
 #project specific files to ignore/not ignore
 
@@ -410,10 +409,6 @@ app/webserver/*
 #but keep a few things...
 !app/webserver/*.bat
 !app/webserver/*.py
-
-!app/ollama_config.txt
-!app/gemini_config.txt
-!app/chatgpt_config.txt
 
 UniversalGameTranslatorLive_Windows.zip
 

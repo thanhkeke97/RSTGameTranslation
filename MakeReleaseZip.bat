@@ -12,9 +12,6 @@ dotnet publish .\UGTLive.csproj -c Release -r win-x64 -p:PublishSingleFile=false
 
 mkdir tempbuild
 copy app\win-x64\publish\* tempbuild
-copy app\chatgpt_config.txt tempbuild
-copy app\gemini_config.txt tempbuild
-copy app\ollama_config.txt tempbuild
 copy README.md tempbuild
 
 :the server stuff too
