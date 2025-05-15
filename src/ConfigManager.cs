@@ -248,7 +248,7 @@ namespace UGTLive
             _configValues[MIN_TEXT_FRAGMENT_SIZE] = "1";
             _configValues[CHATGPT_MODEL] = "gpt-4.1-nano";
             _configValues[CHATGPT_API_KEY] = "<your API key here>";
-            _configValues[GEMINI_MODEL] = "gemini-2.0-flash";
+            _configValues[GEMINI_MODEL] = "gemini-2.0-flash-lite";
             _configValues[BLOCK_DETECTION_SCALE] = "3.00";
             _configValues[BLOCK_DETECTION_SETTLE_TIME] = "0.15";
             _configValues[KEEP_TRANSLATED_TEXT_UNTIL_REPLACED] = "true";

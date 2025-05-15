@@ -719,7 +719,7 @@ namespace UGTLive
         }
         
         // Update the translation status timer
-        private void TranslationStatusTimer_Tick(object sender, EventArgs e)
+        private void TranslationStatusTimer_Tick(object? sender, EventArgs e)
         {
             TimeSpan elapsed = DateTime.Now - _translationStartTime;
             string service = ConfigManager.Instance.GetCurrentTranslationService();
