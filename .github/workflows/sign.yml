@@ -1,0 +1,78 @@
+name: Sign BAT and EXE Files
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup SignTool
+      run: |
+        # Sử dụng SignTool có sẵn trong Windows SDK của GitHub Actions
+        $signtoolPath = Get-Command -Name signtool.exe -ErrorAction SilentlyContinue
+        if (-not $signtoolPath) {
+          Write-Host "Đang cài đặt Windows SDK để có SignTool..."
+          choco install windows-sdk-10-netfx-4-7-2 -y
+          # Thêm đường dẫn vào PATH
+          $env:PATH = "$env:PATH;C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x64"
+        }
+        Write-Host "SignTool path: $(Get-Command signtool.exe | Select-Object -ExpandProperty Source)"
+      
+    - name: Create Self-Signed Certificate
+      run: |
+        # Tạo chứng chỉ tự ký
+        $certName = "RSTSigningCert"
+        $certPassword = "RST@2025"
+        
+        $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=$certName" -CertStoreLocation "Cert:\CurrentUser\My" -NotAfter (Get-Date).AddYears(5)
+        $thumbprint = $cert.Thumbprint
+        Write-Host "Certificate created with thumbprint: $thumbprint"
+        
+        $pwd = ConvertTo-SecureString -String $certPassword -Force -AsPlainText
+        Export-PfxCertificate -Cert "Cert:\CurrentUser\My\$thumbprint" -FilePath certificate.pfx -Password $pwd
+        Write-Host "Certificate exported to certificate.pfx"
+      
+    - name: Find and Sign Files
+      run: |
+        # Tìm tất cả file .bat và .exe trong repository
+        $filesToSign = @()
+        $filesToSign += Get-ChildItem -Path . -Filter "*.bat" -Recurse
+        $filesToSign += Get-ChildItem -Path . -Filter "*.exe" -Recurse
+        
+        if ($filesToSign.Count -eq 0) {
+          Write-Host "Không tìm thấy file .bat hoặc .exe nào để ký"
+        } else {
+          Write-Host "Tìm thấy $($filesToSign.Count) file để ký"
+          
+          foreach ($file in $filesToSign) {
+            Write-Host "Đang ký file: $($file.FullName)"
+            & signtool.exe sign /f certificate.pfx /p "RST@2025" /t http://timestamp.digicert.com /v $file.FullName
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "Đã ký thành công file $($file.Name)"
+            } else {
+              Write-Host "Không thể ký file $($file.Name)" -ForegroundColor Red
+              Write-Host "Tiếp tục với các file khác..."
+              # Không thoát để có thể tiếp tục ký các file khác
+            }
+          }
+        }
+    
+    - name: Upload Signed BAT Files
+      uses: actions/upload-artifact@v3
+      with:
+        name: signed-bat-files
+        path: "**/*.bat"
+        if-no-files-found: warn
+        
+    - name: Upload Signed EXE Files
+      uses: actions/upload-artifact@v3
+      with:
+        name: signed-exe-files
+        path: "**/*.exe"
+        if-no-files-found: warn
