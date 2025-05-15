@@ -2,6 +2,7 @@ SET APP_NAME=RSTGameTranslation
 SET APP_VERSION=0.1
 SET FNAME=%APP_NAME%_v%APP_VERSION%.zip
 
+del %APP_NAME%_v*.zip
 rmdir tempbuild /S /Q
 rmdir app\win-x64\publish /S /Q
 
