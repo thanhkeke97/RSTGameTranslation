@@ -25,23 +25,6 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 * The smaller the translation area you select, the faster the translation speed, and vice versa.
 * To use Easy OCR and Paddle OCR, you need to run the server first. Instructions are provided below.
 
-## OCR Methods
-
-The application now supports new OCR engines:
-
-###  PaddleOCR (New!)
-- Faster processing speed compared to EasyOCR
-- Superior accuracy, especially for Asian languages (Japanese, Chinese, Korean)
-- Lower memory usage
-- Better character-level recognition
-- Enhanced image preprocessing capabilities
-- Automatic image upscaling for low-resolution images
-- Runs on port 9998
-
-To use PaddleOCR instead of EasyOCR:
-1. Run `app/webserver/RunServerPaddleOCR.bat` instead of the regular server
-2. In the application settings, select PaddleOCR as the OCR method
-
 ## How to install and use it (Windows) ##
 
 * Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslation/releases) and unzip it somewhere
@@ -54,9 +37,9 @@ To use PaddleOCR instead of EasyOCR:
 
 * Did that look like it installed ok?  It runs a self-test at the end.  If it did, you're now ready to run the server.
 
-* Run *app/webserver/RunServerEasyOCR.bat* for EasyOCR or *app/webserver/RunServerPaddleOCR.bat* for PaddleOCR (recommended for better performance with Asian languages)
+* Run *RSTGameTranslation/webserver/RunServerEasyOCR.bat* for EasyOCR or *RSTGameTranslation/webserver/RunServerPaddleOCR.bat* for PaddleOCR (recommended for better performance with Asian languages)
 
-* Now run *app/rst.exe*
+* Now run *RSTGameTranslation/rst.exe*
 
 * Go to the settings and add your Gemini API key.  There is some info written there on how to get it.
 
