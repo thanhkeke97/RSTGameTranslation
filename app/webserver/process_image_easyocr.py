@@ -150,7 +150,7 @@ def process_image(image_path, lang='english', preprocess_images=False, upscale_i
         image = Image.open(image_path)
         
         # Store original size for coordinate scaling later
-        original_width, original_height = image.size
+        # original_width, original_height = image.size
         
         # Preprocess image if the flag is set
         if preprocess_images:

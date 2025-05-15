@@ -1,5 +1,5 @@
 ## RST Game Translator
-This is a project inspired by [sethRobinson's UGTLive](https://github.com/SethRobinson/UGTLive) 
+This product includes software from developed by Seth A. Robinson [sethRobinson's UGTLive](https://github.com/SethRobinson/UGTLive) 
 
 RST Game Translator with the following features:
 

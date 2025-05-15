@@ -127,7 +127,7 @@ namespace UGTLive
                 // Version Text
                 _versionTextBlock = new TextBlock
                 {
-                    Text = $"Realtime screen translator V{CurrentVersion} by Thanh Pham \nOriginal Author: Seth Robinson",
+                    Text = $"Realtime screen translator V{CurrentVersion} by Thanh Pham",
                     FontSize = 16,
                     FontWeight = FontWeights.SemiBold,
                     Margin = new Thickness(0, 10, 0, 10),
