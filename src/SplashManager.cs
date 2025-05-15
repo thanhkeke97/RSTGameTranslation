@@ -29,9 +29,9 @@ namespace UGTLive
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const string CurrentVersion = "1.0.0";
-        // private const string VersionCheckerUrl = "https://raw.githubusercontent.com/SethRobinson/UGTLive/refs/heads/main/media/latest_version_checker.json";
-        // private const string DownloadUrl = "https://www.rtsoft.com/files/UniversalGameTranslatorLive_Windows.zip";
+        public const double CurrentVersion = 1.0;
+        private const string VersionCheckerUrl = "https://raw.githubusercontent.com/thanhkeke97/RSTGameTranslation/refs/heads/main/media/latest_version_checker.json";
+        private string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{CurrentVersion}/RST_v{CurrentVersion}.zip";
 
         private class VersionInfo
         {
@@ -156,129 +156,129 @@ namespace UGTLive
                 // Set the border as content of the window
                 _splashWindow.Content = mainBorder;
                 _splashWindow.Show();
-
-                CloseSplashAfterDelay(2000);
+                CheckForUpdates();
+                // CloseSplashAfterDelay(2000);
             });
         }
 
-        // private async void CheckForUpdates()
-        // {
-        //     try
-        //     {
-        //         VersionInfo? versionInfo = await FetchVersionInfo();
-        //         if (versionInfo == null)
-        //         {
-        //             CloseSplashAfterDelay(2000);
-        //             return;
-        //         }
+        private async void CheckForUpdates()
+        {
+            try
+            {
+                VersionInfo? versionInfo = await FetchVersionInfo();
+                if (versionInfo == null)
+                {
+                    CloseSplashAfterDelay(2000);
+                    return;
+                }
 
-        //         if (versionInfo.LatestVersion > CurrentVersion)
-        //         {
-        //             string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString()) 
-        //             ?? $"New version {versionInfo.LatestVersion} is available. Would you like to download it now?";
+                if (versionInfo.LatestVersion > CurrentVersion)
+                {
+                    string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString()) 
+                    ?? $"New version {versionInfo.LatestVersion} is available. Would you like to download it now?";
                     
                     
-        //             // Update status text
-        //             UpdateStatusText($"New version V{versionInfo.LatestVersion} available!");
+                    // Update status text
+                    UpdateStatusText($"New version V{versionInfo.LatestVersion} available!");
                     
-        //             // Wait for 2 seconds before showing update dialog
-        //             await Task.Delay(2000);
+                    // Wait for 2 seconds before showing update dialog
+                    await Task.Delay(2000);
                     
-        //             // Temporarily disable Topmost property before showing dialog
-        //             System.Windows.Application.Current.Dispatcher.Invoke(() =>
-        //             {
-        //                 if (_splashWindow != null)
-        //                 {
-        //                     _splashWindow.Topmost = false;
-        //                 }
+                    // Temporarily disable Topmost property before showing dialog
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        if (_splashWindow != null)
+                        {
+                            _splashWindow.Topmost = false;
+                        }
                         
-        //                 System.Windows.MessageBoxResult result = System.Windows.MessageBox.Show(message, "Update Available", 
-        //                     System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Information);
+                        System.Windows.MessageBoxResult result = System.Windows.MessageBox.Show(message, "Update Available", 
+                            System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Information);
                         
-        //                 if (result == System.Windows.MessageBoxResult.Yes)
-        //                 {
-        //                     DownloadUpdate();
-        //                 }
+                        if (result == System.Windows.MessageBoxResult.Yes)
+                        {
+                            DownloadUpdate();
+                        }
                         
-        //                 CloseSplash();
-        //             });
-        //         }
-        //         else
-        //         {
-        //             UpdateStatusText("You have the latest version");
-        //             CloseSplashAfterDelay(2000);
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"Error checking for updates: {ex.Message}");
-        //         CloseSplashAfterDelay(2000);
-        //     }
-        // }
+                        CloseSplash();
+                    });
+                }
+                else
+                {
+                    UpdateStatusText("You have the latest version");
+                    CloseSplashAfterDelay(2000);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking for updates: {ex.Message}");
+                CloseSplashAfterDelay(2000);
+            }
+        }
 
-        // private async Task<VersionInfo?> FetchVersionInfo()
-        // {
-        //     try
-        //     {
-        //         using (HttpClient client = new HttpClient())
-        //         {
-        //             string json = await client.GetStringAsync(VersionCheckerUrl);
-        //             Console.WriteLine($"Received JSON: {json}");
+        private async Task<VersionInfo?> FetchVersionInfo()
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string json = await client.GetStringAsync(VersionCheckerUrl);
+                    Console.WriteLine($"Received JSON: {json}");
                     
-        //             var options = new JsonSerializerOptions
-        //             {
-        //                 PropertyNameCaseInsensitive = true
-        //             };
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
                     
-        //             var result = JsonSerializer.Deserialize<VersionInfo>(json, options);
-        //             Console.WriteLine($"Deserialized version: {result?.LatestVersion}, name: {result?.Name}, message: {result?.Message}");
-        //             return result;
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"Error fetching version info: {ex.Message}");
-        //         return null;
-        //     }
-        // }
+                    var result = JsonSerializer.Deserialize<VersionInfo>(json, options);
+                    Console.WriteLine($"Deserialized version: {result?.LatestVersion}, name: {result?.Name}, message: {result?.Message}");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching version info: {ex.Message}");
+                return null;
+            }
+        }
 
-        // private void UpdateStatusText(string text)
-        // {
-        //     System.Windows.Application.Current.Dispatcher.Invoke(() =>
-        //     {
-        //         if (_statusTextBlock != null)
-        //         {
-        //             _statusTextBlock.Text = text;
-        //         }
-        //     });
-        // }
+        private void UpdateStatusText(string text)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (_statusTextBlock != null)
+                {
+                    _statusTextBlock.Text = text;
+                }
+            });
+        }
 
-        // private void DownloadUpdate()
-        // {
-        //     try
-        //     {
-        //         UpdateStatusText("Starting download...");
+        private void DownloadUpdate()
+        {
+            try
+            {
+                UpdateStatusText("Starting download...");
                 
-        //         // Open the download URL in the default browser
-        //         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-        //         {
-        //             FileName = DownloadUrl,
-        //             UseShellExecute = true
-        //         });
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"Error downloading update: {ex.Message}");
-        //         // Ensure error dialog is visible
-        //         if (_splashWindow != null)
-        //         {
-        //             _splashWindow.Topmost = false;
-        //         }
+                // Open the download URL in the default browser
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = DownloadUrl,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error downloading update: {ex.Message}");
+                // Ensure error dialog is visible
+                if (_splashWindow != null)
+                {
+                    _splashWindow.Topmost = false;
+                }
                 
-        //         System.Windows.MessageBox.Show($"Failed to download update: {ex.Message}", "Error", 
-        //             System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-        //     }
-        // }
+                System.Windows.MessageBox.Show($"Failed to download update: {ex.Message}", "Error", 
+                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
 
         private void CloseSplashAfterDelay(int delay)
         {
