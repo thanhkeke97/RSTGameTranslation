@@ -254,7 +254,7 @@ namespace UGTLive
 
         private void DownloadUpdate(double version)
         {
-            string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{version}/RST_v{version}.zip";
+            string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{version}/RSTGameTranslation_v{version}.zip";
             try
             {
                 UpdateStatusText("Starting download...");

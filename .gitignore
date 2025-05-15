@@ -397,7 +397,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-
+7-Zip/
 #project specific files to ignore/not ignore
 
 obj/
