@@ -70,7 +70,7 @@ def handle_client_connection(conn, addr):
                     continue
                 
                 # Parse parameters if provided
-                lang = 'japan'  # Default language
+                lang = 'english'  # Default language
                 implementation = 'easyocr'  # Now only supporting EasyOCR
                 
                 if "|" in command:
@@ -84,7 +84,7 @@ def handle_client_connection(conn, addr):
                 char_level = True  # Default to character-level
                 
                 # Log the OCR engine and language being used
-                logger.info(f"Using EasyOCR with language: {lang}, character-level: {char_level}")
+                logger.info(f"Using EasyOCR with language: {lang}, character-level: {char_level}, OCR engine: {implementation}")
                 
                 # Process image with EasyOCR
                 start_time = time.time()

@@ -10,12 +10,12 @@ import torch
 OCR_ENGINE = None
 CURRENT_LANG = None
 
-def initialize_ocr_engine(lang='japan'):
+def initialize_ocr_engine(lang='english'):
     """
     Initialize or reinitialize the OCR engine with the specified language.
     
     Args:
-        lang (str): Language to use for OCR (default: 'japan')
+        lang (str): Language to use for OCR (default: 'english')
     
     Returns:
         EasyOCR Reader: Initialized OCR engine
