@@ -33,7 +33,7 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 
 * Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(more info)](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions)
 
-* Note:  When running .bat files you might get an ugly "This is dangerous, don't run it" message because this project is open source and i don't have any digital signatures so you'll have to just trust me and click "More info" and run it anyway.  This message only happens the first time per .bat file.
+* Note:  When running .bat or .exe files you might get an ugly "This is dangerous, don't run it" message because this project is open source and i don't have any digital signatures so you'll have to just trust me and click "More info" and run it anyway.  This message only happens the first time per .bat file.
 
 * Conda is a thing that lets us install a bunch of python stuff without screwing up other python installs.  Let's do that now, double click *app/webserver/SetupServerCondaEnvNVidia.bat* and wait a long time while it installs a bunch of junk.  We need this for EasyOCR and PaddleOCR, the engines that we run locally to "look" at the screen.  Later, this server might also do more ML/AI work in future versions. (for example, doing subtitles of spoken dialog)
 
