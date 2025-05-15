@@ -82,13 +82,13 @@ jobs:
         }
     
     - name: Upload Signed BAT Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@master
       with:
         name: signed-bat-files
         path: "**/*.bat"
         
     - name: Upload Signed EXE Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@master
       with:
         name: signed-exe-files
         path: "**/*.exe"
