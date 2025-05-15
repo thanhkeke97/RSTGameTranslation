@@ -29,9 +29,8 @@ namespace UGTLive
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const double CurrentVersion = 1.0;
+        public const double CurrentVersion = 0.1;
         private const string VersionCheckerUrl = "https://raw.githubusercontent.com/thanhkeke97/RSTGameTranslation/refs/heads/main/media/latest_version_checker.json";
-        private string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{CurrentVersion}/RST_v{CurrentVersion}.zip";
 
         private class VersionInfo
         {
@@ -197,7 +196,7 @@ namespace UGTLive
                         
                         if (result == System.Windows.MessageBoxResult.Yes)
                         {
-                            DownloadUpdate();
+                            DownloadUpdate(versionInfo.LatestVersion);
                         }
                         
                         CloseSplash();
@@ -253,8 +252,9 @@ namespace UGTLive
             });
         }
 
-        private void DownloadUpdate()
+        private void DownloadUpdate(double version)
         {
+            string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{version}/RST_v{version}.zip";
             try
             {
                 UpdateStatusText("Starting download...");
