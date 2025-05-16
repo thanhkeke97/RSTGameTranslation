@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35825.156 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UGTLive", "UGTLive.csproj", "{6AC8EFE4-F98D-4CE7-A6CA-7A6D169EDC55}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RST", "RST.csproj", "{6AC8EFE4-F98D-4CE7-A6CA-7A6D169EDC55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
