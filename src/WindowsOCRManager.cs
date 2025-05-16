@@ -6,7 +6,7 @@ using System.Text.Json;
 
 using Application = System.Windows.Application;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     class WindowsOCRManager
     {

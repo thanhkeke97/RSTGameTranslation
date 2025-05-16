@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class SocketManager
     {

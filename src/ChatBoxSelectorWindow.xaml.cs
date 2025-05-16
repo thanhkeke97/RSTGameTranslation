@@ -12,7 +12,7 @@ using Key = System.Windows.Input.Key;
 using MessageBox = System.Windows.MessageBox;
 using Forms = System.Windows.Forms;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public partial class ChatBoxSelectorWindow : Window
     {

@@ -5,7 +5,7 @@ using System.Windows.Input;
 using System.Diagnostics;
 using System.Windows.Forms; // For Control.ModifierKeys
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public static class KeyboardShortcuts
     {

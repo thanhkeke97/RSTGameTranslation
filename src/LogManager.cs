@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class LogManager
     {

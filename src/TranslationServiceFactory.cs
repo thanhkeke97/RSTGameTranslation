@@ -1,6 +1,6 @@
 using System;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     /// <summary>
     /// Factory class for creating translation service instances based on configuration

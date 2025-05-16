@@ -14,7 +14,7 @@ using ComboBox = System.Windows.Controls.ComboBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     // Class to represent an ignore phrase
     public class IgnorePhrase

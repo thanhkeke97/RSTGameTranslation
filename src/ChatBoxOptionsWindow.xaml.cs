@@ -12,7 +12,7 @@ using FontFamily = System.Windows.Media.FontFamily;
 using Brushes = System.Windows.Media.Brushes;
 using MessageBox = System.Windows.MessageBox;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public partial class ChatBoxOptionsWindow : Window
     {

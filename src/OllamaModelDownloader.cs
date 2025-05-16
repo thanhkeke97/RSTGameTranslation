@@ -9,7 +9,7 @@ using System.Windows.Media;
 using MessageBox = System.Windows.MessageBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class OllamaModelDownloader
     {

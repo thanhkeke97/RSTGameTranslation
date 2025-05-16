@@ -14,7 +14,7 @@ using System.Text;
 using System.Windows.Shell;
 
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public partial class MainWindow : Window
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.IO;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     /// <summary>
     /// Translation service that uses Google Translate API

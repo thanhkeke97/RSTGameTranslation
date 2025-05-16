@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using Application = System.Windows.Application;
 
-namespace UGTLive;
+namespace RSTGameTranslation;
 
 /// <summary>
 /// Interaction logic for App.xaml

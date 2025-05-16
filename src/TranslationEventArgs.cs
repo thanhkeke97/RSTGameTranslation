@@ -1,6 +1,6 @@
 using System;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class TranslationEventArgs : EventArgs
     {

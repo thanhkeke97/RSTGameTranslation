@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.IO;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     /// <summary>
     /// Advanced intelligent character and text block detection system

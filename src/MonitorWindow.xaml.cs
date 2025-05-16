@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public partial class MonitorWindow : Window
     {

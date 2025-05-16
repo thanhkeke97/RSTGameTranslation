@@ -8,7 +8,7 @@ using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class OpenAIRealtimeAudioServiceWhisper
     {

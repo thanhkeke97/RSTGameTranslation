@@ -16,7 +16,7 @@ using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 using FontFamily = System.Windows.Media.FontFamily;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class TextObject
     {

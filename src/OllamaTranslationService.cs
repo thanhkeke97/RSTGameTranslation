@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class OllamaTranslationService : ITranslationService
     {

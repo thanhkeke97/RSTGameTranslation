@@ -15,7 +15,7 @@ using WPFPoint = System.Windows.Point;
 using WPFColor = System.Windows.Media.Color;
 using WPFOrientation = System.Windows.Controls.Orientation;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class SplashManager
     {

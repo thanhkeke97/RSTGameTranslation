@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace UGTLive
+namespace RSTGameTranslation
 {
     public class MouseManager
     {
