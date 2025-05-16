@@ -51,7 +51,7 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 
 * Now you should be ready.  Click Start and see what happens!  Click "Log" to see errors and things.  If stuff doesn't work or you have questions, try posting here on GitHub.
 
-* You can use source_language and target_language in prompt, it will automatically map the language to the language code which you choose in the settings. For example, if you choose source_language=en and target_language=vi, the prompt sent to LLM will be convert to "English" and "Vietnamese" before sending to LLM automatically.
+* You can use source_language and target_language in prompt, it will automatically map the language to the language code which you choose in the settings. For example, if you choose source_language=en and target_language=vi in the setting, the prompt sent to LLM will be convert to "English" and "Vietnamese" before sending to LLM automatically.
 
 NOTE: The first time you use EasyOCR or PaddleOCR with a new language, it has to download it first!  So it might seem broken, just wait a minute or two and start/stop application's translation and it should work.
 
