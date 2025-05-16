@@ -80,7 +80,7 @@ The following shortcuts have been added to help you use the application more qui
 | Shift+H | Show/Hide Main Window |
 
 ## Advanced setup info ##
-While personally I recommend Gemini Flash 2 and PaddleOCR (for Asian languages) or EasyOCR (for other languages), there are a lot of options at your disposal.  You can use Windows' built-in OCR instead of the python server, this doesn't work great for Japanese I've found, but might be ok for other languages.  It's fast.
+While personally I recommend Gemini Flash 2 lite and PaddleOCR (It is better for Asian languages and uses lower resources for easy OCR), there are a lot of options at your disposal. You can use Windows' built-in OCR instead of the python server, this doesn't work great for Japanese I've found, but might be ok for other languages.  It's fast.
 
 Ollama and ChatGPT are other LLM options. For Ollama, install it, and set a model like gemma3:12b.  On an RTX 4090 it takes around 5 seconds to return a translation.  (the settings contain directions and buttons to get started)  For ChatGPT/OpenAI, choose a model like GPT-4.1 Nano.
 
