@@ -3,6 +3,8 @@ This product includes software from developed by Seth A. Robinson [sethRobinson'
 
 ## [![Version](https://img.shields.io/badge/version-0.1-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 
+For Vietnamese users, a user guide in Vietnamese language is available [here](https://thanhkeke97.github.io/RSTGameTranslation/)
+
 RSTGameTranslation with the following features:
 
 * Runs EasyOCR or PaddleOCR locally via a Python server to facilitate live automatic translations
