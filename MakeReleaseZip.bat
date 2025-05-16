@@ -6,8 +6,8 @@ del %APP_NAME%_v*.zip
 rmdir tempbuild /S /Q
 rmdir app\win-x64\publish /S /Q
 
-dotnet clean UGTLive.sln --configuration Release
-dotnet publish .\UGTLive.csproj -c Release -r win-x64 -p:PublishSingleFile=false --self-contained true
+dotnet clean RST.sln --configuration Release
+dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=false --self-contained true
 
 
 mkdir tempbuild
