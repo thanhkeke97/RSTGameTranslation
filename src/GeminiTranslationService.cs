@@ -9,6 +9,8 @@ namespace UGTLive
     public class GeminiTranslationService : ITranslationService
     {
         private static readonly HttpClient _httpClient = new HttpClient();
+        private static int _consecutiveFailures = 0;
+        private int delayMS = 500;
         
         /// <summary>
         /// Translate text using the Gemini API
@@ -63,6 +65,8 @@ namespace UGTLive
                 if (response.IsSuccessStatusCode)
                 {
                     string jsonResponse = await response.Content.ReadAsStringAsync();
+                    // Reset consecutive failures counter on success
+                    _consecutiveFailures = 0;
                     
                     // Log the raw Gemini response before returning it
                     LogManager.Instance.LogLlmReply(jsonResponse);
@@ -72,8 +76,9 @@ namespace UGTLive
                 else
                 {
                     string errorMessage = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Gemini API error: {response.StatusCode}, {errorMessage}");
-                    
+                    _consecutiveFailures++;
+                    Console.WriteLine($"Gemini API error: {response.StatusCode}, {errorMessage}, error count: {_consecutiveFailures}");
+                    // Increment consecutive failures counter
                     // Try to parse the error message from JSON if possible
                     try
                     {
@@ -87,19 +92,22 @@ namespace UGTLive
                             {
                                 detailedError = messageElement.GetString() ?? "";
                             }
-                            
-                            // Write error to file
-                            System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
-                            
-                            // Show error message to user
-                            System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                                System.Windows.MessageBox.Show(
-                                    $"Gemini API error: {detailedError}\n\nPlease check your API key and settings.",
-                                    "Gemini Translation Error",
-                                    System.Windows.MessageBoxButton.OK,
-                                    System.Windows.MessageBoxImage.Error);
-                            });
-                            
+                            // ignore error if it's a rate limite error
+                            if (_consecutiveFailures > 3)
+                            {
+                                // Write error to file
+                                System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
+                                
+                                // Show error message to user
+                                System.Windows.Application.Current.Dispatcher.Invoke(() => {
+                                    System.Windows.MessageBox.Show(
+                                        $"Gemini API error: {detailedError}\n\nPlease check your API key and settings.",
+                                        "Gemini Translation Error",
+                                        System.Windows.MessageBoxButton.OK,
+                                        System.Windows.MessageBoxImage.Error);
+                                });
+                            }
+                            await Task.Delay(delayMS);
                             return null;
                         }
                     }
@@ -107,19 +115,21 @@ namespace UGTLive
                     {
                         // If we can't parse as JSON, just use the raw message
                     }
-                    
-                    // Write error to file
-                    System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {response.StatusCode}\n\nFull response: {errorMessage}");
-                    
-                    // Show general error if JSON parsing failed
-                    System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                        System.Windows.MessageBox.Show(
-                            $"Gemini API error: {response.StatusCode}\n{errorMessage}\n\nPlease check your API key and settings.",
-                            "Gemini Translation Error",
-                            System.Windows.MessageBoxButton.OK,
-                            System.Windows.MessageBoxImage.Error);
-                    });
-                    
+                    if (_consecutiveFailures > 3)
+                    {
+                        // Write error to file
+                        System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {response.StatusCode}\n\nFull response: {errorMessage}");
+                        
+                        // Show general error if JSON parsing failed
+                        System.Windows.Application.Current.Dispatcher.Invoke(() => {
+                            System.Windows.MessageBox.Show(
+                                $"Gemini API error: {response.StatusCode}\n{errorMessage}\n\nPlease check your API key and settings.",
+                                "Gemini Translation Error",
+                                System.Windows.MessageBoxButton.OK,
+                                System.Windows.MessageBoxImage.Error);
+                        });
+                    }
+                    await Task.Delay(delayMS);
                     return null;
                 }
             }

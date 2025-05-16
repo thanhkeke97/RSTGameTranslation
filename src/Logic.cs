@@ -1871,6 +1871,27 @@ namespace UGTLive
             }
         }
 
+        private string MapLanguageCode(string language)
+        {
+            return language.ToLower() switch
+            {
+                "ja" => "japanese",
+                "en" => "english",
+                "ch_sim" => "chinese",
+                "ko" => "korean",
+                "vi" => "vietnamese",
+                "fr" => "french",
+                "de" => "german",
+                "es" => "spanish",
+                "it" => "italian",
+                "ru" => "russian",
+                "hi" => "hindi",
+                "id" => "indonesian",
+                "pl" => "polish",
+                _ => language
+            };
+        }
+
         //!Convert textobjects to json and send for translation
         public async Task TranslateTextObjectsAsync()
         {
@@ -1929,8 +1950,8 @@ namespace UGTLive
                 // Create the full JSON object with OCR results, context and game info
                 var ocrData = new
                 {
-                    source_language = GetSourceLanguage(),
-                    target_language = GetTargetLanguage(),
+                    source_language = MapLanguageCode(GetSourceLanguage()),
+                    target_language = MapLanguageCode(GetTargetLanguage()),
                     text_blocks = textsToTranslate,
                     previous_context = previousContext,
                     game_info = gameInfo
@@ -1998,13 +2019,22 @@ namespace UGTLive
             return ConfigManager.Instance.GetLlmPrompt();
         }
 
-        private string? GetSourceLanguage()
+        private string GetSourceLanguage()
         {
             if (!Application.Current.Dispatcher.CheckAccess())
             {
                 return Application.Current.Dispatcher.Invoke(() => GetSourceLanguage());
             }
-            return (MainWindow.Instance.sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString();
+            // return (MainWindow.Instance.sourceLanguageComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
+            // Find the MainWindow instance
+            var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+            // Get the selected ComboBoxItem
+            if (mainWindow!.sourceLanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                // Return the content as string
+                return selectedItem.Content?.ToString()!;
+            }
+            return "en";
         }
 
         // Get target language from MainWindow (for future implementation)
@@ -2023,7 +2053,7 @@ namespace UGTLive
                 // Return the content as string
                 return selectedItem.Content?.ToString()!;
             }
-            return "en";
+            return "vi";
         }
         
         // Get previous context based on configuration settings
