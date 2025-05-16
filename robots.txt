@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://thanhkeke97.github.io/RSTGameTranslation/sitemap.xml

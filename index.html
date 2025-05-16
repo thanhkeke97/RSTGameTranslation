@@ -4,7 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="9Vn2nQKKjFtwswDJuFSINcGW8QlsjDHQbQ9G0dBgc5Q" />
-    <title>RSTGameTranslation - Realtime Screen Translation</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>RSTGameTranslation - Phần mềm dịch màn hình game thời gian thực</title>
+    <meta name="description" content="RSTGameTranslation là công cụ dịch màn hình game thời gian thực sử dụng AI tiên tiến, hỗ trợ nhiều ngôn ngữ, chạy được cả offline và online với Gemini, ChatGPT, Ollama." />
+    <meta name="keywords" content="dịch game, dịch màn hình thời gian thực, RSTGameTranslation, OCR game, AI dịch game, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama" />
+    <meta name="author" content="thanhkeke97 (Thành Phạm)" />
+    <link rel="canonical" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://thanhkeke97.github.io/RSTGameTranslation/" />
+    <meta property="og:title" content="RSTGameTranslation - Phần mềm dịch màn hình game thời gian thực" />
+    <meta property="og:description" content="Công cụ dịch màn hình game thời gian thực sử dụng AI tiên tiến, hỗ trợ nhiều ngôn ngữ, chạy được cả offline và online." />
+    <meta property="og:image" content="https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://thanhkeke97.github.io/RSTGameTranslation/" />
+    <meta property="twitter:title" content="RSTGameTranslation - Phần mềm dịch màn hình game thời gian thực" />
+    <meta property="twitter:description" content="Công cụ dịch màn hình game thời gian thực sử dụng AI tiên tiến, hỗ trợ nhiều ngôn ngữ, chạy được cả offline và online." />
+    <meta property="twitter:image" content="https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png" />
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -176,6 +197,30 @@
             }
         }
     </style>
+    <!-- Schema.org markup for Google -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "RSTGameTranslation",
+        "description": "Phần mềm dịch màn hình game thời gian thực sử dụng AI tiên tiến",
+        "operatingSystem": "Windows 10+",
+        "applicationCategory": "UtilityApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "softwareVersion": "0.1",
+        "author": {
+            "@type": "Person",
+            "name": "thanhkeke97"
+        },
+        "datePublished": "2025-05-16",
+        "requirements": "Windows 10 trở lên, tốt nhất có GPU NVIDIA",
+        "softwareHelp": "https://github.com/thanhkeke97/RSTGameTranslation/issues"
+    }
+    </script>
 </head>
 <body>
     <header>
@@ -183,48 +228,60 @@
             <h1>RSTGameTranslation</h1>
             <p>Realtime Screen Translation cho Game và Ứng dụng</p>
             <div class="version-badge">Phiên bản 0.1</div>
-            <p><em>Dựa trên phần mềm của Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;">UGTLive</a></em></p>
+            <p><em>Dựa trên phần mềm của Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;" title="UGTLive GitHub Repository">UGTLive</a></em></p>
         </div>
     </header>
 
     <div class="container">
-        <section>
+        <nav>
+            <h2>Điều hướng nhanh</h2>
+            <ul>
+                <li><a href="#tinh-nang">Tính năng chính</a></li>
+                <li><a href="#luu-y">Lưu ý quan trọng</a></li>
+                <li><a href="#cai-dat">Cách cài đặt</a></li>
+                <li><a href="#cap-nhat">Cách cập nhật</a></li>
+                <li><a href="#phim-tat">Phím tắt</a></li>
+                <li><a href="#cai-dat-nang-cao">Cài đặt nâng cao</a></li>
+                <li><a href="#faq">Câu hỏi thường gặp</a></li>
+            </ul>
+        </nav>
+        <section id="tinh-nang">
             <h2>Tính năng chính</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-                    <i class="fas fa-eye"></i>
+                    <i class="fas fa-eye" aria-hidden="true"></i>
                     <h3>Nhận dạng văn bản thời gian thực</h3>
                     <p>Sử dụng EasyOCR hoặc PaddleOCR chạy cục bộ thông qua máy chủ Python để dịch tự động theo thời gian thực.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-brain"></i>
+                    <i class="fas fa-brain" aria-hidden="true"></i>
                     <h3>Dịch bằng AI tiên tiến</h3>
                     <p>Tất cả các bản dịch được thực hiện với Large Language Models (LLMs) - hỗ trợ Gemini, ChatGPT, Ollama và Google Translate.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-lock" aria-hidden="true"></i>
                     <h3>Quyền riêng tư</h3>
                     <p>Có thể chạy 100% cục bộ bằng cách sử dụng Ollama với LLM tùy chọn, không gửi dữ liệu ra ngoài.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-desktop"></i>
+                    <i class="fas fa-desktop" aria-hidden="true"></i>
                     <h3>Giao diện linh hoạt</h3>
                     <p>Hiển thị cửa sổ chat ở vị trí bạn muốn hoặc dịch toàn bộ màn hình với giao diện dễ sử dụng.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-volume-up"></i>
+                    <i class="fas fa-volume-up" aria-hidden="true"></i>
                     <h3>Đọc văn bản</h3>
                     <p>Có thể đọc to các câu và tạo kế hoạch học tập cho người học ngôn ngữ.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-gamepad"></i>
+                    <i class="fas fa-gamepad" aria-hidden="true"></i>
                     <h3>Tối ưu cho game</h3>
                     <p>Bằng cách cung cấp thông tin về game đang dịch và ngữ cảnh trước đó, bản dịch có thể chính xác hơn các phương pháp khác.</p>
                 </div>
             </div>
         </section>
 
-        <section>
+        <section id="luu-y">
             <h2>Lưu ý quan trọng</h2>
             <div class="important-note">
                 <ul>
@@ -238,34 +295,34 @@
             </div>
         </section>
 
-        <section>
+        <section id="cai-dat">
             <h2>Cách cài đặt và sử dụng (Windows)</h2>
             <div class="installation-steps">
                 <ol>
-                    <li>Tải phiên bản mới nhất (file zip) <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank">tại đây</a> và giải nén.</li>
+                    <li>Tải phiên bản mới nhất (file zip) <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank" rel="noopener" title="Tải RSTGameTranslation">tại đây</a> và giải nén.</li>
                     <li>Kiểm tra xem bạn đã cài đặt Conda chưa bằng cách mở cửa sổ lệnh (nhấn <code>Win + R</code>, gõ <code>cmd</code>, và nhấn Enter) và gõ "conda". Nếu hiển thị các lệnh conda, bạn đã cài đặt. Nếu báo lỗi, hãy cài đặt Miniconda.</li>
                     <li>Chạy <code>RSTGameTranslation/webserver/SetupServerCondaEnvNVidia.bat</code> và đợi quá trình cài đặt hoàn tất.</li>
                     <li>Chạy <code>RSTGameTranslation/webserver/RunServerEasyOCR.bat</code> cho EasyOCR hoặc <code>RSTGameTranslation/webserver/RunServerPaddleOCR.bat</code> cho PaddleOCR (khuyến nghị cho hiệu suất tốt hơn với ngôn ngữ châu Á).</li>
                     <li>Chạy <code>RSTGameTranslation/rst.exe</code></li>
                     <li>Vào phần cài đặt và thêm khóa API Gemini của bạn.</li>
                 </ol>
-                <img src="media/settings_gemini.png" alt="Cài đặt Gemini API" class="screenshot">
+                <img src="media/settings_gemini.png" alt="Giao diện cài đặt Gemini API trong RSTGameTranslation" class="screenshot" width="800" height="450">
                 <p><strong>Lưu ý:</strong> Lần đầu tiên bạn sử dụng EasyOCR hoặc PaddleOCR với một ngôn ngữ mới, nó phải tải xuống trước! Vì vậy, có thể có vẻ không hoạt động, chỉ cần đợi một hoặc hai phút và khởi động/dừng dịch của ứng dụng, nó sẽ hoạt động.</p>
             </div>
         </section>
 
-        <section>
+        <section id="cap-nhat">
             <h2>Cách cập nhật phiên bản</h2>
             <p>RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi động. Nếu có phiên bản mới, bạn sẽ thấy thông báo hỏi xem bạn có muốn tải xuống không. Để cập nhật:</p>
             <ul>
-                <li>Tải phiên bản mới nhất từ thông báo hoặc từ <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank">đây</a></li>
+                <li>Tải phiên bản mới nhất từ thông báo hoặc từ <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank" rel="noopener" title="Trang releases của RSTGameTranslation">đây</a></li>
                 <li>Đóng RSTGameTranslation nếu đang chạy</li>
                 <li>Giải nén các tệp mới vào thư mục cài đặt hiện tại</li>
                 <li>Xong! Các cài đặt và tùy chọn của bạn sẽ được giữ nguyên</li>
             </ul>
         </section>
 
-        <section>
+        <section id="phim-tat">
             <h2>Phím tắt</h2>
             <table class="shortcut-table">
                 <thead>
@@ -303,22 +360,40 @@
             </table>
         </section>
 
-        <section>
+        <section id="cai-dat-nang-cao">
             <h2>Thông tin cài đặt nâng cao</h2>
             <p>Mặc dù cá nhân tôi khuyên dùng Gemini Flash 2 lite và PaddleOCR (tốt hơn cho ngôn ngữ châu Á và sử dụng ít tài nguyên hơn cho Easy OCR), có nhiều tùy chọn khác nhau cho bạn. Bạn có thể sử dụng OCR tích hợp của Windows thay vì máy chủ python, điều này không hoạt động tốt cho tiếng Nhật nhưng có thể ổn cho các ngôn ngữ khác. Nó nhanh.</p>
             <p>Ollama và ChatGPT là các tùy chọn LLM khác. Đối với Ollama, hãy cài đặt nó và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu) Đối với ChatGPT/OpenAI, chọn một mô hình như GPT-4.1 Nano.</p>
         </section>
 
+        <section id="faq">
+            <h2>Câu hỏi thường gặp (FAQ)</h2>
+            <div class="installation-steps">
+                <h3>RSTGameTranslation có thể dịch những ngôn ngữ nào?</h3>
+                <p>Phần mềm có thể dịch hầu hết các ngôn ngữ, nhưng được thử nghiệm chủ yếu với dịch từ tiếng Nhật sang tiếng Anh và tiếng Anh sang tiếng Việt.</p>
+                
+                <h3>Tôi không có GPU NVIDIA, tôi vẫn có thể sử dụng không?</h3>
+                <p>Có, nhưng hiệu suất sẽ kém hơn nhiều vì phải sử dụng CPU. Bạn có thể thử dùng Windows OCR cho hiệu suất nhẹ hơn.</p>
+                
+                <h3>Tôi có thể dùng RSTGameTranslation mà không cần kết nối internet không?</h3>
+                <p>Có, bạn có thể sử dụng Ollama để chạy 100% offline. Bạn sẽ cần tải mô hình LLM về máy trước.</p>
+                
+                <h3>Làm thế nào để có API key của Gemini?</h3>
+                <p>Bạn có thể đăng ký API key Gemini miễn phí tại <a href="https://ai.google.dev/" target="_blank" rel="noopener">Google AI Studio</a>. Sau khi đăng nhập, bạn có thể tạo API key trong phần cài đặt.</p>
+            </div>
+        </section>
+
         <div style="text-align: center; margin: 40px 0;">
-            <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" class="btn" target="_blank"><i class="fas fa-download"></i> Tải xuống ngay</a>
-            <a href="https://github.com/thanhkeke97/RSTGameTranslation" class="btn" target="_blank"><i class="fab fa-github"></i> Xem trên GitHub</a>
+            <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" class="btn" target="_blank" rel="noopener" title="Tải xuống RSTGameTranslation"><i class="fas fa-download" aria-hidden="true"></i> Tải xuống ngay</a>
+            <a href="https://github.com/thanhkeke97/RSTGameTranslation" class="btn" target="_blank" rel="noopener" title="Xem mã nguồn trên GitHub"><i class="fab fa-github" aria-hidden="true"></i> Xem trên GitHub</a>
         </div>
+        
     </div>
 
     <footer>
         <div class="container">
-            <p>RSTGameTranslation &copy; 2025 | Giấy phép: BSD-style attribution, xem <a href="LICENSE.md" style="color: white;">LICENSE.md</a></p>
-            <p>Dự án này bao gồm phần mềm được phát triển bởi Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;">UGTLive</a></p>
+            <p>RSTGameTranslation &copy; 2025 | Giấy phép: BSD-style attribution, xem <a href="LICENSE.md" style="color: white;" title="Giấy phép">LICENSE.md</a></p>
+            <p>Dự án này bao gồm phần mềm được phát triển bởi Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;" title="UGTLive GitHub Repository">UGTLive</a></p>
         </div>
     </footer>
 </body>
