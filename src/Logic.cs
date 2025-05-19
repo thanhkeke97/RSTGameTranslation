@@ -1966,7 +1966,7 @@ namespace RSTGameTranslation
 
                 // Get the prompt template
                 string prompt = GetLlmPrompt();
-               
+                prompt = prompt.Replace("source_language", MapLanguageCode(GetSourceLanguage())).Replace("target_language", MapLanguageCode(GetTargetLanguage()));             
                
                 // Log the LLM request
                 LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);

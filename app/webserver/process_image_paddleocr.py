@@ -184,7 +184,7 @@ def process_image(image_path, lang='english', preprocess_images=False, upscale_i
         ocr_results = []
         
         # Process PaddleOCR results
-        if result and len(result) > 0:
+        if result and len(result) > 0 and result[0] is not None:
             # PaddleOCR returns a list of results for each image
             for line in result[0]:
                 # Each line contains coordinates and text with confidence
