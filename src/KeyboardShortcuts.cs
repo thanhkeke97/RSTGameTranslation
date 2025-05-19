@@ -95,28 +95,41 @@ namespace RSTGameTranslation
             {
                 if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
                 {
-                    // Check if foreground window belongs to our application
+                    int vkCode = Marshal.ReadInt32(lParam);
+                    
+                    // Check modifiers
+                    bool isShiftPressed = (Control.ModifierKeys & Keys.Shift) != 0;
+                    bool isAltPressed = (Control.ModifierKeys & Keys.Alt) != 0;
+                    
+                    // Convert the virtual key code to a Key
+                    Key key = KeyInterop.KeyFromVirtualKey(vkCode);
+                    
+                    // Handle global shortcuts (Shift+Alt+S and Shift+Alt+H) regardless of focus
+                    if (isShiftPressed && isAltPressed)
+                    {
+                        if (key == Key.S)
+                        {
+                            StartStopRequested?.Invoke(null, EventArgs.Empty);
+                            return (IntPtr)1; // Prevent further processing
+                        }
+                        else if (key == Key.H)
+                        {
+                            MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
+                            return (IntPtr)1; // Prevent further processing
+                        }
+                    }
+                    
+                    // For other shortcuts, only process if our application is active
                     if (IsOurApplicationActive())
                     {
-                        int vkCode = Marshal.ReadInt32(lParam);
-                        
-                        // Check if shift is pressed
-                        bool isShiftPressed = (Control.ModifierKeys & Keys.Shift) != 0;
-                        
-                        if (isShiftPressed)
+                        // Check if it's one of our shortcuts with just Shift (M, C, P, L)
+                        if (isShiftPressed && !isAltPressed)
                         {
-                            // Convert the virtual key code to a Key
-                            Key key = KeyInterop.KeyFromVirtualKey(vkCode);
-                            
-                            // Check if it's one of our shortcuts (S, M, C, P, L, H with Shift)
                             if (IsShortcutKey(key, ModifierKeys.Shift))
                             {
-                                // Only process if one of our app windows has focus (or console window)
-                                // Handle the shortcut
                                 if (HandleRawKeyDown(key, ModifierKeys.Shift))
                                 {
-                                    // If it was handled, prevent further processing
-                                    return (IntPtr)1;
+                                    return (IntPtr)1; // Prevent further processing
                                 }
                             }
                         }
@@ -172,10 +185,17 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Shift+S: Start/Stop OCR
-                if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Shift)
+                // Shift+Alt+S: Start/Stop OCR (global shortcut)
+                if (e.Key == Key.S && Keyboard.Modifiers == (ModifierKeys.Shift | ModifierKeys.Alt))
                 {
                     StartStopRequested?.Invoke(null, EventArgs.Empty);
+                    e.Handled = true;
+                    return true;
+                }
+                // Shift+Alt+H: Toggle Main Window Visibility (global shortcut)
+                else if (e.Key == Key.H && Keyboard.Modifiers == (ModifierKeys.Shift | ModifierKeys.Alt))
+                {
+                    MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
                     return true;
                 }
@@ -207,13 +227,6 @@ namespace RSTGameTranslation
                     e.Handled = true;
                     return true;
                 }
-                // Shift+H: Toggle Main Window Visibility
-                else if (e.Key == Key.H && Keyboard.Modifiers == ModifierKeys.Shift)
-                {
-                    MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
-                    e.Handled = true;
-                    return true;
-                }
             }
             catch (Exception ex)
             {
@@ -229,9 +242,9 @@ namespace RSTGameTranslation
             if (modifiers != ModifierKeys.Shift)
                 return false;
                 
-            // Check if it's one of our shortcut keys
-            return key == Key.S || key == Key.M || key == Key.C || 
-                   key == Key.P || key == Key.L || key == Key.H;
+            // Check if it's one of our shortcut keys (only M, C, P, L now)
+            return key == Key.M || key == Key.C || 
+                   key == Key.P || key == Key.L;
         }
         
         // Handle raw key input for global hook
@@ -242,14 +255,8 @@ namespace RSTGameTranslation
                 if (modifiers != ModifierKeys.Shift)
                     return false;
                     
-                // Shift+S: Start/Stop OCR
-                if (key == Key.S)
-                {
-                    StartStopRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                }
                 // Shift+M: Toggle Monitor Window
-                else if (key == Key.M)
+                if (key == Key.M)
                 {
                     MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
                     return true;
@@ -270,12 +277,6 @@ namespace RSTGameTranslation
                 else if (key == Key.L)
                 {
                     LogToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                }
-                // Shift+H: Toggle Main Window Visibility
-                else if (key == Key.H)
-                {
-                    MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
                     return true;
                 }
             }
