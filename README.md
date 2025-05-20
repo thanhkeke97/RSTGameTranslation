@@ -23,6 +23,7 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 
 ## Important
 * It will only work on Windows 10 and above.
+* Your game need set to the windowed, fullscreen borderless or windowed borderless mode
 * It works best when you have an NVIDIA GPU.
 * If you don't have a dedicated GPU or your GPU is not NVIDIA, it will use the CPU but will provide very poor performance (you will lose 30-50% of your CPU power to use it).
 * You can use Windows OCR (Windows OCR will be very lightweight) instead of Easy OCR or Paddle OCR, but the recognition results in games are very poor. I suggest only using Windows OCR for tasks other than gaming.

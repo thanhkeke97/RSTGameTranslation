@@ -285,6 +285,7 @@
             <div class="important-note">
                 <ul>
                     <li>Chỉ hoạt động trên Windows 10 trở lên.</li>
+                    <li>Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless</li>
                     <li>Hoạt động tốt nhất khi bạn có GPU NVIDIA.</li>
                     <li>Nếu không có GPU chuyên dụng hoặc GPU không phải NVIDIA, phần mềm sẽ sử dụng CPU nhưng hiệu suất sẽ kém (bạn sẽ mất 30-50% công suất CPU).</li>
                     <li>Bạn có thể sử dụng Windows OCR (nhẹ hơn) thay vì Easy OCR hoặc Paddle OCR, nhưng kết quả nhận dạng trong game rất kém.</li>
@@ -304,6 +305,7 @@
                     <li>Chạy <code>RSTGameTranslation/webserver/RunServerEasyOCR.bat</code> cho EasyOCR hoặc <code>RSTGameTranslation/webserver/RunServerPaddleOCR.bat</code> cho PaddleOCR (khuyến nghị cho hiệu suất tốt hơn với ngôn ngữ châu Á).</li>
                     <li>Chạy <code>RSTGameTranslation/rst.exe</code></li>
                     <li>Vào phần cài đặt và thêm khóa API Gemini của bạn.</li>
+                    <li>Bạn có thể sử dụng source_language và target_language trong prompt, ứng dụng sẽ tự động lấy ngôn ngữ nguồn và ngôn ngữ đích bạn chọn trong setting thay thế trước khi gửi thông tin cần dịch cho LLM model</li>
                 </ol>
                 <img src="media/settings_gemini.png" alt="Giao diện cài đặt Gemini API trong RSTGameTranslation" class="screenshot" width="800" height="450">
                 <p><strong>Lưu ý:</strong> Lần đầu tiên bạn sử dụng EasyOCR hoặc PaddleOCR với một ngôn ngữ mới, nó phải tải xuống trước! Vì vậy, có thể có vẻ không hoạt động, chỉ cần đợi một hoặc hai phút và khởi động/dừng dịch của ứng dụng, nó sẽ hoạt động.</p>
@@ -378,7 +380,7 @@
                 <p>Có, bạn có thể sử dụng Ollama để chạy 100% offline. Bạn sẽ cần tải mô hình LLM về máy trước.</p>
                 
                 <h3>Làm thế nào để có API key của Gemini?</h3>
-                <p>Bạn có thể đăng ký API key Gemini miễn phí tại <a href="https://ai.google.dev/" target="_blank" rel="noopener">Google AI Studio</a>. Sau khi đăng nhập, bạn có thể tạo API key trong phần cài đặt.</p>
+                <p>Bạn có thể đăng ký API key Gemini miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Sau khi đăng nhập, bạn có thể tạo API key trong phần cài đặt.</p>
             </div>
         </section>
 
