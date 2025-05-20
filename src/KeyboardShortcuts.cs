@@ -23,16 +23,16 @@ namespace RSTGameTranslation
         #region Global Keyboard Hook
         
         // For global keyboard hook
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc callback, IntPtr hInstance, uint threadId);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         private static extern bool UnhookWindowsHookEx(IntPtr hInstance);
 
         [DllImport("user32.dll")]
         private static extern IntPtr CallNextHookEx(IntPtr idHook, int nCode, int wParam, IntPtr lParam);
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
         
         // For window focus checking
@@ -42,11 +42,24 @@ namespace RSTGameTranslation
         [DllImport("user32.dll")]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
         
+        // For getting key state
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int vKey);
+        
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
+        private const int WM_KEYUP = 0x0101;
         private const int WM_SYSKEYDOWN = 0x0104;
+        private const int WM_SYSKEYUP = 0x0105;
+        
+        // Virtual key codes
+        private const int VK_SHIFT = 0x10;
+        private const int VK_CONTROL = 0x11;
+        private const int VK_MENU = 0x12; // ALT key
+        private const int VK_S = 0x53;
+        private const int VK_H = 0x48;
         
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
@@ -65,7 +78,15 @@ namespace RSTGameTranslation
                     if (curModule != null)
                     {
                         _hookID = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, GetModuleHandle(curModule.ModuleName), 0);
-                        Console.WriteLine("Global keyboard hook initialized");
+                        if (_hookID == IntPtr.Zero)
+                        {
+                            int errorCode = Marshal.GetLastWin32Error();
+                            Console.WriteLine($"Failed to set global keyboard hook. Error code: {errorCode}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Global keyboard hook initialized successfully");
+                        }
                     }
                 }
             }
@@ -88,48 +109,59 @@ namespace RSTGameTranslation
             _consoleWindowHandle = consoleHandle;
         }
         
+        // Direct key state check for more reliable detection
+        private static bool IsKeyPressed(int vkCode)
+        {
+            return (GetAsyncKeyState(vkCode) & 0x8000) != 0;
+        }
+        
         // Keyboard hook callback
         private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
             try
             {
-                if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
+                if (nCode >= 0)
                 {
                     int vkCode = Marshal.ReadInt32(lParam);
                     
-                    // Check modifiers
-                    bool isShiftPressed = (Control.ModifierKeys & Keys.Shift) != 0;
-                    bool isAltPressed = (Control.ModifierKeys & Keys.Alt) != 0;
+                    // Check for our global shortcuts directly using GetAsyncKeyState for more reliable detection
+                    bool isShiftPressed = IsKeyPressed(VK_SHIFT);
+                    bool isAltPressed = IsKeyPressed(VK_MENU);
                     
-                    // Convert the virtual key code to a Key
-                    Key key = KeyInterop.KeyFromVirtualKey(vkCode);
-                    
-                    // Handle global shortcuts (Shift+Alt+S and Shift+Alt+H) regardless of focus
-                    if (isShiftPressed && isAltPressed)
+                    // Handle key down events (both regular and system keys)
+                    if (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN)
                     {
-                        if (key == Key.S)
+                        // Check for Shift+Alt+S (Start/Stop)
+                        if (vkCode == VK_S && isShiftPressed && isAltPressed)
                         {
+                            Console.WriteLine("Global shortcut detected: Shift+Alt+S");
                             StartStopRequested?.Invoke(null, EventArgs.Empty);
                             return (IntPtr)1; // Prevent further processing
                         }
-                        else if (key == Key.H)
+                        
+                        // Check for Shift+Alt+H (Toggle Main Window)
+                        if (vkCode == VK_H && isShiftPressed && isAltPressed)
                         {
+                            Console.WriteLine("Global shortcut detected: Shift+Alt+H");
                             MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
                             return (IntPtr)1; // Prevent further processing
                         }
-                    }
-                    
-                    // For other shortcuts, only process if our application is active
-                    if (IsOurApplicationActive())
-                    {
-                        // Check if it's one of our shortcuts with just Shift (M, C, P, L)
-                        if (isShiftPressed && !isAltPressed)
+                        
+                        // For other shortcuts, only process if our application is active
+                        if (IsOurApplicationActive())
                         {
-                            if (IsShortcutKey(key, ModifierKeys.Shift))
+                            // Convert the virtual key code to a Key
+                            Key key = KeyInterop.KeyFromVirtualKey(vkCode);
+                            
+                            // Check if it's one of our shortcuts with just Shift (M, C, P, L)
+                            if (isShiftPressed && !isAltPressed)
                             {
-                                if (HandleRawKeyDown(key, ModifierKeys.Shift))
+                                if (IsShortcutKey(key, ModifierKeys.Shift))
                                 {
-                                    return (IntPtr)1; // Prevent further processing
+                                    if (HandleRawKeyDown(key, ModifierKeys.Shift))
+                                    {
+                                        return (IntPtr)1; // Prevent further processing
+                                    }
                                 }
                             }
                         }
