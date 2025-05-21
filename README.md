@@ -34,7 +34,7 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 
 * Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslation/releases) and unzip it somewhere
 
-* Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(more info)](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions)
+* Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(download)](https://repo.anaconda.com/miniconda/Miniconda3-py39_25.3.1-1-Windows-x86_64.exe)
 
 * Note:  When running .bat or .exe files you might get an ugly "This is dangerous, don't run it" message because this project is open source and i don't have any digital signatures so you'll have to just trust me and click "More info" and run it anyway.  This message only happens the first time per .bat or .exe file.
 
