@@ -16,7 +16,12 @@ copy README.md tempbuild
 
 :the server stuff too
 mkdir tempbuild\webserver
-copy app\webserver\*.py tempbuild\webserver
+mkdir tempbuild\webserver\EasyOCR
+mkdir tempbuild\webserver\PaddleOCR
+copy app\webserver\EasyOCR\*.py tempbuild\webserver\EasyOCR
+copy app\webserver\EasyOCR\*.bat tempbuild\webserver\EasyOCR
+copy app\webserver\PaddleOCR\*.bat tempbuild\webserver\PaddleOCR
+copy app\webserver\PaddleOCR\*.py tempbuild\webserver\PaddleOCR
 copy app\webserver\*.bat tempbuild\webserver
 
 7-zip\7z.exe a -r -tzip %FNAME% tempbuild

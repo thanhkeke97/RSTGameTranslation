@@ -29,7 +29,7 @@ call conda install -y tqdm pyyaml requests
 
 REM Install EasyOCR via pip
 echo Installing EasyOCR...
-pip install easyocr --user
+pip install easyocr==1.7.2 --user
 
 @REM REM Install PaddleOCR via pip
 @REM echo Installing PaddleOCR...
@@ -50,5 +50,5 @@ python -c "import easyocr; print('EasyOCR imported successfully')"
 @REM python -c "import cv2; print('OpenCV Version:', cv2.__version__)"
 
 echo ===== Setup Complete =====
-echo If the above looks looks like the test worked, you can now double click "server_paddle.py" for paddle ocr or "server_easy.py" for easy ocr and it will load this conda env and run the python server.
+echo If the above looks looks like the test worked, you can now double click "server_easy.py" for easy ocr and it will load this conda env and run the python server.
 pause
