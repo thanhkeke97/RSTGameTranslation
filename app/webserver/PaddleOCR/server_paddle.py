@@ -88,7 +88,7 @@ def handle_client_connection(conn, addr):
                 
                 # Process image with PaddleOCR
                 start_time = time.time()
-                result = process_image("image_to_process.png", lang=lang, char_level=char_level)
+                result = process_image("../image_to_process.png", lang=lang, char_level=char_level)
                 
                 # Giải phóng tài nguyên GPU sau khi xử lý
                 release_gpu_resources()

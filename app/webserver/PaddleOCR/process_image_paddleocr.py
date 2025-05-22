@@ -4,7 +4,7 @@ import time
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 from paddleocr import PaddleOCR
-import torch
+# import torch
 
 # Global variables to manage OCR engine
 OCR_ENGINE = None
@@ -37,24 +37,24 @@ def initialize_ocr_engine(lang='english'):
 
     # Only reinitialize if language has changed
     if OCR_ENGINE is None or CURRENT_LANG != lang:
-        # Giải phóng tài nguyên của engine cũ nếu có
-        if OCR_ENGINE is not None and torch.cuda.is_available():
-            # Giải phóng bộ nhớ GPU
-            torch.cuda.empty_cache()
-            print("Released GPU resources from previous OCR engine")
-        # Check for GPU availability using PyTorch
-        if torch.cuda.is_available():
-            device_name = torch.cuda.get_device_name(0)
-            print(f"GPU is available: {device_name}. Using GPU for OCR.")
-            usegpu = True;
-        else:
-            print("GPU is not available. PaddleOCR will use CPU.")
-            usegpu = False;
+    #     # Giải phóng tài nguyên của engine cũ nếu có
+    #     if OCR_ENGINE is not None and torch.cuda.is_available():
+    #         # Giải phóng bộ nhớ GPU
+    #         torch.cuda.empty_cache()
+    #         print("Released GPU resources from previous OCR engine")
+    #     # Check for GPU availability using PyTorch
+    #     if torch.cuda.is_available():
+    #         device_name = torch.cuda.get_device_name(0)
+    #         print(f"GPU is available: {device_name}. Using GPU for OCR.")
+    #         usegpu = True;
+    #     else:
+    #         print("GPU is not available. PaddleOCR will use CPU.")
+    #         usegpu = False;
         print(f"Initializing PaddleOCR engine with language: {paddle_lang}...")
         start_time = time.time()
 
         # Initialize PaddleOCR with the specified language
-        OCR_ENGINE = PaddleOCR(use_angle_cls=True, lang=paddle_lang, use_gpu=usegpu)
+        OCR_ENGINE = PaddleOCR(use_angle_cls=True, lang=paddle_lang)
         CURRENT_LANG = lang
         initialization_time = time.time() - start_time
         print(f"PaddleOCR initialization completed in {initialization_time:.2f} seconds")
@@ -67,8 +67,9 @@ def release_gpu_resources():
     """
     Giải phóng tài nguyên GPU sau khi xử lý OCR.
     """
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+    # if torch.cuda.is_available():
+    #     torch.cuda.empty_cache()
+    print("Released GPU resources after OCR processing")
 
 def preprocess_image(image):
     """

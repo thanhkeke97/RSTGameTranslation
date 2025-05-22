@@ -405,11 +405,6 @@ unused/
 #disable everything in the app directory except a few things
 /app/*
 !app/webserver/
-!app/webserver/EasyOCR/*.bat
-!app/webserver/EasyOCR/*.py
-!app/webserver/PaddleOCR/*.bat
-!app/webserver/PaddleOCR/*.py
-app/webserver/*
 #but keep a few things...
 !app/webserver/*.bat
 !app/webserver/*.py
