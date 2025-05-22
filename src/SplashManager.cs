@@ -29,7 +29,7 @@ namespace RSTGameTranslation
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const double CurrentVersion = 0.1;
+        public const double CurrentVersion = 0.2;
         private const string VersionCheckerUrl = "https://raw.githubusercontent.com/thanhkeke97/RSTGameTranslation/refs/heads/main/media/latest_version_checker.json";
 
         private class VersionInfo
@@ -126,7 +126,7 @@ namespace RSTGameTranslation
                 // Version Text
                 _versionTextBlock = new TextBlock
                 {
-                    Text = $"Realtime screen translator V{CurrentVersion} by Thanh Pham",
+                    Text = $"Realtime screen translator v{CurrentVersion} by Thanh Pham",
                     FontSize = 16,
                     FontWeight = FontWeights.SemiBold,
                     Margin = new Thickness(0, 10, 0, 10),
