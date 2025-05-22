@@ -25,6 +25,7 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 * It will only work on Windows 10 and above.
 * Your game need set to the windowed, fullscreen borderless or windowed borderless mode
 * It works best when you have an NVIDIA GPU.
+* You need add conda to your PATH environment variable and install conda with option "Just me"
 * If you don't have a dedicated GPU or your GPU is not NVIDIA, it will use the CPU but will provide very poor performance (you will lose 30-50% of your CPU power to use it).
 * You can use Windows OCR (Windows OCR will be very lightweight) instead of Easy OCR or Paddle OCR, but the recognition results in games are very poor. I suggest only using Windows OCR for tasks other than gaming.
 * The smaller the translation area you select, the faster the translation speed, and vice versa.
@@ -38,11 +39,11 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 
 * Note:  When running .bat or .exe files you might get an ugly "This is dangerous, don't run it" message because this project is open source and i don't have any digital signatures so you'll have to just trust me and click "More info" and run it anyway.  This message only happens the first time per .bat or .exe file.
 
-* Conda is a thing that lets us install a bunch of python stuff without screwing up other python installs.  Let's do that now, double click *RSTGameTranslation/webserver/SetupServerCondaEnvNVidia.bat* and wait a long time while it installs a bunch of junk (Run only on the first use of the application, no need to run again later.).  We need this for EasyOCR and PaddleOCR, the engines that we run locally to "look" at the screen.  Later, this server might also do more ML/AI work in future versions. (for example, doing subtitles of spoken dialog)
+* Conda is a thing that lets us install a bunch of python stuff without screwing up other python installs.  Let's do that now, double click *RSTGameTranslation/webserver/PaddleOCR/SetupServerCondaEnvNVidiaPaddleOCR.bat* or *RSTGameTranslation/webserver/EasyOCR/SetupServerCondaEnvNVidiaEasyOCR.bat* for OCR which you want to use (recommended PaddleOCR) and wait a long time while it installs a bunch of junk (Run only on the first use of the application, no need to run again later.).  We need this for EasyOCR or PaddleOCR, the engines that we run locally to "look" at the screen.  Later, this server might also do more ML/AI work in future versions. (for example, doing subtitles of spoken dialog)
 
 * Did that look like it installed ok?  It runs a self-test at the end.  If it did, you're now ready to run the server.
 
-* Run *RSTGameTranslation/webserver/RunServerEasyOCR.bat* for EasyOCR or *RSTGameTranslation/webserver/RunServerPaddleOCR.bat* for PaddleOCR (recommended for better performance with Asian languages)
+* Run *RSTGameTranslation/webserver/PaddleOCR/RunServerPaddleOCR.bat* or *RSTGameTranslation/webserver/EasyOCR/RunServerEasyOCR.bat* for OCR which you want to use (recommended PaddleOCR)
 
 * Now run *RSTGameTranslation/rst.exe*
 
