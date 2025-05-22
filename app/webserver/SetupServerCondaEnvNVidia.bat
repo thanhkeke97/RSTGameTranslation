@@ -33,7 +33,7 @@ pip install easyocr --user
 
 REM Install PaddleOCR via pip
 echo Installing PaddleOCR...
-pip install paddleocr
+pip install paddleocr==2.10.0
 python -m pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
 python -m pip install paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
 
