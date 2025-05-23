@@ -26,6 +26,7 @@ namespace RSTGameTranslation
         
         private DispatcherTimer _reconnectTimer;
         private string _lastOcrHash = string.Empty;
+        private string _lastTextContent = string.Empty;
         
         // Track the current capture position
         private int _currentCaptureX;
@@ -413,6 +414,27 @@ namespace RSTGameTranslation
             }
         }
 
+        private string ExtractTextContent(JsonElement resultsElement)
+        {
+            if (resultsElement.ValueKind != JsonValueKind.Array)
+                return string.Empty;
+                
+            StringBuilder textBuilder = new StringBuilder();
+            
+            foreach (JsonElement element in resultsElement.EnumerateArray())
+            {
+                if (element.TryGetProperty("text", out JsonElement textElement))
+                {
+                    string text = textElement.GetString() ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        textBuilder.AppendLine(text);
+                    }
+                }
+            }
+            
+            return textBuilder.ToString();
+        }
 
         //! Process the OCR text data, this is before it's been translated
         public void ProcessReceivedTextJsonData(string data)
@@ -440,7 +462,7 @@ namespace RSTGameTranslation
                             AllowTrailingCommas = true,
                             CommentHandling = JsonCommentHandling.Skip
                         };
-                        
+
                         using JsonDocument doc = JsonDocument.Parse(data, options);
                         JsonElement root = doc.RootElement;
                         bool bForceRender = false;
@@ -449,21 +471,22 @@ namespace RSTGameTranslation
                         if (root.TryGetProperty("status", out JsonElement statusElement))
                         {
                             string status = statusElement.GetString() ?? "unknown";
-                            
+
                             if (status == "success" && root.TryGetProperty("results", out JsonElement resultsElement))
                             {
                                 // Pre-filter low-confidence characters before block detection
                                 JsonElement filteredResults = FilterLowConfidenceCharacters(resultsElement);
-                                
+
                                 // Process character-level OCR data using CharacterBlockDetectionManager
                                 // Use the filtered results for consistency
                                 JsonElement modifiedResults = CharacterBlockDetectionManager.Instance.ProcessCharacterResults(filteredResults);
-                                
+
                                 // Filter out text objects that should be ignored based on ignore phrases
                                 modifiedResults = FilterIgnoredPhrases(modifiedResults);
-                                
+
                                 // Generate content hash AFTER block detection and filtering
                                 string contentHash = GenerateContentHash(modifiedResults);
+                                string textContent = ExtractTextContent(modifiedResults);
 
                                 // Handle settle time if enabled
                                 double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
@@ -508,7 +531,7 @@ namespace RSTGameTranslation
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
                                 }
-                                if (IsTextSimilar(contentHash, _lastOcrHash, 0.7) && bForceRender == false)
+                                if (IsTextSimilar(textContent, _lastTextContent, 0.7) && bForceRender == false)
                                 {
                                     Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);
@@ -516,16 +539,17 @@ namespace RSTGameTranslation
                                 }
                                 // Looks like new stuff
                                 _lastOcrHash = contentHash;
+                                _lastTextContent = textContent;
                                 double scale = BlockDetectionManager.Instance.GetBlockDetectionScale();
                                 Console.WriteLine($"Character-level processing (scale={scale:F2}): {resultsElement.GetArrayLength()} characters → {modifiedResults.GetArrayLength()} blocks");
-                                
+
                                 // Create a new JsonDocument with the modified results
                                 using (var stream = new MemoryStream())
                                 {
                                     using (var writer = new Utf8JsonWriter(stream))
                                     {
                                         writer.WriteStartObject();
-                                        
+
                                         // Copy over all existing properties except 'results'
                                         foreach (var property in root.EnumerateObject())
                                         {
@@ -534,17 +558,17 @@ namespace RSTGameTranslation
                                                 property.WriteTo(writer);
                                             }
                                         }
-                                        
+
                                         // Add our modified results
                                         writer.WritePropertyName("results");
                                         modifiedResults.WriteTo(writer);
-                                        
+
                                         // Add marker to indicate this is character-level data
                                         writer.WriteBoolean("char_level", true);
-                                        
+
                                         writer.WriteEndObject();
                                     }
-                                    
+
                                     stream.Position = 0;
                                     using (JsonDocument newDoc = JsonDocument.Parse(stream))
                                     {
@@ -565,7 +589,7 @@ namespace RSTGameTranslation
                                     {
                                         detectedText.AppendLine(textObject.Text);
                                     }
-                                    
+
                                     // Add to ChatBox with empty translation if translate is disabled
                                     string combinedText = detectedText.ToString().Trim();
                                     if (!string.IsNullOrEmpty(combinedText))
@@ -587,14 +611,14 @@ namespace RSTGameTranslation
                                             // Only add to chat history if translation is disabled
                                             _lastChangeTime = DateTime.MinValue;
                                             MainWindow.Instance.AddTranslationToHistory(combinedText, "");
-                                            
+
                                             if (ChatBoxWindow.Instance != null)
                                             {
                                                 ChatBoxWindow.Instance.OnTranslationWasAdded(combinedText, "");
                                             }
                                         }
                                     }
-                                    
+
                                     OnFinishedThings(true);
                                 }
                                 else
@@ -626,8 +650,8 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error processing socket data: {ex.Message}");
             }
-            
-           }
+
+        }
         
         /// <summary>
         /// Kiểm tra xem hai chuỗi có đủ tương đồng không sử dụng thuật toán kết hợp tối ưu cho tiếng Anh

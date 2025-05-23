@@ -250,7 +250,7 @@ namespace RSTGameTranslation
             _configValues[CHATGPT_API_KEY] = "<your API key here>";
             _configValues[GEMINI_MODEL] = "gemini-2.0-flash-lite";
             _configValues[BLOCK_DETECTION_SCALE] = "3.00";
-            _configValues[BLOCK_DETECTION_SETTLE_TIME] = "0.15";
+            _configValues[BLOCK_DETECTION_SETTLE_TIME] = "0.0";
             _configValues[KEEP_TRANSLATED_TEXT_UNTIL_REPLACED] = "true";
             _configValues[LEAVE_TRANSLATION_ONSCREEN] = "true";
             _configValues[MIN_LETTER_CONFIDENCE] = "0.1";
