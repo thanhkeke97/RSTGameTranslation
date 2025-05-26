@@ -531,7 +531,7 @@ namespace RSTGameTranslation
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
                                 }
-                                if (IsTextSimilar(textContent, _lastTextContent, 0.7) && bForceRender == false)
+                                if (IsTextSimilar(textContent, _lastTextContent, 0.7))
                                 {
                                     Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);
