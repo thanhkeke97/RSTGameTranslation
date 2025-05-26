@@ -493,8 +493,9 @@ namespace RSTGameTranslation
                                 {
                                     if (contentHash == _lastOcrHash)
                                     {
-                                        if (_lastChangeTime == DateTime.MinValue)
+                                        if (_lastChangeTime == DateTime.MinValue || IsTextSimilar(textContent, _lastTextContent, 0.8))
                                         {
+                                            Console.WriteLine("Content is similar to previous, skipping translation");
                                             OnFinishedThings(true);
                                             return; // Already rendered it, just ignore until it changes again
                                         }
@@ -528,8 +529,7 @@ namespace RSTGameTranslation
                                         OnFinishedThings(false);
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
-                                }
-                                if (IsTextSimilar(textContent, _lastTextContent, 0.8))
+                                } else if (IsTextSimilar(textContent, _lastTextContent, 0.8))
                                 {
                                     Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);
