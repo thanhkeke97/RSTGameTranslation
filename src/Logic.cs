@@ -493,7 +493,7 @@ namespace RSTGameTranslation
                                 {
                                     if (contentHash == _lastOcrHash)
                                     {
-                                        if (_lastChangeTime == DateTime.MinValue || IsTextSimilar(textContent, _lastTextContent, 0.8))
+                                        if (_lastChangeTime == DateTime.MinValue || IsTextSimilar(textContent, _lastTextContent, 0.95))
                                         {
                                             Console.WriteLine("Content is similar to previous, skipping translation");
                                             OnFinishedThings(true);
@@ -529,7 +529,7 @@ namespace RSTGameTranslation
                                         OnFinishedThings(false);
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
-                                } else if (IsTextSimilar(textContent, _lastTextContent, 0.8))
+                                } else if (IsTextSimilar(textContent, _lastTextContent, 0.95))
                                 {
                                     Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);
@@ -654,32 +654,124 @@ namespace RSTGameTranslation
         /// <summary>
         /// Kiểm tra xem hai chuỗi có đủ tương đồng không sử dụng thuật toán kết hợp tối ưu cho tiếng Anh
         /// </summary>
-        private bool IsTextSimilar(string text1, string text2, double threshold = 0.7)
+        private bool IsTextSimilar(string s1, string s2, double threshold)
         {
-            // Nếu chuỗi giống hệt nhau
-            if (text1 == text2) return true;
+            // Trường hợp đặc biệt
+            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return true;
+            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return false;
+            if (s1 == s2) return true;
             
-            // Nếu một trong hai chuỗi rỗng
-            if (string.IsNullOrEmpty(text1) || string.IsNullOrEmpty(text2))
-                return false;
+            // Lấy ngôn ngữ nguồn hiện tại
+            string sourceLanguage = GetSourceLanguage().ToLowerInvariant();
             
-            // Chuẩn hóa văn bản
-            string normalized1 = NormalizeTextForHash(text1);
-            string normalized2 = NormalizeTextForHash(text2);
+            // Tính điểm tương đồng dựa trên ngôn ngữ
+            double similarity;
             
-            // Nếu chuỗi giống hệt nhau sau khi chuẩn hóa
-            if (normalized1 == normalized2) return true;
+            // Xử lý riêng cho các ngôn ngữ châu Á không dùng khoảng trắng để phân tách từ
+            if (sourceLanguage == "ja" || sourceLanguage == "ch_sim" || sourceLanguage == "ko")
+            {
+                // Đối với tiếng Nhật, tiếng Trung, tiếng Hàn: sử dụng kết hợp giữa so sánh ký tự và n-gram
+                similarity = CombinedAsianLanguageSimilarity(s1, s2);
+            }
+            // Xử lý cho các ngôn ngữ sử dụng ký tự Latin
+            else
+            {
+                // Kết hợp nhiều phương pháp để có kết quả tốt nhất
+                double keywordSimilarity = KeywordSimilarity(s1, s2);
+                double diceCoefficient = DiceCoefficient(s1, s2);
+                double wordOverlap = WordOverlapSimilarity(s1, s2);
+                
+                // Lấy giá trị cao nhất từ các phương pháp
+                similarity = Math.Max(Math.Max(keywordSimilarity, diceCoefficient), wordOverlap);
+            }
             
-            // Tính các điểm tương đồng khác nhau
-            double diceScore = DiceCoefficient(normalized1, normalized2);
-            double wordOverlapScore = WordOverlapSimilarity(normalized1, normalized2);
-            double keywordScore = KeywordSimilarity(normalized1, normalized2);
+            // Console.WriteLine($"Similarity between '{s1}' and '{s2}': {similarity}, threshold: {threshold}");
             
-            // Tính điểm trung bình có trọng số - tối ưu cho tiếng Anh
-            double combinedScore = (diceScore * 0.25) + (wordOverlapScore * 0.5) + (keywordScore * 0.25);
+            return similarity >= threshold;
+        }
+        
+        /// <summary>
+        /// Phương pháp kết hợp để so sánh các ngôn ngữ châu Á (Nhật, Trung, Hàn)
+        /// </summary>
+        private double CombinedAsianLanguageSimilarity(string s1, string s2)
+        {
+            // 1. So sánh trực tiếp các ký tự chung
+            int commonChars = 0;
+            HashSet<char> chars1 = new HashSet<char>(s1);
+            HashSet<char> chars2 = new HashSet<char>(s2);
             
-            // So sánh với ngưỡng
-            return combinedScore >= threshold;
+            foreach (char c in chars1)
+            {
+                if (chars2.Contains(c))
+                {
+                    commonChars++;
+                }
+            }
+            
+            double characterSimilarity = chars1.Count > 0 && chars2.Count > 0 
+                ? (double)commonChars / Math.Max(chars1.Count, chars2.Count)
+                : 0;
+            
+            // 2. So sánh n-gram (chuỗi con liên tiếp)
+            // Sử dụng trigram (3 ký tự liên tiếp) để phát hiện các mẫu chung
+            double ngramSimilarity = CalculateNgramSimilarity(s1, s2, 3);
+            
+            // 3. So sánh dựa trên độ dài chuỗi
+            double lengthRatio = Math.Min(s1.Length, s2.Length) / (double)Math.Max(s1.Length, s2.Length);
+            
+            // Trọng số cho từng phương pháp
+            double charWeight = 0.4;
+            double ngramWeight = 0.5;
+            double lengthWeight = 0.1;
+            
+            // Tính điểm tổng hợp
+            return (characterSimilarity * charWeight) + 
+                (ngramSimilarity * ngramWeight) + 
+                (lengthRatio * lengthWeight);
+        }
+
+        /// <summary>
+        /// Tính độ tương đồng dựa trên n-gram (chuỗi con liên tiếp n ký tự)
+        /// </summary>
+        private double CalculateNgramSimilarity(string s1, string s2, int n)
+        {
+            // Nếu chuỗi ngắn hơn n, giảm kích thước n-gram
+            if (s1.Length < n || s2.Length < n)
+            {
+                n = Math.Min(s1.Length, s2.Length);
+                if (n == 0) return 0;
+            }
+            
+            // Tạo tập hợp n-gram cho cả hai chuỗi
+            var ngrams1 = new HashSet<string>();
+            var ngrams2 = new HashSet<string>();
+            
+            // Tạo n-gram cho chuỗi thứ nhất
+            for (int i = 0; i <= s1.Length - n; i++)
+            {
+                ngrams1.Add(s1.Substring(i, n));
+            }
+            
+            // Tạo n-gram cho chuỗi thứ hai
+            for (int i = 0; i <= s2.Length - n; i++)
+            {
+                ngrams2.Add(s2.Substring(i, n));
+            }
+            
+            // Đếm số n-gram chung
+            int intersectionCount = 0;
+            foreach (var ngram in ngrams1)
+            {
+                if (ngrams2.Contains(ngram))
+                {
+                    intersectionCount++;
+                }
+            }
+            
+            // Tính hệ số Dice cho n-gram
+            return ngrams1.Count > 0 && ngrams2.Count > 0
+                ? (2.0 * intersectionCount) / (ngrams1.Count + ngrams2.Count)
+                : 0;
         }
 
         /// <summary>
@@ -689,7 +781,7 @@ namespace RSTGameTranslation
         {
             // Danh sách stop words tiếng Anh phổ biến
             HashSet<string> stopWords = new HashSet<string>(new[] {
-                "a", "an", "the", "and", "or", "but", "is", "are", "was", "were", 
+                "a", "an", "the", "and", "or", "but", "is", "are", "was", "were",
                 "be", "been", "being", "in", "on", "at", "to", "for", "with", "by",
                 "about", "against", "between", "into", "through", "during", "before",
                 "after", "above", "below", "from", "up", "down", "of", "off", "over",
@@ -711,34 +803,34 @@ namespace RSTGameTranslation
                 "can't", "cannot", "couldn't", "mustn't", "let's", "that's", "who's",
                 "what's", "here's", "there's", "when's", "where's", "why's", "how's"
             });
-            
+
             // Trường hợp đặc biệt
             if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
             if (s1 == s2) return 1.0;
-            
+
             // Tách từ
-            string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+            string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
                 StringSplitOptions.RemoveEmptyEntries);
-            string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+            string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
                 StringSplitOptions.RemoveEmptyEntries);
-            
+
             // Lọc ra các từ khóa (không phải stop words)
             var keywords1 = new HashSet<string>(words1
                 .Select(w => w.ToLowerInvariant())
                 .Where(w => !stopWords.Contains(w)));
-            
+
             var keywords2 = new HashSet<string>(words2
                 .Select(w => w.ToLowerInvariant())
                 .Where(w => !stopWords.Contains(w)));
-            
+
             // Nếu không có từ khóa nào
             if (keywords1.Count == 0 || keywords2.Count == 0)
             {
                 // Quay lại so sánh thông thường nếu không có từ khóa
                 return DiceCoefficient(s1, s2);
             }
-            
+
             // Đếm số từ khóa chung
             int commonKeywords = 0;
             foreach (var keyword in keywords1)
@@ -748,7 +840,7 @@ namespace RSTGameTranslation
                     commonKeywords++;
                 }
             }
-            
+
             // Tính điểm Jaccard cho từ khóa
             return (double)commonKeywords / (keywords1.Count + keywords2.Count - commonKeywords);
         }
