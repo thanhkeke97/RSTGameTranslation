@@ -58,7 +58,7 @@ namespace RSTGameTranslation
         private const int VK_SHIFT = 0x10;
         private const int VK_CONTROL = 0x11;
         private const int VK_MENU = 0x12; // ALT key
-        private const int VK_S = 0x53;
+        private const int VK_OEM_3 = 0xC0; // ~ key (tilde/backtick)
         private const int VK_H = 0x48;
         
         private static LowLevelKeyboardProc _proc = HookCallback;
@@ -131,18 +131,18 @@ namespace RSTGameTranslation
                     // Handle key down events (both regular and system keys)
                     if (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN)
                     {
-                        // Check for Shift+Alt+S (Start/Stop)
-                        if (vkCode == VK_S && isShiftPressed && isAltPressed)
+                        // Check for ~ key (Start/Stop)
+                        if (vkCode == VK_OEM_3)
                         {
-                            Console.WriteLine("Global shortcut detected: Shift+Alt+S");
+                            Console.WriteLine("Global shortcut detected: ~ (Tilde)");
                             StartStopRequested?.Invoke(null, EventArgs.Empty);
                             return (IntPtr)1; // Prevent further processing
                         }
                         
-                        // Check for Shift+Alt+H (Toggle Main Window)
-                        if (vkCode == VK_H && isShiftPressed && isAltPressed)
+                        // Check for Alt+H (Toggle Main Window)
+                        if (vkCode == VK_H && isAltPressed && !isShiftPressed)
                         {
-                            Console.WriteLine("Global shortcut detected: Shift+Alt+H");
+                            Console.WriteLine("Global shortcut detected: Alt+H");
                             MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
                             return (IntPtr)1; // Prevent further processing
                         }
@@ -217,15 +217,15 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Shift+Alt+S: Start/Stop OCR (global shortcut)
-                if (e.Key == Key.S && Keyboard.Modifiers == (ModifierKeys.Shift | ModifierKeys.Alt))
+                // ~ key: Start/Stop OCR (global shortcut)
+                if (e.Key == Key.OemTilde && Keyboard.Modifiers == ModifierKeys.None)
                 {
                     StartStopRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
                     return true;
                 }
-                // Shift+Alt+H: Toggle Main Window Visibility (global shortcut)
-                else if (e.Key == Key.H && Keyboard.Modifiers == (ModifierKeys.Shift | ModifierKeys.Alt))
+                // Alt+H: Toggle Main Window Visibility (global shortcut)
+                else if (e.Key == Key.H && Keyboard.Modifiers == ModifierKeys.Alt)
                 {
                     MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
