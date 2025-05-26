@@ -465,7 +465,6 @@ namespace RSTGameTranslation
 
                         using JsonDocument doc = JsonDocument.Parse(data, options);
                         JsonElement root = doc.RootElement;
-                        bool bForceRender = false;
 
                         // Check if it's an OCR response
                         if (root.TryGetProperty("status", out JsonElement statusElement))
@@ -510,7 +509,6 @@ namespace RSTGameTranslation
                                             {
                                                 // Settle time reached
                                                 _lastChangeTime = DateTime.MinValue;
-                                                bForceRender = true;
                                             }
                                         }
                                     }
@@ -531,7 +529,7 @@ namespace RSTGameTranslation
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
                                 }
-                                if (IsTextSimilar(textContent, _lastTextContent, 0.7))
+                                if (IsTextSimilar(textContent, _lastTextContent, 0.8))
                                 {
                                     Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);
