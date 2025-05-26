@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.Windows.Forms; // For Control.ModifierKeys
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RSTGameTranslation
 {
@@ -46,6 +48,17 @@ namespace RSTGameTranslation
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
         
+        // For registering hotkeys
+        [DllImport("user32.dll")]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+        
+        [DllImport("user32.dll")]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        
+        // Constants for RegisterHotKey
+        private const uint MOD_ALT = 0x0001;
+        private const uint MOD_NOREPEAT = 0x4000;
+        
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         
         private const int WH_KEYBOARD_LL = 13;
@@ -53,6 +66,7 @@ namespace RSTGameTranslation
         private const int WM_KEYUP = 0x0101;
         private const int WM_SYSKEYDOWN = 0x0104;
         private const int WM_SYSKEYUP = 0x0105;
+        private const int WM_HOTKEY = 0x0312;
         
         // Virtual key codes
         private const int VK_SHIFT = 0x10;
@@ -61,15 +75,30 @@ namespace RSTGameTranslation
         private const int VK_OEM_3 = 0xC0; // ~ key (tilde/backtick)
         private const int VK_H = 0x48;
         
+        // Hotkey IDs
+        private const int HOTKEY_ID_TILDE = 1;
+        private const int HOTKEY_ID_ALT_H = 2;
+        
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
         
-        // Reference to our console window handle (set by MainWindow)
+        // Reference to our window handles
         private static IntPtr _consoleWindowHandle = IntPtr.Zero;
+        private static IntPtr _mainWindowHandle = IntPtr.Zero;
         
-        // Set up global keyboard hook
+        // Track the last key press time to prevent multiple triggers
+        private static DateTime _lastKeyPressTime = DateTime.MinValue;
+        private static int _lastKeyCode = 0;
+        private static readonly TimeSpan _keyPressThreshold = TimeSpan.FromMilliseconds(300);
+        
+        // Key polling system for global hotkeys only
+        private static CancellationTokenSource? _pollingCts;
+        private static bool _isPolling = false;
+        
+        // Set up global keyboard hook and hotkeys
         public static void InitializeGlobalHook()
         {
+            // Set up low-level keyboard hook
             if (_hookID == IntPtr.Zero) // Only set if not already set
             {
                 using (Process curProcess = Process.GetCurrentProcess())
@@ -90,11 +119,167 @@ namespace RSTGameTranslation
                     }
                 }
             }
+            
+            // Start key polling as a backup method for global shortcuts only
+            StartKeyPolling();
         }
         
-        // Remove the hook
+        // Set the main window handle for hotkey registration
+        public static void SetMainWindowHandle(IntPtr mainWindowHandle)
+        {
+            _mainWindowHandle = mainWindowHandle;
+            
+            // Register hotkeys if we have a valid window handle
+            if (_mainWindowHandle != IntPtr.Zero)
+            {
+                // Try to register ~ as a hotkey
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_TILDE, MOD_NOREPEAT, (uint)VK_OEM_3))
+                {
+                    Console.WriteLine("Registered ~ as global hotkey");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register ~ hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+                
+                // Try to register Alt+H as a hotkey
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_H, MOD_ALT | MOD_NOREPEAT, (uint)VK_H))
+                {
+                    Console.WriteLine("Registered Alt+H as global hotkey");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+H hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+            }
+        }
+        
+        // Process WM_HOTKEY messages in the main window
+        public static bool ProcessHotKey(IntPtr wParam)
+        {
+            int id = wParam.ToInt32();
+            
+            switch (id)
+            {
+                case HOTKEY_ID_TILDE:
+                    Console.WriteLine("Hotkey detected: ~ (Tilde)");
+                    StartStopRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_H:
+                    Console.WriteLine("Hotkey detected: Alt+H");
+                    MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
+            }
+            
+            return false;
+        }
+        
+        // Start polling for key states as a backup method - ONLY for global shortcuts
+        private static void StartKeyPolling()
+        {
+            if (_isPolling)
+                return;
+                
+            _isPolling = true;
+            _pollingCts = new CancellationTokenSource();
+            
+            Task.Run(async () => 
+            {
+                Console.WriteLine("Key polling started as backup method for global shortcuts");
+                
+                bool tildeWasPressed = false;
+                bool altHWasPressed = false;
+                DateTime lastTildeTime = DateTime.MinValue;
+                DateTime lastAltHTime = DateTime.MinValue;
+                
+                try
+                {
+                    while (!_pollingCts.Token.IsCancellationRequested)
+                    {
+                        // Check for ~ key
+                        bool isTildePressed = IsKeyPressed(VK_OEM_3);
+                        if (isTildePressed && !tildeWasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastTildeTime).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: ~ (Tilde)");
+                                // Sử dụng tham chiếu đầy đủ để tránh xung đột
+                                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                                {
+                                    StartStopRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastTildeTime = now;
+                            }
+                        }
+                        tildeWasPressed = isTildePressed;
+                        
+                        // Check for Alt+H
+                        bool isAltPressed = IsKeyPressed(VK_MENU);
+                        bool isHPressed = IsKeyPressed(VK_H);
+                        
+                        if (isAltPressed && isHPressed && !altHWasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAltHTime).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+H");
+                                // Sử dụng tham chiếu đầy đủ để tránh xung đột
+                                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                                {
+                                    MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAltHTime = now;
+                            }
+                        }
+                        altHWasPressed = isAltPressed && isHPressed;
+                        
+                        // Sleep to reduce CPU usage
+                        await Task.Delay(50, _pollingCts.Token);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Normal cancellation
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in key polling: {ex.Message}");
+                }
+                finally
+                {
+                    _isPolling = false;
+                    Console.WriteLine("Key polling stopped");
+                }
+            }, _pollingCts.Token);
+        }
+        
+        // Stop the key polling
+        private static void StopKeyPolling()
+        {
+            if (_isPolling && _pollingCts != null)
+            {
+                _pollingCts.Cancel();
+                _pollingCts.Dispose();
+                _pollingCts = null;
+            }
+        }
+        
+        // Remove the hook and unregister hotkeys
         public static void CleanupGlobalHook()
         {
+            // Stop key polling
+            StopKeyPolling();
+            
+            // Unregister hotkeys
+            if (_mainWindowHandle != IntPtr.Zero)
+            {
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_TILDE);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_H);
+            }
+            
+            // Remove low-level keyboard hook
             if (_hookID != IntPtr.Zero)
             {
                 UnhookWindowsHookEx(_hookID);
@@ -115,6 +300,23 @@ namespace RSTGameTranslation
             return (GetAsyncKeyState(vkCode) & 0x8000) != 0;
         }
         
+        // Check if we should process this key press (prevents double triggers)
+        private static bool ShouldProcessKeyPress(int vkCode)
+        {
+            DateTime now = DateTime.Now;
+            
+            // If it's the same key and within threshold time, ignore it
+            if (vkCode == _lastKeyCode && (now - _lastKeyPressTime) < _keyPressThreshold)
+            {
+                return false;
+            }
+            
+            // Update last key press info
+            _lastKeyCode = vkCode;
+            _lastKeyPressTime = now;
+            return true;
+        }
+        
         // Keyboard hook callback
         private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -124,39 +326,42 @@ namespace RSTGameTranslation
                 {
                     int vkCode = Marshal.ReadInt32(lParam);
                     
-                    // Check for our global shortcuts directly using GetAsyncKeyState for more reliable detection
-                    bool isShiftPressed = IsKeyPressed(VK_SHIFT);
-                    bool isAltPressed = IsKeyPressed(VK_MENU);
-                    
-                    // Handle key down events (both regular and system keys)
+                    // Only process key down events (both regular and system keys)
                     if (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN)
                     {
-                        // Check for ~ key (Start/Stop)
-                        if (vkCode == VK_OEM_3)
+                        // Global shortcuts - always process regardless of focus
+                        bool isAltPressed = IsKeyPressed(VK_MENU);
+                        
+                        // Check for ~ key (Start/Stop) - Always global
+                        if (vkCode == VK_OEM_3 && ShouldProcessKeyPress(vkCode))
                         {
                             Console.WriteLine("Global shortcut detected: ~ (Tilde)");
                             StartStopRequested?.Invoke(null, EventArgs.Empty);
                             return (IntPtr)1; // Prevent further processing
                         }
                         
-                        // Check for Alt+H (Toggle Main Window)
-                        if (vkCode == VK_H && isAltPressed && !isShiftPressed)
+                        // Check for Alt+H (Toggle Main Window) - Always global
+                        if (vkCode == VK_H && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_H | 0x1000))
                         {
                             Console.WriteLine("Global shortcut detected: Alt+H");
                             MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
                             return (IntPtr)1; // Prevent further processing
                         }
                         
-                        // For other shortcuts, only process if our application is active
+                        // Application-specific shortcuts - only process if our application has focus
                         if (IsOurApplicationActive())
                         {
-                            // Convert the virtual key code to a Key
-                            Key key = KeyInterop.KeyFromVirtualKey(vkCode);
+                            bool isShiftPressed = IsKeyPressed(VK_SHIFT);
                             
                             // Check if it's one of our shortcuts with just Shift (M, C, P, L)
                             if (isShiftPressed && !isAltPressed)
                             {
-                                if (IsShortcutKey(key, ModifierKeys.Shift))
+                                // Convert the virtual key code to a Key
+                                Key key = KeyInterop.KeyFromVirtualKey(vkCode);
+                                
+                                if (IsShortcutKey(key, ModifierKeys.Shift) && 
+                                    ShouldProcessKeyPress(vkCode | 0x2000))
                                 {
                                     if (HandleRawKeyDown(key, ModifierKeys.Shift))
                                     {
@@ -231,6 +436,9 @@ namespace RSTGameTranslation
                     e.Handled = true;
                     return true;
                 }
+                
+                // The following shortcuts only work when the application has focus
+                
                 // Shift+M: Toggle Monitor Window
                 else if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Shift)
                 {

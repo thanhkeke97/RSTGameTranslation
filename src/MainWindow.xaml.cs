@@ -663,25 +663,49 @@ namespace RSTGameTranslation
             }
         }
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            
+            // Lấy handle của cửa sổ chính
+            IntPtr handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            KeyboardShortcuts.SetMainWindowHandle(handle);
+            
+            // Thêm hook để xử lý WM_HOTKEY
+            HwndSource source = HwndSource.FromHwnd(handle);
+            source.AddHook(WndProc);
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            // Xử lý WM_HOTKEY (0x0312)
+            if (msg == 0x0312) // WM_HOTKEY
+            {
+                handled = KeyboardShortcuts.ProcessHotKey(wParam);
+            }
+            
+            return IntPtr.Zero;
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             // Remove global keyboard hook
             KeyboardShortcuts.CleanupGlobalHook();
-            
+
             // Clean up MouseManager resources
             MouseManager.Instance.Cleanup();
             
             Logic.Instance.Finish();
-            
+
             // Make sure the console is closed
             if (consoleWindow != IntPtr.Zero)
             {
                 ShowWindow(consoleWindow, SW_HIDE);
             }
-            
+
             // Make sure the application exits when the main window is closed
             System.Windows.Application.Current.Shutdown();
-            
+
             base.OnClosed(e);
         }
         

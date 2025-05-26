@@ -76,12 +76,12 @@ The following shortcuts have been added to help you use the application more qui
 
 | Shortcut  | Function  |
 |-----------|-----------|
-| Shift+Alt+S | Start/Stop OCR (Can using when main application is not focused)|
-| Shift+M | Show/Hide Monitor Window |
-| Shift+C | Show/Hide ChatBox |
-| Shift+P | Show/Hide Settings |
-| Shift+L | Show/Hide Log Console |
-| Shift+Alt+H | Show/Hide Main Window (Can using when main application is not focused)|
+| ~         | Start/Stop OCR (Can using when main application is not focused)|
+| Shift+M   | Show/Hide Monitor Window |
+| Shift+C   | Show/Hide ChatBox |
+| Shift+P   | Show/Hide Settings |
+| Shift+L   | Show/Hide Log Console |
+| Alt+H     | Show/Hide Main Window (Can using when main application is not focused)|
 
 ## Advanced setup info ##
 While personally I recommend Gemini Flash 2 lite and PaddleOCR (It is better for Asian languages and uses lower resources for easy OCR), there are a lot of options at your disposal. You can use Windows' built-in OCR instead of the python server, this doesn't work great for Japanese I've found, but might be ok for other languages.  It's fast.
