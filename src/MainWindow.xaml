@@ -141,6 +141,36 @@
                 </Grid>
                 
                 
+                <!-- Bottom footer bar with shortcut information -->
+                <Grid Height="40" VerticalAlignment="Bottom">
+                <!-- Bottom resize strip - 10px height -->
+                <Border Height="10" VerticalAlignment="Bottom" Background="#50FF0000" Cursor="SizeNS"
+                        WindowChrome.IsHitTestVisibleInChrome="False"/>
+                
+                <!-- Actual footer with content - shifted up by 10px -->
+                <Border Name="FooterBorder" Background="#CC202020" Margin="0,0,0,10"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Grid>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="HotKey" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
+                                        Margin="10,0,0,0" VerticalAlignment="Center"/>
+
+                                <Border Background="#FF333333" Padding="5,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="~: Start/Stop Translate" Foreground="White"/>
+                                </Border>
+                                
+                                <Border Background="#FF333333" Padding="5,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="Alt+H: Show/Hide Area Selection" Foreground="White"/>
+                                </Border>
+                                
+                        </StackPanel>
+        
+                        
+                        </Grid>
+                </Border>
+                </Grid>
+
                 <!-- Resize grip indicators -->
                 <Rectangle Width="24" Height="24" Fill="#80808080"
                           HorizontalAlignment="Right" VerticalAlignment="Bottom"

@@ -538,7 +538,7 @@ namespace RSTGameTranslation
             }
         }
         
-        private async void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Skip event if we're initializing
             if (_isInitializing)
@@ -561,9 +561,9 @@ namespace RSTGameTranslation
                     // Cập nhật UI
                     MainWindow.Instance.SetOcrMethod(ocrMethod);
                     UpdateMonitorWindowOcrMethod(ocrMethod);
+                    SocketManager.Instance.Disconnect();
                     
-                    
-                    await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
+                    // await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
                         
                 
                 }

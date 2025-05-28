@@ -10,6 +10,8 @@ namespace RSTGameTranslation
         private static OcrServerManager? _instance;
         private Process? _currentServerProcess;
         public bool serverStarted = false;
+
+        public bool timeoutStartServer = false;
         
         // Singleton pattern
         public static OcrServerManager Instance
@@ -109,13 +111,14 @@ namespace RSTGameTranslation
 
                 // Khởi động process
                 _currentServerProcess = Process.Start(startInfo);
+                timeoutStartServer = false;
                 // Chờ flag file
                 Console.WriteLine("⏳ Waiting for ready flag...");
                 for (int i = 0; i < 60; i++) // 1 phút
                 {
                     if (File.Exists(flagFile))
                     {
-                        Console.WriteLine("✅ PaddleOCR READY!");
+                        Console.WriteLine($"✅ {ocrMethod} READY!");
                         serverStarted = true;
                         break;
                     }
@@ -129,6 +132,7 @@ namespace RSTGameTranslation
                 if (serverStarted == false)
                 {
                     Console.WriteLine("Cannot start OCR server");
+                    timeoutStartServer = true;
                     return false;
                 }
 
@@ -157,7 +161,7 @@ namespace RSTGameTranslation
                     int processId = _currentServerProcess.Id;
                     // Thử đóng process một cách lịch sự trước
                     _currentServerProcess.CloseMainWindow();
-                    
+
                     // Đợi một chút để process có thể đóng
                     if (!_currentServerProcess.WaitForExit(1000))
                     {
@@ -165,9 +169,10 @@ namespace RSTGameTranslation
                         _currentServerProcess.Kill();
                     }
                     KillRelatedPythonProcesses();
-                    
+
                     _currentServerProcess = null;
                     Console.WriteLine("OCR server has been stopped");
+                    serverStarted = false;
                 }
             }
             catch (Exception ex)

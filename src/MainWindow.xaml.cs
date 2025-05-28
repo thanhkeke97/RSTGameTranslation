@@ -57,6 +57,7 @@ namespace RSTGameTranslation
         private const string DEFAULT_OUTPUT_PATH = @"webserver\image_to_process.png";
         private const double CAPTURE_INTERVAL_SECONDS = 1;
         private const int TITLE_BAR_HEIGHT = 50; // Height of our custom title bar (includes 10px for resize)
+        private const int FOOTER_BAR_HEIGHT = 30; // Height of our custom title bar (includes 10px for resize)
 
         bool _bOCRCheckIsWanted = false;
         public void SetOCRCheckIsWanted(bool bCaptureIsWanted) { _bOCRCheckIsWanted = bCaptureIsWanted; }
@@ -193,11 +194,11 @@ namespace RSTGameTranslation
                 }
                 else if (method == "EasyOCR")
                 {
-                    SetStatus("Using EasyOCR");
+                    SetStatus("Please start EasyOCR server");
                 }
                 else
                 {
-                    SetStatus("Using PaddleOCR");
+                    SetStatus("Please start PaddleOCR server");
                 }
                 return;
             }
@@ -214,35 +215,46 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    SetStatus($"Using {method}");
-                    
-                    // Ensure we're connected when switching to EasyOCR
-                    if (!SocketManager.Instance.IsConnected)
+                    if (isStarted)
                     {
-                        Console.WriteLine("Socket not connected when switching to EasyOCR");
-                        _ = Task.Run(async () => {
-                            try {
-                                bool reconnected = await SocketManager.Instance.TryReconnectAsync();
-                                
-                                if (!reconnected || !SocketManager.Instance.IsConnected)
-                                {
-                                    // Only show an error message if explicitly requested by user action
-                                    Console.WriteLine("Failed to connect to socket server - EasyOCR will not be available");
-                                }
-
-                                
-                            }
-                            catch (Exception ex) {
-                                Console.WriteLine($"Error reconnecting: {ex.Message}");
-                                
-                                // Show an error message
-                                System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                                    System.Windows.MessageBox.Show($"Socket connection error: {ex.Message}",
-                                        "Connection Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                                });
-                            }
-                        });
+                        OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
                     }
+                        
+                    OcrServerManager.Instance.StopOcrServer();
+                    SetStatus($"Please click StartServer button to reconnect server");
+
+
+                    // // Ensure we're connected when switching to new OCR
+                    // if (!SocketManager.Instance.IsConnected)
+                    // {
+                    //     Console.WriteLine($"Socket not connected when switching to {method}");
+                    //     _ = Task.Run(async () =>
+                    //     {
+                    //         try
+                    //         {
+                    //             bool reconnected = await SocketManager.Instance.TryReconnectAsync();
+
+                    //             if (!reconnected || !SocketManager.Instance.IsConnected)
+                    //             {
+                    //                 // Only show an error message if explicitly requested by user action
+                    //                 Console.WriteLine("Failed to connect to socket server - EasyOCR will not be available");
+                    //             }
+
+
+                    //         }
+                    //         catch (Exception ex)
+                    //         {
+                    //             Console.WriteLine($"Error reconnecting: {ex.Message}");
+
+                    //             // Show an error message
+                    //             System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    //             {
+                    //                 System.Windows.MessageBox.Show($"Socket connection error: {ex.Message}",
+                    //                     "Connection Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    //             });
+                    //         }
+                    //     });
+                    // }
                 }
             }
         }
@@ -511,7 +523,8 @@ namespace RSTGameTranslation
             RECT windowRect;
             GetWindowRect(hwnd, out windowRect);
 
-            // Use the custom header's height
+            // Use the custom header's height and footer bar height to exclude them from the capture area
+            int customFooterHeight = FOOTER_BAR_HEIGHT;
             int customTitleBarHeight = TITLE_BAR_HEIGHT;
             // Border thickness settings
             int leftBorderThickness = 9;  // Increased from 7 to 9
@@ -527,7 +540,7 @@ namespace RSTGameTranslation
                 windowRect.Left + leftBorderThickness,
                 windowRect.Top + customTitleBarHeight,
                 (windowRect.Right - windowRect.Left) - leftBorderThickness - rightBorderThickness,
-                (windowRect.Bottom - windowRect.Top) - customTitleBarHeight - bottomBorderThickness);
+                (windowRect.Bottom - windowRect.Top) - customTitleBarHeight - customFooterHeight - bottomBorderThickness);
                 
             // If position changed and we have text objects, update their positions
             if ((previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) && 
@@ -923,7 +936,7 @@ namespace RSTGameTranslation
             Logic.Instance.ClearAllTextObjects();
         }
 
-        private void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async Task OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is System.Windows.Controls.ComboBox comboBox)
             {
@@ -938,7 +951,10 @@ namespace RSTGameTranslation
                     
                     // Clear any existing text objects
                     Logic.Instance.ClearAllTextObjects();
-                    
+
+                    // Try stop server OCR if haved one running
+                    OcrServerManager.Instance.StopOcrServer();
+
                     // Update the UI and connection state based on the selected OCR method
                     if (ocrMethod == "Windows OCR")
                     {
@@ -949,14 +965,29 @@ namespace RSTGameTranslation
                     else
                     {
                         // Using EasyOCR or PaddleOCR, try to connect to the socket server
-                        if (!SocketManager.Instance.IsConnected)
+                        SetStatus($"Connecting to Server {ocrMethod}.");
+                        SocketManager.Instance.Disconnect();
+                        _ = OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
+                        while (!OcrServerManager.Instance.serverStarted)
+                        {
+                            await Task.Delay(100);
+                            if (OcrServerManager.Instance.timeoutStartServer)
+                            {
+                                SetStatus($"Cannot start {ocrMethod} server");
+                                System.Windows.MessageBox.Show($"Server startup timeout {ocrMethod}. Please check if the environment has been installed.",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                break;
+                            }
+                        }
+                        if (OcrServerManager.Instance.serverStarted)
                         {
                             _ = SocketManager.Instance.TryReconnectAsync();
-                            SetStatus("Connecting to Python backend...");
+                            SetStatus($"Connected to Server {ocrMethod}.");
+
                         }
                         else
                         {
-                            SetStatus($"Using {ocrMethod}");
+                            SetStatus($"Can not connected to Server {ocrMethod}.");
                         }
                     }
                 }
@@ -1342,21 +1373,26 @@ namespace RSTGameTranslation
                 await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
                 SetStatus($"Starting {ocrMethod} server ...");
                 var startTime = DateTime.Now;
-                while (!OcrServerManager.Instance.serverStarted)
+                while (!OcrServerManager.Instance.serverStarted) 
                 {
-                    await Task.Delay(1000); // Kiểm tra mỗi 100ms
-
-                    if ((DateTime.Now - startTime).TotalSeconds > 60)
+                    await Task.Delay(100); // Kiểm tra mỗi 100ms    
+                    if (OcrServerManager.Instance.timeoutStartServer)
                     {
                         SetStatus($"Cannot start {ocrMethod} server");
                         System.Windows.MessageBox.Show($"Server startup timeout {ocrMethod}. Please check if the environment has been installed.",
-                        "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        break;
+                    }    
                 }
 
                 UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
-                // Cập nhật trạng thái kết nối socket nếu cần
-                await SocketManager.Instance.TryReconnectAsync();
+
+                if (OcrServerManager.Instance.serverStarted)
+                {
+                    // Cập nhật trạng thái kết nối socket nếu cần
+                    await SocketManager.Instance.TryReconnectAsync();
+
+                }
 
             }
             catch (Exception ex)
