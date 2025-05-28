@@ -287,8 +287,9 @@
                     <li>Chỉ hoạt động trên Windows 10 trở lên.</li>
                     <li>Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless</li>
                     <li>Hoạt động tốt nhất khi bạn có GPU NVIDIA.</li>
+                    <li>Bạn cần thêm conda vào biến môi trường PATH và cài đặt conda với tùy chọn "Just me"</li>
                     <li>Nếu không có GPU chuyên dụng hoặc GPU không phải NVIDIA, phần mềm sẽ sử dụng CPU nhưng hiệu suất sẽ kém (bạn sẽ mất 30-50% công suất CPU).</li>
-                    <li>Bạn có thể sử dụng Windows OCR (nhẹ hơn) thay vì Easy OCR hoặc Paddle OCR, nhưng kết quả nhận dạng trong game rất kém.</li>
+                    <li>Bạn có thể sử dụng Windows OCR (nhẹ hơn) thay vì Easy OCR hoặc Paddle OCR, nhưng kết quả nhận dạng trong game rất kém. Chỉ nên dùng Windows OCR cho các tác vụ không phải game.</li>
                     <li>Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh và ngược lại.</li>
                     <li>Để sử dụng Easy OCR và Paddle OCR, bạn cần chạy máy chủ trước (hướng dẫn bên dưới).</li>
                 </ul>
@@ -301,18 +302,44 @@
                 <p><strong>Đối với người đang sử dụng phiên bản v0.1 và v0.2 update lên bản mới nhất:</strong> Cần xóa folder RSTGameTranslation/webserver cũ trước khi cài đặt phiên bản mới và chạy <code>RSTGameTranslation/webserver/RemoveEnvNvidia.bat</code> trong phiên bản mới để xóa môi trường conda đã tạo trước đó</p>
                 <ol>
                     <li>Tải phiên bản mới nhất (file zip) <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank" rel="noopener" title="Tải RSTGameTranslation">tại đây</a> và giải nén.</li>
-                    <li>Kiểm tra xem bạn đã cài đặt Conda chưa bằng cách mở cửa sổ lệnh (nhấn <code>Win + R</code>, gõ <code>cmd</code>, và nhấn Enter) và gõ "conda". Nếu hiển thị các lệnh conda, bạn đã cài đặt. Nếu báo lỗi, hãy cài đặt Miniconda theo hướng dẫn (khi cài đặt conda chọn just me/only me trong phần cài đặt không chọn all user) <a href="https://repo.anaconda.com/miniconda/Miniconda3-py39_25.3.1-1-Windows-x86_64.exe" target="_blank" rel="noopener" title="Hướng dẫn cài đặt mini conda">tại đây</a>.</li>
+                    <li>Kiểm tra xem bạn đã cài đặt Conda chưa bằng cách mở cửa sổ lệnh (nhấn <code>Win + R</code>, gõ <code>cmd</code>, và nhấn Enter) và gõ "conda". Nếu hiển thị các lệnh conda, bạn đã cài đặt. Nếu báo lỗi, hãy cài đặt Miniconda <a href="https://repo.anaconda.com/miniconda/Miniconda3-py39_25.3.1-1-Windows-x86_64.exe" target="_blank" rel="noopener" title="Tải Miniconda">tại đây</a>.</li>
+                    <li>Khi cài đặt conda, chọn "Just me" trong phần cài đặt (không chọn "All users")</li>
                     <img src="media/just_me.png" alt="Cài đặt conda chọn just me/only me" class="screenshot" width="800" height="450">
-                    <li>Đảm bảo add conda vào PATH environment variables (quan trọng)</li>
+                    <li>Đảm bảo thêm conda vào biến môi trường PATH (quan trọng)</li>
                     <img src="media/add_to_environment.png" alt="Thêm conda vào PATH environment variables" class="screenshot" width="800" height="450">
-                    <li>Chạy <code>RSTGameTranslation/webserver/PaddleOCR/SetupServerCondaEnvNVidiaPaddleOCR.bat</code> hoặc <code>RSTGameTranslation/webserver/EasyOCR/SetupServerCondaEnvNVidiaEasyOCR.bat</code> và đợi quá trình cài đặt hoàn tất (Chỉ chạy ở lần đầu tiên sử dụng ứng dụng, không cần chạy lại ở các lần sau).</li>
-                    <li>Chạy <code>RSTGameTranslation/webserver/EasyOCR/RunServerEasyOCR.bat</code> cho EasyOCR hoặc <code>RSTGameTranslation/webserver/PaddleOCR/RunServerPaddleOCR.bat</code> cho PaddleOCR (khuyến nghị cho hiệu suất tốt hơn với ngôn ngữ châu Á).</li>
-                    <li>Chạy <code>RSTGameTranslation/rst.exe</code></li>
-                    <li>Vào phần cài đặt và thêm khóa API Gemini của bạn.</li>
-                    <li>Bạn có thể sử dụng source_language và target_language trong prompt, ứng dụng sẽ tự động lấy ngôn ngữ nguồn và ngôn ngữ đích bạn chọn trong setting thay thế trước khi gửi thông tin cần dịch cho LLM model</li>
+                    <li>Chạy RSTGameTranslation/rst.exe để khởi động ứng dụng</li>
+                    <li><strong>Cài đặt:</strong>
+                        <ul>
+                            <li>Vào phần cài đặt, tab Language, chọn ngôn ngữ bạn muốn dịch từ và ngôn ngữ muốn dịch sang</li>
+                            <li>Vào tab Translation, chọn dịch vụ dịch thuật bạn muốn sử dụng</li>
+                            <li>Vào tab OCR, chọn phương pháp OCR bạn muốn sử dụng</li>
+                            <li>Bây giờ bạn có thể đóng cửa sổ cài đặt</li>
+                        </ul>
+                    </li>
+                    <li><strong>Thiết lập máy chủ (Chỉ làm một lần cho mỗi phương pháp OCR):</strong>
+                        <ul>
+                            <li>Nhấp vào nút SetupServer để bắt đầu thiết lập máy chủ dựa trên phương pháp OCR bạn đã chọn trong cài đặt (Nếu bạn chọn Windows OCR, bạn có thể bỏ qua bước này)</li>
+                            <li>Thiết lập có thể mất 5-15 phút, tùy thuộc vào tốc độ internet và sức mạnh máy tính của bạn</li>
+                            <li>Đợi cho đến khi thiết lập máy chủ hoàn tất, bạn sẽ thấy thông báo "... environment setup completed"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Bắt đầu dịch:</strong>
+                        <ul>
+                            <li>Nhấp vào nút StartServer và đợi cho đến khi bạn thấy thông báo "Successfully connected to .... server" (Nếu bạn chọn Windows OCR, bạn có thể bỏ qua bước này)</li>
+                            <li>Bây giờ bạn có thể bắt đầu dịch bằng cách nhấp vào nút Start</li>
+                            <li>Bạn có thể xem kết quả dịch trong cửa sổ chat (nút ChatBox) hoặc trong Monitor (nút Monitor)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Cài đặt LLMS:</strong>
+                        <ul>
+                            <li>Vào phần cài đặt và thêm khóa API Gemini của bạn. Có thông tin hướng dẫn cách lấy khóa API ở đó.</li>
+                            <li>Kiểm tra các cài đặt khác; các giá trị mặc định nên ổn. Lưu ý rằng có một chỗ để nhập tên của game, điều này rất quan trọng! LLM biết điều này sẽ giúp nó sửa lỗi và tạo đoạn hội thoại tốt hơn.</li>
+                        </ul>
+                    </li>
                 </ol>
                 <img src="media/settings_gemini.png" alt="Giao diện cài đặt Gemini API trong RSTGameTranslation" class="screenshot" width="800" height="450">
-                <p><strong>Lưu ý:</strong> Lần đầu tiên bạn sử dụng EasyOCR hoặc PaddleOCR với một ngôn ngữ mới, nó phải tải xuống trước! Vì vậy, có thể có vẻ không hoạt động, chỉ cần đợi một hoặc hai phút và khởi động/dừng dịch của ứng dụng, nó sẽ hoạt động.</p>
+                <p><strong>Lưu ý:</strong> Bạn có thể sử dụng source_language và target_language trong prompt, ứng dụng sẽ tự động ánh xạ ngôn ngữ sang mã ngôn ngữ bạn đã chọn trong cài đặt. Ví dụ: nếu bạn chọn source_language=en và target_language=vi trong cài đặt, prompt gửi đến LLM sẽ được chuyển đổi thành "English" và "Vietnamese" trước khi gửi đến LLM tự động.</p>
+                <p>Lần đầu tiên bạn sử dụng EasyOCR hoặc PaddleOCR với một ngôn ngữ mới, nó phải tải xuống trước! Vì vậy, có thể có vẻ không hoạt động, chỉ cần đợi một hoặc hai phút và khởi động/dừng dịch của ứng dụng, nó sẽ hoạt động.</p>
             </div>
         </section>
 
@@ -324,6 +351,7 @@
                 <li>Đóng RSTGameTranslation nếu đang chạy</li>
                 <li>Giải nén các tệp mới vào thư mục cài đặt hiện tại</li>
                 <li>Xong! Các cài đặt và tùy chọn của bạn sẽ được giữ nguyên</li>
+                <li>Quá trình cập nhật đơn giản và an toàn - bạn sẽ không mất bất kỳ cài đặt hoặc tùy chỉnh nào.</li>
             </ul>
         </section>
 
@@ -338,8 +366,8 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>~</td>
-                        <td>Bắt đầu/Dừng OCR (Có thể hoạt động kể cả khi không focus ứng dụng)</td>
+                        <td>Alt+G</td>
+                        <td>Bắt đầu/Dừng OCR (Có thể sử dụng khi ứng dụng chính không được focus)</td>
                     </tr>
                     <tr>
                         <td>Shift+M</td>
@@ -359,7 +387,7 @@
                     </tr>
                     <tr>
                         <td>Alt+H</td>
-                        <td>Hiện/Ẩn cửa sổ chính (Có thể hoạt động kể cả khi không focus ứng dụng)</td>
+                        <td>Hiện/Ẩn cửa sổ chính (Có thể sử dụng khi ứng dụng chính không được focus)</td>
                     </tr>
                 </tbody>
             </table>
@@ -369,6 +397,7 @@
             <h2>Thông tin cài đặt nâng cao</h2>
             <p>Mặc dù cá nhân tôi khuyên dùng Gemini Flash 2 lite và PaddleOCR (tốt hơn cho ngôn ngữ châu Á và sử dụng ít tài nguyên hơn cho Easy OCR), có nhiều tùy chọn khác nhau cho bạn. Bạn có thể sử dụng OCR tích hợp của Windows thay vì máy chủ python, điều này không hoạt động tốt cho tiếng Nhật nhưng có thể ổn cho các ngôn ngữ khác. Nó nhanh.</p>
             <p>Ollama và ChatGPT là các tùy chọn LLM khác. Đối với Ollama, hãy cài đặt nó và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu) Đối với ChatGPT/OpenAI, chọn một mô hình như GPT-4.1 Nano.</p>
+            <p>Tất cả OCR được thực hiện ở cấp độ ký tự. Sau đó có một chức năng "Block detection" kết hợp các ký tự lại với nhau để tạo thành từ và đoạn văn. Bạn có thể chỉnh sửa "Block Power" để làm cho nó có khả năng kết hợp các thứ lại với nhau hoặc tách chúng ra. (Hội thoại thì nên kết hợp lại, các thứ khác thì tốt hơn khi không kết hợp, vì vậy tùy thuộc vào việc bạn đang làm gì)</p>
         </section>
 
         <section id="faq">

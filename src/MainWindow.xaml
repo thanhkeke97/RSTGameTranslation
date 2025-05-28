@@ -157,11 +157,11 @@
                                         Margin="10,0,0,0" VerticalAlignment="Center"/>
 
                                 <Border Background="#FF333333" Padding="5,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="~: Start/Stop Translate" Foreground="White"/>
+                                        <TextBlock Text="Alt + G: Start/Stop Translate" Foreground="White"/>
                                 </Border>
                                 
                                 <Border Background="#FF333333" Padding="5,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+H: Show/Hide Area Selection" Foreground="White"/>
+                                        <TextBlock Text="Alt + H: Show/Hide Area Selection" Foreground="White"/>
                                 </Border>
                                 
                         </StackPanel>

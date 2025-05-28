@@ -223,51 +223,48 @@ namespace RSTGameTranslation
                     string serverUrl = $"localhost:{SocketManager.Instance.GetPort()}";
                     
                     string message = $"Connection Error: AI server not running at {serverUrl}\n\n" +
-                                     "To fix this problem:\n\n" +
-                                     "1. Navigate to the 'app/webserver' folder in your UGTLive installation\n" +
-                                     "2. Run \"SetupServerCondaEnv.bat\" (only need to do this once during initial setup)\n" +
-                                     "3. Run \"RunServerEasyOCR.bat\" to start the EasyOCR server\n\n" +
-                                     "4. Run \"RunServerPaddleOCR.bat\" to start the PaddleOCR server\n\n" +
-                                     "The server window should remain open while using RST with EasyOCR or PaddleOCR.\n\n" +
-                                     "Alternatively, you can switch to Windows OCR in the settings (no server needed).";
+                                     "Have you been click SetupServer button yet (only need to do this once during initial setup)?\n\n" +
+                                     "If you have not been run, please click the SetupServer button, wait for finish and try again.\n\n" +
+                                     "Some fix you can try:\n\n" +
+                                     "1. Click StopServer button to stop server then Click StartServer button to start server\n" +
+                                     "2. Close and reopen application";
                     
-                    MessageBoxResult result = MessageBox.Show(message + "\n\nAttempt to start server using RunServer.bat?", 
-                                              "Server Connection Error", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
+                    MessageBox.Show(message,"Server Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        String OcrMethod = ConfigManager.Instance.GetOcrMethod();
-                        try
-                        {
-                            // Try to run the RunServer.bat file
-                            System.Diagnostics.Process.Start(new ProcessStartInfo
-                            {
-                                FileName = $"RunServer{OcrMethod}.bat",
-                                UseShellExecute = true,
-                                WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory+"webserver\\"
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Failed to start server: {ex.Message}");
-                            MessageBox.Show($"Failed to start server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
-                    }
-                    else if (result == MessageBoxResult.Cancel)
-                    {
-                        try
-                        {
-                            System.Diagnostics.Process.Start(new ProcessStartInfo
-                            {
-                                FileName = "https://github.com/thanhkeke97/RSTGameTranslation",
-                                UseShellExecute = true
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Failed to open browser: {ex.Message}");
-                        }
-                    }
+                    // if (result == MessageBoxResult.Yes)
+                    // {
+                    //     String OcrMethod = ConfigManager.Instance.GetOcrMethod();
+                    //     try
+                    //     {
+                    //         // Try to run the RunServer.bat file
+                    //         System.Diagnostics.Process.Start(new ProcessStartInfo
+                    //         {
+                    //             FileName = $"RunServer{OcrMethod}.bat",
+                    //             UseShellExecute = true,
+                    //             WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory+"webserver\\"
+                    //         });
+                    //     }
+                    //     catch (Exception ex)
+                    //     {
+                    //         Console.WriteLine($"Failed to start server: {ex.Message}");
+                    //         MessageBox.Show($"Failed to start server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    //     }
+                    // }
+                    // else if (result == MessageBoxResult.Cancel)
+                    // {
+                    //     try
+                    //     {
+                    //         System.Diagnostics.Process.Start(new ProcessStartInfo
+                    //         {
+                    //             FileName = "https://github.com/thanhkeke97/RSTGameTranslation",
+                    //             UseShellExecute = true
+                    //         });
+                    //     }
+                    //     catch (Exception ex)
+                    //     {
+                    //         Console.WriteLine($"Failed to open browser: {ex.Message}");
+                    //     }
+                    // }
                 }
             }
             else

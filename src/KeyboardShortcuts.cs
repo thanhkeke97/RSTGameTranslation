@@ -72,11 +72,11 @@ namespace RSTGameTranslation
         private const int VK_SHIFT = 0x10;
         private const int VK_CONTROL = 0x11;
         private const int VK_MENU = 0x12; // ALT key
-        private const int VK_OEM_3 = 0xC0; // ~ key (tilde/backtick)
-        private const int VK_H = 0x48;
+        private const int VK_G = 0x47;    // G key
+        private const int VK_H = 0x48;    // H key
         
         // Hotkey IDs
-        private const int HOTKEY_ID_TILDE = 1;
+        private const int HOTKEY_ID_ALT_G = 1; // Đổi từ ALT_TILDE thành ALT_G
         private const int HOTKEY_ID_ALT_H = 2;
         
         private static LowLevelKeyboardProc _proc = HookCallback;
@@ -132,14 +132,14 @@ namespace RSTGameTranslation
             // Register hotkeys if we have a valid window handle
             if (_mainWindowHandle != IntPtr.Zero)
             {
-                // Try to register ~ as a hotkey
-                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_TILDE, MOD_NOREPEAT, (uint)VK_OEM_3))
+                // Try to register Alt+G as a hotkey
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_G, MOD_ALT | MOD_NOREPEAT, (uint)VK_G))
                 {
-                    Console.WriteLine("Registered ~ as global hotkey");
+                    Console.WriteLine("Registered Alt+G as global hotkey");
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to register ~ hotkey. Error: {Marshal.GetLastWin32Error()}");
+                    Console.WriteLine($"Failed to register Alt+G hotkey. Error: {Marshal.GetLastWin32Error()}");
                 }
                 
                 // Try to register Alt+H as a hotkey
@@ -161,8 +161,8 @@ namespace RSTGameTranslation
             
             switch (id)
             {
-                case HOTKEY_ID_TILDE:
-                    Console.WriteLine("Hotkey detected: ~ (Tilde)");
+                case HOTKEY_ID_ALT_G:
+                    Console.WriteLine("Hotkey detected: Alt+G");
                     StartStopRequested?.Invoke(null, EventArgs.Empty);
                     return true;
                     
@@ -188,35 +188,36 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Key polling started as backup method for global shortcuts");
                 
-                bool tildeWasPressed = false;
+                bool altGWasPressed = false;
                 bool altHWasPressed = false;
-                DateTime lastTildeTime = DateTime.MinValue;
+                DateTime lastAltGTime = DateTime.MinValue;
                 DateTime lastAltHTime = DateTime.MinValue;
                 
                 try
                 {
                     while (!_pollingCts.Token.IsCancellationRequested)
                     {
-                        // Check for ~ key
-                        bool isTildePressed = IsKeyPressed(VK_OEM_3);
-                        if (isTildePressed && !tildeWasPressed)
+                        // Check for Alt+G key combination
+                        bool isAltPressed = IsKeyPressed(VK_MENU);
+                        bool isGPressed = IsKeyPressed(VK_G);
+                        
+                        if (isAltPressed && isGPressed && !altGWasPressed)
                         {
                             DateTime now = DateTime.Now;
-                            if ((now - lastTildeTime).TotalMilliseconds > 500)
+                            if ((now - lastAltGTime).TotalMilliseconds > 500)
                             {
-                                Console.WriteLine("Polling detected: ~ (Tilde)");
+                                Console.WriteLine("Polling detected: Alt+G");
                                 // Sử dụng tham chiếu đầy đủ để tránh xung đột
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => 
                                 {
                                     StartStopRequested?.Invoke(null, EventArgs.Empty);
                                 });
-                                lastTildeTime = now;
+                                lastAltGTime = now;
                             }
                         }
-                        tildeWasPressed = isTildePressed;
+                        altGWasPressed = isAltPressed && isGPressed;
                         
                         // Check for Alt+H
-                        bool isAltPressed = IsKeyPressed(VK_MENU);
                         bool isHPressed = IsKeyPressed(VK_H);
                         
                         if (isAltPressed && isHPressed && !altHWasPressed)
@@ -236,7 +237,7 @@ namespace RSTGameTranslation
                         altHWasPressed = isAltPressed && isHPressed;
                         
                         // Sleep to reduce CPU usage
-                        await Task.Delay(50, _pollingCts.Token);
+                        await Task.Delay(30, _pollingCts.Token); // Giảm thời gian delay để phát hiện phím nhanh hơn
                     }
                 }
                 catch (OperationCanceledException)
@@ -275,7 +276,7 @@ namespace RSTGameTranslation
             // Unregister hotkeys
             if (_mainWindowHandle != IntPtr.Zero)
             {
-                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_TILDE);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_G);
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_H);
             }
             
@@ -332,11 +333,21 @@ namespace RSTGameTranslation
                         // Global shortcuts - always process regardless of focus
                         bool isAltPressed = IsKeyPressed(VK_MENU);
                         
-                        // Check for ~ key (Start/Stop) - Always global
-                        if (vkCode == VK_OEM_3 && ShouldProcessKeyPress(vkCode))
+                        // Check for Alt+G key (Start/Stop) - Always global
+                        if (vkCode == VK_G && isAltPressed && ShouldProcessKeyPress(VK_G | 0x1000))
                         {
-                            Console.WriteLine("Global shortcut detected: ~ (Tilde)");
-                            StartStopRequested?.Invoke(null, EventArgs.Empty);
+                            Console.WriteLine("Global shortcut detected: Alt+G");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    StartStopRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+G action: {ex.Message}");
+                            }
                             return (IntPtr)1; // Prevent further processing
                         }
                         
@@ -422,8 +433,8 @@ namespace RSTGameTranslation
         {
             try
             {
-                // ~ key: Start/Stop OCR (global shortcut)
-                if (e.Key == Key.OemTilde && Keyboard.Modifiers == ModifierKeys.None)
+                // Alt+G key: Start/Stop OCR (global shortcut)
+                if (e.Key == Key.G && Keyboard.Modifiers == ModifierKeys.Alt)
                 {
                     StartStopRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;

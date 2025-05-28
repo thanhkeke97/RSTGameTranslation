@@ -33,20 +33,31 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 
 ## How to install and use it (Windows) ##
 
+*Prerequisites:*
+
 * Download the latest version (zip file) [here](https://github.com/thanhkeke97/RSTGameTranslation/releases) and unzip it somewhere
 
 * Do you have Conda?  To check, open a command window (press `Win + R`, type `cmd`, and hit Enter) and type "conda". If it shows conda commands, you already have it installed. If it gives an error, follow the steps below to install Miniconda [(download)](https://repo.anaconda.com/miniconda/Miniconda3-py39_25.3.1-1-Windows-x86_64.exe)
 
-* Note:  When running .bat or .exe files you might get an ugly "This is dangerous, don't run it" message because this project is open source and i don't have any digital signatures so you'll have to just trust me and click "More info" and run it anyway.  This message only happens the first time per .bat or .exe file.
+* Note:  When running .exe files you might get an ugly "This is dangerous, don't run it" message because this project is open source and i don't have any digital signatures so you'll have to just trust me and click "More info" and run it anyway.  This message only happens the first time per .exe file.
 
-* Conda is a thing that lets us install a bunch of python stuff without screwing up other python installs.  Let's do that now, double click *RSTGameTranslation/webserver/PaddleOCR/SetupServerCondaEnvNVidiaPaddleOCR.bat* or *RSTGameTranslation/webserver/EasyOCR/SetupServerCondaEnvNVidiaEasyOCR.bat* for OCR which you want to use (recommended PaddleOCR) and wait a long time while it installs a bunch of junk (Run only on the first use of the application, no need to run again later.).  We need this for EasyOCR or PaddleOCR, the engines that we run locally to "look" at the screen.  Later, this server might also do more ML/AI work in future versions. (for example, doing subtitles of spoken dialog)
+*How to use it:*
 
-* Did that look like it installed ok?  It runs a self-test at the end.  If it did, you're now ready to run the server.
-
-* Run *RSTGameTranslation/webserver/PaddleOCR/RunServerPaddleOCR.bat* or *RSTGameTranslation/webserver/EasyOCR/RunServerEasyOCR.bat* for OCR which you want to use (recommended PaddleOCR)
-
-* Now run *RSTGameTranslation/rst.exe*
-
+* Run RSTGameTranslation/rst.exe to start the application
+----- Setting ----------
+* Go to setting on Language tab choose the language you want to translate from and to
+* Go to setting on Translation tab choose the translation service you want to use
+* Go to setting on OCR tab choose the OCR method you want to use
+* Now you can close setting popup
+----- Setup server (Only do it once for each OCR method) ------
+* Click on SetupServer button to start setup server base on OCR method which you choose in the setting (If you choose Windows OCR, you can skip this step)
+* Setup can take 5-15 minutes, depending on your internet speed and computer power
+* Now wait for the server setup, when it finished, you will see a message "... environment setup completed"
+----- Start translation ------
+* Click on StartServer button and wait until you see a message "Successfully connected to .... server" (If you choose Windows OCR, you can skip this step)
+* Now you can start translation by click on Start button
+* You can see the translation result in the chat window (button ChatBox) or in Monitor (button Monitor)
+----- Setting LLMS ----------
 * Go to the settings and add your Gemini API key.  There is some info written there on how to get it.
 
 ![alt text](media/settings_gemini.png)
@@ -76,7 +87,7 @@ The following shortcuts have been added to help you use the application more qui
 
 | Shortcut  | Function  |
 |-----------|-----------|
-| ~         | Start/Stop OCR (Can using when main application is not focused)|
+| Alt+G     | Start/Stop OCR (Can using when main application is not focused)|
 | Shift+M   | Show/Hide Monitor Window |
 | Shift+C   | Show/Hide ChatBox |
 | Shift+P   | Show/Hide Settings |

@@ -87,63 +87,63 @@ namespace RSTGameTranslation
         }
 
         
-        public async Task<bool> SwitchOcrMethod(string ocrMethod)
-        {
-            // Lấy phương thức OCR hiện tại
-            string currentOcrMethod = ConfigManager.Instance.GetOcrMethod();
-            Console.WriteLine($"Switching OCR method from {currentOcrMethod} to {ocrMethod}");
+        // public async Task<bool> SwitchOcrMethod(string ocrMethod)
+        // {
+        //     // Lấy phương thức OCR hiện tại
+        //     string currentOcrMethod = ConfigManager.Instance.GetOcrMethod();
+        //     Console.WriteLine($"Switching OCR method from {currentOcrMethod} to {ocrMethod}");
             
-            // Bước 1: Reset trạng thái OCR hiện tại
-            Logic.Instance.ResetHash();
-            Logic.Instance.ClearAllTextObjects();
+        //     // Bước 1: Reset trạng thái OCR hiện tại
+        //     Logic.Instance.ResetHash();
+        //     Logic.Instance.ClearAllTextObjects();
             
-            // Bước 2: Nếu không phải Windows OCR, cập nhật port và kết nối
-            if (ocrMethod != "Windows OCR")
-            {
+        //     // Bước 2: Nếu không phải Windows OCR, cập nhật port và kết nối
+        //     if (ocrMethod != "Windows OCR")
+        //     {
                 
-                // Cập nhật port trước khi kết nối
-                UpdatePortBasedOnOcrMethod(ocrMethod);
-                Console.WriteLine($"Connecting to {ocrMethod} server on port {_port}...");
-                bool wasconnected = _isConnected;
-                if(wasconnected)
-                {
-                    await TryReconnectAsync();
-                }
-                else 
-                {
-                    await ConnectAsync();
-                }
+        //         // Cập nhật port trước khi kết nối
+        //         UpdatePortBasedOnOcrMethod(ocrMethod);
+        //         Console.WriteLine($"Connecting to {ocrMethod} server on port {_port}...");
+        //         bool wasconnected = _isConnected;
+        //         if(wasconnected)
+        //         {
+        //             await TryReconnectAsync();
+        //         }
+        //         else 
+        //         {
+        //             await ConnectAsync();
+        //         }
                 
-                // // Kết nối lại với port mới
-                // Console.WriteLine($"Connecting to {ocrMethod} server on port {_port}...");
-                // bool connected = await TryReconnectAsync();
-                // Thông báo kết quả
+        //         // // Kết nối lại với port mới
+        //         // Console.WriteLine($"Connecting to {ocrMethod} server on port {_port}...");
+        //         // bool connected = await TryReconnectAsync();
+        //         // Thông báo kết quả
                 
-                Console.WriteLine($"Successfully connected to {ocrMethod} server");
+        //         Console.WriteLine($"Successfully connected to {ocrMethod} server");
                 
-                // Nếu đang ở chế độ Started, kích hoạt OCR check
-                if (MainWindow.Instance.GetIsStarted())
-                {
-                    Console.WriteLine("OCR process active, triggering new OCR check");
-                    MainWindow.Instance.SetOCRCheckIsWanted(true);
-                }
+        //         // Nếu đang ở chế độ Started, kích hoạt OCR check
+        //         if (MainWindow.Instance.GetIsStarted())
+        //         {
+        //             Console.WriteLine("OCR process active, triggering new OCR check");
+        //             MainWindow.Instance.SetOCRCheckIsWanted(true);
+        //         }
                     
-                return true;
-            }
-            else
-            {
-                // Trường hợp Windows OCR, không cần kết nối socket
-                Console.WriteLine("Switched to Windows OCR (no socket connection required)");
+        //         return true;
+        //     }
+        //     else
+        //     {
+        //         // Trường hợp Windows OCR, không cần kết nối socket
+        //         Console.WriteLine("Switched to Windows OCR (no socket connection required)");
                 
-                // Nếu đang ở chế độ Started, kích hoạt OCR check
-                if (MainWindow.Instance.GetIsStarted())
-                {
-                    Console.WriteLine("OCR process active, triggering new Windows OCR check");
-                    MainWindow.Instance.SetOCRCheckIsWanted(true);
-                }
-                return true;
-            }
-        }
+        //         // Nếu đang ở chế độ Started, kích hoạt OCR check
+        //         if (MainWindow.Instance.GetIsStarted())
+        //         {
+        //             Console.WriteLine("OCR process active, triggering new Windows OCR check");
+        //             MainWindow.Instance.SetOCRCheckIsWanted(true);
+        //         }
+        //         return true;
+        //     }
+        // }
 
         public bool IsWaitingForSomething()
         {
@@ -153,7 +153,8 @@ namespace RSTGameTranslation
         // Connect to server
         public async Task ConnectAsync()
         {
-
+            string ocrMethod = ConfigManager.Instance.GetOcrMethod();
+            UpdatePortBasedOnOcrMethod(ocrMethod);
             if (_tryingToConnect) return;
 
                  if (_isConnected && _clientSocket != null) 
@@ -469,6 +470,8 @@ namespace RSTGameTranslation
         // Try to reconnect if disconnected
         public async Task<bool> TryReconnectAsync()
         {
+            String ocrmethod = ConfigManager.Instance.GetOcrMethod();
+            UpdatePortBasedOnOcrMethod(ocrmethod);
 
             if (_isConnected && _clientSocket != null && _clientSocket.Connected)
             {
