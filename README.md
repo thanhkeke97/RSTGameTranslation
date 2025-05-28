@@ -59,7 +59,9 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 ----- Start translation ------
 * Click on StartServer button and wait until you see a message "Successfully connected to .... server" (If you choose Windows OCR, you can skip this step)
 * Now you can start translation by click on Start button
-* You can see the translation result in the chat window (button ChatBox) or in Monitor (button Monitor)
+* You can drag the translation area to the area you want to translate
+* You can change area to translate by click and drag on the translation area
+* The translation result will be displayed in the chat window (button ChatBox) or in Monitor (button Monitor)
   
 ----- Setting LLMS ----------
 * Go to the settings and add your Gemini API key.  There is some info written there on how to get it.
