@@ -21,21 +21,16 @@ call conda activate ocrstuffeasyocr
 
 REM Install PyTorch with GPU support (includes correct CUDA and cuDNN versions)
 echo Installing PyTorch with GPU support...
-call conda install -y pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+call pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu118
 
 REM Install additional dependencies
-call conda install -y -c conda-forge opencv pillow matplotlib scipy
-call conda install -y tqdm pyyaml requests
+call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyyaml==6.0.2 requests==2.32.3
+
 
 REM Install EasyOCR via pip
-echo Installing EasyOCR...
-pip install easyocr==1.7.2 --user
+@REM echo Installing EasyOCR...
+call pip install easyocr==1.7.2
 
-@REM REM Install PaddleOCR via pip
-@REM echo Installing PaddleOCR...
-@REM pip install paddleocr==2.10.0
-@REM python -m pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
-@REM python -m pip install paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
 
 
 REM Download language models for EasyOCR (Japanese and English)
@@ -46,9 +41,6 @@ REM Verify installations
 echo Verifying installations...
 python -c "import torch; print('PyTorch Version:', torch.__version__); print('CUDA Version:', torch.version.cuda); print('CUDA Available:', torch.cuda.is_available()); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0)"
 python -c "import easyocr; print('EasyOCR imported successfully')"
-@REM python -c "from paddleocr import PaddleOCR; print('PaddleOCR imported successfully')"
-@REM python -c "import cv2; print('OpenCV Version:', cv2.__version__)"
 
 echo ===== Setup Complete =====
 echo If the above looks looks like the test worked, you can now double click "server_easy.py" for easy ocr and it will load this conda env and run the python server.
-pause

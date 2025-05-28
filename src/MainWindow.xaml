@@ -106,6 +106,17 @@
                             <Button x:Name="settingsButton" Content="Settings" Padding="8,3" Margin="5,0"
                                     Background="#FFB07D45" Foreground="White" BorderThickness="1" BorderBrush="White"
                                     Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                            
+                            <Button x:Name="btnSetupOcrServer" Content="SetupServer" Padding="8,3" Margin="5,0"
+                                    Background="#FF4577B0" Foreground="Black" BorderThickness="1" BorderBrush="White"
+                                    Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            <Button x:Name="btnStartOcrServer" Content="StartServer" Padding="8,3" Margin="5,0"
+                                    Background="#FF4577B0" Foreground="Black" BorderThickness="1" BorderBrush="White"
+                                    Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            <Button x:Name="btnStopOcrServer" Content="StopServer" Padding="8,3" Margin="5,0"
+                                    Background="#FF4577B0" Foreground="Black" BorderThickness="1" BorderBrush="White"
+                                    Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                         </StackPanel>
                         
                         <Button Content="X" Width="30" Height="30" 

@@ -2,6 +2,7 @@ import os
 import json
 import time
 import numpy as np
+import tempfile
 from PIL import Image, ImageEnhance, ImageFilter
 from paddleocr import PaddleOCR
 # import torch
@@ -58,6 +59,10 @@ def initialize_ocr_engine(lang='english'):
         CURRENT_LANG = lang
         initialization_time = time.time() - start_time
         print(f"PaddleOCR initialization completed in {initialization_time:.2f} seconds")
+        flag_file = os.path.join(tempfile.gettempdir(), "paddleocr_ready.txt")
+        with open(flag_file, "w") as f:
+            f.write("READY")
+        print("Ready flag created!")
     else:
         print(f"Using existing PaddleOCR engine with language: {paddle_lang}")
 

@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import tempfile
 import numpy as np
 import easyocr
 from PIL import Image, ImageEnhance, ImageFilter
@@ -62,6 +63,10 @@ def initialize_ocr_engine(lang='english'):
         CURRENT_LANG = lang
         initialization_time = time.time() - start_time
         print(f"EasyOCR initialization completed in {initialization_time:.2f} seconds")
+        flag_file = os.path.join(tempfile.gettempdir(), "easyocr_ready.txt")
+        with open(flag_file, "w") as f:
+            f.write("READY")
+        print("Ready flag created!")
     else:
         print(f"Using existing EasyOCR engine with language: {easy_lang}")
 

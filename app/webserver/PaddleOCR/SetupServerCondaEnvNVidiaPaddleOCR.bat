@@ -18,29 +18,17 @@ call conda env remove -n ocrstuffpaddleocr -y
 echo Creating and setting up new Conda environment...
 call conda create -y --name ocrstuffpaddleocr python=3.9
 call conda activate ocrstuffpaddleocr
+echo Installing dependencies
+call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyyaml==6.0.2 requests==2.32.3
 
-@REM REM Install PyTorch with GPU support (includes correct CUDA and cuDNN versions)
-@REM echo Installing PyTorch with GPU support...
-@REM call conda install -y pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
-
-@REM REM Install additional dependencies
-@REM call conda install -y -c conda-forge opencv pillow matplotlib scipy
-@REM call conda install -y tqdm pyyaml requests
-
-@REM REM Install EasyOCR via pip
-@REM echo Installing EasyOCR...
-@REM pip install easyocr --user
 
 REM Install PaddleOCR via pip
 echo Installing PaddleOCR...
-pip install paddleocr==2.10.0
-python -m pip install paddlepaddle==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
-python -m pip install paddlepaddle-gpu==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
+call pip install paddleocr==2.10.0
+call pip install paddlepaddle==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+call pip install paddlepaddle-gpu==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
 
 
-@REM REM Download language models for EasyOCR (Japanese and English)
-@REM echo Installing language models for EasyOCR...
-@REM python -c "import easyocr; reader = easyocr.Reader(['ja', 'en'])"
 
 REM Verify installations
 echo Verifying installations...
@@ -51,4 +39,4 @@ python -c "import cv2; print('OpenCV Version:', cv2.__version__)"
 
 echo ===== Setup Complete =====
 echo If the above looks looks like the test worked, you can now double click "server_paddle.py" for paddle ocr and it will load this conda env and run the python server.
-pause
+

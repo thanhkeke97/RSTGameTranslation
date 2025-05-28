@@ -696,6 +696,7 @@ namespace RSTGameTranslation
             MouseManager.Instance.Cleanup();
             
             Logic.Instance.Finish();
+            OcrServerManager.Instance.StopOcrServer();
 
             // Make sure the console is closed
             if (consoleWindow != IntPtr.Zero)
@@ -1316,6 +1317,144 @@ namespace RSTGameTranslation
             AddTranslationToHistory(e.OriginalText, e.TranslatedText);
         }
         
+        private async void btnStartOcrServer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Vô hiệu hóa nút trong khi đang khởi động server
+                btnStartOcrServer.IsEnabled = false;
+                
+                // Lấy phương thức OCR hiện tại
+                string ocrMethod = GetSelectedOcrMethod();
+                
+                // Kiểm tra xem có phải là Windows OCR không (không cần server)
+                if (ocrMethod == "Windows OCR")
+                {
+                    System.Windows.MessageBox.Show("Windows OCR doesn't require starting a server.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
+                    btnStartOcrServer.IsEnabled = true;
+                    return;
+                }
+                
+                // Hiển thị thông báo đang khởi động
+                SetStatus($"Starting {ocrMethod} server...");
+                
+                // Khởi động OCR server
+                await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
+                SetStatus($"Starting {ocrMethod} server ...");
+                var startTime = DateTime.Now;
+                while (!OcrServerManager.Instance.serverStarted)
+                {
+                    await Task.Delay(1000); // Kiểm tra mỗi 100ms
+
+                    if ((DateTime.Now - startTime).TotalSeconds > 60)
+                    {
+                        SetStatus($"Cannot start {ocrMethod} server");
+                        System.Windows.MessageBox.Show($"Server startup timeout {ocrMethod}. Please check if the environment has been installed.",
+                        "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+
+                UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
+                // Cập nhật trạng thái kết nối socket nếu cần
+                await SocketManager.Instance.TryReconnectAsync();
+
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error starting OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                // Kích hoạt lại nút
+                btnStartOcrServer.IsEnabled = true;
+            }
+        }
+
+        private void btnStopOcrServer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Dừng OCR server
+                OcrServerManager.Instance.StopOcrServer();
+                SetStatus("OCR server has been stopped");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error when stopping OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void btnSetupOcrServer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Vô hiệu hóa nút trong khi đang cài đặt
+                btnSetupOcrServer.IsEnabled = false;
+                
+                // Lấy phương thức OCR hiện tại
+                string ocrMethod = GetSelectedOcrMethod();
+                
+                // Kiểm tra xem có phải là Windows OCR không
+                if (ocrMethod == "Windows OCR")
+                {
+                    System.Windows.MessageBox.Show("Windows OCR doesn't require installing a environment.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
+                    btnSetupOcrServer.IsEnabled = true;
+                    return;
+                }
+                
+                // Hiển thị thông báo xác nhận
+                MessageBoxResult result = System.Windows.MessageBox.Show(
+                    $"Are you sure you want to install the environment for {ocrMethod}?\n\n" +
+                    "This process may take a long time and requires an internet connection",
+                    "Confirm installation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+                    
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Hiển thị thông báo đang cài đặt
+                    SetStatus($"Setting up environment for {ocrMethod}...");
+                    
+                    // Chạy quá trình cài đặt trong một task riêng
+                    await Task.Run(() => {
+                        OcrServerManager.Instance.SetupOcrEnvironment(ocrMethod);
+                    });
+                    
+                    SetStatus($"{ocrMethod} environment setup completed");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                // Kích hoạt lại nút
+                btnSetupOcrServer.IsEnabled = true;
+            }
+        }
+
+
+        public void UpdateServerButtonStatus(bool isConnected)
+        {
+            // Đảm bảo chạy trên UI thread
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(() => UpdateServerButtonStatus(isConnected));
+                return;
+            }
+            
+            // Cập nhật trạng thái nút dừng server dựa trên kết nối
+            btnStopOcrServer.IsEnabled = isConnected;
+            
+            // Cập nhật trạng thái hiển thị
+            if (isConnected)
+            {
+                string ocrMethod = GetSelectedOcrMethod();
+                SetStatus($"Successfully connected to {ocrMethod} server");
+            }
+        }
+
         // Load language settings from config
         private void LoadLanguageSettingsFromConfig()
         {
@@ -1323,9 +1462,9 @@ namespace RSTGameTranslation
             {
                 string savedSourceLanguage = ConfigManager.Instance.GetSourceLanguage();
                 string savedTargetLanguage = ConfigManager.Instance.GetTargetLanguage();
-                
+
                 Console.WriteLine($"Loading language settings from config: Source={savedSourceLanguage}, Target={savedTargetLanguage}");
-                
+
                 // Set source language if found in config
                 if (!string.IsNullOrEmpty(savedSourceLanguage))
                 {
@@ -1336,17 +1475,17 @@ namespace RSTGameTranslation
                         {
                             // Temporarily remove event handler to prevent triggering changes
                             sourceLanguageComboBox.SelectionChanged -= SourceLanguageComboBox_SelectionChanged;
-                            
+
                             sourceLanguageComboBox.SelectedItem = item;
                             Console.WriteLine($"Set source language to {savedSourceLanguage}");
-                            
+
                             // Reattach event handler
                             sourceLanguageComboBox.SelectionChanged += SourceLanguageComboBox_SelectionChanged;
                             break;
                         }
                     }
                 }
-                
+
                 // Set target language if found in config
                 if (!string.IsNullOrEmpty(savedTargetLanguage))
                 {
@@ -1357,10 +1496,10 @@ namespace RSTGameTranslation
                         {
                             // Temporarily remove event handler to prevent triggering changes
                             targetLanguageComboBox.SelectionChanged -= TargetLanguageComboBox_SelectionChanged;
-                            
+
                             targetLanguageComboBox.SelectedItem = item;
                             Console.WriteLine($"Set target language to {savedTargetLanguage}");
-                            
+
                             // Reattach event handler
                             targetLanguageComboBox.SelectionChanged += TargetLanguageComboBox_SelectionChanged;
                             break;
