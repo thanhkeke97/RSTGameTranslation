@@ -44,19 +44,23 @@ License:  BSD-style attribution, see [LICENSE.md](LICENSE.md)
 *How to use it:*
 
 * Run RSTGameTranslation/rst.exe to start the application
+  
 ----- Setting ----------
 * Go to setting on Language tab choose the language you want to translate from and to
 * Go to setting on Translation tab choose the translation service you want to use
 * Go to setting on OCR tab choose the OCR method you want to use
 * Now you can close setting popup
+
 ----- Setup server (Only do it once for each OCR method) ------
 * Click on SetupServer button to start setup server base on OCR method which you choose in the setting (If you choose Windows OCR, you can skip this step)
 * Setup can take 5-15 minutes, depending on your internet speed and computer power
 * Now wait for the server setup, when it finished, you will see a message "... environment setup completed"
+  
 ----- Start translation ------
 * Click on StartServer button and wait until you see a message "Successfully connected to .... server" (If you choose Windows OCR, you can skip this step)
 * Now you can start translation by click on Start button
 * You can see the translation result in the chat window (button ChatBox) or in Monitor (button Monitor)
+  
 ----- Setting LLMS ----------
 * Go to the settings and add your Gemini API key.  There is some info written there on how to get it.
 
