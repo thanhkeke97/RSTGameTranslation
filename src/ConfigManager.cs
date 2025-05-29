@@ -229,13 +229,13 @@ namespace RSTGameTranslation
             _configValues[CHATBOX_BACKGROUND_OPACITY] = "0.35";
             _configValues[CHATBOX_WINDOW_OPACITY] = "1";
             _configValues[CHATBOX_MIN_TEXT_SIZE] = "2";
-            _configValues[TRANSLATION_SERVICE] = "Gemini";
+            _configValues[TRANSLATION_SERVICE] = "Google Translate";
             _configValues[OLLAMA_URL] = "http://localhost";
             _configValues[OLLAMA_PORT] = "11434";
-            _configValues[OCR_METHOD] = "EasyOCR";
+            _configValues[OCR_METHOD] = "PaddleOCR";
             _configValues[OLLAMA_MODEL] = "gemma3:12b";
-            _configValues[SOURCE_LANGUAGE] = "ja";
-            _configValues[TARGET_LANGUAGE] = "en";
+            _configValues[SOURCE_LANGUAGE] = "en";
+            _configValues[TARGET_LANGUAGE] = "vi";
             _configValues[ELEVENLABS_API_KEY] = "<your API key here>";
             _configValues[ELEVENLABS_VOICE] = "21m00Tcm4TlvDq8ikWAM";
             _configValues[TTS_SERVICE] = "Google Cloud TTS";

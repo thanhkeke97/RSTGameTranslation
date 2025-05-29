@@ -1586,7 +1586,7 @@ namespace RSTGameTranslation
                         // Check if reconnection succeeded
                         if (!reconnected || !SocketManager.Instance.IsConnected)
                         {
-                            Console.WriteLine("Reconnection failed, cannot perform OCR with EasyOCR");
+                            Console.WriteLine($"Reconnection failed, cannot perform OCR with {ocrMethod}");
                             
                             // Make sure the reconnect timer is running to keep trying
                             if (!_reconnectTimer.IsEnabled)
