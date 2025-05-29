@@ -211,6 +211,12 @@ namespace RSTGameTranslation
                 // No need to handle socket connection here, the MonitorWindow handles that
                 if (method == "Windows OCR")
                 {
+                    if (isStarted)
+                    {
+                        OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
+                    }
+                        
+                    OcrServerManager.Instance.StopOcrServer();
                     SetStatus("Using Windows OCR (built-in)");
                 }
                 else
