@@ -692,6 +692,21 @@ namespace RSTGameTranslation
             {
                 // Cycle through display modes: 0 (both) -> 1 (target only) -> 2 (source only) -> 0 (both)
                 _displayMode = (_displayMode + 1) % 3;
+                if (_displayMode == 0)
+                {
+                    // Both
+                    modeButton.Content = "Source&Translated Text";
+                }
+                else if (_displayMode == 1)
+                {
+                    // Target only
+                    modeButton.Content = "Translated Text";
+                }
+                else if (_displayMode == 2)
+                {
+                    // Source only
+                    modeButton.Content = "Source Text";
+                }
                 
                 // Update the UI
                 UpdateChatHistory();
@@ -699,8 +714,8 @@ namespace RSTGameTranslation
                 // Create and start the flash animation for visual feedback
                 CreateFlashAnimation(modeButton);
                 
-                string[] modes = { "both languages", "target language only", "source language only" };
-                Console.WriteLine($"Display mode changed to: {modes[_displayMode]}");
+                // string[] modes = { "both languages", "target language only", "source language only" };
+                Console.WriteLine($"Display mode changed to: {modeButton.Content}");
             }
             catch (Exception ex)
             {

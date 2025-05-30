@@ -32,7 +32,7 @@
                         <Border Background="{TemplateBinding Background}" 
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="2">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Margin}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -134,11 +134,11 @@
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ClearButton_Click"
                         ToolTip="Clear translation history"/>
-                <Button x:Name="modeButton" Content="Mode" Width="50" Height="28" 
+                <Button x:Name="modeButton" Content="Source&amp;Translated Text" Width="Auto" MinWidth="50" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ModeButton_Click"
-                        ToolTip="Toggle between showing both languages or only the translation"/>
+                        ToolTip="Toggle between showing both languages or only the translate/source text"/>
                 <Button x:Name="optionsButton" Content="Options" Width="60" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
