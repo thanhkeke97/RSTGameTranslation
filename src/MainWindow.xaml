@@ -107,7 +107,7 @@
                                     Background="#FFB07D45" Foreground="White" BorderThickness="1" BorderBrush="White"
                                     Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
-                            
+                            <!-- OCR Server Buttons -->
                             <Button x:Name="btnSetupOcrServer" Content="SetupServer" Padding="8,3" Margin="5,0"
                                     Background="#FF4577B0" Foreground="Black" BorderThickness="1" BorderBrush="White"
                                     Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>

@@ -1,4 +1,5 @@
-<Window x:Class="RSTGameTranslation.ChatBoxWindow"         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<Window x:Class="RSTGameTranslation.ChatBoxWindow"         
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,39 +18,130 @@
         <WindowChrome ResizeBorderThickness="8" CaptionHeight="0" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
     
+    <Window.Resources>
+        <!-- Style for button on title bar -->
+        <Style x:Key="HeaderButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#CC2D4C70"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF3E6999"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF2A4A6E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Style for close button -->
+        <Style x:Key="CloseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#CCE63232"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFFF4C4C"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FFC42B2B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Style scroll bar -->
+        <Style x:Key="CustomScrollBarThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Rectangle Fill="#99FFFFFF" RadiusX="3" RadiusY="3"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="CustomScrollBarStyle" TargetType="{x:Type ScrollBar}">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid>
+                            <Rectangle Width="8" Fill="#33000000"/>
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource CustomScrollBarThumbStyle}"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    
     <Grid>
         <!-- Header/title bar - always has minimum opacity -->
-        <Border x:Name="headerBar" Height="25" VerticalAlignment="Top" Background="#CC202020" 
+        <Border x:Name="headerBar" Height="28" VerticalAlignment="Top" Background="#CC202020" 
                 MouseLeftButtonDown="Header_MouseLeftButtonDown" 
-                Panel.ZIndex="1">
+                Panel.ZIndex="1"
+                CornerRadius="0,0,0,0">
             <DockPanel LastChildFill="True">
-                <Button Content="X" Width="25" Height="25" 
+                <Button Content="X" Width="28" Height="28" 
                         DockPanel.Dock="Right"
-                        Background="#CCE63232" Foreground="White" FontWeight="Bold"
-                        Click="CloseButton_Click"/>
-                <Button x:Name="fontIncreaseButton" Content="+" Width="25" Height="25" 
+                        Style="{StaticResource CloseButtonStyle}"
+                        Click="CloseButton_Click"
+                        ToolTip="Close window"/>
+                <Button x:Name="fontIncreaseButton" Content="+" Width="28" Height="28" 
                         DockPanel.Dock="Right"
-                        Background="#CC2D4C70" Foreground="White" FontWeight="Bold"
+                        Style="{StaticResource HeaderButtonStyle}"
                         Click="FontIncreaseButton_Click"
                         ToolTip="Increase font size"/>
-                <Button x:Name="fontDecreaseButton" Content="-" Width="25" Height="25" 
+                <Button x:Name="fontDecreaseButton" Content="-" Width="28" Height="28" 
                         DockPanel.Dock="Right"
-                        Background="#CC2D4C70" Foreground="White" FontWeight="Bold"
+                        Style="{StaticResource HeaderButtonStyle}"
                         Click="FontDecreaseButton_Click"
                         ToolTip="Decrease font size"/>
-                <Button x:Name="clearButton" Content="Clear" Width="50" Height="25" 
+                <Button x:Name="clearButton" Content="Clear" Width="50" Height="28" 
                         DockPanel.Dock="Right"
-                        Background="#CC2D4C70" Foreground="White" FontWeight="Bold"
+                        Style="{StaticResource HeaderButtonStyle}"
                         Click="ClearButton_Click"
                         ToolTip="Clear translation history"/>
-                <Button x:Name="modeButton" Content="Mode" Width="50" Height="25" 
+                <Button x:Name="modeButton" Content="Mode" Width="50" Height="28" 
                         DockPanel.Dock="Right"
-                        Background="#CC2D4C70" Foreground="White" FontWeight="Bold"
+                        Style="{StaticResource HeaderButtonStyle}"
                         Click="ModeButton_Click"
                         ToolTip="Toggle between showing both languages or only the translation"/>
-                <Button x:Name="optionsButton" Content="Options" Width="60" Height="25" 
+                <Button x:Name="optionsButton" Content="Options" Width="60" Height="28" 
                         DockPanel.Dock="Right"
-                        Background="#CC2D4C70" Foreground="White" FontWeight="Bold"
+                        Style="{StaticResource HeaderButtonStyle}"
                         Click="OptionsButton_Click"
                         ToolTip="Configure appearance settings"/>
                 <TextBlock Text="Recent Text" Foreground="White" 
@@ -59,11 +151,14 @@
         
         <!-- Wrap RichTextBox in a ScrollViewer with better scrollbar placement -->
         <ScrollViewer x:Name="chatScrollViewer" 
-                      Margin="0,25,0,30" 
+                      Margin="0,28,0,30" 
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled"
                       Background="#30000000"
                       Padding="0">
+            <ScrollViewer.Resources>
+                <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CustomScrollBarStyle}"/>
+            </ScrollViewer.Resources>
             <RichTextBox x:Name="chatHistoryText" 
                          Background="Transparent"
                          BorderThickness="0"
@@ -99,18 +194,75 @@
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
                                Margin="0,0,10,0"/>
-                    <!-- Add loading animation dots -->
+                    <!-- Loading animation dots với XAML animation -->
                     <Canvas x:Name="loadingCanvas" Width="30" Height="10">
-                        <Ellipse x:Name="dot1" Width="6" Height="6" Fill="White" Canvas.Left="0" Canvas.Top="2"/>
-                        <Ellipse x:Name="dot2" Width="6" Height="6" Fill="White" Canvas.Left="12" Canvas.Top="2"/>
-                        <Ellipse x:Name="dot3" Width="6" Height="6" Fill="White" Canvas.Left="24" Canvas.Top="2"/>
+                        <Ellipse x:Name="dot1" Width="6" Height="6" Fill="White" Canvas.Left="0" Canvas.Top="2" Opacity="1">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Style.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation 
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        From="1" To="0.3" Duration="0:0:0.6" 
+                                                        AutoReverse="True" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <Ellipse x:Name="dot2" Width="6" Height="6" Fill="White" Canvas.Left="12" Canvas.Top="2" Opacity="0.6">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Style.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever" BeginTime="0:0:0.2">
+                                                    <DoubleAnimation 
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        From="1" To="0.3" Duration="0:0:0.6" 
+                                                        AutoReverse="True" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <Ellipse x:Name="dot3" Width="6" Height="6" Fill="White" Canvas.Left="24" Canvas.Top="2" Opacity="0.3">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Style.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever" BeginTime="0:0:0.4">
+                                                    <DoubleAnimation 
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        From="1" To="0.3" Duration="0:0:0.6" 
+                                                        AutoReverse="True" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
                     </Canvas>
                 </StackPanel>
             </Grid>
         </Border>
         
-        <!-- Resize grip indicator -->
-        <Rectangle x:Name="resizeGrip" Width="16" Height="16" Fill="#80808080"
-                  HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+        <!-- Resize grip indicator - improved with Path instead of Rectangle -->
+        <Path x:Name="resizeGrip" 
+              Data="M 0,16 L 16,16 L 16,0 L 12,0 L 12,4 L 8,4 L 8,8 L 4,8 L 4,12 L 0,12 Z" 
+              Fill="#99FFFFFF"
+              HorizontalAlignment="Right" 
+              VerticalAlignment="Bottom" 
+              Width="16" 
+              Height="16"
+              Margin="0,0,0,0"/>
     </Grid>
 </Window>

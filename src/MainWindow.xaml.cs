@@ -581,29 +581,51 @@ namespace RSTGameTranslation
                 UpdateCaptureRect();
             }
         }
-       
+
         private void OnStartButtonToggleClicked(object sender, RoutedEventArgs e)
         {
             System.Windows.Controls.Button btn = (System.Windows.Controls.Button)sender;
-
+            String method = ConfigManager.Instance.GetOcrMethod();
+            // Kiểm tra trạng thái sẵn sàng dựa trên phương thức OCR
+            bool isReady = false;
+            
+            if (method == "Windows OCR")
+            {
+                // Windows OCR always ready because it don't need server
+                isReady = true;
+            }
+            else 
+            {
+                // EasyOCR and PaddleOCR need connect to server
+                isReady = socketStatusText != null &&
+                        (socketStatusText.Text == $"Successfully connected to {method} server");
+            }
+           
             if (isStarted)
             {
                 Logic.Instance.ResetHash();
                 isStarted = false;
                 btn.Content = "Start";
-                btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
-                //erase any active text objects
+                btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green                                                                //erase any active text objects
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.HideTranslationStatus();
             }
             else
             {
-                isStarted = true;
-                btn.Content = "Stop";
-                UpdateCaptureRect();
-                SetOCRCheckIsWanted(true);
-                btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
-
+                if (isReady)
+                {
+                    isStarted = true;
+                    btn.Content = "Stop";
+                    UpdateCaptureRect();
+                    SetOCRCheckIsWanted(true);
+                    btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+                }
+                else
+                {
+                    // Warning message if OCR server is not ready
+                    System.Windows.MessageBox.Show($"Please make sure {method} server is ready before starting.",
+                        "OCR Server Not Ready", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
         }
 
@@ -1358,13 +1380,13 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Vô hiệu hóa nút trong khi đang khởi động server
+                // Disable the button to prevent multiple clicks
                 btnStartOcrServer.IsEnabled = false;
                 
-                // Lấy phương thức OCR hiện tại
+                // Get the OCR server port from the configuration
                 string ocrMethod = GetSelectedOcrMethod();
                 
-                // Kiểm tra xem có phải là Windows OCR không (không cần server)
+
                 if (ocrMethod == "Windows OCR")
                 {
                     System.Windows.MessageBox.Show("Windows OCR doesn't require starting a server.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1372,10 +1394,9 @@ namespace RSTGameTranslation
                     return;
                 }
                 
-                // Hiển thị thông báo đang khởi động
                 SetStatus($"Starting {ocrMethod} server...");
                 
-                // Khởi động OCR server
+                // Start the OCR server
                 await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
                 SetStatus($"Starting {ocrMethod} server ...");
                 var startTime = DateTime.Now;
@@ -1395,7 +1416,7 @@ namespace RSTGameTranslation
 
                 if (OcrServerManager.Instance.serverStarted)
                 {
-                    // Cập nhật trạng thái kết nối socket nếu cần
+                    // Update socket status
                     await SocketManager.Instance.TryReconnectAsync();
 
                 }
@@ -1407,22 +1428,33 @@ namespace RSTGameTranslation
             }
             finally
             {
-                // Kích hoạt lại nút
+                // Reactivate the button after the operation is complete
                 btnStartOcrServer.IsEnabled = true;
             }
         }
 
         private void btnStopOcrServer_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (ConfigManager.Instance.GetOcrMethod() != "Windows OCR")
             {
-                // Dừng OCR server
-                OcrServerManager.Instance.StopOcrServer();
-                SetStatus("OCR server has been stopped");
+                if (isStarted)
+                {
+                    OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
+                }
+                try
+                {
+                    // Stop OCR server
+                    OcrServerManager.Instance.StopOcrServer();
+                    SetStatus("OCR server has been stopped");
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show($"Error when stopping OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                System.Windows.MessageBox.Show($"Error when stopping OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show("Windows OCR doesn't require stopping a server.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -1430,13 +1462,13 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Vô hiệu hóa nút trong khi đang cài đặt
+                // Disable the button to prevent multiple clicks
                 btnSetupOcrServer.IsEnabled = false;
                 
-                // Lấy phương thức OCR hiện tại
+                // Get current OCR method
                 string ocrMethod = GetSelectedOcrMethod();
                 
-                // Kiểm tra xem có phải là Windows OCR không
+
                 if (ocrMethod == "Windows OCR")
                 {
                     System.Windows.MessageBox.Show("Windows OCR doesn't require installing a environment.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1444,7 +1476,7 @@ namespace RSTGameTranslation
                     return;
                 }
                 
-                // Hiển thị thông báo xác nhận
+                // Show setup dialog
                 MessageBoxResult result = System.Windows.MessageBox.Show(
                     $"Are you sure you want to install the environment for {ocrMethod}?\n\n" +
                     "This process may take a long time and requires an internet connection",
@@ -1454,10 +1486,10 @@ namespace RSTGameTranslation
                     
                 if (result == MessageBoxResult.Yes)
                 {
-                    // Hiển thị thông báo đang cài đặt
+                    // Show status message
                     SetStatus($"Setting up environment for {ocrMethod}...");
                     
-                    // Chạy quá trình cài đặt trong một task riêng
+                    // Run setup
                     await Task.Run(() => {
                         OcrServerManager.Instance.SetupOcrEnvironment(ocrMethod);
                     });
@@ -1471,7 +1503,7 @@ namespace RSTGameTranslation
             }
             finally
             {
-                // Kích hoạt lại nút
+                // Reactivate the button after the operation is complete
                 btnSetupOcrServer.IsEnabled = true;
             }
         }
@@ -1479,17 +1511,17 @@ namespace RSTGameTranslation
 
         public void UpdateServerButtonStatus(bool isConnected)
         {
-            // Đảm bảo chạy trên UI thread
+            
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.Invoke(() => UpdateServerButtonStatus(isConnected));
                 return;
             }
             
-            // Cập nhật trạng thái nút dừng server dựa trên kết nối
+            // Update button status
             btnStopOcrServer.IsEnabled = isConnected;
             
-            // Cập nhật trạng thái hiển thị
+            // Update status text
             if (isConnected)
             {
                 string ocrMethod = GetSelectedOcrMethod();

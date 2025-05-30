@@ -202,7 +202,7 @@ namespace RSTGameTranslation
                 _ = StartListeningAsync();
                 
                 Console.WriteLine($"Connected to {_host}:{_port}");
-                MainWindow.Instance.SetStatus($"Connected to {_host}:{_port}");
+                // MainWindow.Instance.SetStatus($"Connected to {_host}:{_port}");
             }
             catch (Exception ex)
             {
