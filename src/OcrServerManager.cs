@@ -156,6 +156,8 @@ namespace RSTGameTranslation
             {
                 if (_currentServerProcess != null && !_currentServerProcess.HasExited)
                 {
+                    KillProcessesByPort(SocketManager.Instance.get_EasyOcrPort());
+                    KillProcessesByPort(SocketManager.Instance.get_PaddleOcrPort());
                     MainWindow.Instance.UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
                     // Lấy tất cả các tiến trình con của cmd.exe
                     int processId = _currentServerProcess.Id;
@@ -168,7 +170,6 @@ namespace RSTGameTranslation
                         // Nếu không đóng được, buộc đóng
                         _currentServerProcess.Kill();
                     }
-                    KillRelatedPythonProcesses();
 
                     _currentServerProcess = null;
                     Console.WriteLine("OCR server has been stopped");
@@ -181,39 +182,104 @@ namespace RSTGameTranslation
             }
         }
         
-        // Thêm phương thức mới để tìm và đóng các tiến trình Python liên quan
-        private void KillRelatedPythonProcesses()
+        // // Thêm phương thức mới để tìm và đóng các tiến trình Python liên quan
+        // private void KillRelatedPythonProcesses()
+        // {
+        //     try
+        //     {
+        //         // Tìm tất cả các tiến trình Python đang chạy
+        //         foreach (var process in Process.GetProcessesByName("python"))
+        //         {
+        //             try
+        //             {
+        //                 // Kiểm tra xem tiến trình này có liên quan đến OCR server không
+        //                 // Bạn có thể kiểm tra thông qua command line arguments hoặc tên module
+        //                 string? commandLine = GetCommandLine(process.Id);
+                        
+        //                 if (commandLine != null && 
+        //                     (commandLine.Contains("server_paddle.py") || 
+        //                     commandLine.Contains("server_easyocr.py") ||
+        //                     commandLine.Contains("process_image_paddleocr.py") ||
+        //                     commandLine.Contains("process_image_easyocr.py")))
+        //                 {
+        //                     Console.WriteLine($"Terminate related Python processes: {process.Id} - {commandLine}");
+        //                     process.Kill();
+        //                 }
+        //             }
+        //             catch (Exception ex)
+        //             {
+        //                 Console.WriteLine($"Unable to terminate Python process {process.Id}: {ex.Message}");
+        //             }
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine($"Error finding and closing Python processes: {ex.Message}");
+        //     }
+        // }
+
+        private void KillProcessesByPort(int port)
         {
             try
             {
-                // Tìm tất cả các tiến trình Python đang chạy
-                foreach (var process in Process.GetProcessesByName("python"))
+                Console.WriteLine($"Looking for processes using port {port}...");
+                
+                // Sử dụng netstat để tìm process đang sử dụng port
+                ProcessStartInfo psi = new ProcessStartInfo
                 {
-                    try
+                    FileName = "cmd.exe",
+                    Arguments = $"/c netstat -ano | findstr LISTENING | findstr :{port}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+
+                using (Process process = Process.Start(psi))
+                {
+                    if (process == null)
                     {
-                        // Kiểm tra xem tiến trình này có liên quan đến OCR server không
-                        // Bạn có thể kiểm tra thông qua command line arguments hoặc tên module
-                        string? commandLine = GetCommandLine(process.Id);
-                        
-                        if (commandLine != null && 
-                            (commandLine.Contains("server_paddle.py") || 
-                            commandLine.Contains("server_easyocr.py") ||
-                            commandLine.Contains("process_image_paddleocr.py") ||
-                            commandLine.Contains("process_image_easyocr.py")))
-                        {
-                            Console.WriteLine($"Terminate related Python processes: {process.Id} - {commandLine}");
-                            process.Kill();
-                        }
+                        Console.WriteLine("Failed to start netstat command");
+                        return;
                     }
-                    catch (Exception ex)
+
+                    string output = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit();
+
+                    if (string.IsNullOrEmpty(output))
                     {
-                        Console.WriteLine($"Unable to terminate Python process {process.Id}: {ex.Message}");
+                        Console.WriteLine($"No processes found using port {port}");
+                        return;
+                    }
+
+                    // Tìm PIDs từ kết quả netstat
+                    foreach (string line in output.Split('\n'))
+                    {
+                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        
+                        // Phân tích dòng kết quả để lấy PID
+                        string[] parts = line.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length > 4)
+                        {
+                            if (int.TryParse(parts[parts.Length - 1], out int pid))
+                            {
+                                try
+                                {
+                                    Process processToKill = Process.GetProcessById(pid);
+                                    Console.WriteLine($"Killing process {pid} using port {port}");
+                                    processToKill.Kill();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Failed to kill process {pid}: {ex.Message}");
+                                }
+                            }
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error finding and closing Python processes: {ex.Message}");
+                Console.WriteLine($"Error killing processes by port: {ex.Message}");
             }
         }
 
@@ -238,7 +304,7 @@ namespace RSTGameTranslation
             {
                 // Bỏ qua lỗi nếu không thể lấy command line
             }
-            
+
             return null;
         }
         

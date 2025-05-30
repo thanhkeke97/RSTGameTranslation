@@ -23,8 +23,11 @@ namespace RSTGameTranslation
         public event EventHandler<string>? DataReceived;
         public event EventHandler<bool>? ConnectionChanged;
         
+        public int get_EasyOcrPort() => EASYOCR_PORT;
+        public int get_PaddleOcrPort() => PADDLEOCR_PORT;
+
         // Singleton pattern
-        public static SocketManager Instance 
+        public static SocketManager Instance
         {
             get
             {

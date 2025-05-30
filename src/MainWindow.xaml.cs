@@ -411,10 +411,10 @@ namespace RSTGameTranslation
             UpdateCaptureRect();
            
             // Add socket status to the header
-            if (HeaderBorder != null && HeaderBorder.Child is Grid headerGrid)
+            if (FooterBorder != null && FooterBorder.Child is Grid footerGrid)
             {
                 // Find the StackPanel in the header
-                var elements = headerGrid.Children;
+                var elements = footerGrid.Children;
                 foreach (var element in elements)
                 {
                     if (element is StackPanel stackPanel && 
@@ -982,19 +982,18 @@ namespace RSTGameTranslation
 
                     // Try stop server OCR if haved one running
                     OcrServerManager.Instance.StopOcrServer();
-
+                    SocketManager.Instance.Disconnect();
                     // Update the UI and connection state based on the selected OCR method
                     if (ocrMethod == "Windows OCR")
                     {
                         // Using Windows OCR, no need for socket connection
-                        SocketManager.Instance.Disconnect();
                         SetStatus("Using Windows OCR (built-in)");
                     }
                     else
                     {
                         // Using EasyOCR or PaddleOCR, try to connect to the socket server
                         SetStatus($"Connecting to Server {ocrMethod}.");
-                        SocketManager.Instance.Disconnect();
+
                         _ = OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
                         while (!OcrServerManager.Instance.serverStarted)
                         {
@@ -1412,13 +1411,18 @@ namespace RSTGameTranslation
                     }    
                 }
 
-                UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
+
 
                 if (OcrServerManager.Instance.serverStarted)
                 {
+                    UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
                     // Update socket status
                     await SocketManager.Instance.TryReconnectAsync();
 
+                }
+                else
+                {
+                    OcrServerManager.Instance.StopOcrServer();
                 }
 
             }
