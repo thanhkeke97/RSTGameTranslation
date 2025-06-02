@@ -32,11 +32,10 @@ call pip install paddlepaddle-gpu==3.0.0 -i https://www.paddlepaddle.org.cn/pack
 
 REM Verify installations
 echo Verifying installations...
-@REM python -c "import torch; print('PyTorch Version:', torch.__version__); print('CUDA Version:', torch.version.cuda); print('CUDA Available:', torch.cuda.is_available()); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0)"
-@REM python -c "import easyocr; print('EasyOCR imported successfully')"
 python -c "from paddleocr import PaddleOCR; print('PaddleOCR imported successfully')"
 python -c "import cv2; print('OpenCV Version:', cv2.__version__)"
 
 echo ===== Setup Complete =====
-echo If the above looks looks like the test worked, you can now double click "server_paddle.py" for paddle ocr and it will load this conda env and run the python server.
+echo If the above looks looks like the test worked, you can now close this window and click "StartServer" to start the server.
+pause
 

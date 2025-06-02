@@ -217,9 +217,17 @@ namespace RSTGameTranslation
                 textBlock.VerticalAlignment = VerticalAlignment.Center;
                 textBlock.TextAlignment = TextAlignment.Left;
                 
-                // Create a cache key based on text length, width and height
-                // Using length instead of full text to increase cache hits for similar-sized texts
-                string cacheKey = $"{textBlock.Text.Length}_{Width}_{Height}";
+                // Apply OCR-specific scaling factor
+                double scalingFactor = 1.0;
+                string ocrMethod = ConfigManager.Instance.GetOcrMethod();
+                if (ocrMethod == "PaddleOCR")
+                {
+                    // Increase text size for PaddleOCR by 25%
+                    scalingFactor = 1.3;
+                }
+                
+                // Create a cache key based on text length, width, height and OCR method
+                string cacheKey = $"{textBlock.Text.Length}_{Width}_{Height}_{ocrMethod}";
                 
                 // Check if we have a cached font size for similar dimensions
                 if (_fontSizeCache.TryGetValue(cacheKey, out double cachedFontSize))
@@ -230,10 +238,10 @@ namespace RSTGameTranslation
                 }
                 
                 // Binary search for the best font size
-                double minSize = 10;
-                double maxSize = 48; // Increased from 36 to 48 to allow for larger text
-                double currentSize = 24; // Increased from 18 to 24 for better initial size
-                int maxIterations = 6; // Reduced from 10 to 6 iterations for performance
+                double minSize = 10 * scalingFactor;
+                double maxSize = 48 * scalingFactor; 
+                double currentSize = 24 * scalingFactor; 
+                int maxIterations = 6; 
                 double lastDiff = double.MaxValue;
                 
                 for (int i = 0; i < maxIterations; i++)

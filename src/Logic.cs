@@ -501,6 +501,7 @@ namespace RSTGameTranslation
                                             // Check if we are within the settling time
                                             if ((DateTime.Now - _lastChangeTime).TotalSeconds < settleTime)
                                             {
+                                                OnFinishedThings(false);
                                                 return;
                                             }
                                             else

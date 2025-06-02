@@ -234,7 +234,7 @@ namespace RSTGameTranslation
                     CreateNoWindow = true
                 };
 
-                using (Process process = Process.Start(psi))
+                using (Process? process = Process.Start(psi))
                 {
                     if (process == null)
                     {
