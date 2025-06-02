@@ -488,9 +488,9 @@ namespace RSTGameTranslation
                                 double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
                                 if (settleTime > 0)
                                 {
-                                    if (contentHash == _lastOcrHash)
+                                    if (contentHash == _lastOcrHash || IsTextSimilar(textContent, _lastTextContent, 0.75))
                                     {
-                                        if (_lastChangeTime == DateTime.MinValue || IsTextSimilar(textContent, _lastTextContent, 0.95))
+                                        if (_lastChangeTime == DateTime.MinValue)
                                         {
                                             Console.WriteLine("Content is similar to previous, skipping translation");
                                             OnFinishedThings(true);
@@ -515,6 +515,7 @@ namespace RSTGameTranslation
                                     {
                                         _lastChangeTime = DateTime.Now;
                                         _lastOcrHash = contentHash;
+                                        _lastTextContent = textContent;
 
                                         //only run if translation is still active
                                         if (MainWindow.Instance.GetIsStarted())
@@ -527,7 +528,7 @@ namespace RSTGameTranslation
                                         OnFinishedThings(false);
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
-                                } else if (IsTextSimilar(textContent, _lastTextContent, 0.95))
+                                } else if (IsTextSimilar(textContent, _lastTextContent, 0.75))
                                 {
                                     Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);

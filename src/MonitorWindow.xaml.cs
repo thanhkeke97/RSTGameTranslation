@@ -500,7 +500,7 @@ namespace RSTGameTranslation
                 }
                 
                 // Clear existing overlay elements
-                //textOverlayCanvas.Children.Clear();
+                // textOverlayCanvas.Children.Clear();
                 
                 // Ensure UI updates happen on the UI thread
                 if (!Dispatcher.CheckAccess())
