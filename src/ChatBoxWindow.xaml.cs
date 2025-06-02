@@ -610,23 +610,23 @@ namespace RSTGameTranslation
             
             if (translationStatusPanel != null)
             {
-                // Hiển thị panel trạng thái dịch
+                // Show the translation status panel
                 translationStatusPanel.Visibility = Visibility.Visible;
                 
-                // Cập nhật nội dung dựa vào trạng thái settling
+                // Update content based on settling state
                 if (bSettling && translationStatusText != null)
                 {
-                    // Nếu đang trong trạng thái settling, hiển thị thông báo "Settling..."
+                    // If settling, show "Settling..." message
                     translationStatusText.Text = "Settling...";
                 }
                 else if (translationStatusText != null)
                 {
-                    // Nếu đang dịch, hiển thị thông báo dịch với tên dịch vụ
+                    // If translating, show translation notification with service name
                     string service = ConfigManager.Instance.GetCurrentTranslationService();
                     translationStatusText.Text = $"Waiting for {service}...";
                 }
                 
-                // Bắt đầu animation timer trong mọi trường hợp
+                // Start animation timer in all cases
                 if (_animationTimer != null && !_animationTimer.IsEnabled)
                 {
                     _animationStep = 0;
