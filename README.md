@@ -1,7 +1,7 @@
 ## RSTGameTranslation (Realtime Screen Translation)
 This product includes software from developed by Seth A. Robinson [sethRobinson's UGTLive](https://github.com/SethRobinson/UGTLive) 
 
-## [![Version](https://img.shields.io/badge/version-0.45-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+## [![Version](https://img.shields.io/badge/version-0.5-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 
 For Vietnamese users, a user guide in Vietnamese language is available [here](https://thanhkeke97.github.io/RSTGameTranslation/)
 
