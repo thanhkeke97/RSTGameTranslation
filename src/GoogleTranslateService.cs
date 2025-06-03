@@ -33,25 +33,27 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Phân tích JSON đầu vào
+                // Analyze the input JSON data
                 using JsonDocument doc = JsonDocument.Parse(jsonData);
                 JsonElement root = doc.RootElement;
 
-                // Tạo một tài liệu JSON mới cho văn bản đã dịch
+                // Create a new JSON object for the output
+                // We will copy the metadata if exists, and then add the translations
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 using var memoryStream = new MemoryStream();
                 using var outputJson = new System.Text.Json.Utf8JsonWriter(memoryStream);
                 
                 outputJson.WriteStartObject();
                 
-                // Sao chép metadata từ đầu vào nếu có
+                // Copy metadata if exists
                 if (root.TryGetProperty("metadata", out JsonElement metadata))
                 {
                     outputJson.WritePropertyName("metadata");
                     JsonSerializer.Serialize(outputJson, metadata, options);
                 }
                 
-                // Lấy ngôn ngữ nguồn và đích
+                // Get source and target languages
+                // Default to Japanese and English if not specified
                 string sourceLanguage = root.TryGetProperty("source_language", out JsonElement srcLang) 
                     ? srcLang.GetString() ?? "ja" 
                     : ConfigManager.Instance.GetSourceLanguage();
@@ -60,14 +62,14 @@ namespace RSTGameTranslation
                     ? tgtLang.GetString() ?? "en" 
                     : ConfigManager.Instance.GetTargetLanguage();
                 
-                // Ánh xạ mã ngôn ngữ sang định dạng Google Translate nếu auto-mapping được bật
+                // Mapping languages to Google codes
                 if (_autoMapLanguages)
                 {
                     sourceLanguage = MapLanguageToGoogleCode(sourceLanguage);
                     targetLanguage = MapLanguageToGoogleCode(targetLanguage);
                 }
                 
-                // Bắt đầu dịch các khối văn bản
+                // Starting translation
                 outputJson.WritePropertyName("translations");
                 outputJson.WriteStartArray();
                 
@@ -88,13 +90,13 @@ namespace RSTGameTranslation
                             blockId = id.GetString() ?? "";
                         }
                         
-                        // Bỏ qua văn bản trống
+                        // Ignore empty blocks
                         if (string.IsNullOrWhiteSpace(originalText))
                         {
                             continue;
                         }
                         
-                        // Dịch văn bản bằng Google Translate
+                        // Perform translation
                         string translatedText;
                         if (_useCloudApi)
                         {
@@ -105,14 +107,14 @@ namespace RSTGameTranslation
                             translatedText = await TranslateWithFreeServiceAsync(originalText, sourceLanguage, targetLanguage);
                         }
                         
-                        // Ghi khối đã dịch vào đầu ra
+                        // Write the translated text to the output JSON
                         outputJson.WriteStartObject();
                         outputJson.WriteString("id", blockId);
                         outputJson.WriteString("original_text", originalText);
                         outputJson.WriteString("translated_text", translatedText);
                         outputJson.WriteEndObject();
                         
-                        // Ghi log để gỡ lỗi
+                        // Log for debugging
                         Console.WriteLine($"Google translated: '{originalText}' -> '{translatedText}'");
                     }
                 }
@@ -120,11 +122,11 @@ namespace RSTGameTranslation
                 outputJson.WriteEndArray();
                 outputJson.WriteEndObject();
                 
-                // Chuyển đổi thành chuỗi và trả về
+                // Transfer the JSON to a string and return it
                 outputJson.Flush();
                 string result = Encoding.UTF8.GetString(memoryStream.ToArray());
                 
-                // Ghi log kết quả cuối cùng
+                // Log
                 Console.WriteLine($"Google Translate final JSON result: {result.Substring(0, Math.Min(100, result.Length))}...");
                 
                 return result;
@@ -201,10 +203,10 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Loại bỏ hoàn toàn các ký tự xuống dòng và nối thành một văn bản liên tục
+                // Normalize the text by replacing line breaks with spaces and removing extra spaces
                 string normalizedText = text.Replace("\r\n", " ").Replace("\n", " ");
                 
-                // Đảm bảo không có nhiều khoảng trắng liên tiếp
+                // Ensure there are no consecutive spaces
                 while (normalizedText.Contains("  "))
                 {
                     normalizedText = normalizedText.Replace("  ", " ");
@@ -328,7 +330,6 @@ namespace RSTGameTranslation
                     }
                 }
                 
-                // Nếu tất cả các nỗ lực đều thất bại, trả về thông báo lỗi
                 return $"[ERROR] {text}";
             }
             catch (Exception ex)

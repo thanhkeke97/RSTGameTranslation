@@ -248,89 +248,86 @@ namespace RSTGameTranslation
                 textBlock.VerticalAlignment = VerticalAlignment.Top;
                 textBlock.TextAlignment = TextAlignment.Left;
                 
-                // Thiết lập kích thước font ban đầu
+                // Default font size
                 double fontSize = 18;
                 
-                // Kiểm tra nếu là văn bản được dịch
+                // Check if we've already calculated the font size for this text
                 bool isTranslated = !string.IsNullOrEmpty(this.TextTranslated);
                 if (isTranslated && !string.IsNullOrEmpty(this.Text))
                 {
-                    // Tính tỉ lệ độ dài giữa văn bản dịch và văn bản gốc
+                    // Use cached font size if available
                     double textRatio = (double)this.TextTranslated.Length / this.Text.Length;
                     
-                    // Điều chỉnh font size dựa trên tỉ lệ
+
                     if (textRatio > 1.0)
                     {
-                        // Giảm font size theo tỉ lệ, nhưng có giới hạn
-                        // Công thức: fontSize = baseFontSize / sqrt(textRatio)
-                        // Sử dụng căn bậc hai để tránh giảm quá nhiều khi tỉ lệ lớn
+
                         fontSize = 18 / Math.Sqrt(textRatio);
                         
-                        // Đảm bảo font size không nhỏ hơn giới hạn tối thiểu
+                        // Ensure the font size is not too small
                         fontSize = Math.Max(fontSize, 12);
                     }
                 }
                 
-                // Điều chỉnh thêm dựa trên độ dài tuyệt đối của văn bản
+                // Adjust font size based on text length
                 if (textBlock.Text.Length > 100)
                 {
-                    // Giảm font size cho văn bản dài
+                    // Reducing font size for longer text
                     fontSize = Math.Min(fontSize, 14);
                 }
                 else if (textBlock.Text.Length < 20)
                 {
-                    // Tăng font size cho văn bản ngắn, nhưng không quá lớn
+                    // Increasing font size for shorter text
                     fontSize = Math.Min(Math.Max(fontSize, 18), 24);
                 }
                 
-                // Áp dụng font size đã tính toán
+                // Apply the calculated font size to the text block
                 textBlock.FontSize = fontSize;
                 
-                // Đo kích thước cần thiết với font size đã chọn
+                // Measure the text block to get its desired size
                 textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
                 double neededHeight = textBlock.DesiredSize.Height + 10; // Thêm padding
                 
-                // Nếu chiều cao cần thiết vượt quá chiều cao hiện tại của border
+                // Check if the text block exceeds the border's height
                 if (neededHeight > border.Height)
                 {
-                    // Tính tỉ lệ vượt quá
+                    // Calculate the overflow ratio
                     double overflowRatio = neededHeight / border.Height;
                     
                     if (overflowRatio > 1.2)
                     {
-                        // Nếu vượt quá 20%, giảm font size theo tỉ lệ vượt quá
+                        // If the overflow ratio is too high, reduce the font size
+                        // to fit within the border's height while maintaining a minimum size.
                         textBlock.FontSize = fontSize / overflowRatio;
                         
-                        // Đảm bảo font size không nhỏ hơn giới hạn tối thiểu
+                        // Ensure the font size is not too small
                         textBlock.FontSize = Math.Max(textBlock.FontSize, 10);
                         
-                        // Đo lại kích thước sau khi giảm font
+                        // Measure the text block again to get the updated desired size
                         textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
                         neededHeight = textBlock.DesiredSize.Height + 10;
                     }
                     
-                    // Điều chỉnh chiều cao của border để phù hợp với nội dung
+                    // Adjust the border's height if needed
                     border.Height = neededHeight;
                 }
                 else if (neededHeight < border.Height * 0.6 && textBlock.FontSize < 24)
                 {
-                    // Nếu chiều cao cần thiết nhỏ hơn nhiều so với border hiện tại
-                    // và font size hiện tại chưa đạt tối đa, có thể tăng font size
                     
-                    // Tính tỉ lệ còn dư
+                    // Calculate the remaining ratio between the border's height and the text block's height
                     double remainingRatio = border.Height / neededHeight;
                     
                     if (remainingRatio > 1.5)
                     {
-                        // Tăng font size, nhưng không quá 30% và không vượt quá 24
+                        // Increase the font size to fill the remaining space while maintaining a maximum size.
                         double newFontSize = Math.Min(textBlock.FontSize * Math.Min(remainingRatio * 0.7, 1.3), 24);
                         textBlock.FontSize = newFontSize;
                         
-                        // Đo lại kích thước sau khi tăng font
+                        // Measure the text block again to get the updated desired size
                         textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
                         neededHeight = textBlock.DesiredSize.Height + 10;
                         
-                        // Điều chỉnh chiều cao border nếu cần
+                        // Adjust the border's height if needed
                         if (neededHeight > border.Height * 0.8)
                         {
                             border.Height = neededHeight;
@@ -338,7 +335,7 @@ namespace RSTGameTranslation
                     }
                 }
                 
-                // Đảm bảo không có transform nào được áp dụng
+                // Ensure the text block is centered vertically within the border
                 textBlock.LayoutTransform = Transform.Identity;
             }
             catch (Exception ex)

@@ -337,7 +337,7 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InitializeGlobalHook();
         }
        
-        // add method for show/hide the main window
+        // Add method for show/hide the main window
         private void ToggleMainWindowVisibility()
         {
             if (MainBorder.Visibility == System.Windows.Visibility.Visible)

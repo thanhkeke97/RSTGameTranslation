@@ -324,20 +324,20 @@ namespace RSTGameTranslation
         }
         
 
-        // Thêm phương thức xử lý kết quả từ Google Translate
+        // Process received text JSON data for google translate
         private void ProcessGoogleTranslateJson(JsonElement translatedRoot)
         {
             try
             {
                 Console.WriteLine("Processing Google Translate JSON response");
                 
-                // Kiểm tra nếu có mảng 'translations' trong JSON
+                // Check if the JSON contains the "translations" array
                 if (translatedRoot.TryGetProperty("translations", out JsonElement translationsElement) &&
                     translationsElement.ValueKind == JsonValueKind.Array)
                 {
                     Console.WriteLine($"Found {translationsElement.GetArrayLength()} translations in Google Translate JSON");
                     
-                    // Xử lý từng phần tử dịch
+                    // Loop through each translation in the array
                     for (int i = 0; i < translationsElement.GetArrayLength(); i++)
                     {
                         var translation = translationsElement[i];
@@ -352,22 +352,22 @@ namespace RSTGameTranslation
                             
                             if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(translatedText))
                             {
-                                // Tìm text object tương ứng theo ID
+                                // Find the matching text object based on the ID
                                 var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
                                 if (matchingTextObj != null)
                                 {
-                                    // Cập nhật text object với bản dịch
+                                    // Update the text object with the translated text
                                     matchingTextObj.TextTranslated = translatedText;
                                     matchingTextObj.UpdateUIElement();
                                     Console.WriteLine($"Updated text object {id} with Google translation");
                                 }
                                 else if (id.StartsWith("text_"))
                                 {
-                                    // Thử trích xuất index từ ID (định dạng text_X)
-                                    string indexStr = id.Substring(5); // Bỏ tiền tố "text_"
+                                    // Try to update by index if ID starts with "text_"
+                                    string indexStr = id.Substring(5); // Subtract "text_" prefix
                                     if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
                                     {
-                                        // Cập nhật theo index nếu ID khớp định dạng
+                                        // Update the text object at the specified index
                                         _textObjects[index].TextTranslated = translatedText;
                                         _textObjects[index].UpdateUIElement();
                                         Console.WriteLine($"Updated text object at index {index} with Google translation");
@@ -378,7 +378,7 @@ namespace RSTGameTranslation
                                     }
                                 }
                                 
-                                // Thêm vào lịch sử dịch
+                                // Add the translated text to the chat history
                                 if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
                                 {
                                     TranslationCompleted?.Invoke(this, new TranslationEventArgs
@@ -391,13 +391,13 @@ namespace RSTGameTranslation
                         }
                     }
                     
-                    // Cập nhật ChatBox với bản dịch mới
+                    // Update the chat history in ChatBoxWindow
                     if (ChatBoxWindow.Instance != null)
                     {
                         ChatBoxWindow.Instance.UpdateChatHistory();
                     }
                     
-                    // Cập nhật MonitorWindow
+                    // Update the overlays in MonitorWindow
                     MonitorWindow.Instance.RefreshOverlays();
                 }
                 else
@@ -651,36 +651,36 @@ namespace RSTGameTranslation
         }
         
         /// <summary>
-        /// Kiểm tra xem hai chuỗi có đủ tương đồng không sử dụng thuật toán kết hợp tối ưu cho tiếng Anh
+        /// Check if the text content is similar to the previous content
         /// </summary>
         private bool IsTextSimilar(string s1, string s2, double threshold)
         {
-            // Trường hợp đặc biệt
+            // Special case: if both strings are empty, they are considered similar
             if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return true;
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return false;
             if (s1 == s2) return true;
             
-            // Lấy ngôn ngữ nguồn hiện tại
+            // Get the source language from the config manager
             string sourceLanguage = GetSourceLanguage().ToLowerInvariant();
             
-            // Tính điểm tương đồng dựa trên ngôn ngữ
+            // Calculate the similarity using the selected method
             double similarity;
             
-            // Xử lý riêng cho các ngôn ngữ châu Á không dùng khoảng trắng để phân tách từ
+            // Process for Asian languages (Japanese, Chinese, Korean)
             if (sourceLanguage == "ja" || sourceLanguage == "ch_sim" || sourceLanguage == "ko")
             {
-                // Đối với tiếng Nhật, tiếng Trung, tiếng Hàn: sử dụng kết hợp giữa so sánh ký tự và n-gram
+
                 similarity = CombinedAsianLanguageSimilarity(s1, s2);
             }
-            // Xử lý cho các ngôn ngữ sử dụng ký tự Latin
+            // Process for other languages
             else
             {
-                // Kết hợp nhiều phương pháp để có kết quả tốt nhất
+                // Combined similarity calculation for other languages
                 double keywordSimilarity = KeywordSimilarity(s1, s2);
                 double diceCoefficient = DiceCoefficient(s1, s2);
                 double wordOverlap = WordOverlapSimilarity(s1, s2);
                 
-                // Lấy giá trị cao nhất từ các phương pháp
+                // Get the maximum similarity among the three methods
                 similarity = Math.Max(Math.Max(keywordSimilarity, diceCoefficient), wordOverlap);
             }
             
@@ -690,11 +690,11 @@ namespace RSTGameTranslation
         }
         
         /// <summary>
-        /// Phương pháp kết hợp để so sánh các ngôn ngữ châu Á (Nhật, Trung, Hàn)
+        /// Method to calculate the similarity between two strings using the Dice coefficient
         /// </summary>
         private double CombinedAsianLanguageSimilarity(string s1, string s2)
         {
-            // 1. So sánh trực tiếp các ký tự chung
+            // Compare the strings using the Dice coefficient
             int commonChars = 0;
             HashSet<char> chars1 = new HashSet<char>(s1);
             HashSet<char> chars2 = new HashSet<char>(s2);
@@ -711,53 +711,49 @@ namespace RSTGameTranslation
                 ? (double)commonChars / Math.Max(chars1.Count, chars2.Count)
                 : 0;
             
-            // 2. So sánh n-gram (chuỗi con liên tiếp)
-            // Sử dụng trigram (3 ký tự liên tiếp) để phát hiện các mẫu chung
             double ngramSimilarity = CalculateNgramSimilarity(s1, s2, 3);
             
-            // 3. So sánh dựa trên độ dài chuỗi
+            // Compare the strings base on length ratio
             double lengthRatio = Math.Min(s1.Length, s2.Length) / (double)Math.Max(s1.Length, s2.Length);
             
-            // Trọng số cho từng phương pháp
+            // Combine the similarity scores
             double charWeight = 0.4;
             double ngramWeight = 0.5;
             double lengthWeight = 0.1;
             
-            // Tính điểm tổng hợp
+            // Calculate the combined similarity score
             return (characterSimilarity * charWeight) + 
                 (ngramSimilarity * ngramWeight) + 
                 (lengthRatio * lengthWeight);
         }
 
-        /// <summary>
-        /// Tính độ tương đồng dựa trên n-gram (chuỗi con liên tiếp n ký tự)
-        /// </summary>
+
         private double CalculateNgramSimilarity(string s1, string s2, int n)
         {
-            // Nếu chuỗi ngắn hơn n, giảm kích thước n-gram
+            // If the length of either string is less than n, reduce n to the length of the shorter string
             if (s1.Length < n || s2.Length < n)
             {
                 n = Math.Min(s1.Length, s2.Length);
                 if (n == 0) return 0;
             }
             
-            // Tạo tập hợp n-gram cho cả hai chuỗi
+            // Create a HashSet to store the n-grams of each string
             var ngrams1 = new HashSet<string>();
             var ngrams2 = new HashSet<string>();
             
-            // Tạo n-gram cho chuỗi thứ nhất
+            // Create n-grams for the first string
             for (int i = 0; i <= s1.Length - n; i++)
             {
                 ngrams1.Add(s1.Substring(i, n));
             }
             
-            // Tạo n-gram cho chuỗi thứ hai
+            // Create n-grams for the second string
             for (int i = 0; i <= s2.Length - n; i++)
             {
                 ngrams2.Add(s2.Substring(i, n));
             }
             
-            // Đếm số n-gram chung
+            // Count the number of common n-grams
             int intersectionCount = 0;
             foreach (var ngram in ngrams1)
             {
@@ -767,18 +763,15 @@ namespace RSTGameTranslation
                 }
             }
             
-            // Tính hệ số Dice cho n-gram
+            // Calculate the Dice coefficient
             return ngrams1.Count > 0 && ngrams2.Count > 0
                 ? (2.0 * intersectionCount) / (ngrams1.Count + ngrams2.Count)
                 : 0;
         }
 
-        /// <summary>
-        /// Tính độ tương đồng dựa trên từ khóa quan trọng (loại bỏ stop words)
-        /// </summary>
         private double KeywordSimilarity(string s1, string s2)
         {
-            // Danh sách stop words tiếng Anh phổ biến
+            // List of popular keywords
             HashSet<string> stopWords = new HashSet<string>(new[] {
                 "a", "an", "the", "and", "or", "but", "is", "are", "was", "were",
                 "be", "been", "being", "in", "on", "at", "to", "for", "with", "by",
@@ -803,18 +796,18 @@ namespace RSTGameTranslation
                 "what's", "here's", "there's", "when's", "where's", "why's", "how's"
             });
 
-            // Trường hợp đặc biệt
+            // Special case: if both strings are empty, they are considered similar
             if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
             if (s1 == s2) return 1.0;
 
-            // Tách từ
+            // Separate the strings into words
             string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
                 StringSplitOptions.RemoveEmptyEntries);
             string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
                 StringSplitOptions.RemoveEmptyEntries);
 
-            // Lọc ra các từ khóa (không phải stop words)
+            // Filter out stop words and create sets of keywords
             var keywords1 = new HashSet<string>(words1
                 .Select(w => w.ToLowerInvariant())
                 .Where(w => !stopWords.Contains(w)));
@@ -823,14 +816,14 @@ namespace RSTGameTranslation
                 .Select(w => w.ToLowerInvariant())
                 .Where(w => !stopWords.Contains(w)));
 
-            // Nếu không có từ khóa nào
+            // if both sets are empty, return 0.0
             if (keywords1.Count == 0 || keywords2.Count == 0)
             {
-                // Quay lại so sánh thông thường nếu không có từ khóa
+                // Using Dice coefficient for strings with no keywords
                 return DiceCoefficient(s1, s2);
             }
 
-            // Đếm số từ khóa chung
+            // Count the number of common keywords
             int commonKeywords = 0;
             foreach (var keyword in keywords1)
             {
@@ -840,24 +833,23 @@ namespace RSTGameTranslation
                 }
             }
 
-            // Tính điểm Jaccard cho từ khóa
+            // Calculate the Dice coefficient
             return (double)commonKeywords / (keywords1.Count + keywords2.Count - commonKeywords);
         }
 
         /// <summary>
-        /// Tính hệ số Dice dựa trên bigrams - phù hợp với cấu trúc từ tiếng Anh
+        /// Calculate the similarity between two strings using the Dice coefficient
         /// </summary>
         private double DiceCoefficient(string s1, string s2)
         {
-            // Trường hợp đặc biệt
+            // Special case: if both strings are empty, they are considered similar
             if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
             if (s1 == s2) return 1.0;
             
-            // Xử lý chuỗi quá ngắn
+            // if string is too short to create bigrams, compare directly
             if (s1.Length < 2 || s2.Length < 2)
             {
-                // Nếu chuỗi quá ngắn để tạo bigram, so sánh trực tiếp
                 int sameChars = 0;
                 for (int i = 0; i < s1.Length; i++)
                 {
@@ -866,23 +858,23 @@ namespace RSTGameTranslation
                 return (double)sameChars / Math.Max(s1.Length, s2.Length);
             }
 
-            // Tạo tập hợp bigrams cho cả hai chuỗi
+            // Create sets of bigrams for each string
             var bigrams1 = new HashSet<string>();
             var bigrams2 = new HashSet<string>();
 
-            // Tạo bigrams cho chuỗi thứ nhất
+
             for (int i = 0; i < s1.Length - 1; i++)
             {
                 bigrams1.Add(s1.Substring(i, 2));
             }
 
-            // Tạo bigrams cho chuỗi thứ hai
+
             for (int i = 0; i < s2.Length - 1; i++)
             {
                 bigrams2.Add(s2.Substring(i, 2));
             }
 
-            // Đếm số bigram chung
+            // Count the number of common bigrams
             int intersectionCount = 0;
             foreach (var bigram in bigrams1)
             {
@@ -892,34 +884,34 @@ namespace RSTGameTranslation
                 }
             }
 
-            // Tính hệ số Dice
+            // Calculate the Dice coefficient
             return (2.0 * intersectionCount) / (bigrams1.Count + bigrams2.Count);
         }
 
         /// <summary>
-        /// Tính độ tương đồng dựa trên sự trùng lặp từ - đặc biệt hiệu quả cho tiếng Anh
+        /// Calculate the similarity between two strings using the Jaccard index
         /// </summary>
         private double WordOverlapSimilarity(string s1, string s2)
         {
-            // Trường hợp đặc biệt
+            // Special case: if both strings are empty, they are considered similar
             if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
             if (s1 == s2) return 1.0;
             
-            // Tách từ (cho tiếng Anh)
+            // Separate the strings into words
             string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
                 StringSplitOptions.RemoveEmptyEntries);
             string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
                 StringSplitOptions.RemoveEmptyEntries);
             
-            // Nếu không có từ nào
+
             if (words1.Length == 0 || words2.Length == 0) return 0.0;
             
-            // Chuyển thành tập hợp từ (loại bỏ trùng lặp)
+            // Transform words to lowercase and create sets of unique words
             var wordSet1 = new HashSet<string>(words1.Select(w => w.ToLowerInvariant()));
             var wordSet2 = new HashSet<string>(words2.Select(w => w.ToLowerInvariant()));
             
-            // Đếm số từ chung
+            // Count the number of common words
             int commonWords = 0;
             foreach (var word in wordSet1)
             {
@@ -929,7 +921,7 @@ namespace RSTGameTranslation
                 }
             }
             
-            // Tính điểm Jaccard (số từ chung / tổng số từ khác nhau)
+            // Calculate the Jaccard index
             return (double)commonWords / (wordSet1.Count + wordSet2.Count - commonWords);
         }
 
@@ -1412,7 +1404,7 @@ namespace RSTGameTranslation
 
             StringBuilder contentBuilder = new();
 
-            // Thêm số lượng phần tử vào hash để phát hiện thay đổi kích thước mảng
+            // Add each character to the content builder
             contentBuilder.Append(resultsElement.GetArrayLength());
             contentBuilder.Append('|');
 
@@ -1429,12 +1421,12 @@ namespace RSTGameTranslation
                     continue;
                 }
 
-                // Chuẩn hóa văn bản trước khi thêm vào hash
+                // Normalize the text
                 string normalizedText = NormalizeTextForHash(text);
                 if (!string.IsNullOrEmpty(normalizedText))
                 {
                     contentBuilder.Append(normalizedText);
-                    // Thêm dấu phân cách giữa các phần tử văn bản
+                    // Add a separator between characters
                     contentBuilder.Append('|');
                 }
             }
@@ -1445,37 +1437,36 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
-        /// Chuẩn hóa văn bản để so sánh nhất quán
+        /// Normalizes the text for hashing by removing certain characters and converting to lowercase.
         /// </summary>
         private string NormalizeTextForHash(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
 
-            // Chuyển về chữ thường
+            
             text = text.ToLowerInvariant();
             
             StringBuilder sb = new StringBuilder();
-            bool lastWasSpace = true; // Bắt đầu với true để loại bỏ khoảng trắng đầu tiên
+            bool lastWasSpace = true; // Start with a space to handle leading characters
             
             foreach (char c in text)
             {
-                // Thay thế ツ bằng ッ vì OCR thường nhầm lẫn chúng
                 if (c == 'ツ')
                 {
                     sb.Append('ッ');
                     lastWasSpace = false;
                 }
-                // Xử lý khoảng trắng (chỉ giữ một khoảng trắng liên tiếp)
+                // Handle whitespace
                 else if (char.IsWhiteSpace(c))
                 {
                     if (!lastWasSpace)
                     {
-                        sb.Append(' '); // Chỉ thêm một khoảng trắng
+                        sb.Append(' '); // Only add a space if the last character was not a space
                         lastWasSpace = true;
                     }
                 }
-                // Chỉ giữ lại các ký tự không nằm trong danh sách loại bỏ
+                
                 else if (!g_charsToStripFromHash.Contains(c))
                 {
                     sb.Append(c);
@@ -1483,7 +1474,7 @@ namespace RSTGameTranslation
                 }
             }
             
-            // Loại bỏ khoảng trắng ở cuối chuỗi nếu có
+            // Remove whiespace if it's at the end
             string result = sb.ToString();
             if (result.Length > 0 && result[result.Length - 1] == ' ')
             {
@@ -1952,7 +1943,7 @@ namespace RSTGameTranslation
                                             
                                             // Now update the text objects with the translation
                                             ProcessStructuredJsonTranslation(translatedRoot);
-                                            return; // Bỏ qua xử lý tiếp theo
+                                            return; 
                                         }
                                         catch (JsonException ex)
                                         {
@@ -1968,12 +1959,12 @@ namespace RSTGameTranslation
                 else if (currentService == "Google Translate")
                 {
                     // Xử lý phản hồi từ Google Translate
-                    // Google Translate trả về định dạng: {"translations": [{"id": "...", "original_text": "...", "translated_text": "..."}]}
+                    // Google Translate return: {"translations": [{"id": "...", "original_text": "...", "translated_text": "..."}]}
                     if (doc.RootElement.TryGetProperty("translations", out JsonElement _))
                     {
                         Console.WriteLine("Google Translate response detected");
                         ProcessGoogleTranslateJson(doc.RootElement);
-                        return; // Bỏ qua xử lý tiếp theo
+                        return;
                     }
                 }
             }

@@ -41,14 +41,14 @@ namespace RSTGameTranslation
             string flagFile = "";
             try
             {
-                // Đóng server hiện tại nếu đang chạy
+                // Stop the current OCR server if it's running
                 StopOcrServer();
 
-                // Xác định đường dẫn đến thư mục webserver
+                // Get the base directory of the application
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string webserverPath = Path.Combine(baseDirectory, "webserver");
 
-                // Chọn batch file tương ứng với phương thức OCR
+                // Choose the appropriate batch file and working directory based on the OCR method
                 string batchFileName;
                 string workingDirectory;
 
@@ -90,7 +90,7 @@ namespace RSTGameTranslation
                     return false;
                 }
 
-                // Kiểm tra xem batch file có tồn tại không
+                // Check if batch file exists
                 string batchFilePath = Path.Combine(workingDirectory, batchFileName);
                 if (!File.Exists(batchFilePath))
                 {
@@ -98,7 +98,7 @@ namespace RSTGameTranslation
                     return false;
                 }
 
-                // Khởi tạo process để chạy batch file
+                // Initialize process start info
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
@@ -109,10 +109,10 @@ namespace RSTGameTranslation
                 };
 
 
-                // Khởi động process
+                // Starting process
                 _currentServerProcess = Process.Start(startInfo);
                 timeoutStartServer = false;
-                // Chờ flag file
+                // Wait for flag file
                 Console.WriteLine("⏳ Waiting for ready flag...");
                 for (int i = 0; i < 60; i++) // 1 phút
                 {
@@ -148,7 +148,7 @@ namespace RSTGameTranslation
         }
         
         /// <summary>
-        /// Dừng OCR server đang chạy (nếu có)
+        /// Stop the OCR server if it's running
         /// </summary>
         public void StopOcrServer()
         {
@@ -159,15 +159,15 @@ namespace RSTGameTranslation
                     KillProcessesByPort(SocketManager.Instance.get_EasyOcrPort());
                     KillProcessesByPort(SocketManager.Instance.get_PaddleOcrPort());
                     MainWindow.Instance.UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
-                    // Lấy tất cả các tiến trình con của cmd.exe
+                    // Get the process ID of the current server process
                     int processId = _currentServerProcess.Id;
-                    // Thử đóng process một cách lịch sự trước
+                    // Try to close the process gracefully
                     _currentServerProcess.CloseMainWindow();
 
-                    // Đợi một chút để process có thể đóng
+                    // Wait for the process to exit gracefully for a short period of time
                     if (!_currentServerProcess.WaitForExit(1000))
                     {
-                        // Nếu không đóng được, buộc đóng
+                        // Failed to close gracefully, so kill the process forcefully
                         _currentServerProcess.Kill();
                     }
 
@@ -182,41 +182,6 @@ namespace RSTGameTranslation
             }
         }
         
-        // // Thêm phương thức mới để tìm và đóng các tiến trình Python liên quan
-        // private void KillRelatedPythonProcesses()
-        // {
-        //     try
-        //     {
-        //         // Tìm tất cả các tiến trình Python đang chạy
-        //         foreach (var process in Process.GetProcessesByName("python"))
-        //         {
-        //             try
-        //             {
-        //                 // Kiểm tra xem tiến trình này có liên quan đến OCR server không
-        //                 // Bạn có thể kiểm tra thông qua command line arguments hoặc tên module
-        //                 string? commandLine = GetCommandLine(process.Id);
-                        
-        //                 if (commandLine != null && 
-        //                     (commandLine.Contains("server_paddle.py") || 
-        //                     commandLine.Contains("server_easyocr.py") ||
-        //                     commandLine.Contains("process_image_paddleocr.py") ||
-        //                     commandLine.Contains("process_image_easyocr.py")))
-        //                 {
-        //                     Console.WriteLine($"Terminate related Python processes: {process.Id} - {commandLine}");
-        //                     process.Kill();
-        //                 }
-        //             }
-        //             catch (Exception ex)
-        //             {
-        //                 Console.WriteLine($"Unable to terminate Python process {process.Id}: {ex.Message}");
-        //             }
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"Error finding and closing Python processes: {ex.Message}");
-        //     }
-        // }
 
         private void KillProcessesByPort(int port)
         {
@@ -283,53 +248,21 @@ namespace RSTGameTranslation
             }
         }
 
-        // Phương thức để lấy command line của một tiến trình
-        private string? GetCommandLine(int processId)
-        {
-            try
-            {
-                using (var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {processId}"))
-                {
-                    using (var objects = searcher.Get())
-                    {
-                        foreach (var obj in objects)
-                        {
-                            return obj["CommandLine"]?.ToString();
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Bỏ qua lỗi nếu không thể lấy command line
-            }
-
-            return null;
-        }
         
-        /// <summary>
-        /// Kiểm tra xem server có đang chạy không
-        /// </summary>
-        // public bool IsServerRunning()
-        // {
-        //     return _currentServerProcess != null && !_currentServerProcess.HasExited;
-        // }
 
         /// <summary>
-        /// Chạy batch file cài đặt môi trường Conda cho OCR server
+        /// Run bat file setup environment for OCR
         /// </summary>
-        /// <param name="ocrMethod">Phương thức OCR ("EasyOCR" hoặc "PaddleOCR")</param>
-        /// <returns>Kết quả cài đặt (thành công hay không)</returns>
+        /// <param name="ocrMethod">OCR method ("EasyOCR" or "PaddleOCR")</param>
         public bool SetupOcrEnvironment(string ocrMethod)
         {
             try
             {
-                // Xác định đường dẫn đến thư mục webserver
+                // Get the base directory of the application
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string webserverPath = Path.Combine(baseDirectory, "webserver");
 
-                // Chọn batch file cài đặt tương ứng với phương thức OCR
+                // Choose the appropriate batch file and working directory based on the OCR method
                 string setupBatchFileName;
                 string workingDirectory;
 
@@ -345,19 +278,19 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    Console.WriteLine($"Không hỗ trợ phương thức OCR: {ocrMethod}");
+                    Console.WriteLine($"This OCR method is not supported: {ocrMethod}");
                     return false;
                 }
 
-                // Kiểm tra xem batch file có tồn tại không
+                // Check if batch file exists
                 string setupBatchFilePath = Path.Combine(workingDirectory, setupBatchFileName);
                 if (!File.Exists(setupBatchFilePath))
                 {
-                    Console.WriteLine($"Không tìm thấy file cài đặt: {setupBatchFilePath}");
+                    Console.WriteLine($"File installation not found: {setupBatchFilePath}");
                     return false;
                 }
 
-                // Khởi tạo process để chạy batch file cài đặt
+                // Initialize process start info
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
@@ -367,25 +300,25 @@ namespace RSTGameTranslation
                     CreateNoWindow = false
                 };
 
-                // Khởi động process cài đặt
+                // Start the process
                 using (Process? setupProcess = Process.Start(startInfo))
                 {
                     if (setupProcess == null)
                     {
-                        Console.WriteLine("Không thể khởi động quá trình cài đặt OCR server");
+                        Console.WriteLine("Unable to start the OCR server installation process");
                         return false;
                     }
 
-                    // Đợi quá trình cài đặt hoàn tất
+                    // Wait for the process to finish
                     setupProcess.WaitForExit();
 
-                    Console.WriteLine($"Quá trình cài đặt {ocrMethod} server đã hoàn tất");
+                    Console.WriteLine($"The {ocrMethod} server installation process has been completed");
                     return setupProcess.ExitCode == 0;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi khi cài đặt OCR server: {ex.Message}");
+                Console.WriteLine($"Error when installing OCR server: {ex.Message}");
                 return false;
             }
         }

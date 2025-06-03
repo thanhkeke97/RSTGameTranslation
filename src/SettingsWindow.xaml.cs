@@ -559,10 +559,10 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Setting OCR method to: {ocrMethod}");
                     
-                    // Lưu vào config
+                    // Save to config
                     ConfigManager.Instance.SetOcrMethod(ocrMethod);
                     
-                    // Cập nhật UI
+                    // Update UI
                     MainWindow.Instance.SetOcrMethod(ocrMethod);
                     UpdateMonitorWindowOcrMethod(ocrMethod);
                     SocketManager.Instance.Disconnect();
