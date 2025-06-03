@@ -488,7 +488,7 @@ namespace RSTGameTranslation
                                 double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
                                 if (settleTime > 0)
                                 {
-                                    if (contentHash == _lastOcrHash || IsTextSimilar(textContent, _lastTextContent, 0.75))
+                                    if (contentHash == _lastOcrHash || IsTextSimilar(textContent, _lastTextContent, Convert.ToDouble(ConfigManager.Instance.GetTextSimilarThreshold())))
                                     {
                                         if (_lastChangeTime == DateTime.MinValue)
                                         {
@@ -528,7 +528,7 @@ namespace RSTGameTranslation
                                         OnFinishedThings(false);
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
-                                } else if (IsTextSimilar(textContent, _lastTextContent, 0.75))
+                                } else if (IsTextSimilar(textContent, _lastTextContent, Convert.ToDouble(ConfigManager.Instance.GetTextSimilarThreshold())))
                                 {
                                     Console.WriteLine("Content is similar to previous, skipping translation");
                                     OnFinishedThings(true);

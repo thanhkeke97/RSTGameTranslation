@@ -81,6 +81,8 @@ namespace RSTGameTranslation
         public const string OPENAI_REALTIME_API_KEY = "openai_realtime_api_key";
         public const string AUDIO_SERVICE_AUTO_TRANSLATE = "audio_service_auto_translate";
 
+        public const string TEXTSIMILAR_THRESHOLD = "textsimilar_threshold";
+
         // Singleton instance
         public static ConfigManager Instance
         {
@@ -257,6 +259,7 @@ namespace RSTGameTranslation
             _configValues[MIN_LINE_CONFIDENCE] = "0.1";
             _configValues[AUTO_TRANSLATE_ENABLED] = "true";
             _configValues[IGNORE_PHRASES] = "";
+            _configValues[TEXTSIMILAR_THRESHOLD] = "0.75";
             
             // Save the default configuration
             SaveConfig();
@@ -726,7 +729,23 @@ namespace RSTGameTranslation
             string value = GetValue(AUTO_SIZE_TEXT_BLOCKS, "true");
             return value.ToLower() == "true";
         }
+
+        // Get similary threshold
+        public string GetTextSimilarThreshold()
+        {
+            string value = GetValue(TEXTSIMILAR_THRESHOLD, "0.75");
+            return value;
+        }
         
+        // Set auto translate enabled
+        public void SetTextSimilarThreshold(String threshold)
+        {
+            _configValues[TEXTSIMILAR_THRESHOLD] = threshold;
+            SaveConfig();
+            Console.WriteLine($"Text similar threshold set to: {threshold}");
+        }
+        
+
         // Check if auto translate is enabled
         public bool IsAutoTranslateEnabled()
         {

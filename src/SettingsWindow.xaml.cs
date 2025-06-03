@@ -268,7 +268,8 @@ namespace RSTGameTranslation
             minTextFragmentSizeTextBox.LostFocus += MinTextFragmentSizeTextBox_LostFocus;
             minLetterConfidenceTextBox.LostFocus += MinLetterConfidenceTextBox_LostFocus;
             minLineConfidenceTextBox.LostFocus += MinLineConfidenceTextBox_LostFocus;
-            
+
+            textSimilarThresholdTextBox.LostFocus += TextSimilarThresholdTextBox_LostFocus;
             // Load source language either from config or MainWindow as fallback
             string configSourceLanguage = ConfigManager.Instance.GetSourceLanguage();
             if (!string.IsNullOrEmpty(configSourceLanguage))
@@ -316,6 +317,9 @@ namespace RSTGameTranslation
             // Reattach event handlers
             sourceLanguageComboBox.SelectionChanged += SourceLanguageComboBox_SelectionChanged;
             targetLanguageComboBox.SelectionChanged += TargetLanguageComboBox_SelectionChanged;
+
+            // Set text similar threshold from config
+            textSimilarThresholdTextBox.Text = ConfigManager.Instance.GetTextSimilarThreshold();
             
             // Set OCR settings from config
             string savedOcrMethod = ConfigManager.Instance.GetOcrMethod();
@@ -1548,6 +1552,54 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating minimum text fragment size: {ex.Message}");
             }
         }
+
+        private void TextSimilarThresholdTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                // Get last threshold value from config
+                string lastThreshold = ConfigManager.Instance.GetTextSimilarThreshold();
+                
+                // Validate input is a valid number
+                if (!double.TryParse(textSimilarThresholdTextBox.Text, out double similarThreshold))
+                {
+                    MessageBox.Show("Please enter a valid number for the threshold.",
+                                "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    
+                    // Reset textbox to last valid value
+                    textSimilarThresholdTextBox.Text = lastThreshold;
+                    return;
+                }
+
+                // Check range
+                if (similarThreshold > 1.0 || similarThreshold < 0.5)
+                {
+                    // Show warning message
+                    MessageBox.Show("Please enter a value between 0.5 and 1.0",
+                                "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    // Reset to current value from config
+                    textSimilarThresholdTextBox.Text = lastThreshold;
+                    Console.WriteLine($"Text similar threshold reset to default value: {lastThreshold}");
+                    return;
+                }
+                
+                // If we get here, the value is valid, so save it
+                ConfigManager.Instance.SetTextSimilarThreshold(similarThreshold.ToString());
+                Console.WriteLine($"Text similar threshold updated to: {similarThreshold}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating text similar threshold: {ex}");
+                
+                // Restore last known good value in case of any error
+                textSimilarThresholdTextBox.Text = ConfigManager.Instance.GetTextSimilarThreshold();
+            }
+        }
         
         private void MinLetterConfidenceTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -1556,12 +1608,12 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (double.TryParse(minLetterConfidenceTextBox.Text, out double confidence) && confidence >= 0 && confidence <= 1)
                 {
                     ConfigManager.Instance.SetMinLetterConfidence(confidence);
                     Console.WriteLine($"Minimum letter confidence set to: {confidence}");
-                    
+
                     // Reset the hash to force new OCR processing
                     Logic.Instance.ResetHash();
                 }

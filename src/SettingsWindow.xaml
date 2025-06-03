@@ -167,6 +167,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Block Power -->
@@ -184,6 +185,14 @@
                                 <TextBox x:Name="settleTimeTextBox" Grid.Row="1" Grid.Column="1" 
                                         Margin="0,5" Text="0.5" LostFocus="SettleTimeTextBox_LostFocus"
                                         ToolTip="Time in seconds to wait for the text to settle before capturing"/>
+
+                                <!-- TextSimilar Threshold-->
+                                <TextBlock Text="Text Similar Threshold:" Grid.Row="2" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="Check the similarity between two consecutive texts. &#x0a;For example, 0.5 is equivalent to 50% - if text 1 has a similarity greater than or equal to 50%, it will be skipped."/>
+                                <TextBox x:Name="textSimilarThresholdTextBox" Grid.Row="2" Grid.Column="1" 
+                                        Margin="0,5" Text="0.75" LostFocus="TextSimilarThresholdTextBox_LostFocus"
+                                        ToolTip="Check the similarity between two consecutive texts. &#x0a;For example, 0.5 is equivalent to 50% - if text 1 has a similarity greater than or equal to 50%, it will be skipped."/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
