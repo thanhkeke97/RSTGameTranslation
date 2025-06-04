@@ -404,12 +404,12 @@ namespace RSTGameTranslation
                 Margin = new Thickness(10, 0, 10, 0)
             };
         }
-        
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // Update capture rectangle
             UpdateCaptureRect();
-           
+
             // Add socket status to the header
             if (FooterBorder != null && FooterBorder.Child is Grid footerGrid)
             {
@@ -417,7 +417,7 @@ namespace RSTGameTranslation
                 var elements = footerGrid.Children;
                 foreach (var element in elements)
                 {
-                    if (element is StackPanel stackPanel && 
+                    if (element is StackPanel stackPanel &&
                         stackPanel.HorizontalAlignment == System.Windows.HorizontalAlignment.Left)
                     {
                         // Add socket status text to the stack panel
@@ -429,53 +429,63 @@ namespace RSTGameTranslation
                     }
                 }
             }
-            
+
             // Initialize the Logic
             Logic.Instance.Init();
-            
+
             // Load OCR method from config
             string savedOcrMethod = ConfigManager.Instance.GetOcrMethod();
             Console.WriteLine($"MainWindow_Loaded: Loading OCR method from config: '{savedOcrMethod}'");
-            
+
             // Set OCR method in this window (MainWindow)
             SetOcrMethod(savedOcrMethod);
-            
+
             // Subscribe to translation events
             Logic.Instance.TranslationCompleted += Logic_TranslationCompleted;
-            
+
             // Make sure monitor window is shown on startup to the right of the main window
             // if (!MonitorWindow.Instance.IsVisible)
             // {
             //     // Position to the right of the main window, only for initial startup
             //     PositionMonitorWindowToTheRight();
             //     MonitorWindow.Instance.Show();
-                
+
             //     // Consider this the initial position for the monitor window toggle
             //     monitorWindowLeft = MonitorWindow.Instance.Left;
             //     monitorWindowTop = MonitorWindow.Instance.Top;
-                
+
             //     // Update monitor button color to red since the monitor is now active
             //     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
             // }
-            
+
             // Test configuration loading
             TestConfigLoading();
-            
+
             // Initialization is complete, now we can save settings changes
             _isInitializing = false;
             Console.WriteLine("MainWindow initialization complete. Settings changes will now be saved.");
-            
+
             // Force the OCR method to match the config again
             // This ensures the config value is preserved and not overwritten
             string configOcrMethod = ConfigManager.Instance.GetOcrMethod();
             Console.WriteLine($"Ensuring config OCR method is preserved: {configOcrMethod}");
             ConfigManager.Instance.SetOcrMethod(configOcrMethod);
-            
+
             // Load language settings from config
             LoadLanguageSettingsFromConfig();
-            
+
             // Load auto-translate setting from config
             isAutoTranslateEnabled = ConfigManager.Instance.IsAutoTranslateEnabled();
+            
+            // Đăng ký sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
+            this.LocationChanged += MainWindow_LocationChanged;
+        }
+
+        // Thêm sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
+        private void MainWindow_LocationChanged(object sender, EventArgs e)
+        {
+            // Cập nhật vùng capture và vị trí của MonitorWindow
+            UpdateCaptureRect();
         }
         
         // Handler for application-level keyboard shortcuts
@@ -514,7 +524,26 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error testing config: {ex.Message}");
             }
         }
-          
+        
+        // Thêm phương thức mới để cập nhật vị trí của MonitorWindow
+        private void UpdateMonitorWindowPosition()
+        {
+                // Đặt MonitorWindow chính xác tại vị trí của vùng capture
+                MonitorWindow.Instance.Left = captureRect.Left;
+                MonitorWindow.Instance.Top = captureRect.Top;
+                
+                // Đặt kích thước của MonitorWindow bằng với kích thước của vùng capture
+                MonitorWindow.Instance.Width = captureRect.Width;
+                MonitorWindow.Instance.Height = captureRect.Height;
+                
+                // Lưu vị trí mới để sử dụng khi hiển thị lại
+                monitorWindowLeft = captureRect.Left;
+                monitorWindowTop = captureRect.Top;
+                
+                Console.WriteLine($"Updated MonitorWindow position to match capture rect: ({captureRect.Left}, {captureRect.Top}, {captureRect.Width}, {captureRect.Height})");
+            
+        }
+
         private void UpdateCaptureRect()
         {
             // Retrieve the handle using WindowInteropHelper
@@ -547,7 +576,7 @@ namespace RSTGameTranslation
                 windowRect.Top + customTitleBarHeight,
                 (windowRect.Right - windowRect.Left) - leftBorderThickness - rightBorderThickness,
                 (windowRect.Bottom - windowRect.Top) - customTitleBarHeight - customFooterHeight - bottomBorderThickness);
-                
+                    
             // If position changed and we have text objects, update their positions
             if ((previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) && 
                 Logic.Instance.TextObjects.Count > 0)
@@ -561,6 +590,9 @@ namespace RSTGameTranslation
                 
                 Console.WriteLine($"Capture position changed by ({offsetX}, {offsetY}). Text overlays updated.");
             }
+            
+            // Cập nhật vị trí của MonitorWindow dựa trên vị trí mới của vùng capture
+            UpdateMonitorWindowPosition();
         }
 
         //!Main loop
@@ -1164,13 +1196,7 @@ namespace RSTGameTranslation
         // Position the monitor window to the right of the main window
         private void PositionMonitorWindowToTheRight()
         {
-            // Get the position of the main window
-            double mainRight = this.Left + this.ActualWidth;
-            double mainTop = this.Top;
-            
-            // Set the position of the monitor window
-            MonitorWindow.Instance.Left = mainRight + 10; // 10px gap between windows
-            MonitorWindow.Instance.Top = mainTop;
+            UpdateMonitorWindowPosition();
         }
         
         // Remember the monitor window position
@@ -1194,32 +1220,52 @@ namespace RSTGameTranslation
             }
             else
             {
-                // Always use the remembered position if it has been set
-                // We use Double.MinValue as our uninitialized flag
-                if (monitorWindowLeft != -1 || monitorWindowTop != -1)
+                try
                 {
-                    // Restore previous position
-                    MonitorWindow.Instance.Left = monitorWindowLeft;
-                    MonitorWindow.Instance.Top = monitorWindowTop;
-                    Console.WriteLine($"Restoring monitor position to: {monitorWindowLeft}, {monitorWindowTop}");
-                }
-                else
-                {
-                    // Only position to the right if we don't have a saved position yet
-                    // This should only happen on first run
-                    PositionMonitorWindowToTheRight();
-                    Console.WriteLine("No saved position, positioning monitor window to the right");
-                }
-                
-                MonitorWindow.Instance.Show();
-                Console.WriteLine($"Monitor window shown at position {MonitorWindow.Instance.Left}, {MonitorWindow.Instance.Top}");
-                monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-                
-                // If we have a recent screenshot, load it
-                if (File.Exists(outputPath))
-                {
-                    MonitorWindow.Instance.UpdateScreenshot(outputPath);
+                    // Đóng và tạo lại instance
+                    MonitorWindow.ResetInstance();
+                    
+                    Console.WriteLine("Creating new MonitorWindow instance...");
+                    
+                    // Cập nhật vị trí dựa trên vùng capture hiện tại
+                    UpdateMonitorWindowPosition();
+                    
+                    // Thực hiện capture mới ngay lập tức
+                    using (Bitmap bitmap = new Bitmap(captureRect.Width, captureRect.Height))
+                    {
+                        using (Graphics g = Graphics.FromImage(bitmap))
+                        {
+                            g.CompositingQuality = CompositingQuality.HighSpeed;
+                            g.SmoothingMode = SmoothingMode.HighSpeed;
+                            g.InterpolationMode = InterpolationMode.Low;
+                            g.PixelOffsetMode = PixelOffsetMode.HighSpeed;
+                            
+                            g.CopyFromScreen(
+                                captureRect.Left,
+                                captureRect.Top,
+                                0, 0,
+                                bitmap.Size,
+                                CopyPixelOperation.SourceCopy);
+                        }
+                        
+                        // Lưu bitmap để sử dụng sau này
+                        bitmap.Save(outputPath, ImageFormat.Png);
+                        
+                        // Cập nhật MonitorWindow với bitmap mới
+                        Console.WriteLine("Updating MonitorWindow with fresh capture");
+                        MonitorWindow.Instance.UpdateScreenshotFromBitmap(bitmap);
+                    }
+                    
+                    // Refresh overlays để hiển thị các text objects
                     MonitorWindow.Instance.RefreshOverlays();
+                    
+                    monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                    Console.WriteLine("MonitorWindow setup complete");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR in ToggleMonitorWindow: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 }
             }
         }
