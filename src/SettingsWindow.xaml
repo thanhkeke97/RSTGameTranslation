@@ -29,6 +29,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Source Language -->
@@ -39,14 +40,6 @@
                                     <ComboBoxItem Content="ja"/>
                                     <ComboBoxItem Content="en"/>
                                     <ComboBoxItem Content="ch_sim"/>
-                                    <ComboBoxItem Content="es"/>
-                                    <ComboBoxItem Content="fr"/>
-                                    <ComboBoxItem Content="it"/>
-                                    <ComboBoxItem Content="de"/>
-                                    <ComboBoxItem Content="ru"/>
-                                    <ComboBoxItem Content="id"/>
-                                    <ComboBoxItem Content="pl"/>
-                                    <ComboBoxItem Content="hi"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
                                 </ComboBox>
@@ -66,17 +59,25 @@
                                     <ComboBoxItem Content="ja"/>
                                     <ComboBoxItem Content="en"/>
                                     <ComboBoxItem Content="ch_sim"/>
-                                    <ComboBoxItem Content="es"/>
-                                    <ComboBoxItem Content="fr"/>
-                                    <ComboBoxItem Content="it"/>
-                                    <ComboBoxItem Content="de"/>
-                                    <ComboBoxItem Content="ru"/>
-                                    <ComboBoxItem Content="id"/>
-                                    <ComboBoxItem Content="pl"/>
-                                    <ComboBoxItem Content="hi"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
                                 </ComboBox>
+
+                                <!-- Language Code Explanation -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" 
+                                          Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
+                                    <Run FontWeight="Bold">Language Codes Mapping:</Run>
+                                    <LineBreak/>
+                                    <Run>ja = Japanese</Run>
+                                    <LineBreak/>
+                                    <Run>en = English</Run>
+                                    <LineBreak/>
+                                    <Run>ch_sim = Chinese (Simplified)</Run>
+                                    <LineBreak/>
+                                    <Run>ko = Korean</Run>
+                                    <LineBreak/>
+                                    <Run>vi = Vietnamese</Run>
+                                </TextBlock>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

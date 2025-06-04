@@ -11,7 +11,7 @@ from paddleocr import PaddleOCR
 OCR_ENGINE = None
 CURRENT_LANG = None
 
-def initialize_ocr_engine(lang='english'):
+def initialize_ocr_engine(lang='en'):
     """
     Initialize or reinitialize the OCR engine with the specified language.
     
@@ -25,11 +25,9 @@ def initialize_ocr_engine(lang='english'):
 
     # Map language codes to PaddleOCR language codes
     lang_map = {
-        'japan': 'japan',
-        'korean': 'korean',
-        'chinese': 'ch',
-        'english': 'en',
-        'vietnamese': 'vi',
+        'ja': 'japan',
+        'ko': 'korean',
+        'en': 'en',
         'ch_sim': 'ch'
     }
 
@@ -123,7 +121,7 @@ def upscale_image(image, min_width=1024, min_height=768):
     return image, scale
 
 # Initialize with default language at module load time
-initialize_ocr_engine('english')
+initialize_ocr_engine('en')
 
 def process_image(image_path, lang='english', preprocess_images=False, upscale_if_needed=False, char_level=True):
     """

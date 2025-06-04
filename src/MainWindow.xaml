@@ -71,14 +71,6 @@
                                 <ComboBoxItem Content="ja"/>
                                 <ComboBoxItem Content="en"/>
                                 <ComboBoxItem Content="ch_sim"/>
-                                <ComboBoxItem Content="es"/>
-                                <ComboBoxItem Content="fr"/>
-                                <ComboBoxItem Content="it"/>
-                                <ComboBoxItem Content="de"/>
-                                <ComboBoxItem Content="ru"/>
-                                <ComboBoxItem Content="id"/>
-                                <ComboBoxItem Content="pl"/>
-                                <ComboBoxItem Content="hi"/>
                                 <ComboBoxItem Content="ko"/>
                                 <ComboBoxItem Content="vi"/>
                             </ComboBox>

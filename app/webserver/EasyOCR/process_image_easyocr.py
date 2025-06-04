@@ -74,7 +74,9 @@ def initialize_ocr_engine(lang='english'):
 
 def release_gpu_resources():
     """
-    Giải phóng tài nguyên GPU sau khi xử lý OCR.
+    Release GPU resources by emptying the cache.
+    This function should be called when the OCR engine is no longer needed to free up GPU memory.
+    Note: This function is only applicable if the OCR engine is using a GPU.
     """
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
