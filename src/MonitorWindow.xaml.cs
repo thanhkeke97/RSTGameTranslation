@@ -63,6 +63,10 @@ namespace RSTGameTranslation
             InitializeComponent();
 
             Console.WriteLine("MonitorWindow constructor started");
+            this.Topmost = true;
+            this.Focusable = false;
+            this.ShowActivated = false;
+            this.ShowInTaskbar = false;
 
             // Subscribe to TextObject events from Logic
             //Logic.Instance.TextObjectAdded += CreateMonitorOverlayFromTextObject;
@@ -106,16 +110,16 @@ namespace RSTGameTranslation
             this.SourceInitialized += MonitorWindow_SourceInitialized;
             Console.WriteLine("Exclude MonitorWindow from capture success");
         }
-
+        
         // Add a new method to handle SourceInitialized event
         private void MonitorWindow_SourceInitialized(object sender, EventArgs e)
         {
             // Get window handle
             IntPtr hwnd = new WindowInteropHelper(this).Handle;
-            
+
             // Set the window to be excluded from capture
             SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
-            
+
             Console.WriteLine("MonitorWindow set to be excluded from screen capture");
         }
 
@@ -539,20 +543,22 @@ namespace RSTGameTranslation
                     UpdateStatus($"Error loading image: {ex.Message}");
                 }
                 
+                
                 // Clear existing overlay elements
                 // textOverlayCanvas.Children.Clear();
-                
+
                 // Ensure UI updates happen on the UI thread
                 if (!Dispatcher.CheckAccess())
                 {
-                    Dispatcher.Invoke(() => {
+                    Dispatcher.Invoke(() =>
+                    {
                         // Show the window if not visible
                         if (!IsVisible)
                         {
                             Show();
                             Console.WriteLine("Monitor window shown during screenshot update");
                         }
-                        
+
                         // Make sure scroll bars appear when needed
                         UpdateScrollViewerSettings();
                     });
@@ -565,7 +571,7 @@ namespace RSTGameTranslation
                         Show();
                         Console.WriteLine("Monitor window shown during screenshot update");
                     }
-                    
+
                     // Make sure scroll bars appear when needed
                     UpdateScrollViewerSettings();
                 }
