@@ -540,7 +540,7 @@ namespace RSTGameTranslation
                 monitorWindowLeft = captureRect.Left;
                 monitorWindowTop = captureRect.Top;
                 
-                Console.WriteLine($"Updated MonitorWindow position to match capture rect: ({captureRect.Left}, {captureRect.Top}, {captureRect.Width}, {captureRect.Height})");
+                // Console.WriteLine($"Updated MonitorWindow position to match capture rect: ({captureRect.Left}, {captureRect.Top}, {captureRect.Width}, {captureRect.Height})");
             
         }
 
