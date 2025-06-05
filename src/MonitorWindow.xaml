@@ -53,11 +53,11 @@
                       HorizontalScrollBarVisibility="Hidden" 
                       VerticalScrollBarVisibility="Hidden"
                       Background="Transparent">
-            <Grid x:Name="imageContainer" Background="Transparent" IsHitTestVisible="False">
+            <Grid x:Name="imageContainer" Background="Transparent">
                 <Image x:Name="captureImage" Stretch="None" 
                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                       HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
-                <Canvas x:Name="textOverlayCanvas" IsHitTestVisible="False"/>
+                       HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Canvas x:Name="textOverlayCanvas"/>
             </Grid>
         </ScrollViewer>
         
@@ -80,7 +80,8 @@
                               FontSize="14"
                               FontWeight="SemiBold"
                               Text="Waiting for translation..." 
-                              VerticalAlignment="Center"/>
+                              VerticalAlignment="Center"
+                              Visibility="Collapsed"/>
                 </StackPanel>
             </Grid>
         </Border>
