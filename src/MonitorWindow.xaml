@@ -10,7 +10,7 @@
         WindowStyle="None"
         ResizeMode="NoResize"
         AllowsTransparency="False"
-        Background="Black"
+        Background="Transparent"
         Icon="/media/AppIcon.ico">
     <Grid>
         <Grid.RowDefinitions>
@@ -52,12 +52,12 @@
         <ScrollViewer Grid.Row="1" x:Name="imageScrollViewer"
                       HorizontalScrollBarVisibility="Hidden" 
                       VerticalScrollBarVisibility="Hidden"
-                      Background="Black">
-            <Grid x:Name="imageContainer" Background="Black">
+                      Background="Transparent">
+            <Grid x:Name="imageContainer" Background="Transparent" IsHitTestVisible="False">
                 <Image x:Name="captureImage" Stretch="None" 
                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                       HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Canvas x:Name="textOverlayCanvas"/>
+                       HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+                <Canvas x:Name="textOverlayCanvas" IsHitTestVisible="False"/>
             </Grid>
         </ScrollViewer>
         

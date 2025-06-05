@@ -112,7 +112,7 @@ namespace RSTGameTranslation
         }
         
         // Add a new method to handle SourceInitialized event
-        private void MonitorWindow_SourceInitialized(object sender, EventArgs e)
+        private void MonitorWindow_SourceInitialized(object? sender, EventArgs e)
         {
             // Get window handle
             IntPtr hwnd = new WindowInteropHelper(this).Handle;

@@ -482,7 +482,7 @@ namespace RSTGameTranslation
         }
 
         // Thêm sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
-        private void MainWindow_LocationChanged(object sender, EventArgs e)
+        private void MainWindow_LocationChanged(object? sender, EventArgs e)
         {
             // Cập nhật vùng capture và vị trí của MonitorWindow
             UpdateCaptureRect();
