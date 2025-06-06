@@ -159,11 +159,11 @@ namespace RSTGameTranslation
                     // Use translated text if available
                     TextBlock.Text = this.TextTranslated;
                 }
-                else
-                {
-                    // Use original text
-                    TextBlock.Text = this.Text;
-                }
+                // else
+                // {
+                //     // Use original text
+                //     TextBlock.Text = this.Text;
+                // }
                 TextBlock.Foreground = this.TextColor;
                 Border.Background = this.BackgroundColor;
                 // Position at the upper left of the rectangle
