@@ -9,7 +9,7 @@
         Height="600" Width="800"
         WindowStyle="None"
         ResizeMode="NoResize"
-        AllowsTransparency="False"
+        AllowsTransparency="True"
         Background="Transparent"
         Icon="/media/AppIcon.ico">
     <Grid>
@@ -54,7 +54,7 @@
                       VerticalScrollBarVisibility="Hidden"
                       Background="Transparent">
             <Grid x:Name="imageContainer" Background="Transparent">
-                <Image x:Name="captureImage" Stretch="None" 
+                <Image x:Name="captureImage" Stretch="None" Visibility="Collapsed"
                        RenderOptions.BitmapScalingMode="NearestNeighbor"
                        HorizontalAlignment="Left" VerticalAlignment="Top"/>
                 <Canvas x:Name="textOverlayCanvas"/>
