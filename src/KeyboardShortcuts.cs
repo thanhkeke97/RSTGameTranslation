@@ -72,12 +72,14 @@ namespace RSTGameTranslation
         private const int VK_SHIFT = 0x10;
         private const int VK_CONTROL = 0x11;
         private const int VK_MENU = 0x12; // ALT key
+        private const int VK_F = 0x46;    // F key
         private const int VK_G = 0x47;    // G key
         private const int VK_H = 0x48;    // H key
         
         // Hotkey IDs
-        private const int HOTKEY_ID_ALT_G = 1; // Đổi từ ALT_TILDE thành ALT_G
+        private const int HOTKEY_ID_ALT_G = 1;
         private const int HOTKEY_ID_ALT_H = 2;
+        private const int HOTKEY_ID_ALT_F = 3; // Thêm ID cho Alt+F
         
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
@@ -151,6 +153,16 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Failed to register Alt+H hotkey. Error: {Marshal.GetLastWin32Error()}");
                 }
+                
+                // Try to register Alt+F as a hotkey
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_F, MOD_ALT | MOD_NOREPEAT, (uint)VK_F))
+                {
+                    Console.WriteLine("Registered Alt+F as global hotkey");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+F hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
             }
         }
         
@@ -169,6 +181,11 @@ namespace RSTGameTranslation
                 case HOTKEY_ID_ALT_H:
                     Console.WriteLine("Hotkey detected: Alt+H");
                     MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_F:
+                    Console.WriteLine("Hotkey detected: Alt+F");
+                    MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
                     return true;
             }
             
@@ -190,8 +207,10 @@ namespace RSTGameTranslation
                 
                 bool altGWasPressed = false;
                 bool altHWasPressed = false;
+                bool altFWasPressed = false;
                 DateTime lastAltGTime = DateTime.MinValue;
                 DateTime lastAltHTime = DateTime.MinValue;
+                DateTime lastAltFTime = DateTime.MinValue;
                 
                 try
                 {
@@ -207,7 +226,7 @@ namespace RSTGameTranslation
                             if ((now - lastAltGTime).TotalMilliseconds > 500)
                             {
                                 Console.WriteLine("Polling detected: Alt+G");
-                                // Sử dụng tham chiếu đầy đủ để tránh xung đột
+                                
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => 
                                 {
                                     StartStopRequested?.Invoke(null, EventArgs.Empty);
@@ -226,7 +245,7 @@ namespace RSTGameTranslation
                             if ((now - lastAltHTime).TotalMilliseconds > 500)
                             {
                                 Console.WriteLine("Polling detected: Alt+H");
-                                // Sử dụng tham chiếu đầy đủ để tránh xung đột
+                                
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => 
                                 {
                                     MainWindowVisibilityToggleRequested?.Invoke(null, EventArgs.Empty);
@@ -236,8 +255,27 @@ namespace RSTGameTranslation
                         }
                         altHWasPressed = isAltPressed && isHPressed;
                         
+                        // Check for Alt+F
+                        bool isFPressed = IsKeyPressed(VK_F);
+                        
+                        if (isAltPressed && isFPressed && !altFWasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAltFTime).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+F");
+                                
+                                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                                {
+                                    MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAltFTime = now;
+                            }
+                        }
+                        altFWasPressed = isAltPressed && isFPressed;
+                        
                         // Sleep to reduce CPU usage
-                        await Task.Delay(30, _pollingCts.Token); // Giảm thời gian delay để phát hiện phím nhanh hơn
+                        await Task.Delay(30, _pollingCts.Token); 
                     }
                 }
                 catch (OperationCanceledException)
@@ -278,6 +316,7 @@ namespace RSTGameTranslation
             {
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_G);
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_H);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_F);
             }
             
             // Remove low-level keyboard hook
@@ -360,12 +399,31 @@ namespace RSTGameTranslation
                             return (IntPtr)1; // Prevent further processing
                         }
                         
+                        // Check for Alt+F (Toggle Monitor Window) - Always global
+                        if (vkCode == VK_F && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_F | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+F");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+F action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+                        
                         // Application-specific shortcuts - only process if our application has focus
                         if (IsOurApplicationActive())
                         {
                             bool isShiftPressed = IsKeyPressed(VK_SHIFT);
                             
-                            // Check if it's one of our shortcuts with just Shift (M, C, P, L)
+                            // Check if it's one of our shortcuts with just Shift (C, P, L)
                             if (isShiftPressed && !isAltPressed)
                             {
                                 // Convert the virtual key code to a Key
@@ -447,18 +505,18 @@ namespace RSTGameTranslation
                     e.Handled = true;
                     return true;
                 }
-                
-                // The following shortcuts only work when the application has focus
-                
-                // Shift+M: Toggle Monitor Window
-                else if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Shift)
+                // Alt+F: Toggle Monitor Window (global shortcut)
+                else if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Alt)
                 {
                     MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
                     return true;
                 }
+                
+                // The following shortcuts only work when the application has focus
+                
                 // Shift+C: Toggle ChatBox
-                else if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Shift)
+                if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Shift)
                 {
                     ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
@@ -493,9 +551,8 @@ namespace RSTGameTranslation
             if (modifiers != ModifierKeys.Shift)
                 return false;
                 
-            // Check if it's one of our shortcut keys (only M, C, P, L now)
-            return key == Key.M || key == Key.C || 
-                   key == Key.P || key == Key.L;
+            // Đã loại bỏ M khỏi danh sách phím tắt Shift
+            return key == Key.C || key == Key.P || key == Key.L;
         }
         
         // Handle raw key input for global hook
@@ -506,14 +563,9 @@ namespace RSTGameTranslation
                 if (modifiers != ModifierKeys.Shift)
                     return false;
                     
-                // Shift+M: Toggle Monitor Window
-                if (key == Key.M)
-                {
-                    MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                }
+                
                 // Shift+C: Toggle ChatBox
-                else if (key == Key.C)
+                if (key == Key.C)
                 {
                     ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
                     return true;

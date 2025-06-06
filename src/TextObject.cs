@@ -58,7 +58,7 @@ namespace RSTGameTranslation
             Y = y;
             Width = width;
             Height = height;
-            TextColor = textColor ?? new SolidColorBrush(Colors.White);
+            TextColor = textColor ?? new SolidColorBrush(Colors.Yellow);
             BackgroundColor = backgroundColor ?? new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)); // Half-transparent black
             CaptureX = captureX;
             CaptureY = captureY;
@@ -214,7 +214,7 @@ namespace RSTGameTranslation
 
                 // Basic text settings
                 textBlock.TextWrapping = TextWrapping.Wrap;
-                textBlock.VerticalAlignment = VerticalAlignment.Center;
+                textBlock.VerticalAlignment = VerticalAlignment.Top;
                 textBlock.TextAlignment = TextAlignment.Left;
                 
                 // Create a cache key based on text length, width and height
@@ -228,38 +228,49 @@ namespace RSTGameTranslation
                     textBlock.LayoutTransform = Transform.Identity;
                     return;
                 }
+                double scaleFactor = 1.0;
+
+                string methodOcr = ConfigManager.Instance.GetOcrMethod();
+                if (methodOcr == "PaddleOCR")
+                {
+                    scaleFactor = 1.3;
+                }
                 
                 // Binary search for the best font size
-                double minSize = 10;
-                double maxSize = 48; // Increased from 36 to 48 to allow for larger text
-                double currentSize = 24; // Increased from 18 to 24 for better initial size
-                int maxIterations = 6; // Reduced from 10 to 6 iterations for performance
+                double minSize = 8 * scaleFactor;
+                double maxSize = 36 * scaleFactor; // Increased from 36 to 48 to allow for larger text
+                double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
+                int maxIterations = 8; // Reduced from 10 to 6 iterations for performance
                 double lastDiff = double.MaxValue;
-                
+
                 for (int i = 0; i < maxIterations; i++)
                 {
                     textBlock.FontSize = currentSize;
                     textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
                     
-                    double currentDiff = Math.Abs(textBlock.DesiredSize.Height - Height);
+                    // Check for height and width differences
+                    double heightDiff = Math.Abs(textBlock.DesiredSize.Height - Height);
+                    bool isWidthOk = textBlock.DesiredSize.Width <= Width;
+                    
+                    // Calculate a combined difference for height and width
+                    double currentDiff = heightDiff + (isWidthOk ? 0 : 100);
                     
                     // Early termination if we're close enough
-                    if (currentDiff < 2 || Math.Abs(lastDiff - currentDiff) < 0.5)
+                    if ((heightDiff < 2 && isWidthOk) || Math.Abs(lastDiff - currentDiff) < 0.5)
                     {
                         break;
                     }
                     
                     lastDiff = currentDiff;
                     
-                    // If text is too tall, decrease font size more aggressively
-                    if (textBlock.DesiredSize.Height > Height * 0.90)
+                    // If text is too tall or too wide, decrease font size
+                    if (textBlock.DesiredSize.Height > Height * 0.95 || !isWidthOk)
                     {
                         maxSize = currentSize;
                         currentSize = (minSize + currentSize) / 2;
                     }
-                    // If text is too short, increase font size
-                    // Using 0.85 for a more balanced fit that prevents overflow
-                    else if (textBlock.DesiredSize.Height < Height * 0.85)
+                    // If text is too short or too narrow, increase font size
+                    else if (textBlock.DesiredSize.Height < Height * 0.85 && isWidthOk)
                     {
                         minSize = currentSize;
                         currentSize = (currentSize + maxSize) / 2;
@@ -273,6 +284,7 @@ namespace RSTGameTranslation
                 
                 // Verify final size is within min/max range
                 double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
+                Console.WriteLine($"Fontsize change:-------------------- {finalSize}");
                 textBlock.FontSize = finalSize;
                 textBlock.LayoutTransform = Transform.Identity;
                 
