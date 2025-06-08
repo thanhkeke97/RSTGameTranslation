@@ -1233,7 +1233,7 @@ namespace RSTGameTranslation
                 
                 // Create text object with white text on semi-transparent black background
                 SolidColorBrush textColor = new SolidColorBrush(Colors.Yellow);
-                SolidColorBrush bgColor = new SolidColorBrush(Color.FromArgb(190, 0, 0, 0));
+                SolidColorBrush bgColor = new SolidColorBrush(Colors.Black);
                 
                 // Add the text object to the UI
                 TextObject textObject = new TextObject(

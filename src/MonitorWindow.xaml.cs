@@ -620,25 +620,26 @@ namespace RSTGameTranslation
                     Console.WriteLine("Warning: TextObject or Canvas is null in OnTextObjectAdded");
                     return;
                 }
-                
+
                 // We need to create a NEW UI element with positioning appropriate for Canvas
                 // but we'll use the existing Border and TextBlock references so updates work
                 if (textObject.Border != null)
                 {
                     // Reset margin to zero - we'll position with Canvas instead
                     textObject.Border.Margin = new Thickness(0);
-                    
+
                     // Position the element on the canvas using Canvas.SetLeft/Top
                     Canvas.SetLeft(textObject.Border, textObject.X);
                     Canvas.SetTop(textObject.Border, textObject.Y);
-                    
+
                     // Add to canvas
                     textOverlayCanvas.Children.Add(textObject.Border);
-                    
+
                     // Add additional status update when text is copied
-                    textObject.Border.MouseLeftButtonDown += (s, e) => {
-                        UpdateStatus("Text copied to clipboard");
-                    };
+                    // textObject.Border.MouseLeftButtonDown += (s, e) => {
+                    //     UpdateStatus("Text copied to clipboard");
+                    // };
+                    textObject.Border.IsHitTestVisible = false;
                 }
                 else
                 {
