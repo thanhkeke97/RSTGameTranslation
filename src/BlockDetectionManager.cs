@@ -317,13 +317,18 @@ namespace RSTGameTranslation
                             currentWord.Text += character.Text;
                             
                             // Update word bounds
-                            double right = Math.Max(currentWord.Bounds.X + currentWord.Bounds.Width, 
-                                               character.Bounds.X + character.Bounds.Width);
-                            double bottom = Math.Max(currentWord.Bounds.Y + currentWord.Bounds.Height, 
-                                               character.Bounds.Y + character.Bounds.Height);
-                                               
-                            currentWord.Bounds.Width = right - currentWord.Bounds.X;
-                            currentWord.Bounds.Height = bottom - currentWord.Bounds.Y;
+                            double minX = Math.Min(currentWord.Bounds.X, character.Bounds.X);
+                            double minY = Math.Min(currentWord.Bounds.Y, character.Bounds.Y);
+                            double maxX = Math.Max(currentWord.Bounds.X + currentWord.Bounds.Width, 
+                                            character.Bounds.X + character.Bounds.Width);
+                            double maxY = Math.Max(currentWord.Bounds.Y + currentWord.Bounds.Height, 
+                                            character.Bounds.Y + character.Bounds.Height);
+                            
+                            // Cập nhật bounds của từ hiện tại
+                            currentWord.Bounds.X = minX;
+                            currentWord.Bounds.Y = minY;
+                            currentWord.Bounds.Width = maxX - minX;
+                            currentWord.Bounds.Height = maxY - minY;
                             
                             // Add to children
                             currentWord.Children.Add(character);
@@ -467,10 +472,18 @@ namespace RSTGameTranslation
                     };
                     
                     // Set line bounds based on segment words
-                    double minX = segment.Min(w => w.Bounds.X);
-                    double minY = segment.Min(w => w.Bounds.Y);
-                    double maxX = segment.Max(w => w.Bounds.X + w.Bounds.Width);
-                    double maxY = segment.Max(w => w.Bounds.Y + w.Bounds.Height);
+                    double minX = double.MaxValue;
+                    double minY = double.MaxValue;
+                    double maxX = double.MinValue;
+                    double maxY = double.MinValue;
+                    
+                    foreach (var word in segment)
+                    {
+                        minX = Math.Min(minX, word.Bounds.X);
+                        minY = Math.Min(minY, word.Bounds.Y);
+                        maxX = Math.Max(maxX, word.Bounds.X + word.Bounds.Width);
+                        maxY = Math.Max(maxY, word.Bounds.Y + word.Bounds.Height);
+                    }
                     
                     line.Bounds = new Rect(minX, minY, maxX - minX, maxY - minY);
                     line.CenterY = minY + (maxY - minY) / 2;
@@ -647,13 +660,17 @@ namespace RSTGameTranslation
 
 
                         // Update paragraph bounds
-                        double right = Math.Max(currentParagraph.Bounds.X + currentParagraph.Bounds.Width, 
-                                          line.Bounds.X + line.Bounds.Width);
-                        double bottom = Math.Max(currentParagraph.Bounds.Y + currentParagraph.Bounds.Height, 
-                                          line.Bounds.Y + line.Bounds.Height);
-                                          
-                        currentParagraph.Bounds.Width = right - currentParagraph.Bounds.X;
-                        currentParagraph.Bounds.Height = bottom - currentParagraph.Bounds.Y;
+                        double minX = Math.Min(currentParagraph.Bounds.X, line.Bounds.X);
+                        double minY = Math.Min(currentParagraph.Bounds.Y, line.Bounds.Y);
+                        double maxX = Math.Max(currentParagraph.Bounds.X + currentParagraph.Bounds.Width, 
+                                        line.Bounds.X + line.Bounds.Width);
+                        double maxY = Math.Max(currentParagraph.Bounds.Y + currentParagraph.Bounds.Height, 
+                                        line.Bounds.Y + line.Bounds.Height);
+                                        
+                        currentParagraph.Bounds.X = minX;
+                        currentParagraph.Bounds.Y = minY;
+                        currentParagraph.Bounds.Width = maxX - minX;
+                        currentParagraph.Bounds.Height = maxY - minY;
                     }
                 }
             }

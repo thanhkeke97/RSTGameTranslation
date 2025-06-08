@@ -58,7 +58,7 @@ namespace RSTGameTranslation
             Y = y;
             Width = width;
             Height = height;
-            TextColor = textColor ?? new SolidColorBrush(Colors.White);
+            TextColor = textColor ?? new SolidColorBrush(Colors.Yellow);
             BackgroundColor = backgroundColor ?? new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)); // Half-transparent black
             CaptureX = captureX;
             CaptureY = captureY;
@@ -80,7 +80,7 @@ namespace RSTGameTranslation
                 Background = BackgroundColor,
                 BorderThickness = new Thickness(0),
                 CornerRadius = new CornerRadius(2),
-                Padding = new Thickness(5, 2, 5, 2),  // Added padding for better text display
+                Padding = new Thickness(0, 0, 0, 0),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
                 Cursor = Cursors.Hand  // Change cursor to hand to indicate clickable
@@ -99,7 +99,7 @@ namespace RSTGameTranslation
                 Text = this.Text,
                 Foreground = this.TextColor,
                 FontWeight = FontWeights.Normal,
-                FontSize = 18, 
+                FontSize = 24, // Increased from 18 to 24 for better initial size
                 TextWrapping = TextWrapping.Wrap,
                 TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
                 FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
@@ -158,31 +158,14 @@ namespace RSTGameTranslation
                 {
                     // Use translated text if available
                     TextBlock.Text = this.TextTranslated;
-                    
-                    // Highlight translated text with visual enhancements
-                    TextBlock.FontWeight = FontWeights.Bold;
-                    
-                    // Make translated text more visible with a brighter color
-                    TextBlock.Foreground = new SolidColorBrush(Colors.White);
-                    
-                    // Add a subtle glow effect to the border for translated text
-                    Border.Background = new SolidColorBrush(Color.FromArgb(200, 0, 100, 0)); // Darker green background
-                    Border.BorderBrush = new SolidColorBrush(Colors.LightGreen);
-                    Border.BorderThickness = new Thickness(2);
-                    Border.CornerRadius = new CornerRadius(4);
                 }
-                else
-                {
-                    // Use original text
-                    TextBlock.Text = this.Text;
-                    TextBlock.FontWeight = FontWeights.Normal;
-                    TextBlock.Foreground = this.TextColor;
-                    Border.Background = this.BackgroundColor;
-                    Border.BorderThickness = new Thickness(0);
-                    Border.BorderBrush = null;
-                    Border.CornerRadius = new CornerRadius(2);
-                }
-                
+                // else
+                // {
+                //     // Use original text
+                //     TextBlock.Text = this.Text;
+                // }
+                TextBlock.Foreground = this.TextColor;
+                Border.Background = this.BackgroundColor;
                 // Position at the upper left of the rectangle
                 Border.Margin = new Thickness(X, Y, 0, 0);
 
@@ -192,27 +175,13 @@ namespace RSTGameTranslation
                     Border.MaxWidth = Width + 20; // Increased padding for word wrap
                 }
 
-                // Adjust height based on text content if translated text is longer
                 if (Height > 0)
                 {
-                    if (this.TextTranslated != null && this.TextTranslated.Length > 0)
-                    {
-                        // Measure the height needed for the translated text
-                        TextBlock.Measure(new Size(Width > 0 ? Width : Double.PositiveInfinity, Double.PositiveInfinity));
-                        double neededHeight = TextBlock.DesiredSize.Height + 10; // Add some padding
-                        
-                        // Use the larger of the original height or the needed height
-                        Border.Height = Math.Max(Height, neededHeight);
-                    }
-                    else
-                    {
-                        // Use original height for original text
-                        Border.Height = Height;
-                    }
+                    Border.Height = Height;
                 }
 
                 // Reset font size to default and then adjust if needed
-                TextBlock.FontSize = 18; // Increased from 18 to 24 for better initial size
+                TextBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
                 AdjustFontSize(Border, TextBlock);
             }
         }
@@ -220,7 +189,7 @@ namespace RSTGameTranslation
         // Static cache for font size calculations
         private static readonly Dictionary<string, double> _fontSizeCache = new Dictionary<string, double>();
         
-        // Adjust font size to fit within the container based on text length ratio
+        // Adjust font size to fit within the container using binary search
         private void AdjustFontSize(Border border, TextBlock textBlock)
         {
             try
@@ -229,16 +198,16 @@ namespace RSTGameTranslation
                 if (!ConfigManager.Instance.IsAutoSizeTextBlocksEnabled())
                 {
                     // Just set default font size and exit
-                    textBlock.FontSize = 18;
+                    textBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
                     textBlock.LayoutTransform = Transform.Identity;
                     return;
                 }
                 
                 // Exit early if dimensions aren't set or text is empty
-                if (Width <= 0 || border.Height <= 0 || string.IsNullOrWhiteSpace(textBlock.Text))
+                if (Width <= 0 || Height <= 0 || string.IsNullOrWhiteSpace(textBlock.Text))
                 {
                     // Reset to defaults and exit
-                    textBlock.FontSize = 18;
+                    textBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
                     textBlock.LayoutTransform = Transform.Identity;
                     return;
                 }
@@ -248,101 +217,89 @@ namespace RSTGameTranslation
                 textBlock.VerticalAlignment = VerticalAlignment.Top;
                 textBlock.TextAlignment = TextAlignment.Left;
                 
-                // Default font size
-                double fontSize = 18;
+                // Create a cache key based on text length, width and height
+                // Using length instead of full text to increase cache hits for similar-sized texts
+                string cacheKey = $"{textBlock.Text.Length}_{Width}_{Height}";
                 
-                // Check if we've already calculated the font size for this text
-                bool isTranslated = !string.IsNullOrEmpty(this.TextTranslated);
-                if (isTranslated && !string.IsNullOrEmpty(this.Text))
+                // Check if we have a cached font size for similar dimensions
+                if (_fontSizeCache.TryGetValue(cacheKey, out double cachedFontSize))
                 {
-                    // Use cached font size if available
-                    double textRatio = (double)this.TextTranslated.Length / this.Text.Length;
-                    
+                    textBlock.FontSize = cachedFontSize;
+                    textBlock.LayoutTransform = Transform.Identity;
+                    return;
+                }
+                double scaleFactor = 1.0;
 
-                    if (textRatio > 1.0)
-                    {
+                string methodOcr = ConfigManager.Instance.GetOcrMethod();
+                if (methodOcr == "PaddleOCR")
+                {
+                    scaleFactor = 1.3;
+                }
+                
+                // Binary search for the best font size
+                double minSize = 8 * scaleFactor;
+                double maxSize = 36 * scaleFactor; // Increased from 36 to 48 to allow for larger text
+                double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
+                int maxIterations = 8; // Reduced from 10 to 6 iterations for performance
+                double lastDiff = double.MaxValue;
 
-                        fontSize = 18 / Math.Sqrt(textRatio);
-                        
-                        // Ensure the font size is not too small
-                        fontSize = Math.Max(fontSize, 12);
-                    }
-                }
-                
-                // Adjust font size based on text length
-                if (textBlock.Text.Length > 100)
+                for (int i = 0; i < maxIterations; i++)
                 {
-                    // Reducing font size for longer text
-                    fontSize = Math.Min(fontSize, 14);
-                }
-                else if (textBlock.Text.Length < 20)
-                {
-                    // Increasing font size for shorter text
-                    fontSize = Math.Min(Math.Max(fontSize, 18), 24);
-                }
-                
-                // Apply the calculated font size to the text block
-                textBlock.FontSize = fontSize;
-                
-                // Measure the text block to get its desired size
-                textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
-                double neededHeight = textBlock.DesiredSize.Height + 10; // Thêm padding
-                
-                // Check if the text block exceeds the border's height
-                if (neededHeight > border.Height)
-                {
-                    // Calculate the overflow ratio
-                    double overflowRatio = neededHeight / border.Height;
+                    textBlock.FontSize = currentSize;
+                    textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
                     
-                    if (overflowRatio > 1.2)
+                    // Check for height and width differences
+                    double heightDiff = Math.Abs(textBlock.DesiredSize.Height - Height);
+                    bool isWidthOk = textBlock.DesiredSize.Width <= Width;
+                    
+                    // Calculate a combined difference for height and width
+                    double currentDiff = heightDiff + (isWidthOk ? 0 : 100);
+                    
+                    // Early termination if we're close enough
+                    if ((heightDiff < 2 && isWidthOk) || Math.Abs(lastDiff - currentDiff) < 0.5)
                     {
-                        // If the overflow ratio is too high, reduce the font size
-                        // to fit within the border's height while maintaining a minimum size.
-                        textBlock.FontSize = fontSize / overflowRatio;
-                        
-                        // Ensure the font size is not too small
-                        textBlock.FontSize = Math.Max(textBlock.FontSize, 10);
-                        
-                        // Measure the text block again to get the updated desired size
-                        textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
-                        neededHeight = textBlock.DesiredSize.Height + 10;
+                        break;
                     }
                     
-                    // Adjust the border's height if needed
-                    border.Height = neededHeight;
-                }
-                else if (neededHeight < border.Height * 0.6 && textBlock.FontSize < 24)
-                {
+                    lastDiff = currentDiff;
                     
-                    // Calculate the remaining ratio between the border's height and the text block's height
-                    double remainingRatio = border.Height / neededHeight;
-                    
-                    if (remainingRatio > 1.5)
+                    // If text is too tall or too wide, decrease font size
+                    if (textBlock.DesiredSize.Height > Height * 0.95 || !isWidthOk)
                     {
-                        // Increase the font size to fill the remaining space while maintaining a maximum size.
-                        double newFontSize = Math.Min(textBlock.FontSize * Math.Min(remainingRatio * 0.7, 1.3), 24);
-                        textBlock.FontSize = newFontSize;
-                        
-                        // Measure the text block again to get the updated desired size
-                        textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
-                        neededHeight = textBlock.DesiredSize.Height + 10;
-                        
-                        // Adjust the border's height if needed
-                        if (neededHeight > border.Height * 0.8)
-                        {
-                            border.Height = neededHeight;
-                        }
+                        maxSize = currentSize;
+                        currentSize = (minSize + currentSize) / 2;
+                    }
+                    // If text is too short or too narrow, increase font size
+                    else if (textBlock.DesiredSize.Height < Height * 0.85 && isWidthOk)
+                    {
+                        minSize = currentSize;
+                        currentSize = (currentSize + maxSize) / 2;
+                    }
+                    // Good enough fit
+                    else
+                    {
+                        break;
                     }
                 }
                 
-                // Ensure the text block is centered vertically within the border
+                // Verify final size is within min/max range
+                double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
+                Console.WriteLine($"Fontsize change:-------------------- {finalSize}");
+                textBlock.FontSize = finalSize;
                 textBlock.LayoutTransform = Transform.Identity;
+                
+                // Cache the result for future use
+                if (_fontSizeCache.Count > 100) // Limit cache size
+                {
+                    _fontSizeCache.Clear(); // Simple strategy: clear all when too many entries
+                }
+                _fontSizeCache[cacheKey] = finalSize;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in AdjustFontSize: {ex.Message}");
                 // Reset to defaults in case of any exception
-                textBlock.FontSize = 18;
+                textBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
                 textBlock.LayoutTransform = Transform.Identity;
             }
         }

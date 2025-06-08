@@ -5,12 +5,26 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Windows.Interop;
+using System.Runtime.InteropServices;
 
 
 namespace RSTGameTranslation
 {
     public partial class MonitorWindow : Window
     {
+        // Add P/Invoke declarations for window attribute
+        private const int DWMWA_EXCLUDED_FROM_PEEK = 12;
+        private const int DWMWA_CLOAK = 13;
+        private const int DWMWA_CLOAKED = 14;
+        private const int DWM_TNP_VISIBLE = 8;
+        private const int DWM_TNP_OPACITY = 4;
+        private const int DWM_TNP_RECTDESTINATION = 1;
+        private const int WDA_EXCLUDEFROMCAPTURE = 0x00000011;
+        
+        [DllImport("user32.dll")]
+        private static extern int SetWindowDisplayAffinity(IntPtr hwnd, uint dwAffinity);
+
         private double currentZoom = 1.0;
         private const double zoomIncrement = 0.1;
         private string lastImagePath = string.Empty;
@@ -28,40 +42,53 @@ namespace RSTGameTranslation
                 return _instance;
             }
         }
-        
+
+        public static void ResetInstance()
+        {
+            if (_instance != null)
+            {
+                _instance.Close();
+                _instance = null;
+            }
+        }
+
         // Settle time is stored in ConfigManager, no need for a local variable
-        
+
         public MonitorWindow()
         {
             // Make sure the initialization flag is set before anything else
             _isInitializing = true;
             Console.WriteLine("MonitorWindow constructor: Setting _isInitializing to true");
-            
+
             InitializeComponent();
-            
+
             Console.WriteLine("MonitorWindow constructor started");
-            
+            this.Topmost = true;
+            this.Focusable = false;
+            this.ShowActivated = false;
+            this.ShowInTaskbar = false;
+
             // Subscribe to TextObject events from Logic
             //Logic.Instance.TextObjectAdded += CreateMonitorOverlayFromTextObject;
-            
+
             // Set initial status
             UpdateStatus("Ready");
-             
+
             // Add loaded event handler
             this.Loaded += MonitorWindow_Loaded;
-            
+
             // Add size changed handler to update scrollbars
             this.SizeChanged += MonitorWindow_SizeChanged;
-            
+
             // Manually connect events (to ensure we have control over when they're attached)
             ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
             autoTranslateCheckBox.Checked += AutoTranslateCheckBox_CheckedChanged;
             autoTranslateCheckBox.Unchecked += AutoTranslateCheckBox_CheckedChanged;
-            
+
             // Add event handlers for the zoom TextBox
             zoomTextBox.TextChanged += ZoomTextBox_TextChanged;
             zoomTextBox.LostFocus += ZoomTextBox_LostFocus;
-            
+
             // Add KeyDown event handlers for TextBoxes to handle Enter key
             zoomTextBox.KeyDown += TextBox_KeyDown;
 
@@ -73,11 +100,27 @@ namespace RSTGameTranslation
                 this.Width = 600;
             if (this.Height == 0)
                 this.Height = 500;
-                
+
             // Register application-wide keyboard shortcut handler
             this.PreviewKeyDown += Application_KeyDown;
 
             Console.WriteLine("MonitorWindow constructor completed");
+
+            // Add SourceInitialized event handler to set window attributes
+            this.SourceInitialized += MonitorWindow_SourceInitialized;
+            Console.WriteLine("Exclude MonitorWindow from capture success");
+        }
+        
+        // Add a new method to handle SourceInitialized event
+        private void MonitorWindow_SourceInitialized(object? sender, EventArgs e)
+        {
+            // Get window handle
+            IntPtr hwnd = new WindowInteropHelper(this).Handle;
+
+            // Set the window to be excluded from capture
+            SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
+
+            Console.WriteLine("MonitorWindow set to be excluded from screen capture");
         }
 
         private void OnSocketConnectionChanged(object? sender, bool isConnected)
@@ -435,6 +478,7 @@ namespace RSTGameTranslation
             try
             {
                 lastImagePath = imagePath;
+                Console.WriteLine($"ImagePath: {lastImagePath}");
                 
                 // Get the absolute file path (fully qualified)
                 string fullPath = Path.GetFullPath(imagePath);
@@ -499,20 +543,22 @@ namespace RSTGameTranslation
                     UpdateStatus($"Error loading image: {ex.Message}");
                 }
                 
+                
                 // Clear existing overlay elements
                 // textOverlayCanvas.Children.Clear();
-                
+
                 // Ensure UI updates happen on the UI thread
                 if (!Dispatcher.CheckAccess())
                 {
-                    Dispatcher.Invoke(() => {
+                    Dispatcher.Invoke(() =>
+                    {
                         // Show the window if not visible
                         if (!IsVisible)
                         {
                             Show();
                             Console.WriteLine("Monitor window shown during screenshot update");
                         }
-                        
+
                         // Make sure scroll bars appear when needed
                         UpdateScrollViewerSettings();
                     });
@@ -525,7 +571,7 @@ namespace RSTGameTranslation
                         Show();
                         Console.WriteLine("Monitor window shown during screenshot update");
                     }
-                    
+
                     // Make sure scroll bars appear when needed
                     UpdateScrollViewerSettings();
                 }
@@ -574,25 +620,26 @@ namespace RSTGameTranslation
                     Console.WriteLine("Warning: TextObject or Canvas is null in OnTextObjectAdded");
                     return;
                 }
-                
+
                 // We need to create a NEW UI element with positioning appropriate for Canvas
                 // but we'll use the existing Border and TextBlock references so updates work
                 if (textObject.Border != null)
                 {
                     // Reset margin to zero - we'll position with Canvas instead
                     textObject.Border.Margin = new Thickness(0);
-                    
+
                     // Position the element on the canvas using Canvas.SetLeft/Top
                     Canvas.SetLeft(textObject.Border, textObject.X);
                     Canvas.SetTop(textObject.Border, textObject.Y);
-                    
+
                     // Add to canvas
                     textOverlayCanvas.Children.Add(textObject.Border);
-                    
+
                     // Add additional status update when text is copied
-                    textObject.Border.MouseLeftButtonDown += (s, e) => {
-                        UpdateStatus("Text copied to clipboard");
-                    };
+                    // textObject.Border.MouseLeftButtonDown += (s, e) => {
+                    //     UpdateStatus("Text copied to clipboard");
+                    // };
+                    textObject.Border.IsHitTestVisible = false;
                 }
                 else
                 {
@@ -782,12 +829,30 @@ namespace RSTGameTranslation
             });
         }
         
+        private bool _forceClose = false;
+
+        public void ForceClose()
+        {
+            _forceClose = true;
+            Close();
+        }
+
         // Override closing to hide instead
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            e.Cancel = true;  // Cancel the close
-            Hide();           // Hide the window instead
-            Console.WriteLine("Monitor window closing operation converted to hide");
+            if (_forceClose)
+            {
+                // Cho phép đóng cửa sổ
+                e.Cancel = false;
+                Console.WriteLine("Monitor window force closed");
+            }
+            else
+            {
+                // Chỉ ẩn cửa sổ thay vì đóng
+                e.Cancel = true;
+                Hide();
+                Console.WriteLine("Monitor window closing operation converted to hide");
+            }
         }
         
        
