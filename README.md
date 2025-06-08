@@ -21,6 +21,7 @@
 - Live automatic translations using EasyOCR or PaddleOCR
 - Powerful overlay chat window for visual novels
 - Full-screen translation capability
+- Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F)
 
 🤖 **AI-Powered Translation**
 - Support for multiple LLMs: Gemini, ChatGPT, Ollama
@@ -91,7 +92,7 @@
 |----------|----------|------|
 | `Alt + G` | Start/Stop OCR | Works globally |
 | `Alt + H` | Show/Hide Main Window | Works globally |
-| `Shift + M` | Show/Hide Monitor | |
+| `Alt + F` | Show/Hide Monitor Overlay | Works globally |
 | `Shift + C` | Show/Hide ChatBox | |
 | `Shift + P` | Show/Hide Settings | |
 | `Shift + L` | Show/Hide Log Console | |

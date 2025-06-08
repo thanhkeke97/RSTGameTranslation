@@ -476,9 +476,10 @@ namespace RSTGameTranslation
 
             // Load auto-translate setting from config
             isAutoTranslateEnabled = ConfigManager.Instance.IsAutoTranslateEnabled();
-            
+
             // Đăng ký sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
             this.LocationChanged += MainWindow_LocationChanged;
+            ToggleMonitorWindow();
         }
 
         // Thêm sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
