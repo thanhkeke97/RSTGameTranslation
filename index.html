@@ -196,6 +196,11 @@
                 font-size: 2rem;
             }
         }
+        
+        .emoji-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
     </style>
     <!-- Schema.org markup for Google -->
     <script type="application/ld+json">
@@ -225,9 +230,9 @@
 <body>
     <header>
         <div class="container">
-            <h1>RSTGameTranslation</h1>
+            <h1>🎮 RSTGameTranslation</h1>
             <p>Realtime Screen Translation cho Game và Ứng dụng</p>
-            <div class="version-badge">Phiên bản 0.6</div>
+            <div class="version-badge">Phiên bản 0.5</div>
         </div>
     </header>
 
@@ -235,69 +240,62 @@
         <nav>
             <h2>Điều hướng nhanh</h2>
             <ul>
-                <li><a href="#tinh-nang">Tính năng chính</a></li>
-                <li><a href="#luu-y">Lưu ý quan trọng</a></li>
-                <li><a href="#cai-dat">Cách cài đặt</a></li>
-                <li><a href="#cap-nhat">Cách cập nhật</a></li>
-                <li><a href="#phim-tat">Phím tắt</a></li>
-                <li><a href="#cai-dat-nang-cao">Cài đặt nâng cao</a></li>
-                <li><a href="#faq">Câu hỏi thường gặp</a></li>
+                <li><a href="#tinh-nang">✨ Tính năng chính</a></li>
+                <li><a href="#luu-y">⚠️ Lưu ý quan trọng</a></li>
+                <li><a href="#cai-dat">🚀 Cách cài đặt</a></li>
+                <li><a href="#cap-nhat">🔄 Cách cập nhật</a></li>
+                <li><a href="#phim-tat">⌨️ Phím tắt</a></li>
+                <li><a href="#cai-dat-nang-cao">⚙️ Cài đặt nâng cao</a></li>
+                <li><a href="#faq">❓ Câu hỏi thường gặp</a></li>
             </ul>
         </nav>
         <section id="tinh-nang">
-            <h2>Tính năng chính</h2>
+            <h2>✨ Tính năng chính</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-                    <i class="fas fa-eye" aria-hidden="true"></i>
-                    <h3>Nhận dạng văn bản thời gian thực</h3>
-                    <p>Sử dụng EasyOCR hoặc PaddleOCR chạy cục bộ thông qua máy chủ Python để dịch tự động theo thời gian thực.</p>
+                    <h3>🔥 Dịch thời gian thực</h3>
+                    <p>Sử dụng EasyOCR hoặc PaddleOCR chạy cục bộ để dịch tự động theo thời gian thực. Hỗ trợ cửa sổ chat cho visual novel và dịch toàn màn hình.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-brain" aria-hidden="true"></i>
-                    <h3>Dịch bằng AI tiên tiến</h3>
-                    <p>Tất cả các bản dịch được thực hiện với Large Language Models (LLMs) - hỗ trợ Gemini, ChatGPT, Ollama và Google Translate.</p>
+                    <h3>🤖 Dịch bằng AI tiên tiến</h3>
+                    <p>Hỗ trợ nhiều LLM: Gemini, ChatGPT, Ollama và Google Translate. Dịch thuật nhận biết ngữ cảnh cho độ chính xác cao hơn.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-lock" aria-hidden="true"></i>
-                    <h3>Quyền riêng tư</h3>
-                    <p>Có thể chạy 100% cục bộ bằng cách sử dụng Ollama với LLM tùy chọn, không gửi dữ liệu ra ngoài.</p>
+                    <h3>🎯 Nhận dạng thông minh</h3>
+                    <p>Tối ưu hóa dịch thuật cho từng game cụ thể, xem xét ngữ cảnh trước đó và nhận dạng tên nhân vật/địa điểm.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-desktop" aria-hidden="true"></i>
-                    <h3>Giao diện linh hoạt</h3>
-                    <p>Hiển thị cửa sổ chat ở vị trí bạn muốn hoặc dịch toàn bộ màn hình với giao diện dễ sử dụng.</p>
+                    <h3>🔊 Tính năng bổ sung</h3>
+                    <p>Chức năng text-to-speech, tạo kế hoạch bài học và khả năng dịch 100% cục bộ với Ollama.</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-volume-up" aria-hidden="true"></i>
-                    <h3>Dịch đè text gốc</h3>
-                    <p>Có thể dịch đè lên văn bản gốc trong vùng dịch được chọn</p>
+                    <h3>📝 Dịch đè text gốc</h3>
+                    <p>Hiển thị văn bản dịch đè lên văn bản gốc trong vùng dịch được chọn (Phím tắt Alt+F).</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-gamepad" aria-hidden="true"></i>
-                    <h3>Tối ưu cho game</h3>
-                    <p>Bằng cách cung cấp thông tin về game đang dịch và ngữ cảnh trước đó, bản dịch có thể chính xác hơn các phương pháp khác.</p>
+                    <h3>🎮 Tối ưu cho game</h3>
+                    <p>Bằng cách cung cấp thông tin về game đang dịch và ngữ cảnh trước đó, bản dịch chính xác hơn các phương pháp khác.</p>
                 </div>
             </div>
         </section>
 
         <section id="luu-y">
-            <h2>Lưu ý quan trọng</h2>
+            <h2>⚠️ Lưu ý quan trọng</h2>
             <div class="important-note">
                 <ul>
-                    <li>Chỉ hoạt động trên Windows 10 trở lên.</li>
-                    <li>Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless</li>
-                    <li>Hoạt động tốt nhất khi bạn có GPU NVIDIA.</li>
-                    <li>Bạn cần thêm conda vào biến môi trường PATH và cài đặt conda với tùy chọn "Just me"</li>
-                    <li>Nếu không có GPU chuyên dụng hoặc GPU không phải NVIDIA, phần mềm sẽ sử dụng CPU nhưng hiệu suất sẽ kém (bạn sẽ mất 30-50% công suất CPU).</li>
-                    <li>Bạn có thể sử dụng Windows OCR (nhẹ hơn) thay vì Easy OCR hoặc Paddle OCR, nhưng kết quả nhận dạng trong game rất kém. Chỉ nên dùng Windows OCR cho các tác vụ không phải game.</li>
-                    <li>Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh và ngược lại.</li>
-                    <li>Để sử dụng Easy OCR và Paddle OCR, bạn cần chạy máy chủ trước (hướng dẫn bên dưới).</li>
+                    <li><strong>Yêu cầu hệ thống:</strong> Windows 10 trở lên. Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless.</li>
+                    <li><strong>Phần cứng khuyến nghị:</strong> GPU NVIDIA để có hiệu suất tốt nhất.</li>
+                    <li><strong>Cài đặt Conda:</strong> Thêm conda vào biến môi trường PATH và cài đặt conda với tùy chọn "Just me".</li>
+                    <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU chuyên dụng, bạn sẽ mất 30-50% công suất CPU.</li>
+                    <li><strong>Lựa chọn OCR:</strong> Windows OCR nhẹ hơn nhưng kém hiệu quả cho game. EasyOCR và PaddleOCR cho kết quả tốt hơn.</li>
+                    <li><strong>Vùng dịch:</strong> Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh.</li>
+                    <li><strong>Quyền riêng tư:</strong> Phần mềm chỉ kiểm tra GitHub để cập nhật phiên bản. Dịch vụ đám mây (Gemini, ChatGPT) sẽ thấy nội dung được dịch. Ollama giữ mọi thứ cục bộ.</li>
                 </ul>
             </div>
         </section>
 
         <section id="cai-dat">
-            <h2>Cách cài đặt và sử dụng (Windows)</h2>
+            <h2>🚀 Cách cài đặt và sử dụng (Windows)</h2>
             <div class="installation-steps">
                 <p><strong>Đối với người đang sử dụng phiên bản v0.1 và v0.2 update lên bản mới nhất:</strong> Cần xóa folder RSTGameTranslation/webserver cũ trước khi cài đặt phiên bản mới và chạy <code>RSTGameTranslation/webserver/RemoveEnvNvidia.bat</code> trong phiên bản mới để xóa môi trường conda đã tạo trước đó</p>
                 
@@ -352,7 +350,7 @@
         </section>
 
         <section id="cap-nhat">
-            <h2>Cách cập nhật phiên bản</h2>
+            <h2>🔄 Cách cập nhật phiên bản</h2>
             <p>RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi động. Nếu có phiên bản mới, bạn sẽ thấy thông báo hỏi xem bạn có muốn tải xuống không. Để cập nhật:</p>
             <ul>
                 <li>Tải phiên bản mới nhất từ thông báo hoặc từ <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank" rel="noopener" title="Trang releases của RSTGameTranslation">đây</a></li>
@@ -364,58 +362,87 @@
         </section>
 
         <section id="phim-tat">
-            <h2>Phím tắt</h2>
+            <h2>⌨️ Phím tắt</h2>
             <table class="shortcut-table">
                 <thead>
                     <tr>
                         <th>Phím tắt</th>
                         <th>Chức năng</th>
+                        <th>Ghi chú</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>Alt+G</td>
-                        <td>Bắt đầu/Dừng OCR (Có thể sử dụng khi ứng dụng chính không được focus)</td>
+                        <td>Bắt đầu/Dừng OCR</td>
+                        <td>Hoạt động toàn cục</td>
                     </tr>
                     <tr>
-                        <td>Alt+M</td>
-                        <td>Hiện/Ẩn chế độ hiển thị văn bản dịch trên text gốc (Có thể sử dụng khi ứng dụng chính không được focus)</td>
+                        <td>Alt+H</td>
+                        <td>Hiện/Ẩn cửa sổ chính</td>
+                        <td>Hoạt động toàn cục</td>
+                    </tr>
+                    <tr>
+                        <td>Alt+F</td>
+                        <td>Hiện/Ẩn chế độ hiển thị văn bản dịch đè lên text gốc</td>
+                        <td>Hoạt động toàn cục</td>
                     </tr>
                     <tr>
                         <td>Shift+C</td>
                         <td>Hiện/Ẩn ChatBox</td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td>Shift+P</td>
                         <td>Hiện/Ẩn Cài đặt</td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td>Shift+L</td>
                         <td>Hiện/Ẩn bảng điều khiển nhật ký</td>
-                    </tr>
-                    <tr>
-                        <td>Alt+H</td>
-                        <td>Hiện/Ẩn cửa sổ chính (Có thể sử dụng khi ứng dụng chính không được focus)</td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
         <section id="cai-dat-nang-cao">
-            <h2>Thông tin cài đặt nâng cao</h2>
-            <p>Mặc dù cá nhân tôi khuyên dùng Gemini Flash 2 lite và PaddleOCR (tốt hơn cho ngôn ngữ châu Á và sử dụng ít tài nguyên hơn cho Easy OCR), có nhiều tùy chọn khác nhau cho bạn. Bạn có thể sử dụng OCR tích hợp của Windows thay vì máy chủ python, điều này không hoạt động tốt cho tiếng Nhật nhưng có thể ổn cho các ngôn ngữ khác. Nó nhanh.</p>
-            <p>Ollama và ChatGPT là các tùy chọn LLM khác. Đối với Ollama, hãy cài đặt nó và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu) Đối với ChatGPT/OpenAI, chọn một mô hình như GPT-4.1 Nano.</p>
-            <p>Tất cả OCR được thực hiện ở cấp độ ký tự. Sau đó có một chức năng "Block detection" kết hợp các ký tự lại với nhau để tạo thành từ và đoạn văn. Bạn có thể chỉnh sửa "Block Power" để làm cho nó có khả năng kết hợp các thứ lại với nhau hoặc tách chúng ra. (Hội thoại thì nên kết hợp lại, các thứ khác thì tốt hơn khi không kết hợp, vì vậy tùy thuộc vào việc bạn đang làm gì)</p>
+            <h2>⚙️ Cài đặt nâng cao</h2>
+            <h3>Cài đặt khuyến nghị</h3>
+            <ul>
+                <li><strong>OCR:</strong> PaddleOCR (Tốt hơn cho ngôn ngữ châu Á, sử dụng ít tài nguyên hơn)</li>
+                <li><strong>LLM:</strong> Gemini Flash 2 Lite (Nhanh và chính xác)</li>
+            </ul>
+            
+            <h3>Lựa chọn thay thế</h3>
+            <ul>
+                <li><strong>Windows OCR:</strong> Nhẹ nhưng kém chính xác cho game</li>
+                <li><strong>Ollama:</strong> Dịch 100% cục bộ (RTX 4090: ~5 giây/bản dịch)</li>
+                <li><strong>ChatGPT:</strong> GPT-4.1 Nano cho kết quả cao cấp</li>
+            </ul>
+            
+            <h3>Lời khuyên về hiệu suất</h3>
+            <ul>
+                <li>Vùng dịch nhỏ hơn = xử lý nhanh hơn</li>
+                <li>GPU NVIDIA được khuyến nghị cao</li>
+                <li>Tải xuống ngôn ngữ lần đầu có thể mất 1-2 phút</li>
+            </ul>
+            
+            <p>Mặc dù cá nhân tôi khuyên dùng Gemini Flash 2 lite và PaddleOCR (tốt hơn cho ngôn ngữ châu Á và sử dụng ít tài nguyên hơn), có nhiều tùy chọn khác nhau cho bạn. Bạn có thể sử dụng OCR tích hợp của Windows thay vì máy chủ python, điều này không hoạt động tốt cho tiếng Nhật nhưng có thể ổn cho các ngôn ngữ khác.</p>
+            
+            <p>Đối với Ollama, hãy cài đặt nó và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu)</p>
+            
+            <p>Tất cả OCR được thực hiện ở cấp độ ký tự. Sau đó có một chức năng "Block detection" kết hợp các ký tự lại với nhau để tạo thành từ và đoạn văn. Bạn có thể chỉnh sửa "Block Power" để làm cho nó có khả năng kết hợp các thứ lại với nhau hoặc tách chúng ra.</p>
         </section>
 
         <section id="faq">
-            <h2>Câu hỏi thường gặp (FAQ)</h2>
+            <h2>❓ Câu hỏi thường gặp (FAQ)</h2>
             <div class="installation-steps">
                 <h3>RSTGameTranslation có thể dịch những ngôn ngữ nào?</h3>
                 <p>Phần mềm có thể dịch hầu hết các ngôn ngữ, nhưng được thử nghiệm chủ yếu với dịch từ tiếng Nhật sang tiếng Anh và tiếng Anh sang tiếng Việt.</p>
                 
                 <h3>Tôi không có GPU NVIDIA, tôi vẫn có thể sử dụng không?</h3>
-                <p>Có, nhưng hiệu suất sẽ kém hơn nhiều vì phải sử dụng CPU. Bạn có thể thử dùng Windows OCR cho hiệu suất nhẹ hơn.</p>
+                <p>Có, nhưng hiệu suất sẽ kém hơn nhiều vì phải sử dụng CPU (30-50% công suất). Bạn có thể thử dùng Windows OCR cho hiệu suất nhẹ hơn.</p>
                 
                 <h3>Tôi có thể dùng RSTGameTranslation mà không cần kết nối internet không?</h3>
                 <p>Có, bạn có thể sử dụng Ollama để chạy 100% offline. Bạn sẽ cần tải mô hình LLM về máy trước.</p>
@@ -436,6 +463,7 @@
         <div class="container">
             <p>RSTGameTranslation &copy; 2025 | Giấy phép: BSD-style attribution, xem <a href="LICENSE.md" style="color: white;" title="Giấy phép">LICENSE.md</a></p>
             <p>Dự án này bao gồm phần mềm được phát triển bởi Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;" title="UGTLive GitHub Repository">UGTLive</a></p>
+            <p>Made with ❤️ for the gaming community</p>
         </div>
     </footer>
 </body>
