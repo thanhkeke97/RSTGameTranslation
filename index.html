@@ -270,7 +270,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>📝 Dịch đè text gốc</h3>
-                    <p>Hiển thị văn bản dịch đè lên văn bản gốc trong vùng dịch được chọn (Phím tắt Alt+F).</p>
+                    <p>Hiển thị văn bản dịch đè lên văn bản gốc trong vùng dịch được chọn (Hiện chỉ làm việc trên win 11).</p>
                 </div>
                 <div class="feature-card">
                     <h3>🎮 Tối ưu cho game</h3>
@@ -283,7 +283,7 @@
             <h2>⚠️ Lưu ý quan trọng</h2>
             <div class="important-note">
                 <ul>
-                    <li><strong>Yêu cầu hệ thống:</strong> Windows 10 (phiên bản 2004) trở lên. Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless.</li>
+                    <li><strong>Yêu cầu hệ thống:</strong> Windows 10 trở lên (Win 11 cho tính năng dịch đè lên text). Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless.</li>
                     <li><strong>Phần cứng khuyến nghị:</strong> GPU NVIDIA để có hiệu suất tốt nhất.</li>
                     <li><strong>Cài đặt Conda:</strong> Thêm conda vào biến môi trường PATH và cài đặt conda với tùy chọn "Just me".</li>
                     <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU chuyên dụng, bạn sẽ mất 30-50% công suất CPU (nếu chọn EasyOCR hoặc PaddleOCR).</li>
@@ -297,7 +297,6 @@
         <section id="cai-dat">
             <h2>🚀 Cách cài đặt và sử dụng (Windows)</h2>
             <div class="installation-steps">
-                <p><strong>Đối với người đang sử dụng phiên bản v0.1 và v0.2 update lên bản mới nhất:</strong> Cần xóa folder RSTGameTranslation/webserver cũ trước khi cài đặt phiên bản mới và chạy <code>RSTGameTranslation/webserver/RemoveEnvNvidia.bat</code> trong phiên bản mới để xóa môi trường conda đã tạo trước đó</p>
                 
                 <h3>Điều kiện tiên quyết:</h3>
                 <ol>
@@ -333,7 +332,7 @@
                             <li>Nhấp vào nút StartServer và đợi cho đến khi bạn thấy thông báo "Successfully connected to .... server" (Nếu bạn chọn Windows OCR, bạn có thể bỏ qua bước này)</li>
                             <li>Bây giờ bạn có thể bắt đầu dịch bằng cách nhấp vào nút Start</li>
                             <li>Bạn có thể chọn vùng dịch bằng cách kéo thả cửa sổ chính của ứng dụng</li>
-                            <li>Kết quả dịch hiển thị trong cửa sổ chat (nút ChatBox) hoặc trong Monitor (nút Monitor)</li>
+                            <li>Kết quả dịch hiển thị trong cửa sổ chat (nút ChatBox) hoặc trong Monitor (nút Monitor, yêu cầu win 11)</li>
                         </ul>
                     </li>
                     <li><strong>Cài đặt LLMS:</strong>

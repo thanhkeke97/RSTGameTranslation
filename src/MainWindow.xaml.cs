@@ -309,7 +309,7 @@ namespace RSTGameTranslation
 
             // Setup timer for continuous capture
             _captureTimer = new DispatcherTimer();
-            _captureTimer.Interval = TimeSpan.FromSeconds(1 / 10.0f);
+            _captureTimer.Interval = TimeSpan.FromSeconds(1 / 60.0f);
             _captureTimer.Tick += OnUpdateTick;
             _captureTimer.Start();
             
@@ -479,7 +479,7 @@ namespace RSTGameTranslation
 
             // Đăng ký sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
             this.LocationChanged += MainWindow_LocationChanged;
-            ToggleMonitorWindow();
+            // ToggleMonitorWindow();
         }
 
         // Thêm sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
