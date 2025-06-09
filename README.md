@@ -118,7 +118,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 - **AMD, INTEL**: Windows OCR
 
 ### Alternative Options
-- **Windows OCR**: Lightweight but less accurate for gaming
+- **Windows OCR**: Lightweight but less accurate for gaming (only support for source language is English)
 - **Ollama**: 100% local translation (RTX 4090: ~5s per translation)
 - **ChatGPT**: GPT-4.1 Nano for premium results
 
