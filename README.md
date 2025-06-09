@@ -35,7 +35,6 @@
 
 🔊 **Additional Features**
 - Text-to-speech functionality
-- Lesson plan generation
 - 100% local translation option with Ollama
 
 ---
