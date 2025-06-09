@@ -282,12 +282,10 @@ def split_into_characters(text, box, confidence, max_chars=500):
     start_x_top = tl[0]
     start_x_bottom = bl[0]
     
-    # Tạo trước danh sách kết quả với kích thước cố định
     char_results = [{} for _ in range(text_len)]
     
     # Generate character boxes
     for i, char in enumerate(text):
-        # Tính toán tọa độ cho mỗi ký tự
         ratio1 = i / text_len
         ratio2 = (i + 1) / text_len
         
@@ -301,7 +299,7 @@ def split_into_characters(text, box, confidence, max_chars=500):
         y_bottom_left = bl[1] + (y_diff_bottom * ratio1)
         y_bottom_right = bl[1] + (y_diff_bottom * ratio2)
         
-        # Tạo bounding box cho ký tự
+        # Create bounding box for character
         char_box = [
             [x1_top, y_top_left],       # top-left
             [x2_top, y_top_right],      # top-right
@@ -309,7 +307,7 @@ def split_into_characters(text, box, confidence, max_chars=500):
             [x1_bottom, y_bottom_left]   # bottom-left
         ]
         
-        # Thêm vào kết quả
+        # Add to result
         char_results[i] = {
             "rect": char_box,
             "text": char,

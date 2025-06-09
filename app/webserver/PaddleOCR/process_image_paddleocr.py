@@ -67,9 +67,6 @@ def initialize_ocr_engine(lang='en'):
     return OCR_ENGINE
 
 def release_gpu_resources():
-    """
-    Giải phóng tài nguyên GPU sau khi xử lý OCR.
-    """
     # if torch.cuda.is_available():
     #     torch.cuda.empty_cache()
     print("Released GPU resources after OCR processing")
@@ -253,7 +250,7 @@ def split_into_characters(text, box, confidence, max_chars=500):
             "is_character": True
         }]
     
-    # Giới hạn số lượng ký tự để tránh quá tải
+    # Limit char for performance
     if len(text) > max_chars:
         text = text[:max_chars]
         print(f"Warning: Text truncated to {max_chars} characters to avoid performance issues")
@@ -266,7 +263,6 @@ def split_into_characters(text, box, confidence, max_chars=500):
     br = box[2]  # bottom-right
     bl = box[3]  # bottom-left
     
-    # Tính toán trước các giá trị không đổi
     text_len = len(text)
     x_increment_top = (tr[0] - tl[0]) / text_len
     x_increment_bottom = (br[0] - bl[0]) / text_len
@@ -277,12 +273,11 @@ def split_into_characters(text, box, confidence, max_chars=500):
     start_x_top = tl[0]
     start_x_bottom = bl[0]
     
-    # Tạo trước danh sách kết quả với kích thước cố định
+    # Create list result
     char_results = [{} for _ in range(text_len)]
     
     # Generate character boxes
     for i, char in enumerate(text):
-        # Tính toán tọa độ cho mỗi ký tự
         ratio1 = i / text_len
         ratio2 = (i + 1) / text_len
         
@@ -296,7 +291,7 @@ def split_into_characters(text, box, confidence, max_chars=500):
         y_bottom_left = bl[1] + (y_diff_bottom * ratio1)
         y_bottom_right = bl[1] + (y_diff_bottom * ratio2)
         
-        # Tạo bounding box cho ký tự
+        # Create bounding box for character
         char_box = [
             [x1_top, y_top_left],       # top-left
             [x2_top, y_top_right],      # top-right
@@ -304,7 +299,7 @@ def split_into_characters(text, box, confidence, max_chars=500):
             [x1_bottom, y_bottom_left]   # bottom-left
         ]
         
-        # Thêm vào kết quả
+        # Add to result
         char_results[i] = {
             "rect": char_box,
             "text": char,
