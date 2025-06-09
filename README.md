@@ -114,6 +114,8 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 ### Recommended Setup
 - **OCR**: PaddleOCR (Better for Asian languages, lower resource usage)
 - **LLM**: Gemini Flash 2 Lite (Fast and accurate)
+- **NVIDIA**: PaddleOCR or EasyOCR
+- **AMD,INTEL**: Windows OCR
 
 ### Alternative Options
 - **Windows OCR**: Lightweight but less accurate for gaming
