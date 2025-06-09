@@ -266,7 +266,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>🔊 Tính năng bổ sung</h3>
-                    <p>Chức năng text-to-speech, tạo kế hoạch bài học và khả năng dịch 100% cục bộ với Ollama.</p>
+                    <p>Chức năng text-to-speech và khả năng dịch 100% cục bộ với Ollama.</p>
                 </div>
                 <div class="feature-card">
                     <h3>📝 Dịch đè text gốc</h3>
@@ -283,11 +283,11 @@
             <h2>⚠️ Lưu ý quan trọng</h2>
             <div class="important-note">
                 <ul>
-                    <li><strong>Yêu cầu hệ thống:</strong> Windows 10 trở lên. Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless.</li>
+                    <li><strong>Yêu cầu hệ thống:</strong> Windows 10 (phiên bản 2004) trở lên. Game cần để ở chế độ windowed, fullscreen borderless hoặc windowed borderless.</li>
                     <li><strong>Phần cứng khuyến nghị:</strong> GPU NVIDIA để có hiệu suất tốt nhất.</li>
                     <li><strong>Cài đặt Conda:</strong> Thêm conda vào biến môi trường PATH và cài đặt conda với tùy chọn "Just me".</li>
-                    <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU chuyên dụng, bạn sẽ mất 30-50% công suất CPU.</li>
-                    <li><strong>Lựa chọn OCR:</strong> Windows OCR nhẹ hơn nhưng kém hiệu quả cho game. EasyOCR và PaddleOCR cho kết quả tốt hơn.</li>
+                    <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU chuyên dụng, bạn sẽ mất 30-50% công suất CPU (nếu chọn EasyOCR hoặc PaddleOCR).</li>
+                    <li><strong>Lựa chọn OCR:</strong> Windows OCR nhẹ hơn nhưng kém hiệu quả cho game và chỉ hỗ trợ ngôn ngữ nguồn là tiếng anh. EasyOCR và PaddleOCR tốt hơn</li>
                     <li><strong>Vùng dịch:</strong> Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh.</li>
                     <li><strong>Quyền riêng tư:</strong> Phần mềm chỉ kiểm tra GitHub để cập nhật phiên bản. Dịch vụ đám mây (Gemini, ChatGPT) sẽ thấy nội dung được dịch. Ollama giữ mọi thứ cục bộ.</li>
                 </ul>
@@ -412,6 +412,7 @@
             <ul>
                 <li><strong>OCR:</strong> PaddleOCR (Tốt hơn cho ngôn ngữ châu Á, sử dụng ít tài nguyên hơn)</li>
                 <li><strong>LLM:</strong> Gemini Flash 2 Lite (Nhanh và chính xác)</li>
+                <li><strong>Với người dùng AMD, Intel:</strong> Nên sử dụng Windows OCR nếu không muốn mất hiệu năng CPU (Độ chính xác sẽ kém hơn)</li>
             </ul>
             
             <h3>Lựa chọn thay thế</h3>
