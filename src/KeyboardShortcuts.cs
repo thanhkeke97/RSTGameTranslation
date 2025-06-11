@@ -75,11 +75,17 @@ namespace RSTGameTranslation
         private const int VK_F = 0x46;    // F key
         private const int VK_G = 0x47;    // G key
         private const int VK_H = 0x48;    // H key
+        private const int VK_C = 0x43;    // C key
+        private const int VK_L = 0x4C;    // L key
+        private const int VK_P = 0x50;    // P key
         
         // Hotkey IDs
         private const int HOTKEY_ID_ALT_G = 1;
         private const int HOTKEY_ID_ALT_H = 2;
-        private const int HOTKEY_ID_ALT_F = 3; // Thêm ID cho Alt+F
+        private const int HOTKEY_ID_ALT_F = 3;
+        private const int HOTKEY_ID_ALT_C = 4; 
+        private const int HOTKEY_ID_ALT_P = 5;  
+        private const int HOTKEY_ID_ALT_L = 6; 
         
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
@@ -163,6 +169,36 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Failed to register Alt+F hotkey. Error: {Marshal.GetLastWin32Error()}");
                 }
+                
+                // Try to register Alt+C as a hotkey (thay thế Shift+C)
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_C, MOD_ALT | MOD_NOREPEAT, (uint)VK_C))
+                {
+                    Console.WriteLine("Registered Alt+C as global hotkey");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+C hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+                
+                // Try to register Alt+P as a hotkey (thay thế Shift+P)
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_P, MOD_ALT | MOD_NOREPEAT, (uint)VK_P))
+                {
+                    Console.WriteLine("Registered Alt+P as global hotkey");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+P hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+                
+                // Try to register Alt+L as a hotkey (thay thế Shift+L)
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_L, MOD_ALT | MOD_NOREPEAT, (uint)VK_L))
+                {
+                    Console.WriteLine("Registered Alt+L as global hotkey");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+L hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
             }
         }
         
@@ -187,6 +223,21 @@ namespace RSTGameTranslation
                     Console.WriteLine("Hotkey detected: Alt+F");
                     MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
                     return true;
+                    
+                case HOTKEY_ID_ALT_C:
+                    Console.WriteLine("Hotkey detected: Alt+C");
+                    ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_P:
+                    Console.WriteLine("Hotkey detected: Alt+P");
+                    SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_L:
+                    Console.WriteLine("Hotkey detected: Alt+L");
+                    LogToggleRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
             }
             
             return false;
@@ -208,16 +259,24 @@ namespace RSTGameTranslation
                 bool altGWasPressed = false;
                 bool altHWasPressed = false;
                 bool altFWasPressed = false;
+                bool altCWasPressed = false;
+                bool altPWasPressed = false;
+                bool altLWasPressed = false;
                 DateTime lastAltGTime = DateTime.MinValue;
                 DateTime lastAltHTime = DateTime.MinValue;
                 DateTime lastAltFTime = DateTime.MinValue;
+                DateTime lastAltCTime = DateTime.MinValue;
+                DateTime lastAltPTime = DateTime.MinValue;
+                DateTime lastAltLTime = DateTime.MinValue;
                 
                 try
                 {
                     while (!_pollingCts.Token.IsCancellationRequested)
                     {
-                        // Check for Alt+G key combination
+                        // Check for Alt key
                         bool isAltPressed = IsKeyPressed(VK_MENU);
+                        
+                        // Check for Alt+G key combination
                         bool isGPressed = IsKeyPressed(VK_G);
                         
                         if (isAltPressed && isGPressed && !altGWasPressed)
@@ -274,6 +333,63 @@ namespace RSTGameTranslation
                         }
                         altFWasPressed = isAltPressed && isFPressed;
                         
+                        // Check for Alt+C
+                        bool isCPressed = IsKeyPressed(VK_C);
+                        
+                        if (isAltPressed && isCPressed && !altCWasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAltCTime).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+C");
+                                
+                                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                                {
+                                    ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAltCTime = now;
+                            }
+                        }
+                        altCWasPressed = isAltPressed && isCPressed;
+                        
+                        // Check for Alt+P
+                        bool isPPressed = IsKeyPressed(VK_P);
+                        
+                        if (isAltPressed && isPPressed && !altPWasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAltPTime).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+P");
+                                
+                                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                                {
+                                    SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAltPTime = now;
+                            }
+                        }
+                        altPWasPressed = isAltPressed && isPPressed;
+                        
+                        // Check for Alt+L
+                        bool isLPressed = IsKeyPressed(VK_L);
+                        
+                        if (isAltPressed && isLPressed && !altLWasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAltLTime).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+L");
+                                
+                                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                                {
+                                    LogToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAltLTime = now;
+                            }
+                        }
+                        altLWasPressed = isAltPressed && isLPressed;
+                        
                         // Sleep to reduce CPU usage
                         await Task.Delay(30, _pollingCts.Token); 
                     }
@@ -317,6 +433,9 @@ namespace RSTGameTranslation
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_G);
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_H);
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_F);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_C);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_P);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_L);
             }
             
             // Remove low-level keyboard hook
@@ -418,26 +537,61 @@ namespace RSTGameTranslation
                             return (IntPtr)1; // Prevent further processing
                         }
                         
-                        // Application-specific shortcuts - only process if our application has focus
-                        if (IsOurApplicationActive())
+                        // Check for Alt+C (Toggle ChatBox) - Global
+                        if (vkCode == VK_C && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_C | 0x1000))
                         {
-                            bool isShiftPressed = IsKeyPressed(VK_SHIFT);
-                            
-                            // Check if it's one of our shortcuts with just Shift (C, P, L)
-                            if (isShiftPressed && !isAltPressed)
+                            Console.WriteLine("Global shortcut detected: Alt+C");
+                            try
                             {
-                                // Convert the virtual key code to a Key
-                                Key key = KeyInterop.KeyFromVirtualKey(vkCode);
-                                
-                                if (IsShortcutKey(key, ModifierKeys.Shift) && 
-                                    ShouldProcessKeyPress(vkCode | 0x2000))
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                                 {
-                                    if (HandleRawKeyDown(key, ModifierKeys.Shift))
-                                    {
-                                        return (IntPtr)1; // Prevent further processing
-                                    }
-                                }
+                                    ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
                             }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+C action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+                        
+                        // Check for Alt+P (Toggle Settings) - Global
+                        if (vkCode == VK_P && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_P | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+P");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+P action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+                        
+                        // Check for Alt+L (Toggle Log) - Global
+                        if (vkCode == VK_L && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_L | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+L");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    LogToggleRequested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+L action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
                         }
                     }
                 }
@@ -513,24 +667,22 @@ namespace RSTGameTranslation
                     return true;
                 }
                 
-                // The following shortcuts only work when the application has focus
-                
-                // Shift+C: Toggle ChatBox
-                if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Shift)
+                // Alt+C: Toggle ChatBox (global shortcut)
+                else if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Alt)
                 {
                     ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
                     return true;
                 }
-                // Shift+P: Toggle Settings
-                else if (e.Key == Key.P && Keyboard.Modifiers == ModifierKeys.Shift)
+                // Alt+P: Toggle Settings (global shortcut)
+                else if (e.Key == Key.P && Keyboard.Modifiers == ModifierKeys.Alt)
                 {
                     SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
                     return true;
                 }
-                // Shift+L: Toggle Log
-                else if (e.Key == Key.L && Keyboard.Modifiers == ModifierKeys.Shift)
+                // Alt+L: Toggle Log (global shortcut)
+                else if (e.Key == Key.L && Keyboard.Modifiers == ModifierKeys.Alt)
                 {
                     LogToggleRequested?.Invoke(null, EventArgs.Empty);
                     e.Handled = true;
@@ -548,46 +700,12 @@ namespace RSTGameTranslation
         // Method to check if a key combination matches our shortcuts
         public static bool IsShortcutKey(Key key, ModifierKeys modifiers)
         {
-            if (modifiers != ModifierKeys.Shift)
-                return false;
-                
-            // Đã loại bỏ M khỏi danh sách phím tắt Shift
-            return key == Key.C || key == Key.P || key == Key.L;
+            return false;
         }
         
         // Handle raw key input for global hook
         public static bool HandleRawKeyDown(Key key, ModifierKeys modifiers)
         {
-            try
-            {
-                if (modifiers != ModifierKeys.Shift)
-                    return false;
-                    
-                
-                // Shift+C: Toggle ChatBox
-                if (key == Key.C)
-                {
-                    ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                }
-                // Shift+P: Toggle Settings
-                else if (key == Key.P)
-                {
-                    SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                }
-                // Shift+L: Toggle Log
-                else if (key == Key.L)
-                {
-                    LogToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error handling raw keyboard shortcut: {ex.Message}");
-            }
-            
             return false;
         }
         

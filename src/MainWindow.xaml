@@ -77,7 +77,7 @@
                                     Click="ChatBoxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                     
                             <!-- Listen Toggle Button -->
-                            <Button x:Name="listenButton" Content="Listen" Padding="8,3" Margin="5,0"
+                            <Button x:Name="listenButton" Content="Listen" Padding="8,3" Margin="5,0" Visibility="Collapsed"
                                     Background="#FF4577B0" Foreground="White" BorderThickness="1" BorderBrush="White"
                                     Click="ListenButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                     

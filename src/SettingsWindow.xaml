@@ -673,7 +673,7 @@
             </TabItem>
             
             <!-- Audio Processing Tab -->
-            <TabItem Header="Audio">
+            <TabItem Header="Audio" Visibility="Collapsed">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Audio Processing Settings -->

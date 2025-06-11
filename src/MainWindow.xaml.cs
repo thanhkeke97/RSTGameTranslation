@@ -336,52 +336,22 @@ namespace RSTGameTranslation
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
         }
-       
+
         // Add method for show/hide the main window
         private void ToggleMainWindowVisibility()
         {
-            if (MainBorder.Visibility == System.Windows.Visibility.Visible)
+            if (MainBorder.Visibility == Visibility.Visible)
             {
-                MainBorder.Visibility = System.Windows.Visibility.Collapsed;
-                
-                // add "Show" button if it doesn't exist yet
-                if (FindName("showButton") == null)
-                {
-                    var showBtn = new System.Windows.Controls.Button
-                    {
-                        Name = "showButton",
-                        Content = "Show",
-                        Width = 30,
-                        Height = 20,
-                        Margin = new System.Windows.Thickness(10),
-                        HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
-                        VerticalAlignment = System.Windows.VerticalAlignment.Top
-                    };
-                    
-                    showBtn.Click += (s, e) => ToggleMainWindowVisibility();
-                    
-                    var grid = Content as System.Windows.Controls.Grid;
-                    if (grid != null)
-                    {
-                        grid.Children.Add(showBtn);
-                        System.Windows.Controls.Panel.SetZIndex(showBtn, 1000);
-                    }
-                }
-                else
-                {
-                    var showBtn = FindName("showButton") as System.Windows.Controls.Button;
-                    if (showBtn != null)
-                        showBtn.Visibility = System.Windows.Visibility.Visible;
-                }
+                HideButton_Click(hideButton, new RoutedEventArgs());
             }
             else
             {
-                MainBorder.Visibility = System.Windows.Visibility.Visible;
-                
-                var showBtn = FindName("showButton") as System.Windows.Controls.Button;
-                if (showBtn != null)
-                    showBtn.Visibility = System.Windows.Visibility.Collapsed;
+                if (showButton != null)
+                {
+                    ShowButton_Click(showButton, new RoutedEventArgs());
+                }
             }
+
         }
 
         public void SetStatus(string text)
@@ -675,7 +645,7 @@ namespace RSTGameTranslation
         {
             // Hide the main window elements
             MainBorder.Visibility = Visibility.Collapsed;
-            
+
             // Create a small "Show" button that remains visible
             if (showButton == null)
             {
@@ -696,22 +666,22 @@ namespace RSTGameTranslation
                     // Make sure it receives all input events
                     IsHitTestVisible = true
                 };
-                
+
                 // Make button visible to WindowChrome
                 WindowChrome.SetIsHitTestVisibleInChrome(showButton, true);
-                
+
                 showButton.Click += ShowButton_Click;
-                
+
                 // Get the main grid
                 var mainGrid = this.Content as Grid;
                 if (mainGrid != null)
                 {
                     // Add the button as the last child (top-most)
                     mainGrid.Children.Add(showButton);
-                    
+
                     // Ensure it's on top by setting a high ZIndex
                     System.Windows.Controls.Panel.SetZIndex(showButton, 1000);
-                    
+
                     Console.WriteLine("Show button added to main grid");
                 }
                 else
@@ -1080,7 +1050,7 @@ namespace RSTGameTranslation
             if (consoleWindow == IntPtr.Zero)
             {
                 consoleWindow = GetConsoleWindow();
-                
+
                 // If console window handle is still null, the console might not be initialized
                 if (consoleWindow == IntPtr.Zero)
                 {
@@ -1088,7 +1058,7 @@ namespace RSTGameTranslation
                     consoleWindow = GetConsoleWindow();
                 }
             }
-            
+
             if (isConsoleVisible)
             {
                 // Hide console
@@ -1102,12 +1072,12 @@ namespace RSTGameTranslation
                 ShowWindow(consoleWindow, SW_SHOW);
                 isConsoleVisible = true;
                 logButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 153)); // Pink/Red
-                
+
                 // Write a header message if being shown for the first time
                 Console.WriteLine("\n=== Console Log Visible ===");
                 Console.WriteLine("Application log messages will appear here.");
                 Console.WriteLine("==========================\n");
-                
+
                 // Ensure console input is disabled to prevent freezing
                 DisableConsoleInput();
             }

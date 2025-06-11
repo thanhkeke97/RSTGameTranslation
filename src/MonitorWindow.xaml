@@ -11,6 +11,7 @@
         ResizeMode="NoResize"
         AllowsTransparency="True"
         Background="Transparent"
+        IsHitTestVisible="false"
         Icon="/media/AppIcon.ico">
     <Grid>
         <Grid.RowDefinitions>
