@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'index.html'
+      - 'index_en.html'
+      - 'sitemap.xml'
     branches: 
       - main
   workflow_dispatch:
