@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="9Vn2nQKKjFtwswDJuFSINcGW8QlsjDHQbQ9G0dBgc5Q" />
+    
+    <!-- SEO Meta Tags -->
+    <title>RSTGameTranslation - Real-time Game Screen Translation Software</title>
+    <meta name="description" content="RSTGameTranslation is a real-time game screen translation tool using advanced AI, supporting multiple languages, working both offline and online with Gemini, ChatGPT, Ollama." />
+    <meta name="keywords" content="game translation, real-time screen translation, RSTGameTranslation, game OCR, AI game translation, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama" />
+    <meta name="author" content="thanhkeke97 (Thanh Pham)" />
+    <link rel="canonical" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://thanhkeke97.github.io/RSTGameTranslation/" />
+    <meta property="og:title" content="RSTGameTranslation - Real-time Game Screen Translation Software" />
+    <meta property="og:description" content="Real-time game screen translation tool using advanced AI, supporting multiple languages, working both offline and online." />
+    <meta property="og:image" content="https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://thanhkeke97.github.io/RSTGameTranslation/" />
+    <meta property="twitter:title" content="RSTGameTranslation - Real-time Game Screen Translation Software" />
+    <meta property="twitter:description" content="Real-time game screen translation tool using advanced AI, supporting multiple languages, working both offline and online." />
+    <meta property="twitter:image" content="https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png" />
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #fff;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background-color: #fff;
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card i {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .important-note {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .installation-steps {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .installation-steps ol {
+            padding-left: 20px;
+        }
+
+        .installation-steps li {
+            margin-bottom: 15px;
+        }
+
+        .shortcut-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .shortcut-table th, .shortcut-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shortcut-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .shortcut-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .screenshot {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        .emoji-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        
+        .language-switch {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        
+        .language-switch a {
+            color: white;
+            text-decoration: none;
+            padding: 0 5px;
+            font-weight: bold;
+        }
+        
+        .language-switch a.active {
+            text-decoration: underline;
+        }
+    </style>
+    <!-- Schema.org markup for Google -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "RSTGameTranslation",
+        "description": "Real-time game screen translation software using advanced AI",
+        "operatingSystem": "Windows 10+",
+        "applicationCategory": "UtilityApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "softwareVersion": "0.6",
+        "author": {
+            "@type": "Person",
+            "name": "thanhkeke97"
+        },
+        "datePublished": "2025-05-16",
+        "requirements": "Windows 10 or higher, NVIDIA GPU recommended",
+        "softwareHelp": "https://github.com/thanhkeke97/RSTGameTranslation/issues"
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="language-switch">
+                <a href="index.html">Tiếng Việt</a> | 
+                <a href="index_en.html" class="active">English</a>
+            </div>
+            <h1>🎮 RSTGameTranslation</h1>
+            <p>Realtime Screen Translation for Games and Applications</p>
+            <div class="version-badge">Version 0.6</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav>
+            <h2>Quick Navigation</h2>
+            <ul>
+                <li><a href="#features">✨ Key Features</a></li>
+                <li><a href="#important-notes">⚠️ Important Notes</a></li>
+                <li><a href="#installation">🚀 Installation</a></li>
+                <li><a href="#updates">🔄 How to Update</a></li>
+                <li><a href="#shortcuts">⌨️ Shortcuts</a></li>
+                <li><a href="#advanced-settings">⚙️ Advanced Settings</a></li>
+                <li><a href="#faq">❓ FAQ</a></li>
+            </ul>
+        </nav>
+        <section id="features">
+            <h2>✨ Key Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🔥 Real-time Translation</h3>
+                    <p>Use locally running EasyOCR or PaddleOCR for automatic real-time translation. Supports chat windows for visual novels and full-screen translation.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🤖 Advanced AI Translation</h3>
+                    <p>Support for multiple LLMs: Gemini, ChatGPT, Ollama, and Google Translate. Context-aware translation for higher accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🎯 Smart Recognition</h3>
+                    <p>Optimized translation for specific games, considering previous context and recognizing character/place names.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🔊 Additional Features</h3>
+                    <p>Text-to-speech functionality and ability to translate 100% locally with Ollama.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📝 Text Overlay Translation</h3>
+                    <p>Display translated text over the original text in the selected translation area (Currently works only on Windows 11).</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🎮 Optimized for Games</h3>
+                    <p>By providing information about the game being translated and previous context, translations are more accurate than other methods.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="important-notes">
+            <h2>⚠️ Important Notes</h2>
+            <div class="important-note">
+                <ul>
+                    <li><strong>System Requirements:</strong> Windows 10 or higher (Windows 11 for text overlay feature). Games need to be in windowed, fullscreen borderless, or windowed borderless mode.</li>
+                    <li><strong>Recommended Hardware:</strong> NVIDIA GPU for best performance.</li>
+                    <li><strong>Conda Installation:</strong> Add conda to the PATH environment variable and install conda with the "Just me" option.</li>
+                    <li><strong>CPU Performance:</strong> Without an NVIDIA GPU, you'll use 30-50% CPU capacity (if choosing EasyOCR or PaddleOCR).</li>
+                    <li><strong>OCR Choice:</strong> Windows OCR (recommended for AMD and Intel GPUs) is lighter but less effective for games and only supports English as source language. EasyOCR and PaddleOCR are better.</li>
+                    <li><strong>Translation Area:</strong> The smaller the translation area, the faster the translation speed.</li>
+                    <li><strong>Privacy:</strong> The software only checks GitHub for version updates. Cloud services (Gemini, ChatGPT) will see the content being translated. Ollama keeps everything local.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2>🚀 Installation and Usage (Windows)</h2>
+            <div class="installation-steps">
+                
+                <h3>Prerequisites:</h3>
+                <ol>
+                    <li>Download the latest version (zip file) <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank" rel="noopener" title="Download RSTGameTranslation">here</a> and extract it.</li>
+                    <li>Check if you have Conda installed by opening a command window (press <code>Win + R</code>, type <code>cmd</code>, and press Enter) and typing "conda". If it shows conda commands, you have it installed. If it shows an error, install Miniconda <a href="https://repo.anaconda.com/miniconda/Miniconda3-py39_25.3.1-1-Windows-x86_64.exe" target="_blank" rel="noopener" title="Download Miniconda">here</a>.</li>
+                    <li>When installing conda, select "Just me" in the installation (don't select "All users")</li>
+                    <img src="media/just_me.png" alt="Install conda with just me/only me option" class="screenshot" width="800" height="450">
+                    <li>Make sure to add conda to the PATH environment variable (important)</li>
+                    <img src="media/add_to_environment.png" alt="Add conda to PATH environment variables" class="screenshot" width="800" height="450">
+                    <li>Note: When running .exe files, you might get a message saying "This is dangerous, don't run it" because this project is open source and I don't have any digital signatures, so you'll have to trust me and click on "More info" and run it. This message only appears the first time for each .exe file.</li>
+                </ol>
+
+                <h3>How to Use:</h3>
+                <ol>
+                    <li>Run RSTGameTranslation/rst.exe to start the application</li>
+                    <li><strong>Settings:</strong>
+                        <ul>
+                            <li>Go to settings, Language tab, select the language you want to translate from and the language you want to translate to</li>
+                            <li>Go to the Translation tab, select the translation service you want to use</li>
+                            <li>Go to the OCR tab, select the OCR method you want to use</li>
+                            <li>Now you can close the settings window</li>
+                        </ul>
+                    </li>
+                    <li><strong>Server Setup (Only do once for each OCR method):</strong>
+                        <ul>
+                            <li>Click the SetupServer button to start setting up the server based on the OCR method you selected in settings (If you selected Windows OCR, you can skip this step)</li>
+                            <li>Setup can take 5-15 minutes, depending on your internet speed and computer power</li>
+                            <li>Wait until the server setup is complete, you will see a message "... environment setup completed"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Start Translating:</strong>
+                        <ul>
+                            <li>Click the StartServer button and wait until you see the message "Successfully connected to .... server" (If you selected Windows OCR, you can skip this step)</li>
+                            <li>Now you can start translating by clicking the Start button</li>
+                            <li>You can select the translation area by dragging and resizing the main application window</li>
+                            <li>Translation results are displayed in the chat window (ChatBox button) or in the Monitor (Monitor button, requires Windows 11)</li>
+                        </ul>
+                    </li>
+                    <li><strong>LLM Setup:</strong>
+                        <ul>
+                            <li>Go to settings and add your Gemini API key. There are instructions on how to get the API key there.</li>
+                            <li>Check the other settings; the default values should be fine. Note that there is a place to enter the name of the game, which is important! The LLM knowing this will help it fix errors and create better dialogue.</li>
+                        </ul>
+                    </li>
+                </ol>
+                <img src="media/settings_gemini.png" alt="Gemini API settings interface in RSTGameTranslation" class="screenshot" width="800" height="450">
+                <p><strong>Note:</strong> You can use source_language and target_language in the prompt, the application will automatically map the languages to the language codes you selected in the settings. For example: if you select source_language=en and target_language=vi in the settings, the prompt sent to the LLM will be converted to "English" and "Vietnamese" before sending to the LLM automatically.</p>
+                <p>The first time you use EasyOCR or PaddleOCR with a new language, it has to download first! So it might seem like it's not working, just wait a minute or two and start/stop the application's translation, it will work.</p>
+            </div>
+        </section>
+
+        <section id="updates">
+            <h2>🔄 How to Update</h2>
+            <p>RSTGameTranslation will automatically check for updates when you start it. If there's a new version, you'll see a notification asking if you want to download it. To update:</p>
+            <ul>
+                <li>Download the latest version from the notification or from <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank" rel="noopener" title="RSTGameTranslation releases page">here</a></li>
+                <li>Close RSTGameTranslation if it's running</li>
+                <li>Extract the new files to your current installation folder</li>
+                <li>Done! Your settings and options will be preserved</li>
+                <li>The update process is simple and safe - you won't lose any settings or customizations.</li>
+            </ul>
+        </section>
+
+        <section id="shortcuts">
+            <h2>⌨️ Shortcuts</h2>
+            <table class="shortcut-table">
+                <thead>
+                    <tr>
+                        <th>Shortcut</th>
+                        <th>Function</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Alt+G</td>
+                        <td>Start/Stop OCR</td>
+                        <td>Works globally</td>
+                    </tr>
+                    <tr>
+                        <td>Alt+H</td>
+                        <td>Show/Hide main window</td>
+                        <td>Works globally</td>
+                    </tr>
+                    <tr>
+                        <td>Alt+F</td>
+                        <td>Show/Hide text overlay mode</td>
+                        <td>Works globally</td>
+                    </tr>
+                    <tr>
+                        <td>Shift+C</td>
+                        <td>Show/Hide ChatBox</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Shift+P</td>
+                        <td>Show/Hide Settings</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Shift+L</td>
+                        <td>Show/Hide log panel</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="advanced-settings">
+            <h2>⚙️ Advanced Settings</h2>
+            <h3>Recommended Settings</h3>
+            <ul>
+                <li><strong>OCR:</strong> PaddleOCR (Better for Asian languages, uses fewer resources)</li>
+                <li><strong>LLM:</strong> Gemini Flash 2 Lite (Fast and accurate)</li>
+                <li><strong>For AMD, Intel users:</strong> Consider using Windows OCR if you don't want to lose CPU performance (Accuracy will be lower)</li>
+            </ul>
+            
+            <h3>Alternative Options</h3>
+            <ul>
+                <li><strong>Windows OCR:</strong> Lightweight but less accurate for games</li>
+                <li><strong>Ollama:</strong> 100% local translation (RTX 4090: ~5 seconds/translation)</li>
+                <li><strong>ChatGPT:</strong> GPT-4.1 Nano for premium results</li>
+            </ul>
+            
+            <h3>Performance Tips</h3>
+            <ul>
+                <li>Smaller translation area = faster processing</li>
+                <li>NVIDIA GPU highly recommended</li>
+                <li>First-time language downloads may take 1-2 minutes</li>
+            </ul>
+            
+            <p>While I personally recommend Gemini Flash 2 lite and PaddleOCR (better for Asian languages and uses fewer resources), there are various options available to you. You can use Windows' built-in OCR instead of the python server, which doesn't work as well for Japanese but might be fine for other languages.</p>
+            
+            <p>For Ollama, install it and set up a model like gemma3:12b. On an RTX 4090, it takes about 5 seconds to return a translation. (installation has instructions and buttons to start)</p>
+            
+            <p>All OCR is done at the character level. Then there's a "Block detection" function that combines characters together to form words and paragraphs. You can adjust the "Block Power" to make it more likely to combine things together or separate them.</p>
+        </section>
+
+        <section id="faq">
+            <h2>❓ Frequently Asked Questions (FAQ)</h2>
+            <div class="installation-steps">
+                <h3>What languages can RSTGameTranslation translate?</h3>
+                <p>The software can translate most languages, but it's primarily tested with Japanese to English and English to Vietnamese translations.</p>
+                
+                <h3>I don't have an NVIDIA GPU, can I still use it?</h3>
+                <p>Yes, but performance will be much lower as it will use CPU (30-50% capacity). You can try using Windows OCR for lighter performance.</p>
+                
+                <h3>Can I use RSTGameTranslation without an internet connection?</h3>
+                <p>Yes, you can use Ollama to run 100% offline. You'll need to download the LLM model to your machine first.</p>
+                
+                <h3>How do I get a Gemini API key?</h3>
+                <p>You can sign up for a free Gemini API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>. After logging in, you can create an API key in the settings section.</p>
+            </div>
+        </section>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" class="btn" target="_blank" rel="noopener" title="Download RSTGameTranslation"><i class="fas fa-download" aria-hidden="true"></i> Download Now</a>
+            <a href="https://github.com/thanhkeke97/RSTGameTranslation" class="btn" target="_blank" rel="noopener" title="View source code on GitHub"><i class="fab fa-github" aria-hidden="true"></i> View on GitHub</a>
+        </div>
+        
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>RSTGameTranslation &copy; 2025 | License: BSD-style attribution, see <a href="LICENSE.md" style="color: white;" title="License">LICENSE.md</a></p>
+            <p>This project includes software developed by Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;" title="UGTLive GitHub Repository">UGTLive</a></p>
+            <p>Made with ❤️ for the gaming community</p>
+        </div>
+    </footer>
+</body>
+</html>
