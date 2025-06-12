@@ -93,9 +93,9 @@
 | `Alt + G` | Start/Stop OCR | Works globally |
 | `Alt + H` | Show/Hide Main Window | Works globally |
 | `Alt + F` | Show/Hide Monitor Overlay | Works globally |
-| `Shift + C` | Show/Hide ChatBox | |
-| `Shift + P` | Show/Hide Settings | |
-| `Shift + L` | Show/Hide Log Console | |
+| `Alt + C` | Show/Hide ChatBox | Works globally |
+| `Alt + P` | Show/Hide Settings | Works globally |
+| `Alt + L` | Show/Hide Log Console | Works globally |
 
 ---
 

@@ -237,7 +237,7 @@
             "price": "0",
             "priceCurrency": "VND"
         },
-        "softwareVersion": "0.6",
+        "softwareVersion": "0.65",
         "author": {
             "@type": "Person",
             "name": "thanhkeke97"
@@ -257,7 +257,7 @@
             </div>
             <h1>🎮 RSTGameTranslation</h1>
             <p>Realtime Screen Translation cho Game và Ứng dụng</p>
-            <div class="version-badge">Phiên bản 0.6</div>
+            <div class="version-badge">Phiên bản 0.65</div>
         </div>
     </header>
 
@@ -408,4 +408,88 @@
                     </tr>
                     <tr>
                         <td>Alt+F</td>
-                        <td>
+                        <td>Hiện/Ẩn chế độ hiển thị văn bản dịch đè lên text gốc</td>
+                        <td>Hoạt động toàn cục</td>
+                    </tr>
+                    <tr>
+                        <td>Alt+C</td>
+                        <td>Hiện/Ẩn ChatBox</td>
+                        <td>Hoạt động toàn cục</td>
+                    </tr>
+                    <tr>
+                        <td>Alt+P</td>
+                        <td>Hiện/Ẩn Cài đặt</td>
+                        <td>Hoạt động toàn cục</td>
+                    </tr>
+                    <tr>
+                        <td>Alt+L</td>
+                        <td>Hiện/Ẩn bảng điều khiển nhật ký</td>
+                        <td>Hoạt động toàn cục</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="cai-dat-nang-cao">
+            <h2>⚙️ Cài đặt nâng cao</h2>
+            <h3>Cài đặt khuyến nghị</h3>
+            <ul>
+                <li><strong>OCR:</strong> PaddleOCR (Tốt hơn cho ngôn ngữ châu Á, sử dụng ít tài nguyên hơn)</li>
+                <li><strong>LLM:</strong> Gemini Flash 2 Lite (Nhanh và chính xác)</li>
+                <li><strong>Với người dùng AMD, Intel:</strong> Nên sử dụng Windows OCR nếu không muốn mất hiệu năng CPU (Độ chính xác sẽ kém hơn)</li>
+            </ul>
+            
+            <h3>Lựa chọn thay thế</h3>
+            <ul>
+                <li><strong>Windows OCR:</strong> Nhẹ nhưng kém chính xác cho game</li>
+                <li><strong>Ollama:</strong> Dịch 100% cục bộ (RTX 4090: ~5 giây/bản dịch)</li>
+                <li><strong>ChatGPT:</strong> GPT-4.1 Nano cho kết quả cao cấp</li>
+            </ul>
+            
+            <h3>Lời khuyên về hiệu suất</h3>
+            <ul>
+                <li>Vùng dịch nhỏ hơn = xử lý nhanh hơn</li>
+                <li>GPU NVIDIA được khuyến nghị cao</li>
+                <li>Tải xuống ngôn ngữ lần đầu có thể mất 1-2 phút</li>
+            </ul>
+            
+            <p>Mặc dù cá nhân tôi khuyên dùng Gemini Flash 2 lite và PaddleOCR (tốt hơn cho ngôn ngữ châu Á và sử dụng ít tài nguyên hơn), có nhiều tùy chọn khác nhau cho bạn. Bạn có thể sử dụng OCR tích hợp của Windows thay vì máy chủ python, điều này không hoạt động tốt cho tiếng Nhật nhưng có thể ổn cho các ngôn ngữ khác.</p>
+            
+            <p>Đối với Ollama, hãy cài đặt nó và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu)</p>
+            
+            <p>Tất cả OCR được thực hiện ở cấp độ ký tự. Sau đó có một chức năng "Block detection" kết hợp các ký tự lại với nhau để tạo thành từ và đoạn văn. Bạn có thể chỉnh sửa "Block Power" để làm cho nó có khả năng kết hợp các thứ lại với nhau hoặc tách chúng ra.</p>
+        </section>
+
+        <section id="faq">
+            <h2>❓ Câu hỏi thường gặp (FAQ)</h2>
+            <div class="installation-steps">
+                <h3>RSTGameTranslation có thể dịch những ngôn ngữ nào?</h3>
+                <p>Phần mềm có thể dịch hầu hết các ngôn ngữ, nhưng được thử nghiệm chủ yếu với dịch từ tiếng Nhật sang tiếng Anh và tiếng Anh sang tiếng Việt.</p>
+                
+                <h3>Tôi không có GPU NVIDIA, tôi vẫn có thể sử dụng không?</h3>
+                <p>Có, nhưng hiệu suất sẽ kém hơn nhiều vì phải sử dụng CPU (30-50% công suất). Bạn có thể thử dùng Windows OCR cho hiệu suất nhẹ hơn.</p>
+                
+                <h3>Tôi có thể dùng RSTGameTranslation mà không cần kết nối internet không?</h3>
+                <p>Có, bạn có thể sử dụng Ollama để chạy 100% offline. Bạn sẽ cần tải mô hình LLM về máy trước.</p>
+                
+                <h3>Làm thế nào để có API key của Gemini?</h3>
+                <p>Bạn có thể đăng ký API key Gemini miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Sau khi đăng nhập, bạn có thể tạo API key trong phần cài đặt.</p>
+            </div>
+        </section>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" class="btn" target="_blank" rel="noopener" title="Tải xuống RSTGameTranslation"><i class="fas fa-download" aria-hidden="true"></i> Tải xuống ngay</a>
+            <a href="https://github.com/thanhkeke97/RSTGameTranslation" class="btn" target="_blank" rel="noopener" title="Xem mã nguồn trên GitHub"><i class="fab fa-github" aria-hidden="true"></i> Xem trên GitHub</a>
+        </div>
+        
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>RSTGameTranslation &copy; 2025 | Giấy phép: BSD-style attribution, xem <a href="LICENSE.md" style="color: white;" title="Giấy phép">LICENSE.md</a></p>
+            <p>Dự án này bao gồm phần mềm được phát triển bởi Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;" title="UGTLive GitHub Repository">UGTLive</a></p>
+            <p>Made with ❤️ for the gaming community</p>
+        </div>
+    </footer>
+</body>
+</html>
