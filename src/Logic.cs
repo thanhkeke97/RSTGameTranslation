@@ -1990,8 +1990,6 @@ namespace RSTGameTranslation
                 "it" => "italian",
                 "ru" => "russian",
                 "hi" => "hindi",
-                "id" => "indonesian",
-                "pl" => "polish",
                 _ => language
             };
         }

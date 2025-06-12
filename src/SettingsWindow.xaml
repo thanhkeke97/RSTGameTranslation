@@ -42,6 +42,12 @@
                                     <ComboBoxItem Content="ch_sim"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
+                                    <ComboBoxItem Content="fr"/>
+                                    <ComboBoxItem Content="ru"/>
+                                    <ComboBoxItem Content="de"/>
+                                    <ComboBoxItem Content="es"/>
+                                    <ComboBoxItem Content="it"/>
+                                    <ComboBoxItem Content="hi"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -61,6 +67,12 @@
                                     <ComboBoxItem Content="ch_sim"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
+                                    <ComboBoxItem Content="fr"/>
+                                    <ComboBoxItem Content="ru"/>
+                                    <ComboBoxItem Content="de"/>
+                                    <ComboBoxItem Content="es"/>
+                                    <ComboBoxItem Content="it"/>
+                                    <ComboBoxItem Content="hi"/>
                                 </ComboBox>
 
                                 <!-- Language Code Explanation -->
@@ -77,6 +89,18 @@
                                     <Run>ko = Korean</Run>
                                     <LineBreak/>
                                     <Run>vi = Vietnamese</Run>
+                                    <LineBreak/>
+                                    <Run>fr = French</Run>
+                                    <LineBreak/>
+                                    <Run>ru = Russian</Run>
+                                    <LineBreak/>
+                                    <Run>de = German</Run>
+                                    <LineBreak/>
+                                    <Run>es = Spanish</Run>
+                                    <LineBreak/>
+                                    <Run>it = Italian</Run>
+                                    <LineBreak/>
+                                    <Run>hi = Hindi</Run>
                                 </TextBlock>
                             </Grid>
                         </GroupBox>

@@ -56,6 +56,12 @@
                                 <ComboBoxItem Content="ch_sim"/>
                                 <ComboBoxItem Content="ko"/>
                                 <ComboBoxItem Content="vi"/>
+                                <ComboBoxItem Content="fr"/>
+                                <ComboBoxItem Content="ru"/>
+                                <ComboBoxItem Content="de"/>
+                                <ComboBoxItem Content="es"/>
+                                <ComboBoxItem Content="it"/>
+                                <ComboBoxItem Content="hi"/>
                             </ComboBox>
                             <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
                                       WindowChrome.IsHitTestVisibleInChrome="True"
@@ -65,6 +71,12 @@
                                 <ComboBoxItem Content="ch_sim"/>
                                 <ComboBoxItem Content="ko"/>
                                 <ComboBoxItem Content="vi"/>
+                                <ComboBoxItem Content="fr"/>
+                                <ComboBoxItem Content="ru"/>
+                                <ComboBoxItem Content="de"/>
+                                <ComboBoxItem Content="es"/>
+                                <ComboBoxItem Content="it"/>
+                                <ComboBoxItem Content="hi"/>
                             </ComboBox>
                             <!-- Monitor Toggle Button -->
                             <Button x:Name="monitorButton" Content="Monitor" Padding="8,3" Margin="5,0"
