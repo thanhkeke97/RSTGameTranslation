@@ -32,10 +32,8 @@ namespace RSTGameTranslation
         }
         
         /// <summary>
-        /// Khởi động OCR server dựa trên phương thức OCR được chọn
+        /// Start OCR server
         /// </summary>
-        /// <param name="ocrMethod">Phương thức OCR ("EasyOCR" hoặc "PaddleOCR")</param>
-        /// <returns>Kết quả khởi động (thành công hay không)</returns>
         public async Task<bool> StartOcrServerAsync(string ocrMethod)
         {
             string flagFile = "";
@@ -114,7 +112,7 @@ namespace RSTGameTranslation
                 timeoutStartServer = false;
                 // Wait for flag file
                 Console.WriteLine("⏳ Waiting for ready flag...");
-                for (int i = 0; i < 60; i++) // 1 phút
+                for (int i = 0; i < 60; i++) // 1 minute
                 {
                     if (File.Exists(flagFile))
                     {
@@ -189,7 +187,7 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Looking for processes using port {port}...");
                 
-                // Sử dụng netstat để tìm process đang sử dụng port
+
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
@@ -216,12 +214,12 @@ namespace RSTGameTranslation
                         return;
                     }
 
-                    // Tìm PIDs từ kết quả netstat
+                    // Find PIDs from netstat
                     foreach (string line in output.Split('\n'))
                     {
                         if (string.IsNullOrWhiteSpace(line)) continue;
                         
-                        // Phân tích dòng kết quả để lấy PID
+
                         string[] parts = line.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         if (parts.Length > 4)
                         {

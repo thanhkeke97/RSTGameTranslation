@@ -230,41 +230,6 @@ namespace RSTGameTranslation
                                      "2. Close and reopen application";
                     
                     MessageBox.Show(message,"Server Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    
-                    // if (result == MessageBoxResult.Yes)
-                    // {
-                    //     String OcrMethod = ConfigManager.Instance.GetOcrMethod();
-                    //     try
-                    //     {
-                    //         // Try to run the RunServer.bat file
-                    //         System.Diagnostics.Process.Start(new ProcessStartInfo
-                    //         {
-                    //             FileName = $"RunServer{OcrMethod}.bat",
-                    //             UseShellExecute = true,
-                    //             WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory+"webserver\\"
-                    //         });
-                    //     }
-                    //     catch (Exception ex)
-                    //     {
-                    //         Console.WriteLine($"Failed to start server: {ex.Message}");
-                    //         MessageBox.Show($"Failed to start server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    //     }
-                    // }
-                    // else if (result == MessageBoxResult.Cancel)
-                    // {
-                    //     try
-                    //     {
-                    //         System.Diagnostics.Process.Start(new ProcessStartInfo
-                    //         {
-                    //             FileName = "https://github.com/thanhkeke97/RSTGameTranslation",
-                    //             UseShellExecute = true
-                    //         });
-                    //     }
-                    //     catch (Exception ex)
-                    //     {
-                    //         Console.WriteLine($"Failed to open browser: {ex.Message}");
-                    //     }
-                    // }
                 }
             }
             else
@@ -1605,7 +1570,6 @@ namespace RSTGameTranslation
                         return;
                     }
                     
-                    // Cập nhật thời gian yêu cầu OCR
                     _lastOcrRequestTime = DateTime.Now;
                     // If we got here, socket is connected - explicitly request character-level OCR
                     await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|{ocrMethod}|char_level");
@@ -1958,7 +1922,7 @@ namespace RSTGameTranslation
                 }
                 else if (currentService == "Google Translate")
                 {
-                    // Xử lý phản hồi từ Google Translate
+                    // Handle response from google translate
                     // Google Translate return: {"translations": [{"id": "...", "original_text": "...", "translated_text": "..."}]}
                     if (doc.RootElement.TryGetProperty("translations", out JsonElement _))
                     {
