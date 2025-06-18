@@ -10,7 +10,7 @@ namespace RSTGameTranslation
     {
         private static readonly HttpClient _httpClient = new HttpClient();
         private static int _consecutiveFailures = 0;
-        private int delayMS = 500;
+        private int delayMS = 100;
         
         /// <summary>
         /// Translate text using the Gemini API
@@ -20,9 +20,10 @@ namespace RSTGameTranslation
         /// <returns>The translation result as a JSON string or null if translation failed</returns>
         public async Task<string?> TranslateAsync(string jsonData, string prompt)
         {
+            string apiKey = ConfigManager.Instance.GetGeminiApiKey();
+            string currenServices = ConfigManager.Instance.GetCurrentTranslationService();
             try
             {
-                string apiKey = ConfigManager.Instance.GetGeminiApiKey();
                 if (string.IsNullOrEmpty(apiKey))
                 {
                     Console.WriteLine("Gemini API key not configured");
@@ -80,6 +81,9 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Gemini API error: {response.StatusCode}, {errorMessage}, error count: {_consecutiveFailures}");
                     // Increment consecutive failures counter
                     // Try to parse the error message from JSON if possible
+                    string newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
+                    ConfigManager.Instance.SetGeminiApiKey(newApikey);
+                    Console.WriteLine("Change new api key successfully");
                     try
                     {
                         using JsonDocument errorDoc = JsonDocument.Parse(errorMessage);

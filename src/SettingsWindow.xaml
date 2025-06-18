@@ -382,11 +382,15 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <PasswordBox x:Name="geminiApiKeyPasswordBox" Grid.Row="0"
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
-                                             PasswordChanged="GeminiApiKeyPasswordBox_PasswordChanged"/>
-                                    <TextBlock x:Name="geminiApiKeyHelpText" Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                                             PasswordChanged="GeminiApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
+                                             Tag="Gemini"/>
+                                    <Button x:Name="viewGeminiKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
+                                             Click="ViewApiKeysButton_Click" Tag="Gemini" Width="70"/>
+                                    <TextBlock x:Name="geminiApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GeminiApiLink_Click">https://ai.google.dev/tutorials/setup</Hyperlink>
                                     </TextBlock>
@@ -469,11 +473,15 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <PasswordBox x:Name="chatGptApiKeyPasswordBox" Grid.Row="0"
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
-                                             PasswordChanged="ChatGptApiKeyPasswordBox_PasswordChanged"/>
-                                    <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                                             PasswordChanged="ChatGptApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown"
+                                             Tag="ChatGPT"/>
+                                    <Button x:Name="viewChatGptKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
+                                             Click="ViewApiKeysButton_Click" Tag="ChatGPT" Width="70"/>
+                                    <TextBlock Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="ChatGptApiLink_Click">https://platform.openai.com/api-keys</Hyperlink>
                                     </TextBlock>
@@ -513,11 +521,15 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <PasswordBox x:Name="googleTranslateApiKeyPasswordBox" Grid.Row="0"
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
-                                             PasswordChanged="GoogleTranslateApiKeyPasswordBox_PasswordChanged"/>
-                                    <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                                             PasswordChanged="GoogleTranslateApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown"
+                                             Tag="Google Translate"/>
+                                    <Button x:Name="viewGoogleTranslateKeysButton" Content="View Keys" Grid.Row="1" 
+                                             Click="ViewApiKeysButton_Click" Tag="Google Translate" Width="70" Visibility="Collapsed"/>
+                                    <TextBlock Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GoogleTranslateApiLink_Click">https://cloud.google.com/translate/docs/setup</Hyperlink>
                                     </TextBlock>

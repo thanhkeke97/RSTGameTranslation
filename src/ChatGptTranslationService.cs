@@ -45,53 +45,54 @@ namespace RSTGameTranslation
 
         public async Task<string?> TranslateAsync(string jsonData, string prompt)
         {
+            string apiKey = ConfigManager.Instance.GetChatGptApiKey();
+            string currenServices = ConfigManager.Instance.GetCurrentTranslationService();
             try
             {
                 // Get API key and model from config
-                string apiKey = ConfigManager.Instance.GetChatGptApiKey();
                 string model = ConfigManager.Instance.GetChatGptModel();
-                
+
                 // Validate we have an API key
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     Console.WriteLine("ChatGPT API key is missing. Please set it in the settings.");
                     return null;
                 }
-                
+
                 // Log the original input
                 //Console.WriteLine($"ChatGPT input JSON: {jsonData}");
-                
+
                 // Parse the input JSON
                 JsonElement inputJson = JsonSerializer.Deserialize<JsonElement>(jsonData);
-                
+
                 // Get custom prompt from config
                 string customPrompt = ConfigManager.Instance.GetServicePrompt("ChatGPT");
-                
+
                 // Build messages array for ChatGPT API
                 var messages = new List<Dictionary<string, string>>();
-                
+
                 // Use the exact prompt format as specified
                 StringBuilder systemPrompt = new StringBuilder();
-     
+
                 // Add any custom instructions from the config file
                 if (!string.IsNullOrWhiteSpace(customPrompt) && !customPrompt.Contains("translator"))
                 {
-                     systemPrompt.AppendLine(customPrompt);
+                    systemPrompt.AppendLine(customPrompt);
                 }
-                
-                messages.Add(new Dictionary<string, string> 
+
+                messages.Add(new Dictionary<string, string>
                 {
                     { "role", "system" },
                     { "content", systemPrompt.ToString() }
                 });
-                
+
                 // Add the text to translate as the user message
                 messages.Add(new Dictionary<string, string>
                 {
                     { "role", "user" },
                     { "content", "Here is the input JSON:\n\n" + jsonData }
                 });
-                
+
                 // Create request body
                 var requestBody = new Dictionary<string, object>
                 {
@@ -100,25 +101,25 @@ namespace RSTGameTranslation
                     { "temperature", 0.3 },  // Lower temperature for more consistent translations
                     { "max_tokens", 2000 }   // Increase max tokens for longer texts
                 };
-                
+
                 // Serialize the request body
                 string requestJson = JsonSerializer.Serialize(requestBody);
-                
+
                 // Set up HTTP request
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
                 request.Headers.Add("Authorization", $"Bearer {apiKey}");
                 request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
-                
+
                 // Send request to OpenAI API
                 var response = await _httpClient.SendAsync(request);
                 string responseContent = await response.Content.ReadAsStringAsync();
-                
+
                 // Check if request was successful
                 if (response.IsSuccessStatusCode)
                 {
                     // Log raw response before any processing
                     LogManager.Instance.LogLlmReply(responseContent);
-                    
+
                     // Log to console for debugging (limited to first 500 chars)
                     if (responseContent.Length > 500)
                     {
@@ -128,7 +129,7 @@ namespace RSTGameTranslation
                     {
                         Console.WriteLine($"ChatGPT API response: {responseContent}");
                     }
-                    
+
                     try
                     {
                         // Parse response
@@ -137,7 +138,7 @@ namespace RSTGameTranslation
                         {
                             var firstChoice = choices[0];
                             string translatedText = firstChoice.GetProperty("message").GetProperty("content").GetString() ?? "";
-                            
+
                             // Log the extracted translation
                             if (translatedText.Length > 100)
                             {
@@ -147,7 +148,7 @@ namespace RSTGameTranslation
                             {
                                 Console.WriteLine($"ChatGPT translation extracted: {translatedText}");
                             }
-                            
+
                             // Clean up the response - sometimes there might be markdown code block markers
                             translatedText = translatedText.Trim();
                             if (translatedText.StartsWith("```json"))
@@ -158,34 +159,34 @@ namespace RSTGameTranslation
                             {
                                 translatedText = translatedText.Substring(3);
                             }
-                            
+
                             if (translatedText.EndsWith("```"))
                             {
                                 translatedText = translatedText.Substring(0, translatedText.Length - 3);
                             }
                             translatedText = translatedText.Trim();
-                            
+
                             // Clean up escape sequences and newlines in the JSON
                             if (translatedText.StartsWith("{") && translatedText.EndsWith("}"))
                             {
                                 // Properly escape newlines within JSON strings - don't convert to literal newlines
                                 // as it will break JSON parsing
-                                
+
                                 // Make sure it doesn't have additional newlines that could cause issues
-                                
+
                                 if (translatedText.Contains("\r\n"))
                                 {
                                     // We'll replace literal Windows newlines with spaces to avoid formatting issues
                                     translatedText = translatedText.Replace("\r\n", " ");
                                 }
-                               
-                                
+
+
                                 // Replace nicely formatted JSON (with newlines) with compact JSON for better parsing
                                 try
                                 {
                                     var tempJson = JsonSerializer.Deserialize<object>(translatedText);
-                                    var options = new JsonSerializerOptions 
-                                    { 
+                                    var options = new JsonSerializerOptions
+                                    {
                                         WriteIndented = false // This ensures compact JSON without any newlines
                                     };
                                     translatedText = JsonSerializer.Serialize(tempJson, options);
@@ -196,7 +197,7 @@ namespace RSTGameTranslation
                                     Console.WriteLine($"Failed to normalize JSON format: {ex.Message}");
                                 }
                             }
-                            
+
                             // Check if the response is in JSON format
                             if (translatedText.StartsWith("{") && translatedText.EndsWith("}"))
                             {
@@ -204,18 +205,18 @@ namespace RSTGameTranslation
                                 {
                                     // Validate it's proper JSON by parsing it
                                     var translatedJson = JsonSerializer.Deserialize<JsonElement>(translatedText);
-                                    
+
                                     // Log that we got valid JSON
                                     Console.WriteLine("ChatGPT returned valid JSON");
-                                    
+
                                     // Check if this is a game JSON translation with text_blocks
                                     if (translatedJson.TryGetProperty("text_blocks", out _))
                                     {
                                         // For game JSON format, we need to match the format that the other translation services use
                                         Console.WriteLine("This is a game JSON format - wrapping in the standard format");
-                                        
+
                                         // Save the translated JSON to a debug file for inspection
-                                        try 
+                                        try
                                         {
                                             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
                                             string debugFilePath = System.IO.Path.Combine(appDirectory, "chatgpt_translation_debug.txt");
@@ -226,7 +227,7 @@ namespace RSTGameTranslation
                                         {
                                             Console.WriteLine($"Failed to write debug file: {ex.Message}");
                                         }
-                                        
+
                                         // Based on the format of other translators, we need the text to be wrapped
                                         var outputJson = new Dictionary<string, object>
                                         {
@@ -234,10 +235,10 @@ namespace RSTGameTranslation
                                             { "original_text", jsonData },
                                             { "detected_language", inputJson.GetProperty("source_language").GetString() ?? "ja" }
                                         };
-                                        
+
                                         string finalOutput = JsonSerializer.Serialize(outputJson);
                                         Console.WriteLine($"Final wrapped output: {finalOutput.Substring(0, Math.Min(100, finalOutput.Length))}...");
-                                        
+
                                         return finalOutput;
                                     }
                                     else
@@ -249,12 +250,12 @@ namespace RSTGameTranslation
                                             { "original_text", jsonData },
                                             { "detected_language", inputJson.GetProperty("source_language").GetString() ?? "ja" }
                                         };
-                                        
+
                                         string finalOutput = JsonSerializer.Serialize(compatibilityOutput);
-                                        
+
                                         // Log the final output format
                                         Console.WriteLine($"Final output format: {finalOutput.Substring(0, Math.Min(100, finalOutput.Length))}...");
-                                        
+
                                         return finalOutput;
                                     }
                                 }
@@ -264,7 +265,7 @@ namespace RSTGameTranslation
                                     // Not valid JSON, will handle as plain text below
                                 }
                             }
-                            
+
                             // If we got plain text or invalid JSON, wrap it in our format
                             var formattedOutput = new Dictionary<string, object>
                             {
@@ -272,10 +273,10 @@ namespace RSTGameTranslation
                                 { "original_text", jsonData },
                                 { "detected_language", inputJson.GetProperty("source_language").GetString() ?? "ja" }
                             };
-                            
+
                             string output = JsonSerializer.Serialize(formattedOutput);
                             Console.WriteLine($"Formatted as plain text, output: {output.Substring(0, Math.Min(100, output.Length))}...");
-                            
+
                             return output;
                         }
                     }
@@ -289,8 +290,11 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Error calling ChatGPT API: {response.StatusCode}");
                     Console.WriteLine($"Response: {responseContent}");
+                    string newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
+                    ConfigManager.Instance.SetGeminiApiKey(newApikey);
+                    Console.WriteLine("Change new api key successfully");
                 }
-                
+
                 return null;
             }
             catch (Exception ex)

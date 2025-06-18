@@ -22,6 +22,13 @@ namespace RSTGameTranslation
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
+        public const string GEMINI_API_KEYS = "gemini_api_keys";
+        public const string CHATGPT_API_KEYS = "chatgpt_api_keys";
+        public const string GOOGLE_TRANSLATE_API_KEYS = "google_translate_api_keys";
+        public const string ELEVENLABS_API_KEYS = "elevenlabs_api_keys";
+        public const string GOOGLE_TTS_API_KEYS = "google_tts_api_keys";
+        public const string OPENAI_REALTIME_API_KEYS = "openai_realtime_api_keys";
+
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
         public const string GEMINI_MODEL = "gemini_model";
@@ -1291,6 +1298,133 @@ namespace RSTGameTranslation
         {
             string value = GetValue(KEEP_TRANSLATED_TEXT_UNTIL_REPLACED, "true");
             return value.ToLower() == "true";
+        }
+
+        // Get api key for service type
+        public List<string> GetApiKeysList(string serviceType)
+        {
+            List<string> result = new List<string>();
+            string keysConfigKey;
+            
+            switch (serviceType)
+            {
+                case "Gemini":
+                    keysConfigKey = GEMINI_API_KEYS;
+                    break;
+                case "ChatGPT":
+                    keysConfigKey = CHATGPT_API_KEYS;
+                    break;
+                case "Google Translate":
+                    keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
+                    break;
+                default:
+                    return result;
+            }
+            
+            string keysValue = GetValue(keysConfigKey, "");
+            if (!string.IsNullOrEmpty(keysValue))
+            {
+                string[] keys = keysValue.Split(new[] { "+++" }, StringSplitOptions.RemoveEmptyEntries);
+                result.AddRange(keys);
+            }
+            
+            
+            return result;
+        }
+
+        // Save list api key
+        public void SaveApiKeysList(string serviceType, List<string> keys)
+        {
+            string keysConfigKey;
+            
+            switch (serviceType)
+            {
+                case "Gemini":
+                    keysConfigKey = GEMINI_API_KEYS;
+                    break;
+                case "ChatGPT":
+                    keysConfigKey = CHATGPT_API_KEYS;
+                    break;
+                case "Google Translate":
+                    keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
+                    break;
+                default:
+                    return;
+            }
+            
+            string keysValue = string.Join("+++", keys);
+            _configValues[keysConfigKey] = keysValue;
+            SaveConfig();
+            
+            // Update current api key
+            string singleKeyConfigKey = GetSingleKeyConfigKey(serviceType);
+            if (keys.Count > 0)
+            {
+                _configValues[singleKeyConfigKey] = keys[0];
+            }
+            else
+            {
+                _configValues[singleKeyConfigKey] = "";
+            }
+            
+            Console.WriteLine($"Saved {keys.Count} API keys for {serviceType}");
+        }
+
+        // Add new api key to list
+        public void AddApiKey(string serviceType, string apiKey)
+        {
+            if (string.IsNullOrEmpty(apiKey))
+                return;
+
+            List<string> keys = GetApiKeysList(serviceType);
+
+            // Check new api is exist?
+            if (!keys.Contains(apiKey))
+            {
+                keys.Add(apiKey);
+                SaveApiKeysList(serviceType, keys);
+
+                Console.WriteLine($"Added new API key to list for {serviceType}");
+            }
+            // Always update single keys with the latest key
+            string singleKeyConfigKey = GetSingleKeyConfigKey(serviceType);
+            _configValues[singleKeyConfigKey] = apiKey;
+            SaveConfig();
+        }
+
+        // Retrieve configuration key for single key based on service type
+        private string GetSingleKeyConfigKey(string serviceType)
+        {
+            switch (serviceType)
+            {
+                case "Gemini":
+                    return GEMINI_API_KEY;
+                case "ChatGPT":
+                    return CHATGPT_API_KEY;
+                case "Google Translate":
+                    return GOOGLE_TRANSLATE_API_KEY;
+                default:
+                    return "";
+            }
+        }
+
+        // Get next key from the list
+        public string GetNextApiKey(string serviceType, string api_key)
+        {
+            List<string> keys = GetApiKeysList(serviceType);
+            if (keys.Count == 0)
+                return "";
+
+            int index = keys.IndexOf(api_key);
+            if (index == keys.Count-1)
+            {
+                index = 0;
+            }
+            else
+            {
+                index++;
+            }
+            return keys[index];
         }
         
         // Set whether translated text should be kept until replaced

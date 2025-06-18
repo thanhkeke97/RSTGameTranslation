@@ -111,7 +111,52 @@ namespace RSTGameTranslation
                 _isInitializing = false; // Ensure we don't get stuck in initialization mode
             }
         }
-        
+
+        private void ApiKeyPasswordBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                if (sender is PasswordBox passwordBox)
+                {
+                    string apiKey = passwordBox.Password.Trim();
+                    string serviceType = ConfigManager.Instance.GetCurrentTranslationService();
+                    
+                    if (!string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(serviceType))
+                    {
+                        // Add Api key to list
+                        ConfigManager.Instance.AddApiKey(serviceType, apiKey);
+                        
+                        // Clear textbox content
+                        passwordBox.Password = "";
+                        
+                        Console.WriteLine($"Added new API key for {serviceType}");
+                        
+                        
+                        MessageBox.Show($"API key added for {serviceType}.", "API Key Added", 
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+        }
+
+        private void ViewApiKeysButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button button)
+            {
+                string serviceType = ConfigManager.Instance.GetCurrentTranslationService();
+                
+                if (!string.IsNullOrEmpty(serviceType))
+                {
+                    // Get list api key
+                    List<string> apiKeys = ConfigManager.Instance.GetApiKeysList(serviceType);
+                    
+                    // Show API keys management window
+                    ApiKeysWindow apiKeysWindow = new ApiKeysWindow(serviceType, apiKeys);
+                    apiKeysWindow.Owner = this;
+                    apiKeysWindow.ShowDialog();
+                }
+            }
+        }
         // Handler for application-level keyboard shortcuts
         private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -128,10 +173,10 @@ namespace RSTGameTranslation
                 if (_isInitializing)
                     return;
                     
-                string apiKey = googleTranslateApiKeyPasswordBox.Password.Trim();
+                // string apiKey = googleTranslateApiKeyPasswordBox.Password.Trim();
                 
-                // Update the config
-                ConfigManager.Instance.SetGoogleTranslateApiKey(apiKey);
+                // // Update the config
+                // ConfigManager.Instance.SetGoogleTranslateApiKey(apiKey);
                 Console.WriteLine("Google Translate API key updated");
             }
             catch (Exception ex)
@@ -156,6 +201,7 @@ namespace RSTGameTranslation
                     // Show/hide API key field based on selection
                     googleTranslateApiKeyLabel.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
                     googleTranslateApiKeyGrid.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
+                    // viewGoogleTranslateKeysButton.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
                     
                     // Save to config
                     ConfigManager.Instance.SetGoogleTranslateUseCloudApi(isCloudApi);
@@ -842,6 +888,7 @@ namespace RSTGameTranslation
                 geminiApiKeyHelpText.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiModelLabel.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+                viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 
                 // Show/hide Ollama-specific settings
                 ollamaUrlLabel.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -856,6 +903,7 @@ namespace RSTGameTranslation
                 chatGptApiKeyGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptModelLabel.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptModelGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
+                viewChatGptKeysButton.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 
                 // Show/hide Google Translate-specific settings
                 googleTranslateServiceTypeLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -872,6 +920,7 @@ namespace RSTGameTranslation
                     
                 googleTranslateApiKeyLabel.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateApiKeyGrid.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
+                // viewGoogleTranslateKeysButton.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
                 
                 // Show/hide prompt template and related controls for Google Translate
                 promptLabel.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
@@ -945,7 +994,7 @@ namespace RSTGameTranslation
                     googleTranslateServiceTypeComboBox.SelectionChanged += GoogleTranslateServiceTypeComboBox_SelectionChanged;
                     
                     // Set API key if using Cloud API
-                   // if (useCloudApi)
+                   if (useCloudApi)
                     {
                         googleTranslateApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTranslateApiKey();
                     }
@@ -1034,10 +1083,10 @@ namespace RSTGameTranslation
         {
             try
             {
-                string apiKey = geminiApiKeyPasswordBox.Password.Trim();
+                // string apiKey = geminiApiKeyPasswordBox.Password.Trim();
                 
-                // Update the config
-                ConfigManager.Instance.SetGeminiApiKey(apiKey);
+                // // Update the config
+                // ConfigManager.Instance.SetGeminiApiKey(apiKey);
                 Console.WriteLine("Gemini API key updated");
             }
             catch (Exception ex)
@@ -1229,10 +1278,10 @@ namespace RSTGameTranslation
                 if (_isInitializing)
                     return;
                     
-                string apiKey = chatGptApiKeyPasswordBox.Password.Trim();
+                // string apiKey = chatGptApiKeyPasswordBox.Password.Trim();
                 
-                // Update the config
-                ConfigManager.Instance.SetChatGptApiKey(apiKey);
+                // // Update the config
+                // ConfigManager.Instance.SetChatGptApiKey(apiKey);
                 Console.WriteLine("ChatGPT API key updated");
             }
             catch (Exception ex)
