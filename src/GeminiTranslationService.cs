@@ -47,7 +47,7 @@ namespace RSTGameTranslation
                     },
                     generationConfig = new
                     {
-                        response_mime_type = "application/json",
+                        response_mime_type = "text/plain",
                     }
                 };
 
