@@ -237,7 +237,7 @@
             "price": "0",
             "priceCurrency": "USD"
         },
-        "softwareVersion": "0.65",
+        "softwareVersion": "0.7",
         "author": {
             "@type": "Person",
             "name": "thanhkeke97"
@@ -257,7 +257,7 @@
             </div>
             <h1>🎮 RSTGameTranslation</h1>
             <p>Realtime Screen Translation for Games and Applications</p>
-            <div class="version-badge">Version 0.65</div>
+            <div class="version-badge">Version 0.7</div>
         </div>
     </header>
 
@@ -363,6 +363,7 @@
                     <li><strong>LLM Setup:</strong>
                         <ul>
                             <li>Go to settings and add your Gemini API key. There are instructions on how to get the API key there.</li>
+                            <li>You can enter multiple API keys, press Enter after entering each API key.</li>
                             <li>Check the other settings; the default values should be fine. Note that there is a place to enter the name of the game, which is important! The LLM knowing this will help it fix errors and create better dialogue.</li>
                         </ul>
                     </li>
@@ -451,6 +452,7 @@
                 <li>Smaller translation area = faster processing</li>
                 <li>NVIDIA GPU highly recommended</li>
                 <li>First-time language downloads may take 1-2 minutes</li>
+                <li>The app will automatically change API keys if the previous API gets rate-limited, so you should input as many API keys as you can</li>
             </ul>
             
             <p>While I personally recommend Gemini Flash 2 lite and PaddleOCR (better for Asian languages and uses fewer resources), there are various options available to you. You can use Windows' built-in OCR instead of the python server, which doesn't work as well for Japanese but might be fine for other languages.</p>

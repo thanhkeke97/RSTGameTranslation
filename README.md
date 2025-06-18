@@ -78,8 +78,8 @@
 - View results in ChatBox or Monitor window
 
 #### 4. LLM Configuration
-- Add your **Gemini API key** in settings
-- Configure game name for better context
+- Add your **Gemini API key** in settings (You can enter multiple API keys, press Enter after entering each API key)
+- Configure game name for better context (context tab)
 - Adjust other settings as needed
 
 </details>
@@ -127,6 +127,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 - Smaller translation areas = faster processing
 - NVIDIA GPU highly recommended
 - First-time language downloads may take 1-2 minutes
+- The application will automatically change API keys if the previous API is rate-limited, so please enter as many API keys as possible
 
 ---
 
