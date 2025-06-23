@@ -1,0 +1,45 @@
+<Window x:Class="RSTGameTranslation.TranslationAreaSelectorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Select translation region" 
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="#01000000"
+        Topmost="True"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    
+    <Grid>
+        <!-- Transparent overlay -->
+        <Rectangle Fill="#33000000" />
+        
+        <!-- Selection rectangle -->
+        <Rectangle x:Name="selectionRectangle" 
+                   Stroke="#FF0000" 
+                   StrokeThickness="2" 
+                   Fill="#330000FF"
+                   Visibility="Collapsed" />
+        
+        <!-- Instruction text -->
+        <TextBlock x:Name="instructionText"
+                   Text="Select translation region: Drag the mouse to select the area you want to translate"
+                   FontSize="16"
+                   Foreground="White"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Top"
+                   Margin="0,50,0,0" />
+        
+        <!-- Cancel button -->
+        <Button x:Name="cancelButton"
+                Content="Cancel"
+                Width="80"
+                Height="30"
+                Click="CancelButton_Click"
+                Background="#FF3333"
+                Foreground="White"
+                BorderThickness="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Margin="50,50,0,0" />
+    </Grid>
+</Window>
