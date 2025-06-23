@@ -220,18 +220,29 @@ namespace RSTGameTranslation
             try
             {
                 using (HttpClient client = new HttpClient())
+                using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5))) // Timeout 5 giây
                 {
-                    string json = await client.GetStringAsync(VersionCheckerUrl);
-                    Console.WriteLine($"Received JSON: {json}");
+                    Task<string> downloadTask = client.GetStringAsync(VersionCheckerUrl, cts.Token);
                     
-                    var options = new JsonSerializerOptions
+                    try
                     {
-                        PropertyNameCaseInsensitive = true
-                    };
-                    
-                    var result = JsonSerializer.Deserialize<VersionInfo>(json, options);
-                    Console.WriteLine($"Deserialized version: {result?.LatestVersion}, name: {result?.Name}, message: {result?.Message}");
-                    return result;
+                        string json = await downloadTask;
+                        Console.WriteLine($"Received JSON: {json}");
+                        
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+                        
+                        var result = JsonSerializer.Deserialize<VersionInfo>(json, options);
+                        Console.WriteLine($"Deserialized version: {result?.LatestVersion}, name: {result?.Name}, message: {result?.Message}");
+                        return result;
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        Console.WriteLine("Fetching version info timed out after 5 seconds");
+                        return null;
+                    }
                 }
             }
             catch (Exception ex)

@@ -1954,6 +1954,7 @@ namespace RSTGameTranslation
                 "it" => "italian",
                 "ru" => "russian",
                 "hi" => "hindi",
+                "pt" => "Portuguese",
                 _ => language
             };
         }
