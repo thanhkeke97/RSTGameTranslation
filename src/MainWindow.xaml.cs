@@ -395,7 +395,7 @@ namespace RSTGameTranslation
             selectedTranslationArea = selectionRect;
             hasSelectedTranslationArea = true;
             
-            Console.WriteLine($"Vùng dịch đã được chọn: X={selectionRect.X}, Y={selectionRect.Y}, Width={selectionRect.Width}, Height={selectionRect.Height}");
+            Console.WriteLine($"The translation area has been selected: X={selectionRect.X}, Y={selectionRect.Y}, Width={selectionRect.Width}, Height={selectionRect.Height}");
             
             // Set capture area to selected region
             UpdateCustomCaptureRect();
@@ -446,7 +446,7 @@ namespace RSTGameTranslation
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
             }
             
-            Console.WriteLine($"Đã cập nhật vị trí MonitorWindow theo vùng đã chọn: ({selectedTranslationArea.X}, {selectedTranslationArea.Y}, {selectedTranslationArea.Width}, {selectedTranslationArea.Height})");
+            Console.WriteLine($"The position of the MonitorWindow has been updated according to the selected area.: ({selectedTranslationArea.X}, {selectedTranslationArea.Y}, {selectedTranslationArea.Width}, {selectedTranslationArea.Height})");
         }
 
         // Add method for show/hide the main window
@@ -559,15 +559,14 @@ namespace RSTGameTranslation
             // Load auto-translate setting from config
             isAutoTranslateEnabled = ConfigManager.Instance.IsAutoTranslateEnabled();
 
-            // Đăng ký sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
+            // Register the LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
             this.LocationChanged += MainWindow_LocationChanged;
             // ToggleMonitorWindow();
         }
 
-        // Thêm sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
+        // The LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
         private void MainWindow_LocationChanged(object? sender, EventArgs e)
         {
-            // Cập nhật vùng capture và vị trí của MonitorWindow
             UpdateCaptureRect();
         }
         
@@ -608,18 +607,18 @@ namespace RSTGameTranslation
             }
         }
         
-        // Thêm phương thức mới để cập nhật vị trí của MonitorWindow
+        // Update MonitorWindow position
         private void UpdateMonitorWindowPosition()
         {
-                // Đặt MonitorWindow chính xác tại vị trí của vùng capture
+                // Place the MonitorWindow exactly at the position of the capture area
                 MonitorWindow.Instance.Left = captureRect.Left;
                 MonitorWindow.Instance.Top = captureRect.Top;
                 
-                // Đặt kích thước của MonitorWindow bằng với kích thước của vùng capture
+                // Set the size of the MonitorWindow to match the size of the capture area
                 MonitorWindow.Instance.Width = captureRect.Width;
                 MonitorWindow.Instance.Height = captureRect.Height;
                 
-                // Lưu vị trí mới để sử dụng khi hiển thị lại
+                // Save the new position for future display
                 monitorWindowLeft = captureRect.Left;
                 monitorWindowTop = captureRect.Top;
                 
@@ -629,14 +628,12 @@ namespace RSTGameTranslation
 
         private void UpdateCaptureRect()
         {
-            // Nếu đã chọn vùng dịch tùy chỉnh, sử dụng vùng đó
+            // If a custom translation area has been selected, use that area
             if (hasSelectedTranslationArea)
-            {
-                // Lưu vị trí trước đó để tính toán offset
+            {         
                 previousCaptureX = captureRect.Left;
                 previousCaptureY = captureRect.Top;
                 
-                // Sử dụng vùng đã chọn
                 captureRect = new System.Drawing.Rectangle(
                     (int)selectedTranslationArea.X,
                     (int)selectedTranslationArea.Y,
@@ -646,7 +643,7 @@ namespace RSTGameTranslation
             }
             else
             {
-                // Sử dụng phương thức cũ nếu chưa chọn vùng dịch tùy chỉnh
+                // Use the old method if a custom translation area has not been selected
                 // Retrieve the handle using WindowInteropHelper
                 var helper = new System.Windows.Interop.WindowInteropHelper(this);
                 IntPtr hwnd = helper.Handle;
@@ -720,7 +717,6 @@ namespace RSTGameTranslation
         {
             System.Windows.Controls.Button btn = (System.Windows.Controls.Button)sender;
             String method = ConfigManager.Instance.GetOcrMethod();
-            // Kiểm tra trạng thái sẵn sàng dựa trên phương thức OCR
             bool isReady = false;
             
             if (method == "Windows OCR")
@@ -842,18 +838,17 @@ namespace RSTGameTranslation
         {
             base.OnSourceInitialized(e);
             
-            // Lấy handle của cửa sổ chính
+            // Get the handle of the main window
             IntPtr handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
             KeyboardShortcuts.SetMainWindowHandle(handle);
             
-            // Thêm hook để xử lý WM_HOTKEY
+
             HwndSource source = HwndSource.FromHwnd(handle);
             source.AddHook(WndProc);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            // Xử lý WM_HOTKEY (0x0312)
             if (msg == 0x0312) // WM_HOTKEY
             {
                 handled = KeyboardShortcuts.ProcessHotKey(wParam);

@@ -394,6 +394,9 @@
                                              Tag="Gemini"/>
                                     <Button x:Name="viewGeminiKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="Gemini" Width="70"/>
+                                    <TextBlock x:Name="geminiNote" Text="Press Enter after entering each API key" Grid.Row="1" TextWrapping="Wrap" 
+                                        Margin="0,2,0,5" FontSize="11" HorizontalAlignment="Left" FontWeight="Bold">
+                                    </TextBlock>
                                     <TextBlock x:Name="geminiApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GeminiApiLink_Click">https://ai.google.dev/tutorials/setup</Hyperlink>
@@ -483,6 +486,9 @@
                                              Tag="ChatGPT"/>
                                     <Button x:Name="viewChatGptKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="ChatGPT" Width="70"/>
+                                    <TextBlock x:Name="chatGptNote" Text="Press Enter after entering each API key" Grid.Row="1" TextWrapping="Wrap" 
+                                        Margin="0,2,0,5" FontSize="11" HorizontalAlignment="Left" FontWeight="Bold">
+                                    </TextBlock>
                                     <TextBlock Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="ChatGptApiLink_Click">https://platform.openai.com/api-keys</Hyperlink>
