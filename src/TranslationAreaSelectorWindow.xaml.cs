@@ -247,7 +247,7 @@ namespace RSTGameTranslation
             selectionRectangle.VerticalAlignment = System.Windows.VerticalAlignment.Top;
             
             // Display size information in the instruction text
-            instructionText.Text = $"Chọn vùng dịch: {(int)width} x {(int)height}";
+            instructionText.Text = $"Select translate area: {(int)width} x {(int)height}";
         }
         
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -269,10 +269,10 @@ namespace RSTGameTranslation
             double top = Math.Min(currentPoint.Y, startPoint.Y);
             
             // Verify minimum size
-            if (width < 50 || height < 50)
+            if (width < 50)
             {
-                MessageBox.Show("Vui lòng chọn một vùng lớn hơn (ít nhất 50x50 pixels).", 
-                                "Vùng chọn quá nhỏ", 
+                MessageBox.Show("Please select a larger area (at least 50x50 pixels).", 
+                                "The selected area is too small", 
                                 MessageBoxButton.OK, 
                                 MessageBoxImage.Warning);
                 return;
