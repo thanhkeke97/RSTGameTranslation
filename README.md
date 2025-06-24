@@ -39,6 +39,8 @@
 
 ---
 
+![Preview](media/preview_video.gif)
+
 ## 🚀 Quick Start
 
 ### Prerequisites
