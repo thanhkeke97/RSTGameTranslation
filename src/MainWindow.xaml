@@ -5,181 +5,334 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
-        Title="Transparent Screen Capture" 
-        Height="600" Width="800"
+        Title="Game Translation Tool" 
+        Height="600" Width="1000"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
-        Background="Transparent"
-        Topmost="True"
+        Background="#CC000000"
+        Topmost="False"
         Icon="/media/AppIcon.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome ResizeBorderThickness="15" CaptionHeight="10" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
       
+    <Window.Resources>
+        <!-- Button Style -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#FF2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#44FFFFFF"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF3E3E42"/>
+                                <Setter Property="BorderBrush" Value="#88FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF007ACC"/>
+                                <Setter Property="BorderBrush" Value="#AAFFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Close Button Style -->
+        <Style x:Key="CloseButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="MinWidth" Value="30"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFE81123"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     
-    <Grid Background="Transparent">
-        <!-- Main border for resizing - ALWAYS VISIBLE -->
-        <Border Name="MainBorder" BorderThickness="1" BorderBrush="#CFFF0000" Background="Transparent">
+    <Grid Background="#CC101010">
+        <!-- Main border for resizing -->
+        <Border Name="MainBorder" BorderThickness="1" BorderBrush="#3FFFFFFF" Background="#CC101010" CornerRadius="6">
             <Grid>
                 <!-- Top control bar with dedicated resize area -->
-                <Grid Height="50" VerticalAlignment="Top">
+                <Grid Height="60" VerticalAlignment="Top">
                     <!-- Top resize strip - 10px height -->
-                    <Border Height="10" VerticalAlignment="Top" Background="#50FF0000" Cursor="SizeNS"
+                    <Border Height="10" VerticalAlignment="Top" Background="Transparent" Cursor="SizeNS"
                            WindowChrome.IsHitTestVisibleInChrome="False"/>
                     
                     <!-- Actual header with content - shifted down by 10px -->
-                    <Border Name="HeaderBorder" Background="#CC202020" Margin="0,10,0,0"
+                    <Border Name="HeaderBorder" Background="#CC1E1E1E" Margin="0,10,0,0" CornerRadius="6,6,0,0"
                             MouseLeftButtonDown="Header_MouseLeftButtonDown"
                             WindowChrome.IsHitTestVisibleInChrome="True">
                     <Grid>
-                        <TextBlock Text="" 
-                                  Foreground="White" FontWeight="Bold"
+                        <TextBlock Text="Game Translation Tool" Visibility="Collapsed"
+                                  Foreground="White" FontWeight="Bold" FontSize="14"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                                    Margin="10,0" WindowChrome.IsHitTestVisibleInChrome="True">
-                            <Button x:Name="hideButton" Content="Hide" Padding="8,3" Margin="5,0"
-                                    Background="#FF5F5F5F" Foreground="White" BorderThickness="1" BorderBrush="White"
-                                    Click="HideButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                    
-                            <Button x:Name="toggleButton" Content="Start" Padding="8,3" Margin="5,0"
-                                    Background="#FF14B414" Foreground="White" BorderThickness="1" BorderBrush="White"
-                                    Click="OnStartButtonToggleClicked" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                            
-                            <!-- Hidden Language ComboBoxes (for settings synchronization) -->
-                            <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
-                                      WindowChrome.IsHitTestVisibleInChrome="True"
-                                      SelectionChanged="SourceLanguageComboBox_SelectionChanged">
-                                <ComboBoxItem Content="ja"/>
-                                <ComboBoxItem Content="en"/>
-                                <ComboBoxItem Content="ch_sim"/>
-                                <ComboBoxItem Content="ko"/>
-                                <ComboBoxItem Content="vi"/>
-                                <ComboBoxItem Content="fr"/>
-                                <ComboBoxItem Content="ru"/>
-                                <ComboBoxItem Content="de"/>
-                                <ComboBoxItem Content="es"/>
-                                <ComboBoxItem Content="it"/>
-                                <ComboBoxItem Content="hi"/>
-                                <ComboBoxItem Content="pt"/>
-                            </ComboBox>
-                            <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
-                                      WindowChrome.IsHitTestVisibleInChrome="True"
-                                      SelectionChanged="TargetLanguageComboBox_SelectionChanged">
-                                <ComboBoxItem Content="ja"/>
-                                <ComboBoxItem Content="en"/>
-                                <ComboBoxItem Content="ch_sim"/>
-                                <ComboBoxItem Content="ko"/>
-                                <ComboBoxItem Content="vi"/>
-                                <ComboBoxItem Content="fr"/>
-                                <ComboBoxItem Content="ru"/>
-                                <ComboBoxItem Content="de"/>
-                                <ComboBoxItem Content="es"/>
-                                <ComboBoxItem Content="it"/>
-                                <ComboBoxItem Content="hi"/>
-                                <ComboBoxItem Content="pt"/>
-                            </ComboBox>
-                            <!-- Monitor Toggle Button -->
-                            <Button x:Name="monitorButton" Content="Monitor" Padding="8,3" Margin="5,0"
-                                    Background="#FF4569B0" Foreground="White" BorderThickness="1" BorderBrush="White"
-                                    Click="MonitorButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                    
-                            <!-- ChatBox Toggle Button -->
-                            <Button x:Name="chatBoxButton" Content="ChatBox" Padding="8,3" Margin="5,0"
-                                    Background="#FF45B069" Foreground="White" BorderThickness="1" BorderBrush="White"
-                                    Click="ChatBoxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                    
-                            <!-- Listen Toggle Button -->
-                            <Button x:Name="listenButton" Content="Listen" Padding="8,3" Margin="5,0" Visibility="Collapsed"
-                                    Background="#FF4577B0" Foreground="White" BorderThickness="1" BorderBrush="White"
-                                    Click="ListenButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                    
-                            <!-- Log Console Toggle Button -->
-                            <Button x:Name="logButton" Content="Log" Padding="8,3" Margin="5,0"
-                                    Background="#FF9945B0" Foreground="White" BorderThickness="1" BorderBrush="White"
-                                    Click="LogButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                    
-                            <!-- Settings Toggle Button -->
-                            <Button x:Name="settingsButton" Content="Settings" Padding="8,3" Margin="5,0"
-                                    Background="#FFB07D45" Foreground="White" BorderThickness="1" BorderBrush="White"
-                                    Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                     Margin="10,0" VerticalAlignment="Center" 
+                                     WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Button x:Name="hideButton" Content="Hide" Style="{StaticResource ModernButton}"
+                                        Background="#FF5F5F5F" Visibility="Collapsed"
+                                        Click="HideButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        
+                                <Button x:Name="toggleButton" Content="Start" Style="{StaticResource ModernButton}"
+                                        Background="#FF14B414"
+                                        Click="OnStartButtonToggleClicked" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                
+                                <!-- Hidden Language ComboBoxes (for settings synchronization) -->
+                                <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
+                                          WindowChrome.IsHitTestVisibleInChrome="True"
+                                          SelectionChanged="SourceLanguageComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="ja"/>
+                                    <ComboBoxItem Content="en"/>
+                                    <ComboBoxItem Content="ch_sim"/>
+                                    <ComboBoxItem Content="ko"/>
+                                    <ComboBoxItem Content="vi"/>
+                                    <ComboBoxItem Content="fr"/>
+                                    <ComboBoxItem Content="ru"/>
+                                    <ComboBoxItem Content="de"/>
+                                    <ComboBoxItem Content="es"/>
+                                    <ComboBoxItem Content="it"/>
+                                    <ComboBoxItem Content="hi"/>
+                                    <ComboBoxItem Content="pt"/>
+                                </ComboBox>
+                                <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
+                                          WindowChrome.IsHitTestVisibleInChrome="True"
+                                          SelectionChanged="TargetLanguageComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="ja"/>
+                                    <ComboBoxItem Content="en"/>
+                                    <ComboBoxItem Content="ch_sim"/>
+                                    <ComboBoxItem Content="ko"/>
+                                    <ComboBoxItem Content="vi"/>
+                                    <ComboBoxItem Content="fr"/>
+                                    <ComboBoxItem Content="ru"/>
+                                    <ComboBoxItem Content="de"/>
+                                    <ComboBoxItem Content="es"/>
+                                    <ComboBoxItem Content="it"/>
+                                    <ComboBoxItem Content="hi"/>
+                                    <ComboBoxItem Content="pt"/>
+                                </ComboBox>
+                                
+                                <!-- Monitor Toggle Button -->
+                                <Button x:Name="monitorButton" Content="Monitor" Style="{StaticResource ModernButton}"
+                                        Background="#FF4569B0"
+                                        Click="MonitorButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        
+                                <!-- ChatBox Toggle Button -->
+                                <Button x:Name="chatBoxButton" Content="ChatBox" Style="{StaticResource ModernButton}"
+                                        Background="#FF45B069"
+                                        Click="ChatBoxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        
+                                <!-- Listen Toggle Button -->
+                                <Button x:Name="listenButton" Content="Listen" Style="{StaticResource ModernButton}"
+                                        Background="#FF4577B0" Visibility="Collapsed"
+                                        Click="ListenButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        
+                                <!-- Log Console Toggle Button -->
+                                <Button x:Name="logButton" Content="Log" Style="{StaticResource ModernButton}"
+                                        Background="#FF9945B0"
+                                        Click="LogButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        
+                                <!-- Settings Toggle Button -->
+                                <Button x:Name="settingsButton" Content="Settings" Style="{StaticResource ModernButton}"
+                                        Background="#FFB07D45"
+                                        Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
-                            <!-- OCR Server Buttons -->
-                            <Button x:Name="btnSetupOcrServer" Content="SetupServer" Padding="8,3" Margin="5,0"
-                                    Background="#FF4577B0" Foreground="Black" BorderThickness="1" BorderBrush="White"
-                                    Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                            <Button x:Name="btnStartOcrServer" Content="StartServer" Padding="8,3" Margin="5,0"
-                                    Background="#FF4577B0" Foreground="Black" BorderThickness="1" BorderBrush="White"
-                                    Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                            <Button x:Name="btnStopOcrServer" Content="StopServer" Padding="8,3" Margin="5,0"
-                                    Background="#FF4577B0" Foreground="Black" BorderThickness="1" BorderBrush="White"
-                                    Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                        </StackPanel>
+                                <!-- Select Area Button -->
+                                <Button x:Name="selectAreaButton" Content="SelectArea" Style="{StaticResource ModernButton}"
+                                        Background="#FFB07D45"
+                                        Click="SelectAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- OCR Server Buttons -->
+                                <Button x:Name="btnSetupOcrServer" Content="SetupServer" Style="{StaticResource ModernButton}"
+                                        Background="#FF4577B0" 
+                                        Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        
+                                <Button x:Name="btnStartOcrServer" Content="StartServer" Style="{StaticResource ModernButton}"
+                                        Background="#FF4577B0" 
+                                        Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        
+                                <Button x:Name="btnStopOcrServer" Content="StopServer" Style="{StaticResource ModernButton}"
+                                        Background="#FF4577B0"
+                                        Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            </StackPanel>
+                        </ScrollViewer>
                         
-                        <Button Content="X" Width="30" Height="30" 
-                                HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Background="#CCE63232" Foreground="White" FontWeight="Bold"
-                                Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        <!-- Window Control Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <Button x:Name="minimizeButton" Content="&#xE949;" FontFamily="Segoe MDL2 Assets"
+                                Width="30" Height="30" Margin="0,0,5,0" Background="Transparent" Foreground="White"
+                                BorderThickness="0" 
+                                Click="MinimizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                <Button.Style>
+                                <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                        <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" BorderThickness="0">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#44FFFFFF"/>
+                                                        </Trigger>
+                                                </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                        </Setter.Value>
+                                        </Setter>
+                                </Style>
+                                </Button.Style>
+                        </Button>
+                        
+                        <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" 
+                                Width="30" Height="30" Background="Transparent" Foreground="White"
+                                BorderThickness="0"
+                                Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                <Button.Style>
+                                <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                        <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" BorderThickness="0">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#FFE81123"/>
+                                                        </Trigger>
+                                                </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                        </Setter.Value>
+                                        </Setter>
+                                </Style>
+                                </Button.Style>
+                        </Button>
+                        </StackPanel>
                     </Grid>
                 </Border>
                 </Grid>
                 
                 <!-- UI elements to hide during capture - HIDDEN DURING SCREENSHOT -->
-                <Grid Name="OverlayContent" Margin="0,50,0,0">
-                    <!-- Overlay text (will not appear in screenshots) -->
-                    <!-- 
-                    <TextBlock Text="This overlay text will NOT appear in screenshots"
-                              Foreground="#FFFF0000" FontWeight="Bold" FontSize="24"
-                              HorizontalAlignment="Left" VerticalAlignment="Top"
-                              Margin="50,60,0,0"/> 
-                    -->
-                    
-                    <!-- Add other elements here that should not appear in screenshots -->
+                <Grid Name="OverlayContent" Margin="0,70,0,50">
+                    <!-- Main content area -->
+                    <Border Background="#22FFFFFF" CornerRadius="6" Margin="10">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <TextBlock Foreground="White" FontWeight="Normal" FontSize="14"
+                                      Margin="15"
+                                      TextWrapping="Wrap">
+                                <Run Text="RSTGameTranslation" FontSize="28" FontWeight="Bold" Foreground="#FF00AAFF"/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <Run Text="Setup Guide" FontSize="20" FontWeight="Bold" Foreground="#FF00AAFF"/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <Run Text="1. Server Setup (One-time)" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
+                                <LineBreak/>
+                                <Run Text="• Click SetupServer button (Skip if using Windows OCR)"/>
+                                <LineBreak/>
+                                <Run Text="• Wait 5-15 minutes for setup completion"/>
+                                <LineBreak/>
+                                <Run Text="• Look for &quot;environment setup completed&quot; message"/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <Run Text="2. Start Translating" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
+                                <LineBreak/>
+                                <Run Text="• Click StartServer and wait for connection confirmation (Skip if using Windows OCR)"/>
+                                <LineBreak/>
+                                <Run Text="• Select translate region (ALT+Q or Click on SelectArea button)"/>
+                                <LineBreak/>
+                                <Run Text="• Click Start button (ALT+G) to begin translation"/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <Run Text="3. View Result" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
+                                <LineBreak/>
+                                <Run Text="• View results in ChatBox History (ALT+C)"/>
+                                <LineBreak/>
+                                <Run Text="• Display translated text overlaid on the original text in the selected area (Windows 11 required) (ALT+F)"/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <Run Text="4. Recommended setting" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
+                                <LineBreak/>
+                                <Run Text="• OCR: PaddleOCR (Better for Asian languages, lower resource usage)"/>
+                                <LineBreak/>
+                                <Run Text="• LLM: Gemini Flash 2 Lite (Fast and accurate)"/>
+                                <LineBreak/>
+                                <Run Text="• NVIDIA: PaddleOCR or EasyOCR"/>
+                                <LineBreak/>
+                                <Run Text="• AMD, INTEL: Windows OCR (only support for source language is English)"/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <Run Text="How to reach me: thanhct1507@gmail.com" FontSize="18" FontWeight="Bold" Foreground="#FF00AAFF"/>
+                            </TextBlock>
+                         </ScrollViewer>
+                    </Border>
                 </Grid>
-                
                 
                 <!-- Bottom footer bar with shortcut information -->
                 <Grid Height="40" VerticalAlignment="Bottom">
                 <!-- Bottom resize strip - 10px height -->
-                <Border Height="10" VerticalAlignment="Bottom" Background="#50FF0000" Cursor="SizeNS"
+                <Border Height="10" VerticalAlignment="Bottom" Background="Transparent" Cursor="SizeNS"
                         WindowChrome.IsHitTestVisibleInChrome="False"/>
                 
                 <!-- Actual footer with content - shifted up by 10px -->
-                <Border Name="FooterBorder" Background="#CC202020" Margin="0,0,0,10"
+                <Border Name="FooterBorder" Background="#CC1E1E1E" Margin="0,0,0,10" CornerRadius="0,0,6,6"
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Grid>
-                        
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                 <TextBlock Text="HotKey" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
                                         Margin="10,0,0,0" VerticalAlignment="Center"/>
 
-                                <Border Background="#FF333333" Padding="5,3" Margin="5,0" CornerRadius="3">
+                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
                                         <TextBlock Text="Alt+G: Start/Stop" Foreground="White"/>
                                 </Border>
                                 
-                                <Border Background="#FF333333" Padding="5,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+H: Show/Hide" Foreground="White"/>
+                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="Alt+P: Setting" Foreground="White"/>
                                 </Border>
 
-                                <Border Background="#FF333333" Padding="5,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+F: Monitor Overlay" Foreground="White"/>
+                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="Alt+F: Monitor" Foreground="White"/>
                                 </Border>
                                 
+                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="Alt+Q: Select Area" Foreground="White"/>
+                                </Border>
+                                
+                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="Alt+C: ChatBox" Foreground="White"/>
+                                </Border>
                         </StackPanel>
-        
-                        
                         </Grid>
                 </Border>
                 </Grid>
 
-                <!-- Resize grip indicators -->
-                <Rectangle Width="24" Height="24" Fill="#80808080"
-                          HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                          Cursor="SizeNWSE"/>
+                <!-- Resize grip indicator -->
+                <Path Data="M 0,10 L 10,0 M 0,5 L 5,0 M 0,0 L 0,0" Stroke="#AAFFFFFF" StrokeThickness="1"
+                      Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                      Margin="0,0,5,15" Stretch="Fill"/>
                 
-                <!-- Resize borders - visual indicators only -->
-                <Border BorderBrush="#8FFF0000" BorderThickness="7" Background="Transparent" IsHitTestVisible="False"/>
+                <!-- Subtle border indicator -->
+                <Border BorderBrush="#3FFFFFFF" BorderThickness="1" Background="Transparent" 
+                        CornerRadius="6" IsHitTestVisible="False"/>
             </Grid>
         </Border>
     </Grid>

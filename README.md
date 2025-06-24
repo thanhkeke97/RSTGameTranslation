@@ -72,9 +72,9 @@
 - Look for "environment setup completed" message
 
 #### 3. Start Translating
-- Click **StartServer** and wait for connection confirmation
-- Click **Start** to begin translation
-- Drag the translation area to your desired region
+- Click **StartServer** and wait for connection confirmation (Skip if using Windows OCR)
+- Select translate area (ALT+Q or Click on SelectArea button)
+- Click Start button (ALT+G) to begin translation
 - View results in ChatBox or Monitor window
 
 #### 4. LLM Configuration
@@ -90,8 +90,8 @@
 
 | Shortcut | Function | Note |
 |----------|----------|------|
-| `Alt + G` | Start/Stop OCR | Works globally |
-| `Alt + H` | Show/Hide Main Window | Works globally |
+| `Alt + G` | Start/Stop | Works globally |
+| `Alt + Q` | Select Translation Area | Works globally |
 | `Alt + F` | Show/Hide Monitor Overlay | Works globally |
 | `Alt + C` | Show/Hide ChatBox | Works globally |
 | `Alt + P` | Show/Hide Settings | Works globally |

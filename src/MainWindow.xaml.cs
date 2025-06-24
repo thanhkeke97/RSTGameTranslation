@@ -67,7 +67,13 @@ namespace RSTGameTranslation
         private string outputPath = DEFAULT_OUTPUT_PATH;
         private WindowInteropHelper helper;
         private System.Drawing.Rectangle captureRect;
-        
+
+        // Store translate area information
+        private bool isSelectingTranslationArea = false;
+        private Rect selectedTranslationArea;
+        private bool hasSelectedTranslationArea = false;
+
+
         // Store previous capture position to calculate offset
         private int previousCaptureX;
         private int previousCaptureY;
@@ -284,21 +290,21 @@ namespace RSTGameTranslation
                 MonitorWindow.Instance.RefreshOverlays();
             }
         }
-        
+
         // The global keyboard hooks are now managed by KeyboardShortcuts class
-        
+
         public MainWindow()
         {
             // Make sure the initialization flag is set before anything else
             _isInitializing = true;
             Console.WriteLine("MainWindow constructor: Setting _isInitializing to true");
-            
+
             _this = this;
             InitializeComponent();
 
             // Initialize console but keep it hidden initially
             InitializeConsole();
-            
+
             // Hide the console window initially
             consoleWindow = GetConsoleWindow();
             KeyboardShortcuts.SetConsoleWindowHandle(consoleWindow);
@@ -312,29 +318,135 @@ namespace RSTGameTranslation
             _captureTimer.Interval = TimeSpan.FromSeconds(1 / 40.0f);
             _captureTimer.Tick += OnUpdateTick;
             _captureTimer.Start();
-            
+
             // Initial update of capture rectangle and setup after window is loaded
             this.Loaded += MainWindow_Loaded;
-            
+
             // Create socket status text block
             CreateSocketStatusIndicator();
-            
+
             // Get reference to the already initialized ChatBoxWindow
             chatBoxWindow = ChatBoxWindow.Instance;
 
             // Register application-wide keyboard shortcut handler
             this.PreviewKeyDown += Application_KeyDown;
-            
+
             // Register keyboard shortcuts events
             KeyboardShortcuts.StartStopRequested += (s, e) => OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
             KeyboardShortcuts.MonitorToggleRequested += (s, e) => MonitorButton_Click(monitorButton, new RoutedEventArgs());
             KeyboardShortcuts.ChatBoxToggleRequested += (s, e) => ChatBoxButton_Click(chatBoxButton, new RoutedEventArgs());
             KeyboardShortcuts.SettingsToggleRequested += (s, e) => SettingsButton_Click(settingsButton, new RoutedEventArgs());
             KeyboardShortcuts.LogToggleRequested += (s, e) => LogButton_Click(logButton, new RoutedEventArgs());
-            KeyboardShortcuts.MainWindowVisibilityToggleRequested += (s, e) => ToggleMainWindowVisibility();
-            
+            // KeyboardShortcuts.MainWindowVisibilityToggleRequested += (s, e) => ToggleMainWindowVisibility();
+            KeyboardShortcuts.SelectTranslationRegion += (s, e) => SelectAreaButton_Click(selectAreaButton, new RoutedEventArgs());
+
+
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
+        }
+
+        private void SelectAreaButton_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleTranslationAreaSelector();
+        }
+        
+        private void ToggleTranslationAreaSelector()
+        {
+            if (isSelectingTranslationArea)
+            {
+                // Cancel translation region selection if active
+                isSelectingTranslationArea = false;
+                selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                
+                // Find and close the region selection window if currently open
+                foreach (Window window in System.Windows.Application.Current.Windows)
+                {
+                    if (window is TranslationAreaSelectorWindow translationSelector)
+                    {
+                        translationSelector.Close();
+                        return;
+                    }
+                }
+                return;
+            }
+            
+            // Show translation region picker window
+            TranslationAreaSelectorWindow selectorWindow = TranslationAreaSelectorWindow.GetInstance();
+            selectorWindow.SelectionComplete += TranslationAreaSelector_SelectionComplete;
+            selectorWindow.Closed += (s, e) => 
+            {
+                isSelectingTranslationArea = false;
+                if (!hasSelectedTranslationArea)
+                {
+                    selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                }
+            };
+            selectorWindow.Show();
+            
+
+            isSelectingTranslationArea = true;
+            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+        }
+
+        // Handle the event when translation region is selected
+        private void TranslationAreaSelector_SelectionComplete(object? sender, Rect selectionRect)
+        {
+            // Save the selected translation region
+            selectedTranslationArea = selectionRect;
+            hasSelectedTranslationArea = true;
+            
+            Console.WriteLine($"The translation area has been selected: X={selectionRect.X}, Y={selectionRect.Y}, Width={selectionRect.Width}, Height={selectionRect.Height}");
+            
+            // Set capture area to selected region
+            UpdateCustomCaptureRect();
+            
+            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+        }
+
+        // Set capture area to selected region
+        private void UpdateCustomCaptureRect()
+        {
+            if (!hasSelectedTranslationArea) return;
+            
+            captureRect = new System.Drawing.Rectangle(
+                (int)selectedTranslationArea.X,
+                (int)selectedTranslationArea.Y,
+                (int)selectedTranslationArea.Width,
+                (int)selectedTranslationArea.Height
+            );
+            
+            previousCaptureX = captureRect.Left;
+            previousCaptureY = captureRect.Top;
+            
+            // Update current capture position for Logic
+            Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
+        }
+
+        // Update the position of MonitorWindow based on the selected area
+        private void UpdateMonitorWindowToSelectedArea()
+        {
+            if (!hasSelectedTranslationArea) return;
+            
+            // Place the MonitorWindow exactly at the position of the selected area
+            MonitorWindow.Instance.Left = selectedTranslationArea.X;
+            MonitorWindow.Instance.Top = selectedTranslationArea.Y;
+            
+            // Set the size of the MonitorWindow to match the size of the selected area
+            MonitorWindow.Instance.Width = selectedTranslationArea.Width;
+            MonitorWindow.Instance.Height = selectedTranslationArea.Height;
+            
+            // Save the new position for future display
+            monitorWindowLeft = selectedTranslationArea.X;
+            monitorWindowTop = selectedTranslationArea.Y;
+            
+            // Show the MonitorWindow if it is not already displayed
+            if (!MonitorWindow.Instance.IsVisible)
+            {
+                MonitorWindow.Instance.Show();
+                monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+            }
+            
+            Console.WriteLine($"The position of the MonitorWindow has been updated according to the selected area.: ({selectedTranslationArea.X}, {selectedTranslationArea.Y}, {selectedTranslationArea.Width}, {selectedTranslationArea.Height})");
         }
 
         // Add method for show/hide the main window
@@ -447,15 +559,14 @@ namespace RSTGameTranslation
             // Load auto-translate setting from config
             isAutoTranslateEnabled = ConfigManager.Instance.IsAutoTranslateEnabled();
 
-            // Đăng ký sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
+            // Register the LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
             this.LocationChanged += MainWindow_LocationChanged;
             // ToggleMonitorWindow();
         }
 
-        // Thêm sự kiện LocationChanged để cập nhật vị trí MonitorWindow khi MainWindow di chuyển
+        // The LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
         private void MainWindow_LocationChanged(object? sender, EventArgs e)
         {
-            // Cập nhật vùng capture và vị trí của MonitorWindow
             UpdateCaptureRect();
         }
         
@@ -496,18 +607,18 @@ namespace RSTGameTranslation
             }
         }
         
-        // Thêm phương thức mới để cập nhật vị trí của MonitorWindow
+        // Update MonitorWindow position
         private void UpdateMonitorWindowPosition()
         {
-                // Đặt MonitorWindow chính xác tại vị trí của vùng capture
+                // Place the MonitorWindow exactly at the position of the capture area
                 MonitorWindow.Instance.Left = captureRect.Left;
                 MonitorWindow.Instance.Top = captureRect.Top;
                 
-                // Đặt kích thước của MonitorWindow bằng với kích thước của vùng capture
+                // Set the size of the MonitorWindow to match the size of the capture area
                 MonitorWindow.Instance.Width = captureRect.Width;
                 MonitorWindow.Instance.Height = captureRect.Height;
                 
-                // Lưu vị trí mới để sử dụng khi hiển thị lại
+                // Save the new position for future display
                 monitorWindowLeft = captureRect.Left;
                 monitorWindowTop = captureRect.Top;
                 
@@ -517,37 +628,54 @@ namespace RSTGameTranslation
 
         private void UpdateCaptureRect()
         {
-            // Retrieve the handle using WindowInteropHelper
-            var helper = new System.Windows.Interop.WindowInteropHelper(this);
-            IntPtr hwnd = helper.Handle;
-            if (hwnd == IntPtr.Zero)
-            {
-                return;
+            // If a custom translation area has been selected, use that area
+            if (hasSelectedTranslationArea)
+            {         
+                previousCaptureX = captureRect.Left;
+                previousCaptureY = captureRect.Top;
+                
+                captureRect = new System.Drawing.Rectangle(
+                    (int)selectedTranslationArea.X,
+                    (int)selectedTranslationArea.Y,
+                    (int)selectedTranslationArea.Width,
+                    (int)selectedTranslationArea.Height
+                );
             }
+            else
+            {
+                // Use the old method if a custom translation area has not been selected
+                // Retrieve the handle using WindowInteropHelper
+                var helper = new System.Windows.Interop.WindowInteropHelper(this);
+                IntPtr hwnd = helper.Handle;
+                if (hwnd == IntPtr.Zero)
+                {
+                    return;
+                }
 
-            // Get our window position including the entire window (client + custom chrome)
-            RECT windowRect;
-            GetWindowRect(hwnd, out windowRect);
+                // Get our window position including the entire window (client + custom chrome)
+                RECT windowRect;
+                GetWindowRect(hwnd, out windowRect);
 
-            // Use the custom header's height and footer bar height to exclude them from the capture area
-            int customFooterHeight = FOOTER_BAR_HEIGHT;
-            int customTitleBarHeight = TITLE_BAR_HEIGHT;
-            // Border thickness settings
-            int leftBorderThickness = 9;  // Increased from 7 to 9
-            int rightBorderThickness = 8; // Adjusted to 8
-            int bottomBorderThickness = 9; // Increased from 7 to 9
+                // Use the custom header's height and footer bar height to exclude them from the capture area
+                int customFooterHeight = FOOTER_BAR_HEIGHT;
+                int customTitleBarHeight = TITLE_BAR_HEIGHT;
+                // Border thickness settings
+                int leftBorderThickness = 9;  // Increased from 7 to 9
+                int rightBorderThickness = 8; // Adjusted to 8
+                int bottomBorderThickness = 9; // Increased from 7 to 9
 
-            // Store previous position for calculating offset
-            previousCaptureX = captureRect.Left;
-            previousCaptureY = captureRect.Top;
+                // Store previous position for calculating offset
+                previousCaptureX = captureRect.Left;
+                previousCaptureY = captureRect.Top;
 
-            // Adjust the capture rectangle to exclude the custom title bar and border areas
-            captureRect = new System.Drawing.Rectangle(
-                windowRect.Left + leftBorderThickness,
-                windowRect.Top + customTitleBarHeight,
-                (windowRect.Right - windowRect.Left) - leftBorderThickness - rightBorderThickness,
-                (windowRect.Bottom - windowRect.Top) - customTitleBarHeight - customFooterHeight - bottomBorderThickness);
-                    
+                // Adjust the capture rectangle to exclude the custom title bar and border areas
+                captureRect = new System.Drawing.Rectangle(
+                    windowRect.Left + leftBorderThickness,
+                    windowRect.Top + customTitleBarHeight,
+                    (windowRect.Right - windowRect.Left) - leftBorderThickness - rightBorderThickness,
+                    (windowRect.Bottom - windowRect.Top) - customTitleBarHeight - customFooterHeight - bottomBorderThickness);
+            }
+            
             // If position changed and we have text objects, update their positions
             if ((previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) && 
                 Logic.Instance.TextObjects.Count > 0)
@@ -589,7 +717,6 @@ namespace RSTGameTranslation
         {
             System.Windows.Controls.Button btn = (System.Windows.Controls.Button)sender;
             String method = ConfigManager.Instance.GetOcrMethod();
-            // Kiểm tra trạng thái sẵn sàng dựa trên phương thức OCR
             bool isReady = false;
             
             if (method == "Windows OCR")
@@ -711,18 +838,17 @@ namespace RSTGameTranslation
         {
             base.OnSourceInitialized(e);
             
-            // Lấy handle của cửa sổ chính
+            // Get the handle of the main window
             IntPtr handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
             KeyboardShortcuts.SetMainWindowHandle(handle);
             
-            // Thêm hook để xử lý WM_HOTKEY
+
             HwndSource source = HwndSource.FromHwnd(handle);
             source.AddHook(WndProc);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            // Xử lý WM_HOTKEY (0x0312)
             if (msg == 0x0312) // WM_HOTKEY
             {
                 handled = KeyboardShortcuts.ProcessHotKey(wParam);
@@ -1174,7 +1300,6 @@ namespace RSTGameTranslation
         private double monitorWindowLeft = -1;
         private double monitorWindowTop = -1;
         
-        // Show/hide the monitor window
         private void ToggleMonitorWindow()
         {
             if (MonitorWindow.Instance.IsVisible)
@@ -1193,15 +1318,22 @@ namespace RSTGameTranslation
             {
                 try
                 {
-                    // Đóng và tạo lại instance
+                    // Close and reset instance
                     MonitorWindow.ResetInstance();
                     
                     Console.WriteLine("Creating new MonitorWindow instance...");
                     
-                    // Cập nhật vị trí dựa trên vùng capture hiện tại
-                    UpdateMonitorWindowPosition();
+                    // If a custom translation area has been selected, use that area
+                    if (hasSelectedTranslationArea)
+                    {
+                        UpdateMonitorWindowToSelectedArea();
+                    }
+                    else
+                    {
+                        UpdateMonitorWindowPosition();
+                    }
                     
-                    // Thực hiện capture mới ngay lập tức
+                    // Perform a new capture immediately
                     using (Bitmap bitmap = new Bitmap(captureRect.Width, captureRect.Height))
                     {
                         using (Graphics g = Graphics.FromImage(bitmap))
@@ -1219,15 +1351,13 @@ namespace RSTGameTranslation
                                 CopyPixelOperation.SourceCopy);
                         }
                         
-                        // Lưu bitmap để sử dụng sau này
                         bitmap.Save(outputPath, ImageFormat.Png);
                         
-                        // Cập nhật MonitorWindow với bitmap mới
                         Console.WriteLine("Updating MonitorWindow with fresh capture");
                         MonitorWindow.Instance.UpdateScreenshotFromBitmap(bitmap);
                     }
                     
-                    // Refresh overlays để hiển thị các text objects
+                    // Refresh overlays
                     MonitorWindow.Instance.RefreshOverlays();
                     
                     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
