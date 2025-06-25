@@ -909,6 +909,7 @@ namespace RSTGameTranslation
                 geminiModelLabel.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+                geminiNote.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 
                 // Show/hide Ollama-specific settings
                 ollamaUrlLabel.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -924,6 +925,7 @@ namespace RSTGameTranslation
                 chatGptModelLabel.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptModelGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewChatGptKeysButton.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
+                chatGptNote.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 
                 // Show/hide Google Translate-specific settings
                 googleTranslateServiceTypeLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
