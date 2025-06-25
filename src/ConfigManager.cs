@@ -556,12 +556,12 @@ namespace RSTGameTranslation
                     "so please try to infer the context and which parts are menu or dialog.\n" +
                     "You should:\n" +
                     "* Output ONLY the resulting JSON data.\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a source_language, target_language, and a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id and its rect (the bounding box).\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\", \"rect\": { \"x\": 10, \"y\": 20, \"width\": 400, \"height\": 50 } }\n" +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +
@@ -571,12 +571,12 @@ namespace RSTGameTranslation
                     "so please try to infer the context and which parts are menu or dialog.\n" +
                     "You should:\n" +
                     "* Output ONLY the resulting JSON data.\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a source_language, target_language, and a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id and its rect (the bounding box).\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\", \"rect\": { \"x\": 10, \"y\": 20, \"width\": 400, \"height\": 50 } }\n" +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +
@@ -586,12 +586,12 @@ namespace RSTGameTranslation
                     "so please try to infer the context and which parts are menu or dialog.\n" +
                     "You should:\n" +
                     "* Output ONLY the resulting JSON data.\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a source_language, target_language, and a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id and its rect (the bounding box).\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\", \"rect\": { \"x\": 10, \"y\": 20, \"width\": 400, \"height\": 50 } }\n" +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +

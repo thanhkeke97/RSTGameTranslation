@@ -1888,7 +1888,7 @@ namespace RSTGameTranslation
                             if (text != null)
                             {
                                 // Check if we already have a proper translation with source_language, target_language, text_blocks
-                                if (text.Contains("\"source_language\"") && text.Contains("\"text_blocks\""))
+                                if (text.Contains("\"text_blocks\""))
                                 {
                                     Console.WriteLine("Direct translation detected, using it as is");
                                     
@@ -1998,13 +1998,13 @@ namespace RSTGameTranslation
                     {
                         id = textObj.ID,
                         text = textObj.Text,
-                        rect = new
-                        {
-                            x = textObj.X,
-                            y = textObj.Y,
-                            width = textObj.Width,
-                            height = textObj.Height
-                        }
+                        // rect = new
+                        // {
+                        //     x = textObj.X,
+                        //     y = textObj.Y,
+                        //     width = textObj.Width,
+                        //     height = textObj.Height
+                        // }
                     });
                 }
 
