@@ -72,6 +72,7 @@ def handle_client_connection(conn, addr):
                 # Parse parameters if provided
                 lang = 'english'  # Default language
                 implementation = 'paddleocr'
+                char_level_rec = 'True'
                 
                 if "|" in command:
                     parts = command.split("|")
@@ -79,9 +80,11 @@ def handle_client_connection(conn, addr):
                         lang = parts[1]
                     if len(parts) > 2 and parts[2]:
                         implementation = parts[2].lower()
+                    if len(parts) > 3 and parts[3]:
+                        char_level_rec = parts[3]
 
                 # Check if character-level OCR is requested
-                char_level = True  # Default to character-level
+                char_level = char_level_rec  # Default to character-level
                 
                 # Log the OCR engine and language being used
                 logger.info(f"Using PaddleOCR with language: {lang}, character-level: {char_level}, OCR engine: {implementation}")
@@ -90,7 +93,7 @@ def handle_client_connection(conn, addr):
                 start_time = time.time()
                 result = process_image("../image_to_process.png", lang=lang, char_level=char_level)
                 
-                # Giải phóng tài nguyên GPU sau khi xử lý
+                
                 release_gpu_resources()
                 
                 # Send results back to client as JSON

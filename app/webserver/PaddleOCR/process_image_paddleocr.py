@@ -127,7 +127,7 @@ def upscale_image(image, min_width=1024, min_height=768):
 # Initialize with default language at module load time
 initialize_ocr_engine('en')
 
-def process_image(image_path, lang='english', preprocess_images=False, upscale_if_needed=False, char_level=True):
+def process_image(image_path, lang='english', preprocess_images=False, upscale_if_needed=False, char_level="True"):
     """
     Process an image using PaddleOCR and return the OCR results.
     
@@ -208,7 +208,7 @@ def process_image(image_path, lang='english', preprocess_images=False, upscale_i
                 # Convert all NumPy types to native Python types for JSON serialization
                 box_native = [[float(coord) for coord in point] for point in box]
                 
-                if char_level and len(text) > 1:
+                if char_level == 'True' and len(text) > 1:
                     # Estimate character positions - PaddleOCR doesn't natively provide char-level boxes
                     char_results = split_into_characters(text, box_native, confidence)
                     ocr_results.extend(char_results)

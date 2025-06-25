@@ -1509,7 +1509,7 @@ namespace RSTGameTranslation
             {
                 // Check if we're using Windows OCR or EasyOCR or PaddleOCR
                 string ocrMethod = MainWindow.Instance.GetSelectedOcrMethod();
-                
+
                 if (ocrMethod == "Windows OCR")
                 {
                     // Windows OCR doesn't require socket connection
@@ -1524,28 +1524,28 @@ namespace RSTGameTranslation
                         MainWindow.Instance.SetOCRCheckIsWanted(true);
                         return;
                     }
-                    
+
                     // Get the source language from MainWindow
                     string sourceLanguage = GetSourceLanguage()!;
-                    
+
                     Console.WriteLine($"Processing screenshot with {ocrMethod} character-level OCR, language: {sourceLanguage}");
-                    
+
                     // Check socket connection for EasyOCR or PaddleOCR
                     if (!SocketManager.Instance.IsConnected)
                     {
                         Console.WriteLine("Socket not connected, attempting to reconnect...");
-                        
+
                         // Try to reconnect
                         bool reconnected = await SocketManager.Instance.TryReconnectAsync();
 
                         // Wait 300 ms
                         await Task.Delay(300);
-                        
+
                         // Check if reconnection succeeded
                         if (!reconnected || !SocketManager.Instance.IsConnected)
                         {
                             Console.WriteLine($"Reconnection failed, cannot perform OCR with {ocrMethod}");
-                            
+
                             // Make sure the reconnect timer is running to keep trying
                             if (!_reconnectTimer.IsEnabled)
                             {
@@ -1554,7 +1554,7 @@ namespace RSTGameTranslation
                                 _hasShownConnectionErrorMessage = false;
                                 _reconnectTimer.Start();
                             }
-                            
+
                             MainWindow.Instance.SetOCRCheckIsWanted(true);
                             return;
                         }
@@ -1569,10 +1569,11 @@ namespace RSTGameTranslation
                         MainWindow.Instance.SetOCRCheckIsWanted(true);
                         return;
                     }
-                    
+
                     _lastOcrRequestTime = DateTime.Now;
+                    bool charLevel = ConfigManager.Instance.IsCharLevelEnabled();
                     // If we got here, socket is connected - explicitly request character-level OCR
-                    await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|{ocrMethod}|char_level");
+                    await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|{ocrMethod}|{charLevel}");
                 }
             }
             catch (Exception ex)

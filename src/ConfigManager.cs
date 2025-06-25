@@ -60,6 +60,7 @@ namespace RSTGameTranslation
         public const string MIN_LETTER_CONFIDENCE = "min_letter_confidence";
         public const string MIN_LINE_CONFIDENCE = "min_line_confidence";
         public const string AUTO_TRANSLATE_ENABLED = "auto_translate_enabled";
+        public const string CHAR_LEVEL = "char_level";
         public const string IGNORE_PHRASES = "ignore_phrases";
         
         // Text-to-Speech configuration keys
@@ -265,6 +266,7 @@ namespace RSTGameTranslation
             _configValues[MIN_LETTER_CONFIDENCE] = "0.1";
             _configValues[MIN_LINE_CONFIDENCE] = "0.1";
             _configValues[AUTO_TRANSLATE_ENABLED] = "true";
+            _configValues[CHAR_LEVEL] = "true";
             _configValues[IGNORE_PHRASES] = "";
             _configValues[TEXTSIMILAR_THRESHOLD] = "0.75";
             
@@ -752,6 +754,21 @@ namespace RSTGameTranslation
             Console.WriteLine($"Text similar threshold set to: {threshold}");
         }
         
+        // Check if char level is enabled
+        public bool IsCharLevelEnabled()
+        {
+            string value = GetValue(CHAR_LEVEL, "true");
+            return value.ToLower() == "true";
+        }
+
+        // Set char level
+        public void SetCharLevelEnabled(bool enabled)
+        {
+            _configValues[CHAR_LEVEL] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Char level enabled: {enabled}");
+        }
+
 
         // Check if auto translate is enabled
         public bool IsAutoTranslateEnabled()
