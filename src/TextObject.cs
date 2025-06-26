@@ -59,7 +59,7 @@ namespace RSTGameTranslation
             Width = width;
             Height = height;
             TextColor = textColor ?? new SolidColorBrush(Colors.Yellow);
-            BackgroundColor = backgroundColor ?? new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)); // Half-transparent black
+            BackgroundColor = backgroundColor ?? new SolidColorBrush(Color.FromArgb(192, 0, 0, 0)); // Half-transparent black
             CaptureX = captureX;
             CaptureY = captureY;
 
@@ -101,33 +101,35 @@ namespace RSTGameTranslation
                 FontWeight = FontWeights.Normal,
                 FontSize = 24, // Increased from 18 to 24 for better initial size
                 TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Top,
                 TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
                 FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
                 FontFamily = new FontFamily("Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS"),
                 Margin = new Thickness(0), // Increased margin for better text display
-                TextTrimming = TextTrimming.None // Prevent text trimming for wrapped text
+                TextTrimming = TextTrimming.None
             };
 
             // Set explicit width and height if provided
             if (Width > 0)
             {
-                TextBlock.MaxWidth = Width;
                 Border.MaxWidth = Width + 20; // Increased padding for word wrap
+                Border.MinWidth = Width; // Increased padding for word wrap
+                TextBlock.MaxWidth = Border.MaxWidth - 20;
             }
 
             if (Height > 0)
             {
-                Border.Height = Height;
+                Border.MaxHeight = Height;
             }
 
             // Add the text block to the border
             Border.Child = TextBlock;
 
             // Add click event handler
-            Border.MouseLeftButtonDown += Border_MouseLeftButtonDown;
+            // Border.MouseLeftButtonDown += Border_MouseLeftButtonDown;
             
             // Add context menu for right-click options
-            Border.ContextMenu = CreateContextMenu();
+            // Border.ContextMenu = CreateContextMenu();
 
             // Scale font if needed after rendering
             Border.Loaded += (s, e) => AdjustFontSize(Border, TextBlock);
@@ -171,13 +173,14 @@ namespace RSTGameTranslation
 
                 if (Width > 0)
                 {
-                    TextBlock.MaxWidth = Width;
                     Border.MaxWidth = Width + 20; // Increased padding for word wrap
+                    Border.MinWidth = Width; // Increased padding for word wrap
+                    TextBlock.MaxWidth = Border.MaxWidth - 20;
                 }
 
                 if (Height > 0)
                 {
-                    Border.Height = Height;
+                    Border.MaxHeight = Height;
                 }
 
                 // Reset font size to default and then adjust if needed
@@ -240,29 +243,31 @@ namespace RSTGameTranslation
                 double minSize = 10 * scaleFactor;
                 double maxSize = 48 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
-                int maxIterations = 8; // Reduced from 10 to 6 iterations for performance
+                int maxIterations = 8; // Reduced from 10 to 8 iterations for performance
                 double lastDiff = double.MaxValue;
+                bool fitWidth = true;
 
                 for (int i = 0; i < maxIterations; i++)
                 {
                     textBlock.FontSize = currentSize;
                     textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
-                    
+
                     // Check for height and width differences
                     double heightDiff = Math.Abs(textBlock.DesiredSize.Height - Height);
                     bool isWidthOk = textBlock.DesiredSize.Width <= Width;
-                    
+                    fitWidth = isWidthOk;
+
                     // Calculate a combined difference for height and width
                     double currentDiff = heightDiff + (isWidthOk ? 0 : 100);
-                    
+
                     // Early termination if we're close enough
                     if ((heightDiff < 2 && isWidthOk) || Math.Abs(lastDiff - currentDiff) < 0.5)
                     {
                         break;
                     }
-                    
+
                     lastDiff = currentDiff;
-                    
+
                     // If text is too tall or too wide, decrease font size
                     if (textBlock.DesiredSize.Height > Height * 0.95 || !isWidthOk)
                     {
@@ -281,9 +286,14 @@ namespace RSTGameTranslation
                         break;
                     }
                 }
-                
+
+                if (fitWidth)
+                {
+                    Border.MaxHeight = Height * 2;
+                }
+
                 // Verify final size is within min/max range
-                double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
+                    double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
                 Console.WriteLine($"Fontsize change:-------------------- {finalSize}");
                 textBlock.FontSize = finalSize;
                 textBlock.LayoutTransform = Transform.Identity;

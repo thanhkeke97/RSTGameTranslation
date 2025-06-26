@@ -173,7 +173,7 @@ namespace RSTGameTranslation
             public short X;
             public short Y;
         }
-        
+
         public const int STD_OUTPUT_HANDLE = -11;
         public bool GetIsStarted() { return isStarted; }    
         public bool GetTranslateEnabled() { return isAutoTranslateEnabled; }
@@ -614,9 +614,12 @@ namespace RSTGameTranslation
                 MonitorWindow.Instance.Left = captureRect.Left;
                 MonitorWindow.Instance.Top = captureRect.Top;
                 
+                double width = Math.Max(1, captureRect.Width);  
+                double height = Math.Max(1, captureRect.Height);
+                
                 // Set the size of the MonitorWindow to match the size of the capture area
-                MonitorWindow.Instance.Width = captureRect.Width;
-                MonitorWindow.Instance.Height = captureRect.Height;
+                MonitorWindow.Instance.Width = width;
+                MonitorWindow.Instance.Height = height;
                 
                 // Save the new position for future display
                 monitorWindowLeft = captureRect.Left;
@@ -630,10 +633,10 @@ namespace RSTGameTranslation
         {
             // If a custom translation area has been selected, use that area
             if (hasSelectedTranslationArea)
-            {         
+            {
                 previousCaptureX = captureRect.Left;
                 previousCaptureY = captureRect.Top;
-                
+
                 captureRect = new System.Drawing.Rectangle(
                     (int)selectedTranslationArea.X,
                     (int)selectedTranslationArea.Y,
@@ -690,7 +693,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Capture position changed by ({offsetX}, {offsetY}). Text overlays updated.");
             }
             
-            // Cập nhật vị trí của MonitorWindow dựa trên vị trí mới của vùng capture
+
             UpdateMonitorWindowPosition();
         }
 

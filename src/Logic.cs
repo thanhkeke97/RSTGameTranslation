@@ -1188,17 +1188,41 @@ namespace RSTGameTranslation
                 }
                 
                 // Create default font size based on height
-                int fontSize = 16;  // Default
+                int fontSize = 18;  // Default
                 if (height > 0)
                 {
-                    // Adjust font size based on the height of the text area
-                    // Increased from 0.7 to 0.9 to better match the actual text size
-                    fontSize = Math.Max(10, Math.Min(36, (int)(height * 0.9)));
+                    double fontSizeRatio = 0.9; 
+                    
+
+                    string sourceLanguage = GetSourceLanguage().ToLowerInvariant();
+                    if (sourceLanguage == "ja" || sourceLanguage == "ch_sim" || sourceLanguage == "ko")
+                    {
+                        
+                        fontSizeRatio = 0.95;
+                    }
+                    else if (sourceLanguage == "vi" || sourceLanguage == "th")
+                    {
+                        
+                        fontSizeRatio = 0.85;
+                    }
+                    
+                    
+                    fontSize = Math.Max(10, Math.Min(36, (int)(height * fontSizeRatio)));
+                    
+                    
+                    if (width > 0 && text.Length > 0)
+                    {
+                        double charDensity = text.Length / width;
+                        if (charDensity > 0.5) 
+                        {
+                            fontSize = Math.Max(10, (int)(fontSize * 0.9));
+                        }
+                    }
                 }
                 
-                // Create text object with white text on semi-transparent black background
+                // Create text object with Yellow text on semi-transparent black background
                 SolidColorBrush textColor = new SolidColorBrush(Colors.Yellow);
-                SolidColorBrush bgColor = new SolidColorBrush(Colors.Black);
+                SolidColorBrush bgColor = new SolidColorBrush(Color.FromArgb(192, 0, 0, 0));
                 
                 // Add the text object to the UI
                 TextObject textObject = new TextObject(
