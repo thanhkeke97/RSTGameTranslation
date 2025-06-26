@@ -1011,7 +1011,7 @@ namespace RSTGameTranslation
                         //write saving bitmap to log
                         Console.WriteLine($"Saving bitmap to {outputPath}");
                         bitmap.Save(outputPath, ImageFormat.Png);
-                        Logic.Instance.SendImageToEasyOCR(outputPath);
+                        Logic.Instance.SendImageToServerOCR(outputPath);
                     }
 
                     stopwatch.Stop();

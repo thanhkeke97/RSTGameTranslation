@@ -103,7 +103,7 @@ namespace RSTGameTranslation
                 TextWrapping = TextWrapping.Wrap,
                 TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
                 FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
-                FontFamily = new FontFamily("Noto Sans JP, MS Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS, Arial"),
+                FontFamily = new FontFamily("Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS"),
                 Margin = new Thickness(0), // Increased margin for better text display
                 TextTrimming = TextTrimming.None // Prevent text trimming for wrapped text
             };
@@ -237,8 +237,8 @@ namespace RSTGameTranslation
                 }
                 
                 // Binary search for the best font size
-                double minSize = 8 * scaleFactor;
-                double maxSize = 36 * scaleFactor; // Increased from 36 to 48 to allow for larger text
+                double minSize = 10 * scaleFactor;
+                double maxSize = 48 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
                 int maxIterations = 8; // Reduced from 10 to 6 iterations for performance
                 double lastDiff = double.MaxValue;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Globalization;
 using System.Windows;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -747,9 +748,16 @@ namespace RSTGameTranslation
         }
         
         // Set auto translate enabled
-        public void SetTextSimilarThreshold(String threshold)
+        public void SetTextSimilarThreshold(string threshold)
         {
-            _configValues[TEXTSIMILAR_THRESHOLD] = threshold;
+            if (double.TryParse(threshold, NumberStyles.Any, CultureInfo.InvariantCulture, out double thresholdValue))
+            {
+                _configValues[TEXTSIMILAR_THRESHOLD] = thresholdValue.ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                _configValues[TEXTSIMILAR_THRESHOLD] = threshold;
+            }
             SaveConfig();
             Console.WriteLine($"Text similar threshold set to: {threshold}");
         }
@@ -795,7 +803,7 @@ namespace RSTGameTranslation
         public double GetChatBoxFontSize()
         {
             string value = GetValue(CHATBOX_FONT_SIZE, "14");
-            if (double.TryParse(value, out double fontSize) && fontSize > 0)
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double fontSize) && fontSize > 0)
             {
                 return fontSize;
             }
@@ -874,7 +882,7 @@ namespace RSTGameTranslation
         public double GetChatBoxWindowOpacity()
         {
             string value = GetValue(CHATBOX_WINDOW_OPACITY, "1.0"); // Default: 100% opacity
-            if (double.TryParse(value, out double opacity))
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double opacity))
             {
                 // Ensure minimum 10% opacity so window never disappears completely
                 return Math.Max(0.1, Math.Min(1.0, opacity));
@@ -886,7 +894,7 @@ namespace RSTGameTranslation
         public double GetChatBoxBackgroundOpacity()
         {
             string value = GetValue(CHATBOX_BACKGROUND_OPACITY, "0.5"); // Default: 50% opacity
-            if (double.TryParse(value, out double opacity) && opacity >= 0 && opacity <= 1)
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double opacity) && opacity >= 0 && opacity <= 1)
             {
                 return opacity;
             }
@@ -1073,7 +1081,7 @@ namespace RSTGameTranslation
         public double GetMinLetterConfidence()
         {
             string value = GetValue(MIN_LETTER_CONFIDENCE, "0.1"); // Default: 0.1 (10%)
-            if (double.TryParse(value, out double minConfidence) && minConfidence >= 0 && minConfidence <= 1)
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double minConfidence) && minConfidence >= 0 && minConfidence <= 1)
             {
                 return minConfidence;
             }
@@ -1084,7 +1092,7 @@ namespace RSTGameTranslation
         {
             if (value >= 0 && value <= 1)
             {
-                _configValues[MIN_LETTER_CONFIDENCE] = value.ToString();
+                _configValues[MIN_LETTER_CONFIDENCE] = value.ToString(CultureInfo.InvariantCulture);
                 SaveConfig();
                 Console.WriteLine($"Minimum letter confidence set to: {value}");
             }
@@ -1098,7 +1106,7 @@ namespace RSTGameTranslation
         public double GetMinLineConfidence()
         {
             string value = GetValue(MIN_LINE_CONFIDENCE, "0.2"); // Default: 0.2 (20%)
-            if (double.TryParse(value, out double minConfidence) && minConfidence >= 0 && minConfidence <= 1)
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double minConfidence) && minConfidence >= 0 && minConfidence <= 1)
             {
                 return minConfidence;
             }
@@ -1109,7 +1117,7 @@ namespace RSTGameTranslation
         {
             if (value >= 0 && value <= 1)
             {
-                _configValues[MIN_LINE_CONFIDENCE] = value.ToString();
+                _configValues[MIN_LINE_CONFIDENCE] = value.ToString(CultureInfo.InvariantCulture);
                 SaveConfig();
                 Console.WriteLine($"Minimum line confidence set to: {value}");
             }
@@ -1458,7 +1466,7 @@ namespace RSTGameTranslation
         public double GetBlockDetectionScale()
         {
             string value = GetValue(BLOCK_DETECTION_SCALE, "5.0");
-            if (double.TryParse(value, out double scale) && scale > 0)
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double scale) && scale > 0)
             {
                 return scale;
             }
@@ -1470,7 +1478,7 @@ namespace RSTGameTranslation
         {
             if (scale > 0)
             {
-                _configValues[BLOCK_DETECTION_SCALE] = scale.ToString("F2");
+                _configValues[BLOCK_DETECTION_SCALE] = scale.ToString("F2", CultureInfo.InvariantCulture);
                 SaveConfig();
                 Console.WriteLine($"Block detection scale set to: {scale:F2}");
             }
@@ -1480,7 +1488,7 @@ namespace RSTGameTranslation
         public double GetBlockDetectionSettleTime()
         {
             string value = GetValue(BLOCK_DETECTION_SETTLE_TIME, "0.15");
-            if (double.TryParse(value, out double time) && time >= 0)
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double time) && time >= 0)
             {
                 return time;
             }
@@ -1492,7 +1500,7 @@ namespace RSTGameTranslation
         {
             if (seconds >= 0)
             {
-                _configValues[BLOCK_DETECTION_SETTLE_TIME] = seconds.ToString("F2");
+                _configValues[BLOCK_DETECTION_SETTLE_TIME] = seconds.ToString("F2",  CultureInfo.InvariantCulture);
                 SaveConfig();
                 Console.WriteLine($"Block detection settle time set to: {seconds:F2} seconds");
             }

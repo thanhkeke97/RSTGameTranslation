@@ -1501,7 +1501,7 @@ namespace RSTGameTranslation
      
         
         // Called when a screenshot is saved (for EasyOCR method)
-        public async void SendImageToEasyOCR(string filePath)
+        public async void SendImageToServerOCR(string filePath)
         {
             // Update Monitor Window with the screenshot
           
