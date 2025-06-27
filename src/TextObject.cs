@@ -240,11 +240,12 @@ namespace RSTGameTranslation
                 }
                 
                 // Binary search for the best font size
-                double minSize = 10 * scaleFactor;
+                double minSize = 8 * scaleFactor;
                 double maxSize = 48 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
-                int maxIterations = 8; // Reduced from 10 to 8 iterations for performance
+                int maxIterations = 12; // Reduced from 10 to 8 iterations for performance
                 double lastDiff = double.MaxValue;
+                bool needsMoreHeight = false;
                 bool fitWidth = true;
 
                 for (int i = 0; i < maxIterations; i++)
@@ -252,8 +253,20 @@ namespace RSTGameTranslation
                     textBlock.FontSize = currentSize;
                     textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
 
+                    // Determine if we need more height for wrapped text
+                    double minRequiredHeight = Height;
+                    needsMoreHeight = false;
+                    
+                    // If text is using most of the width, it's probably wrapping
+                    if (textBlock.DesiredSize.Width >= Width * 0.9)
+                    {
+                        // Increase minimum required height for wrapped text
+                        minRequiredHeight = Height * 1.5;
+                        needsMoreHeight = true;
+                    }
+
                     // Check for height and width differences
-                    double heightDiff = Math.Abs(textBlock.DesiredSize.Height - Height);
+                    double heightDiff = Math.Abs(textBlock.DesiredSize.Height - minRequiredHeight);
                     bool isWidthOk = textBlock.DesiredSize.Width <= Width;
                     fitWidth = isWidthOk;
 
@@ -269,13 +282,13 @@ namespace RSTGameTranslation
                     lastDiff = currentDiff;
 
                     // If text is too tall or too wide, decrease font size
-                    if (textBlock.DesiredSize.Height > Height * 0.95 || !isWidthOk)
+                    if (textBlock.DesiredSize.Height > minRequiredHeight * 0.95 || !isWidthOk)
                     {
                         maxSize = currentSize;
                         currentSize = (minSize + currentSize) / 2;
                     }
                     // If text is too short or too narrow, increase font size
-                    else if (textBlock.DesiredSize.Height < Height * 0.85 && isWidthOk)
+                    else if (textBlock.DesiredSize.Height < minRequiredHeight * 0.85 && isWidthOk)
                     {
                         minSize = currentSize;
                         currentSize = (currentSize + maxSize) / 2;
@@ -287,13 +300,22 @@ namespace RSTGameTranslation
                     }
                 }
 
-                if (fitWidth)
+                // Adjust border height if text needs more space due to wrapping
+                if (needsMoreHeight && fitWidth)
                 {
-                    Border.MaxHeight = Height * 2;
+                    // Set border height to accommodate wrapped text
+                    double requiredHeight = Math.Max(Height * 1.5, textBlock.DesiredSize.Height + 10);
+                    Border.MaxHeight = requiredHeight;
+                    Console.WriteLine($"Increasing border height to {requiredHeight} for wrapped text");
+                }
+                else if (fitWidth)
+                {
+                    // If text fits width but might need slight height adjustment
+                    Border.MaxHeight = Math.Max(Height, textBlock.DesiredSize.Height + 5);
                 }
 
                 // Verify final size is within min/max range
-                    double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
+                double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
                 Console.WriteLine($"Fontsize change:-------------------- {finalSize}");
                 textBlock.FontSize = finalSize;
                 textBlock.LayoutTransform = Transform.Identity;
