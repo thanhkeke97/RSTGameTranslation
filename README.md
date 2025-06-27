@@ -130,7 +130,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 - NVIDIA GPU highly recommended
 - First-time language downloads may take 1-2 minutes
 - The application will automatically change API keys if the previous API is rate-limited, so please enter as many API keys as possible
-
+- The translation speed depends on the LLM model; if you are using Gemini, you should check the translation speed at [here](https://aistudio.google.com/prompts/new_chat)
 ---
 
 ## 🛠️ For Developers
