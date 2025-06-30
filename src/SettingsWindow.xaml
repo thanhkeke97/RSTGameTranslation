@@ -239,7 +239,7 @@
             </TabItem>
             
             <!-- Translation Context Tab -->
-            <TabItem Header="Context">
+            <TabItem Header="Context/Overlay">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Translation Context Settings -->
@@ -294,6 +294,28 @@
                                 <Button x:Name="clearContextButton" Content="Clear Context" Grid.Row="4" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="ClearContextButton_Click"
                                        ToolTip="Clear all translation history and context. Forces new translation on next capture."/>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Overlay Setting" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <!-- Clear Context Button -->
+                                <TextBlock Text="Overlay config:" Grid.Row="0" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,8,10,0"
+                                          ToolTip="Adjust overlay background and text colour"/>
+                                <Button x:Name="overlayConfig" Content="Adjust config" Grid.Row="0" Grid.Column="1"
+                                       HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="AdjustOverlayConfig_Click"
+                                       ToolTip="Adjust overlay background and text colour"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

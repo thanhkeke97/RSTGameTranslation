@@ -1,0 +1,98 @@
+<Window x:Class="RSTGameTranslation.OverlayOptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RSTGameTranslation"
+        mc:Ignorable="d"
+        Title="Overlay Options" Height="420" Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Icon="/media/AppIcon.ico">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Text Overlay Appearance Options" 
+                   Grid.Row="0"
+                   FontSize="16" 
+                   FontWeight="SemiBold" 
+                   Margin="0,0,0,10"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Background settings -->
+                <GroupBox Header="Background Settings" Margin="0,5,0,10" Padding="5">
+                    <StackPanel>
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Background Color:" VerticalAlignment="Center" Width="120" />
+                            <Button x:Name="backgroundColorButton" 
+                                    Width="30" Height="20" 
+                                    Margin="5,0,0,0"
+                                    Click="BackgroundColorButton_Click"/>
+                            <TextBlock x:Name="backgroundColorText" 
+                                       Text="#80000000" 
+                                       VerticalAlignment="Center" 
+                                       Margin="10,0,0,0"/>
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Text settings -->
+                <GroupBox Header="Text Settings" Margin="0,5,0,10" Padding="5">
+                    <StackPanel>                   
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Text Color:" VerticalAlignment="Center" Width="120" />
+                            <Button x:Name="textColorButton" 
+                                    Width="30" Height="20" 
+                                    Margin="5,0,0,0"
+                                    Click="TextColorButton_Click"/>
+                            <TextBlock x:Name="textColorText" 
+                                       Text="#FFFFFFFF" 
+                                       VerticalAlignment="Center" 
+                                       Margin="10,0,0,0"/>
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons section -->
+        <Grid Grid.Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button x:Name="defaultsButton" 
+                    Content="Set Defaults" 
+                    Width="100" 
+                    Height="25" 
+                    HorizontalAlignment="Left"
+                    Click="DefaultsButton_Click"
+                    ToolTip="Reset all settings to default values"
+                    Grid.Column="0"/>
+            
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Right"
+                        Grid.Column="1">
+                <Button x:Name="applyButton" 
+                        Content="Apply" 
+                        Width="80" 
+                        Height="25" 
+                        Margin="5,0" 
+                        Click="ApplyButton_Click"/>
+                <Button x:Name="cancelButton" 
+                        Content="Cancel" 
+                        Width="80" 
+                        Height="25" 
+                        Margin="5,0" 
+                        Click="CancelButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

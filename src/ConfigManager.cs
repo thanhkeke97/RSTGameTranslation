@@ -92,6 +92,11 @@ namespace RSTGameTranslation
 
         public const string TEXTSIMILAR_THRESHOLD = "textsimilar_threshold";
 
+        // Constants for overlay settings
+        public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
+        public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
+
+
         // Singleton instance
         public static ConfigManager Instance
         {
@@ -270,6 +275,8 @@ namespace RSTGameTranslation
             _configValues[CHAR_LEVEL] = "true";
             _configValues[IGNORE_PHRASES] = "";
             _configValues[TEXTSIMILAR_THRESHOLD] = "0.75";
+            _configValues[OVERLAY_BACKGROUND_COLOR] = "#80000000";
+            _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
             
             // Save the default configuration
             SaveConfig();
@@ -429,6 +436,53 @@ namespace RSTGameTranslation
         public void SetValue(string key, string value)
         {
             _configValues[key] = value;
+        }
+
+        // Get overlay background color
+        public System.Windows.Media.Color GetOverlayBackgroundColor()
+        {
+            string colorHex = GetValue(OVERLAY_BACKGROUND_COLOR, "#80000000");
+            return ParseColor(colorHex);
+        }
+
+        // Get overlay text color
+        public System.Windows.Media.Color GetOverlayTextColor()
+        {
+            string colorHex = GetValue(OVERLAY_TEXT_COLOR, "#FFFFFFFF");
+            return ParseColor(colorHex);
+        }
+
+        // Helper method to parse color from hex string
+        private System.Windows.Media.Color ParseColor(string colorHex)
+        {
+            try
+            {
+                if (colorHex.StartsWith("#") && (colorHex.Length == 7 || colorHex.Length == 9))
+                {
+                    byte a = 255;
+                    int startIndex = 1;
+
+                    // If color includes alpha channel
+                    if (colorHex.Length == 9)
+                    {
+                        a = Convert.ToByte(colorHex.Substring(1, 2), 16);
+                        startIndex = 3;
+                    }
+
+                    byte r = Convert.ToByte(colorHex.Substring(startIndex, 2), 16);
+                    byte g = Convert.ToByte(colorHex.Substring(startIndex + 2, 2), 16);
+                    byte b = Convert.ToByte(colorHex.Substring(startIndex + 4, 2), 16);
+
+                    return System.Windows.Media.Color.FromArgb(a, r, g, b);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing color '{colorHex}': {ex.Message}");
+            }
+
+            // Return default color if parsing fails
+            return System.Windows.Media.Colors.White;
         }
 
         // Get Gemini API key

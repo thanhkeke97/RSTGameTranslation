@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Documents;
 using System.Windows.Navigation;
+using System.Windows.Media.Animation;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using ComboBox = System.Windows.Controls.ComboBox;
@@ -1031,42 +1032,111 @@ namespace RSTGameTranslation
             }
         }
         
+        private void AdjustOverlayConfig_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Create options window
+                var optionsWindow = new OverlayOptionsWindow();
+                
+                // Set the owner to ensure it appears on top of this window
+                optionsWindow.Owner = this;
+                
+                // Make this window appear in front
+                this.Topmost = false;
+                this.Topmost = true;
+                
+                // Show the dialog
+                var result = optionsWindow.ShowDialog();
+                
+                // If user clicked OK, styling will already be applied by the options window
+                if (result == true)
+                {
+                    Console.WriteLine("Chat box options updated");
+                    
+                    // Create and start the flash animation for visual feedback
+                    CreateFlashAnimation(overlayConfig);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error showing options dialog: {ex.Message}");
+            }
+        }
+
+        private void CreateFlashAnimation(System.Windows.Controls.Button button)
+        {
+            try
+            {
+                // Get the current background brush
+                SolidColorBrush? currentBrush = button.Background as SolidColorBrush;
+                
+                if (currentBrush != null)
+                {
+                    // Need to freeze the original brush to animate its clone
+                    currentBrush = currentBrush.Clone();
+                    System.Windows.Media.Color originalColor = currentBrush.Color;
+                    
+                    // Create a new brush for animation
+                    SolidColorBrush animBrush = new SolidColorBrush(originalColor);
+                    button.Background = animBrush;
+                    
+                    // Create color animation for the brush's Color property
+                    var animation = new ColorAnimation
+                    {
+                        From = originalColor,
+                        To = Colors.LightGreen,
+                        Duration = new Duration(TimeSpan.FromMilliseconds(200)),
+                        AutoReverse = true,
+                        FillBehavior = FillBehavior.Stop // Stop the animation when complete
+                    };
+                    
+                    // Apply the animation to the brush's Color property
+                    animBrush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating flash animation: {ex.Message}");
+            }
+        }
+        
         private void UpdateTtsServiceSpecificSettings(string selectedService)
         {
             try
             {
                 bool isElevenLabsSelected = selectedService == "ElevenLabs";
                 bool isGoogleTtsSelected = selectedService == "Google Cloud TTS";
-                
+
                 // Make sure the window is fully loaded and controls are initialized
-                if (elevenLabsApiKeyLabel == null || elevenLabsApiKeyGrid == null || 
-                    elevenLabsApiKeyHelpText == null || elevenLabsVoiceLabel == null || 
-                    elevenLabsVoiceComboBox == null || googleTtsApiKeyLabel == null || 
-                    googleTtsApiKeyGrid == null || googleTtsVoiceLabel == null || 
+                if (elevenLabsApiKeyLabel == null || elevenLabsApiKeyGrid == null ||
+                    elevenLabsApiKeyHelpText == null || elevenLabsVoiceLabel == null ||
+                    elevenLabsVoiceComboBox == null || googleTtsApiKeyLabel == null ||
+                    googleTtsApiKeyGrid == null || googleTtsVoiceLabel == null ||
                     googleTtsVoiceComboBox == null)
                 {
                     Console.WriteLine("TTS UI elements not initialized yet. Skipping visibility update.");
                     return;
                 }
-                
+
                 // Show/hide ElevenLabs-specific settings
                 elevenLabsApiKeyLabel.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
                 elevenLabsApiKeyGrid.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
                 elevenLabsApiKeyHelpText.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
                 elevenLabsVoiceLabel.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
                 elevenLabsVoiceComboBox.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Show/hide Google TTS-specific settings
                 googleTtsApiKeyLabel.Visibility = isGoogleTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTtsApiKeyGrid.Visibility = isGoogleTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTtsVoiceLabel.Visibility = isGoogleTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTtsVoiceComboBox.Visibility = isGoogleTtsSelected ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Load service-specific settings if they're being shown
                 if (isElevenLabsSelected)
                 {
                     elevenLabsApiKeyPasswordBox.Password = ConfigManager.Instance.GetElevenLabsApiKey();
-                    
+
                     // Set selected voice
                     string voiceId = ConfigManager.Instance.GetElevenLabsVoice();
                     foreach (ComboBoxItem item in elevenLabsVoiceComboBox.Items)
@@ -1081,7 +1151,7 @@ namespace RSTGameTranslation
                 else if (isGoogleTtsSelected)
                 {
                     googleTtsApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTtsApiKey();
-                    
+
                     // Set selected voice
                     string voiceId = ConfigManager.Instance.GetGoogleTtsVoice();
                     foreach (ComboBoxItem item in googleTtsVoiceComboBox.Items)

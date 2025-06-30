@@ -58,8 +58,8 @@ namespace RSTGameTranslation
             Y = y;
             Width = width;
             Height = height;
-            TextColor = textColor ?? new SolidColorBrush(Colors.Yellow);
-            BackgroundColor = backgroundColor ?? new SolidColorBrush(Color.FromArgb(192, 0, 0, 0)); // Half-transparent black
+            TextColor = textColor ?? new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor());
+            BackgroundColor = backgroundColor ?? new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()); // Half-transparent black
             CaptureX = captureX;
             CaptureY = captureY;
 
@@ -240,7 +240,7 @@ namespace RSTGameTranslation
                 }
                 
                 // Binary search for the best font size
-                double minSize = 8 * scaleFactor;
+                double minSize = 10 * scaleFactor;
                 double maxSize = 48 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
                 int maxIterations = 12; // Reduced from 10 to 8 iterations for performance
