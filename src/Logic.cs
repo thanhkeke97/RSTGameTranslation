@@ -2042,8 +2042,8 @@ namespace RSTGameTranslation
                 // Create the full JSON object with OCR results, context and game info
                 var ocrData = new
                 {
-                    source_language = MapLanguageCode(GetSourceLanguage()),
-                    target_language = MapLanguageCode(GetTargetLanguage()),
+                    // source_language = MapLanguageCode(GetSourceLanguage()),
+                    // target_language = MapLanguageCode(GetTargetLanguage()),
                     text_blocks = textsToTranslate,
                     previous_context = previousContext,
                     game_info = gameInfo
