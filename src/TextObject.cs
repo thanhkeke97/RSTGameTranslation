@@ -236,14 +236,14 @@ namespace RSTGameTranslation
                 string methodOcr = ConfigManager.Instance.GetOcrMethod();
                 if (methodOcr == "PaddleOCR")
                 {
-                    scaleFactor = 1.3;
+                    scaleFactor = 1;
                 }
                 
                 // Binary search for the best font size
                 double minSize = 10 * scaleFactor;
                 double maxSize = 48 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
-                int maxIterations = 12; // Reduced from 10 to 8 iterations for performance
+                int maxIterations = 8; // Reduced from 10 to 8 iterations for performance
                 double lastDiff = double.MaxValue;
                 bool needsMoreHeight = false;
                 bool fitWidth = true;
