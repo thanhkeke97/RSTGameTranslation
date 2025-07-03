@@ -96,6 +96,52 @@ namespace RSTGameTranslation
         public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
         public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
 
+        // Default prompts
+        public const string defaultGeminiPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
+                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
+                    "so please try to infer the context and which parts are menu or dialog.\n" +
+                    "You should:\n" +
+                    "* Output ONLY the resulting JSON data.\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
+                    "* No extra text, explanations, or formatting should be included.\n" +
+                    "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
+                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
+                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
+                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
+                    "so they aren't mushed together, but each on their own text line.\n\n" +
+                    "Here is the input JSON:";
+        public const string defaultChatGptPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
+                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
+                    "so please try to infer the context and which parts are menu or dialog.\n" +
+                    "You should:\n" +
+                    "* Output ONLY the resulting JSON data.\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
+                    "* No extra text, explanations, or formatting should be included.\n" +
+                    "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
+                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
+                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
+                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
+                    "so they aren't mushed together, but each on their own text line.\n\n" +
+                    "Here is the input JSON:";
+        public const string defaultOllamaPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
+                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
+                    "so please try to infer the context and which parts are menu or dialog.\n" +
+                    "You should:\n" +
+                    "* Output ONLY the resulting JSON data.\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
+                    "* No extra text, explanations, or formatting should be included.\n" +
+                    "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
+                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
+                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
+                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
+                    "so they aren't mushed together, but each on their own text line.\n\n" +
+                    "Here is the input JSON:";
 
         // Singleton instance
         public static ConfigManager Instance
@@ -601,60 +647,32 @@ namespace RSTGameTranslation
             }
         }
         
+        public string GetDefaultServicePrompt(string service)
+        {
+            if (service == "Gemini")
+            {
+                return defaultGeminiPrompt;
+            }
+            else if (service == "ChatGPT")
+            {
+                return defaultChatGptPrompt;
+            }
+            else if (service == "Ollama")
+            {
+                return defaultOllamaPrompt;
+            }
+            else
+            {
+                return "";
+            }
+        }
+        
         
         // Create service-specific config files if they don't exist
         private void EnsureServiceConfigFilesExist()
         {
             try
             {
-                // Default prompts for each service
-                string defaultGeminiPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
-                    "Here is the input JSON:";
-                string defaultOllamaPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
-                    "Here is the input JSON:";
-                string defaultChatGptPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
-                    "Here is the input JSON:";
-                // string defaultGoogleTranslatePrompt = "You are a translator using Google Translate API. Translate the text from the source language to the target language accurately while maintaining the original meaning and context.";
-                
                 // Check and create Gemini config file
                 if (!File.Exists(_geminiConfigFilePath))
                 {
@@ -662,7 +680,7 @@ namespace RSTGameTranslation
                     File.WriteAllText(_geminiConfigFilePath, geminiContent);
                     Console.WriteLine("Created default Gemini config file");
                 }
-                
+
                 // Check and create Ollama config file
                 if (!File.Exists(_ollamaConfigFilePath))
                 {
@@ -670,7 +688,7 @@ namespace RSTGameTranslation
                     File.WriteAllText(_ollamaConfigFilePath, ollamaContent);
                     Console.WriteLine("Created default Ollama config file");
                 }
-                
+
                 // Check and create ChatGPT config file
                 if (!File.Exists(_chatgptConfigFilePath))
                 {
@@ -678,7 +696,7 @@ namespace RSTGameTranslation
                     File.WriteAllText(_chatgptConfigFilePath, chatgptContent);
                     Console.WriteLine("Created default ChatGPT config file");
                 }
-                
+
                 // Google Translate doesn't use prompts, so no need to create config file
             }
             catch (Exception ex)

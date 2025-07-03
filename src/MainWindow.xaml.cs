@@ -1555,7 +1555,7 @@ namespace RSTGameTranslation
                     if (OcrServerManager.Instance.timeoutStartServer)
                     {
                         SetStatus($"Cannot start {ocrMethod} server");
-                        System.Windows.MessageBox.Show($"Server startup timeout {ocrMethod}. Please check if the environment has been installed.",
+                        System.Windows.MessageBox.Show($"Server startup timeout {ocrMethod}. Please check if the environment has been installed and try again.",
                         "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         break;
                     }    

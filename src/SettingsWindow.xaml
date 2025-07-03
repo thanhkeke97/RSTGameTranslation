@@ -610,6 +610,11 @@
                                 <Button x:Name="savePromptButton" Content="Save Prompt" Grid.Row="5" Grid.Column="1"
                                        HorizontalAlignment="Right" Margin="0,10,0,0" Padding="10,5"
                                        Click="SavePromptButton_Click"/>
+
+                                <!-- Restore Default Prompt Button -->
+                                <Button x:Name="restoreDefaultPromptButton" Content="Restore Default Prompt" Grid.Row="5" Grid.Column="1"
+                                       HorizontalAlignment="Left" Margin="0,10,0,0" Padding="10,5"
+                                       Click="RestoreDefaultPromptButton_Click"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

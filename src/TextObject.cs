@@ -101,7 +101,6 @@ namespace RSTGameTranslation
                 FontWeight = FontWeights.Normal,
                 FontSize = 24, // Increased from 18 to 24 for better initial size
                 TextWrapping = TextWrapping.Wrap,
-                VerticalAlignment = VerticalAlignment.Top,
                 TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
                 FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
                 FontFamily = new FontFamily("Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS"),
@@ -215,10 +214,9 @@ namespace RSTGameTranslation
                     return;
                 }
 
-                // Basic text settings
-                textBlock.TextWrapping = TextWrapping.Wrap;
-                textBlock.VerticalAlignment = VerticalAlignment.Top;
-                textBlock.TextAlignment = TextAlignment.Left;
+                // // Basic text settings
+                // textBlock.TextWrapping = TextWrapping.Wrap;
+                // textBlock.TextAlignment = TextAlignment.Left;
                 
                 // Create a cache key based on text length, width and height
                 // Using length instead of full text to increase cache hits for similar-sized texts
@@ -240,7 +238,7 @@ namespace RSTGameTranslation
                 }
                 
                 // Binary search for the best font size
-                double minSize = 10 * scaleFactor;
+                double minSize = 12 * scaleFactor;
                 double maxSize = 48 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
                 int maxIterations = 8; // Reduced from 10 to 8 iterations for performance
@@ -261,7 +259,6 @@ namespace RSTGameTranslation
                     if (textBlock.DesiredSize.Width >= Width * 0.9)
                     {
                         // Increase minimum required height for wrapped text
-                        minRequiredHeight = Height * 1.5;
                         needsMoreHeight = true;
                     }
 
@@ -304,8 +301,9 @@ namespace RSTGameTranslation
                 if (needsMoreHeight && fitWidth)
                 {
                     // Set border height to accommodate wrapped text
-                    double requiredHeight = Math.Max(Height * 1.5, textBlock.DesiredSize.Height + 10);
+                    double requiredHeight = Math.Max(Height * 2, textBlock.DesiredSize.Height + 10);
                     Border.MaxHeight = requiredHeight;
+                    textBlock.VerticalAlignment = VerticalAlignment.Top;
                     Console.WriteLine($"Increasing border height to {requiredHeight} for wrapped text");
                 }
                 else if (fitWidth)

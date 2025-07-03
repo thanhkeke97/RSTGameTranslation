@@ -877,6 +877,21 @@ namespace RSTGameTranslation
             }
         }
         
+        private void RestoreDefaultPromptButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Restore the default prompt for the selected service
+            if (translationServiceComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string selectedService = selectedItem.Content.ToString() ?? "Gemini";
+                string defaultPrompt = ConfigManager.Instance.GetDefaultServicePrompt(selectedService);
+
+                if (!string.IsNullOrWhiteSpace(defaultPrompt))
+                {
+                    promptTemplateTextBox.Text = defaultPrompt;
+                }
+            }
+        }
+        
         // Update service-specific settings visibility
         private void UpdateServiceSpecificSettings(string selectedService)
         {
@@ -886,9 +901,9 @@ namespace RSTGameTranslation
                 bool isGeminiSelected = selectedService == "Gemini";
                 bool isChatGptSelected = selectedService == "ChatGPT";
                 bool isGoogleTranslateSelected = selectedService == "Google Translate";
-                
+
                 // Make sure the window is fully loaded and controls are initialized
-                if (ollamaUrlLabel == null || ollamaUrlTextBox == null || 
+                if (ollamaUrlLabel == null || ollamaUrlTextBox == null ||
                     ollamaPortLabel == null || ollamaPortTextBox == null ||
                     ollamaModelLabel == null || ollamaModelGrid == null ||
                     geminiApiKeyLabel == null || geminiApiKeyPasswordBox == null ||
@@ -902,7 +917,7 @@ namespace RSTGameTranslation
                     Console.WriteLine("UI elements not initialized yet. Skipping visibility update.");
                     return;
                 }
-                
+
                 // Show/hide Gemini-specific settings
                 geminiApiKeyLabel.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiApiKeyPasswordBox.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -911,7 +926,7 @@ namespace RSTGameTranslation
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiNote.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Show/hide Ollama-specific settings
                 ollamaUrlLabel.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
                 ollamaUrlGrid.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -919,7 +934,7 @@ namespace RSTGameTranslation
                 ollamaPortTextBox.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
                 ollamaModelLabel.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
                 ollamaModelGrid.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Show/hide ChatGPT-specific settings
                 chatGptApiKeyLabel.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptApiKeyGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -927,40 +942,40 @@ namespace RSTGameTranslation
                 chatGptModelGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewChatGptKeysButton.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptNote.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Show/hide Google Translate-specific settings
                 googleTranslateServiceTypeLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateServiceTypeComboBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateMappingLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateMappingCheckBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Hide prompt template for Google Translate
                 bool showPromptTemplate = !isGoogleTranslateSelected;
-                
+
                 // API key is only visible for Google Translate if Cloud API is selected
-                bool showGoogleTranslateApiKey = isGoogleTranslateSelected && 
+                bool showGoogleTranslateApiKey = isGoogleTranslateSelected &&
                     (googleTranslateServiceTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() == "Cloud API (paid)";
-                    
+
                 googleTranslateApiKeyLabel.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateApiKeyGrid.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
                 // viewGoogleTranslateKeysButton.Visibility = showGoogleTranslateApiKey ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Show/hide prompt template and related controls for Google Translate
                 promptLabel.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
                 promptTemplateTextBox.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
                 savePromptButton.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
-                
+
                 // Load service-specific settings if they're being shown
                 if (isGeminiSelected)
                 {
                     geminiApiKeyPasswordBox.Password = ConfigManager.Instance.GetGeminiApiKey();
-                    
+
                     // Set selected Gemini model
                     string geminiModel = ConfigManager.Instance.GetGeminiModel();
-                    
-                        // Temporarily remove event handlers to avoid triggering changes
+
+                    // Temporarily remove event handlers to avoid triggering changes
                     geminiModelComboBox.SelectionChanged -= GeminiModelComboBox_SelectionChanged;
-                    
+
                     // First try to find exact match in dropdown items
                     bool found = false;
                     foreach (ComboBoxItem item in geminiModelComboBox.Items)
@@ -972,13 +987,13 @@ namespace RSTGameTranslation
                             break;
                         }
                     }
-                    
+
                     // If not found in dropdown, set as custom text
                     if (!found)
                     {
                         geminiModelComboBox.Text = geminiModel;
                     }
-                    
+
                     // Reattach event handler
                     geminiModelComboBox.SelectionChanged += GeminiModelComboBox_SelectionChanged;
                 }
@@ -991,7 +1006,7 @@ namespace RSTGameTranslation
                 else if (isChatGptSelected)
                 {
                     chatGptApiKeyPasswordBox.Password = ConfigManager.Instance.GetChatGptApiKey();
-                    
+
                     // Set selected model
                     string model = ConfigManager.Instance.GetChatGptModel();
                     foreach (ComboBoxItem item in chatGptModelComboBox.Items)
@@ -1007,21 +1022,21 @@ namespace RSTGameTranslation
                 {
                     // Set Google Translate service type
                     bool useCloudApi = ConfigManager.Instance.GetGoogleTranslateUseCloudApi();
-                    
+
                     // Temporarily remove event handler
                     googleTranslateServiceTypeComboBox.SelectionChanged -= GoogleTranslateServiceTypeComboBox_SelectionChanged;
-                    
+
                     googleTranslateServiceTypeComboBox.SelectedIndex = useCloudApi ? 1 : 0; // 0 = Free, 1 = Cloud API
-                    
+
                     // Reattach event handler
                     googleTranslateServiceTypeComboBox.SelectionChanged += GoogleTranslateServiceTypeComboBox_SelectionChanged;
-                    
+
                     // Set API key if using Cloud API
-                   if (useCloudApi)
+                    if (useCloudApi)
                     {
                         googleTranslateApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTranslateApiKey();
                     }
-                    
+
                     // Set language mapping checkbox
                     googleTranslateMappingCheckBox.IsChecked = ConfigManager.Instance.GetGoogleTranslateAutoMapLanguages();
                 }
