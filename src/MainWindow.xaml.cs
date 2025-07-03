@@ -907,7 +907,7 @@ namespace RSTGameTranslation
                 
                 SettingsWindow.Instance.Hide();
                 Console.WriteLine("Settings window hidden");
-                settingsButton.Background = new SolidColorBrush(Color.FromRgb(176, 125, 69)); // Orange
+                settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
             }
             else
             {
@@ -932,7 +932,7 @@ namespace RSTGameTranslation
                 
                 SettingsWindow.Instance.Show();
                 Console.WriteLine($"Settings window shown at position {SettingsWindow.Instance.Left}, {SettingsWindow.Instance.Top}");
-                settingsButton.Background = new SolidColorBrush(Color.FromRgb(69, 125, 176)); // Blue-ish
+                settingsButton.Background = new SolidColorBrush(Color.FromRgb(176, 125, 69)); // Orange
             }
         }
 
@@ -1387,7 +1387,7 @@ namespace RSTGameTranslation
             {
                 // Cancel the selection mode if already selecting
                 isSelectingChatBoxArea = false;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
                 
                 // Find and close any existing selector window
                 foreach (Window window in System.Windows.Application.Current.Windows)
@@ -1410,7 +1410,7 @@ namespace RSTGameTranslation
                 // Hide ChatBox
                 chatBoxWindow.Hide();
                 isChatBoxVisible = false;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
                 
                 // Don't set chatBoxWindow to null here - we're just hiding it, not closing it
             }
@@ -1425,7 +1425,7 @@ namespace RSTGameTranslation
                     // Only set button to blue if the ChatBox isn't visible (was cancelled)
                     if (!isChatBoxVisible || chatBoxWindow == null || !chatBoxWindow.IsVisible)
                     {
-                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
                     }
                 };
                 selectorWindow.Show();

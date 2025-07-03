@@ -153,7 +153,7 @@
                                         
                                 <!-- Settings Toggle Button -->
                                 <Button x:Name="settingsButton" Content="Settings" Style="{StaticResource ModernButton}"
-                                        Background="#FFB07D45"
+                                        Background="#6C757D"
                                         Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
                                 <!-- Select Area Button -->
@@ -171,7 +171,7 @@
                                         Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                         
                                 <Button x:Name="btnStopOcrServer" Content="StopServer" Style="{StaticResource ModernButton}"
-                                        Background="#FF4577B0"
+                                        Background="#DC3545"
                                         Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                             </StackPanel>
                         </ScrollViewer>

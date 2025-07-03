@@ -59,10 +59,11 @@ namespace RSTGameTranslation
             this.Loaded += SettingsWindow_Loaded;
             
             // Set up closing behavior (hide instead of close)
-            this.Closing += (s, e) => 
+            this.Closing += (s, e) =>
             {
                 e.Cancel = true;  // Cancel the close
                 this.Hide();      // Just hide the window
+                MainWindow.Instance.settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
             };
         }
         
@@ -964,6 +965,7 @@ namespace RSTGameTranslation
                 promptLabel.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
                 promptTemplateTextBox.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
                 savePromptButton.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
+                restoreDefaultPromptButton.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
 
                 // Load service-specific settings if they're being shown
                 if (isGeminiSelected)

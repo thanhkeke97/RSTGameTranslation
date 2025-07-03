@@ -237,15 +237,15 @@ namespace RSTGameTranslation
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        
+
         private void ChatBoxWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             // Don't actually close the window, just hide it
             Console.WriteLine("ChatBox window closing intercepted - hiding instead");
-            
+
             // Cancel the closing operation
             e.Cancel = true;
-            
+
             // Hide the window instead
             this.Hide();
             
@@ -432,6 +432,7 @@ namespace RSTGameTranslation
         {
             // Instead of closing, hide the window (to match behavior with Log window)
             this.Hide();
+            MainWindow.Instance.chatBoxButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(69, 176, 105));
             
             // The MainWindow will handle setting isChatBoxVisible to false in its event handler
         }

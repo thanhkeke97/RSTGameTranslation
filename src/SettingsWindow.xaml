@@ -313,7 +313,7 @@
                                 <TextBlock Text="Overlay config:" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"
                                           ToolTip="Adjust overlay background and text colour"/>
-                                <Button x:Name="overlayConfig" Content="Adjust config" Grid.Row="0" Grid.Column="1"
+                                <Button x:Name="overlayConfig" Content="Adjust Config" Grid.Row="0" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="AdjustOverlayConfig_Click"
                                        ToolTip="Adjust overlay background and text colour"/>
                             </Grid>
