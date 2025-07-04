@@ -1741,6 +1741,28 @@ namespace RSTGameTranslation
             }
         }
 
+        private void DiscordButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Mở trình duyệt với liên kết Discord
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://discord.gg/YdwzMxtR",
+                    UseShellExecute = true
+                });
+                Console.WriteLine("Opening Discord invite link");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error opening Discord link: {ex.Message}");
+                
+                // Hiển thị thông báo lỗi nếu không thể mở liên kết
+                System.Windows.MessageBox.Show($"Cannot open discord link: {ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private bool isListening = false;
         private OpenAIRealtimeAudioServiceWhisper? openAIRealtimeAudioService = null;
 

@@ -155,6 +155,16 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 
 ---
 
+## 💬 Community
+
+Join our Discord community for support, discussions, and updates:
+
+[![Discord](https://img.shields.io/badge/Join%20our-Discord-7289DA.svg)](https://discord.gg/YdwzMxtR)
+
+Get help from other users, share your experiences, and stay updated on the latest developments!
+
+---
+
 ## 📄 License
 
 This project is licensed under BSD-style attribution - see [LICENSE.md](LICENSE.md) for details.

@@ -108,7 +108,7 @@ namespace RSTGameTranslation
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
+                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +
                     "Here is the input JSON:";
@@ -123,7 +123,7 @@ namespace RSTGameTranslation
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
+                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +
                     "Here is the input JSON:";
@@ -138,7 +138,7 @@ namespace RSTGameTranslation
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output.\n" +
+                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +
                     "Here is the input JSON:";

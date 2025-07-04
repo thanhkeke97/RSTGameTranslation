@@ -340,7 +340,7 @@ namespace RSTGameTranslation
         }
         
         /// <summary>
-        /// Map UGTLive language codes to Google Translate language codes
+        /// Map RST language codes to Google Translate language codes
         /// </summary>
         private string MapLanguageToGoogleCode(string language)
         {
