@@ -2007,11 +2007,11 @@ namespace RSTGameTranslation
 
                 // Get API key
                 string apiKey = GetGeminiApiKey();
-                if (string.IsNullOrEmpty(apiKey))
-                {
-                    Console.WriteLine("Gemini API key not set, cannot translate");
-                    return;
-                }
+                // if (string.IsNullOrEmpty(apiKey))
+                // {
+                //     Console.WriteLine("Gemini API key not set, cannot translate");
+                //     return;
+                // }
 
 
                 // Prepare JSON data for translation with rectangle coordinates
@@ -2042,8 +2042,8 @@ namespace RSTGameTranslation
                 // Create the full JSON object with OCR results, context and game info
                 var ocrData = new
                 {
-                    // source_language = MapLanguageCode(GetSourceLanguage()),
-                    // target_language = MapLanguageCode(GetTargetLanguage()),
+                    source_language = MapLanguageCode(GetSourceLanguage()),
+                    target_language = MapLanguageCode(GetTargetLanguage()),
                     text_blocks = textsToTranslate,
                     previous_context = previousContext,
                     game_info = gameInfo
