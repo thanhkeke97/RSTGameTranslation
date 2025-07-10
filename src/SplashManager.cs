@@ -29,7 +29,7 @@ namespace RSTGameTranslation
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const double CurrentVersion = 0.9;
+        public const double CurrentVersion = 0.95;
         private const string VersionCheckerUrl = "https://raw.githubusercontent.com/thanhkeke97/RSTGameTranslation/refs/heads/main/media/latest_version_checker.json";
 
         private class VersionInfo
@@ -220,7 +220,7 @@ namespace RSTGameTranslation
             try
             {
                 using (HttpClient client = new HttpClient())
-                using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5))) // Timeout 5 giây
+                using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
                 {
                     Task<string> downloadTask = client.GetStringAsync(VersionCheckerUrl, cts.Token);
                     
