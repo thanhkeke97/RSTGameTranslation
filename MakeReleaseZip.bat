@@ -1,6 +1,7 @@
 SET APP_NAME=RSTGameTranslation
 SET APP_VERSION=0.95
 SET FNAME=%APP_NAME%_v%APP_VERSION%.zip
+node update-version.js
 
 del %APP_NAME%_v*.zip
 rmdir tempbuild /S /Q
