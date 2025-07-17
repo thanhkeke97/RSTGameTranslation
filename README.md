@@ -48,7 +48,7 @@
 - **Windows 10+ and** (Required)
 - **Windows 11 for display translated text overlaid on the original text feature** (Optional)
 - **NVIDIA GPU** (Recommended for best performance)
-- **Conda** with PATH environment variable
+- **Conda** with PATH environment variable (For the Conda installation guide, follow this link: https://thanhkeke97.github.io/RSTGameTranslation/)
 - Game in **windowed/borderless mode**
 
 ### Installation
