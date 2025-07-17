@@ -367,7 +367,7 @@ namespace RSTGameTranslation
             targetLanguageComboBox.SelectionChanged += TargetLanguageComboBox_SelectionChanged;
 
             // Set text similar threshold from config
-            textSimilarThresholdTextBox.Text = ConfigManager.Instance.GetTextSimilarThreshold();
+            textSimilarThresholdTextBox.Text = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
 
             // Set char level from config
             charLevelCheckBox.IsChecked = ConfigManager.Instance.IsCharLevelEnabled();
@@ -1720,10 +1720,10 @@ namespace RSTGameTranslation
                     return;
 
                 // Get last threshold value from config
-                string lastThreshold = ConfigManager.Instance.GetTextSimilarThreshold();
+                string lastThreshold = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
                 
                 // Validate input is a valid number
-                if (!double.TryParse(textSimilarThresholdTextBox.Text, out double similarThreshold))
+                if (!double.TryParse(textSimilarThresholdTextBox.Text, System.Globalization.CultureInfo.InvariantCulture, out double similarThreshold))
                 {
                     MessageBox.Show("Please enter a valid number for the threshold.",
                                 "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -1755,7 +1755,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating text similar threshold: {ex}");
                 
                 // Restore last known good value in case of any error
-                textSimilarThresholdTextBox.Text = ConfigManager.Instance.GetTextSimilarThreshold();
+                textSimilarThresholdTextBox.Text = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
             }
         }
         

@@ -813,10 +813,14 @@ namespace RSTGameTranslation
         }
 
         // Get similary threshold
-        public string GetTextSimilarThreshold()
+        public double GetTextSimilarThreshold()
         {
             string value = GetValue(TEXTSIMILAR_THRESHOLD, "0.75");
-            return value;
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double textSimilar))
+            {
+                return textSimilar;
+            }
+            return 0.75;
         }
         
         // Set auto translate enabled
