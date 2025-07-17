@@ -1751,7 +1751,7 @@ namespace RSTGameTranslation
                 // Mở trình duyệt với liên kết Discord
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "https://discord.gg/YdwzMxtR",
+                    FileName = "https://discord.gg/FusrDU5tdn",
                     UseShellExecute = true
                 });
                 Console.WriteLine("Opening Discord invite link");
