@@ -1979,7 +1979,9 @@ namespace RSTGameTranslation
                 "it" => "italian",
                 "ru" => "russian",
                 "hi" => "hindi",
-                "pt" => "Portuguese",
+                "pt" => "portuguese",
+                "ar" => "arabic",
+                "nl" => "dutch",
                 _ => language
             };
         }

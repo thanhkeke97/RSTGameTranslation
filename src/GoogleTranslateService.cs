@@ -360,6 +360,8 @@ namespace RSTGameTranslation
                 "hindi" or "hi" => "hi",
                 "indonesian" or "id" => "id",
                 "polish" or "pl" => "pl",
+                "arabic" or "ar" => "ar",
+                "dutch" or "nl" => "nl",
                 _ => language
             };
         }
