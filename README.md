@@ -54,7 +54,7 @@
 
 1. **Download** the latest version from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 2. **Extract** the zip file to your desired location
-3. **Install Conda** For the Conda installation guide, follow this link: https://thanhkeke97.github.io/RSTGameTranslation/
+3. **Install Conda** For the Conda installation guide, follow this [link](https://thanhkeke97.github.io/RSTGameTranslation/) (See on Installation and Usage)
 
 ### Setup Guide
 
