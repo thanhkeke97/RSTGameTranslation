@@ -159,7 +159,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 
 Join our Discord community for support, discussions, and updates:
 
-[![Discord](https://img.shields.io/badge/Join%20our-Discord-7289DA.svg)](https://discord.gg/YdwzMxtR)
+[![Discord](https://img.shields.io/badge/Join%20our-Discord-7289DA.svg)](https://discord.gg/FusrDU5tdn)
 
 Get help from other users, share your experiences, and stay updated on the latest developments!
 
