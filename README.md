@@ -47,15 +47,14 @@
 
 - **Windows 10+ and** (Required)
 - **Windows 11 for display translated text overlaid on the original text feature** (Optional)
-- **NVIDIA GPU** (Recommended for best performance)
-- **Conda** with PATH environment variable (For the Conda installation guide, follow this link: https://thanhkeke97.github.io/RSTGameTranslation/)
-- Game in **windowed/borderless mode**
+- **NVIDIA GPU** (Recommended for best performance, Optional)
+- Game in **windowed/borderless mode** (Required)
 
 ### Installation
 
 1. **Download** the latest version from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 2. **Extract** the zip file to your desired location
-3. **Install Miniconda** if you don't have Conda ([Download here](https://repo.anaconda.com/miniconda/Miniconda3-py39_25.3.1-1-Windows-x86_64.exe))
+3. **Install Conda** For the Conda installation guide, follow this link: https://thanhkeke97.github.io/RSTGameTranslation/
 
 ### Setup Guide
 
