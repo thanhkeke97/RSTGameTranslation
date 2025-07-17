@@ -271,44 +271,11 @@
                                 <Run Name="AppVersion" Text="RSTGameTranslation" FontSize="28" FontWeight="Bold" Foreground="#FF00AAFF"/>
                                 <LineBreak/>
                                 <LineBreak/>
-                                <Run Text="Setup Guide" FontSize="20" FontWeight="Bold" Foreground="#FF00AAFF"/>
                                 <LineBreak/>
                                 <LineBreak/>
-                                <LineBreak/>
-                                <Run Text="1. Server Setup (One-time)" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
-                                <LineBreak/>
-                                <Run Text="• Click SetupServer button (Skip if using Windows OCR)"/>
-                                <LineBreak/>
-                                <Run Text="• Wait 5-15 minutes for setup completion"/>
-                                <LineBreak/>
-                                <Run Text="• Look for &quot;environment setup completed&quot; message"/>
-                                <LineBreak/>
-                                <LineBreak/>
-                                <Run Text="2. Start Translating" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
-                                <LineBreak/>
-                                <Run Text="• Click StartServer and wait for connection confirmation (Skip if using Windows OCR)"/>
-                                <LineBreak/>
-                                <Run Text="• Select translate region (ALT+Q or Click on SelectArea button)"/>
-                                <LineBreak/>
-                                <Run Text="• Click Start button (ALT+G) to begin translation"/>
-                                <LineBreak/>
-                                <LineBreak/>
-                                <Run Text="3. View Result" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
-                                <LineBreak/>
-                                <Run Text="• View results in ChatBox History (ALT+C)"/>
-                                <LineBreak/>
-                                <Run Text="• Display translated text overlaid on the original text in the selected area (Windows 11 required) (ALT+F)"/>
-                                <LineBreak/>
-                                <LineBreak/>
-                                <Run Text="4. Recommended setting" FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
-                                <LineBreak/>
-                                <Run Text="• OCR: PaddleOCR (Better for Asian languages, lower resource usage)"/>
-                                <LineBreak/>
-                                <Run Text="• LLM: Gemini Flash 2 Lite (Fast and accurate)"/>
-                                <LineBreak/>
-                                <Run Text="• NVIDIA: PaddleOCR or EasyOCR"/>
-                                <LineBreak/>
-                                <Run Text="• AMD, INTEL: Windows OCR (only support for source language is English)"/>
+                                <Hyperlink x:Name="tutorialLink" NavigateUri="https://github.com/thanhkeke97/RSTGameTranslation?tab=readme-ov-file#-quick-start" RequestNavigate="TutorialLink_RequestNavigate">
+                                    <Run Text="CLICK HERE FOR DETAIL SETUP GUIDE !!!" FontSize="16" FontWeight="Bold" Foreground="Orange"/>
+                                </Hyperlink>
                                 <LineBreak/>
                                 <LineBreak/>
                                 <Run Text="Need support? Click the Discord icon to join my Discord server." FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>

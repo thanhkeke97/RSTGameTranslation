@@ -1744,6 +1744,16 @@ namespace RSTGameTranslation
             }
         }
 
+        private void TutorialLink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = e.Uri.AbsoluteUri,
+                UseShellExecute = true
+            });
+            e.Handled = true;
+        }
+
         private void DiscordButton_Click(object sender, RoutedEventArgs e)
         {
             try
