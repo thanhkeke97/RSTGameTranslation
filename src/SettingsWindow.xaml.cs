@@ -34,6 +34,8 @@ namespace RSTGameTranslation
     {
         private static SettingsWindow? _instance;
         
+        public static bool _isLanguagePackInstall = false;
+
         public static SettingsWindow Instance
         {
             get
@@ -45,19 +47,19 @@ namespace RSTGameTranslation
                 return _instance;
             }
         }
-        
+
         public SettingsWindow()
         {
             // Make sure the initialization flag is set before anything else
             _isInitializing = true;
             Console.WriteLine("SettingsWindow constructor: Setting _isInitializing to true");
-            
+
             InitializeComponent();
             _instance = this;
-            
+
             // Add Loaded event handler to ensure controls are initialized
             this.Loaded += SettingsWindow_Loaded;
-            
+
             // Set up closing behavior (hide instead of close)
             this.Closing += (s, e) =>
             {
@@ -66,45 +68,53 @@ namespace RSTGameTranslation
                 MainWindow.Instance.settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
             };
         }
-        
+
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
-        
+
         // Collection to hold the ignore phrases
         private ObservableCollection<IgnorePhrase> _ignorePhrases = new ObservableCollection<IgnorePhrase>();
-        
+
         private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
                 Console.WriteLine("SettingsWindow_Loaded: Starting initialization");
-                
+
                 // Set initialization flag to prevent saving during setup
                 _isInitializing = true;
-                
+
                 // Make sure keyboard shortcuts work from this window too
                 PreviewKeyDown -= Application_KeyDown;
                 PreviewKeyDown += Application_KeyDown;
-                
+
                 // Set initial values only after the window is fully loaded
                 LoadSettingsFromMainWindow();
-                
+
                 // Make sure service-specific settings are properly initialized
                 string currentService = ConfigManager.Instance.GetCurrentTranslationService();
                 UpdateServiceSpecificSettings(currentService);
-                
+
+                // Make sure button check language package are properly initialize
+                string currentOcr = ConfigManager.Instance.GetOcrMethod();
+                if (currentOcr != "Windows OCR")
+                {
+                    checkLanguagePack.Visibility = Visibility.Collapsed;
+                    checkLanguagePackButton.Visibility = Visibility.Collapsed;
+                }
+
                 // Now that initialization is complete, allow saving changes
                 _isInitializing = false;
-                
+
                 // Force the OCR method and translation service to match the config again
                 // This ensures the config values are preserved and not overwritten
                 string configOcrMethod = ConfigManager.Instance.GetOcrMethod();
                 string configTransService = ConfigManager.Instance.GetCurrentTranslationService();
                 Console.WriteLine($"Ensuring config values are preserved: OCR={configOcrMethod}, Translation={configTransService}");
-                
+
                 ConfigManager.Instance.SetOcrMethod(configOcrMethod);
                 ConfigManager.Instance.SetTranslationService(configTransService);
-                
+
                 Console.WriteLine("Settings window fully loaded and initialized. Changes will now be saved.");
             }
             catch (Exception ex)
@@ -122,19 +132,19 @@ namespace RSTGameTranslation
                 {
                     string apiKey = passwordBox.Password.Trim();
                     string serviceType = ConfigManager.Instance.GetCurrentTranslationService();
-                    
+
                     if (!string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(serviceType))
                     {
                         // Add Api key to list
                         ConfigManager.Instance.AddApiKey(serviceType, apiKey);
-                        
+
                         // Clear textbox content
                         passwordBox.Password = "";
-                        
+
                         Console.WriteLine($"Added new API key for {serviceType}");
-                        
-                        
-                        MessageBox.Show($"API key added for {serviceType}.", "API Key Added", 
+
+
+                        MessageBox.Show($"API key added for {serviceType}.", "API Key Added",
                             MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
@@ -146,12 +156,12 @@ namespace RSTGameTranslation
             if (sender is System.Windows.Controls.Button button)
             {
                 string serviceType = ConfigManager.Instance.GetCurrentTranslationService();
-                
+
                 if (!string.IsNullOrEmpty(serviceType))
                 {
                     // Get list api key
                     List<string> apiKeys = ConfigManager.Instance.GetApiKeysList(serviceType);
-                    
+
                     // Show API keys management window
                     ApiKeysWindow apiKeysWindow = new ApiKeysWindow(serviceType, apiKeys);
                     apiKeysWindow.Owner = this;
@@ -174,9 +184,9 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 // string apiKey = googleTranslateApiKeyPasswordBox.Password.Trim();
-                
+
                 // // Update the config
                 // ConfigManager.Instance.SetGoogleTranslateApiKey(apiKey);
                 Console.WriteLine("Google Translate API key updated");
@@ -195,28 +205,28 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (googleTranslateServiceTypeComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     bool isCloudApi = selectedItem.Content.ToString() == "Cloud API (paid)";
-                    
+
                     // Show/hide API key field based on selection
                     googleTranslateApiKeyLabel.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
                     googleTranslateApiKeyGrid.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
                     // viewGoogleTranslateKeysButton.Visibility = isCloudApi ? Visibility.Visible : Visibility.Collapsed;
-                    
+
                     // Save to config
                     ConfigManager.Instance.SetGoogleTranslateUseCloudApi(isCloudApi);
                     Console.WriteLine($"Google Translate service type set to: {(isCloudApi ? "Cloud API" : "Free Web Service")}");
-                    
+
                     // Trigger retranslation if the current service is Google Translate
                     if (ConfigManager.Instance.GetCurrentTranslationService() == "Google Translate")
                     {
                         Console.WriteLine("Google Translate service type changed. Triggering retranslation...");
-                        
+
                         // Reset the hash to force a retranslation
                         Logic.Instance.ResetHash();
-                        
+
                         // Clear any existing text objects to refresh the display
                         Logic.Instance.ClearAllTextObjects();
                     }
@@ -227,8 +237,8 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating Google Translate service type: {ex.Message}");
             }
         }
-        
-// Google Translate language mapping checkbox changed
+
+        // Google Translate language mapping checkbox changed
         private void GoogleTranslateMappingCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             try
@@ -236,21 +246,21 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 bool isEnabled = googleTranslateMappingCheckBox.IsChecked ?? true;
-                
+
                 // Save to config
                 ConfigManager.Instance.SetGoogleTranslateAutoMapLanguages(isEnabled);
                 Console.WriteLine($"Google Translate auto language mapping set to: {isEnabled}");
-                
+
                 // Trigger retranslation if the current service is Google Translate
                 if (ConfigManager.Instance.GetCurrentTranslationService() == "Google Translate")
                 {
                     Console.WriteLine("Google Translate language mapping changed. Triggering retranslation...");
-                    
+
                     // Reset the hash to force a retranslation
                     Logic.Instance.ResetHash();
-                    
+
                     // Clear any existing text objects to refresh the display
                     Logic.Instance.ClearAllTextObjects();
                 }
@@ -281,13 +291,13 @@ namespace RSTGameTranslation
             }
             return false;
         }
-        
+
         private void LoadSettingsFromMainWindow()
         {
             // Temporarily remove event handlers to prevent triggering changes during initialization
             sourceLanguageComboBox.SelectionChanged -= SourceLanguageComboBox_SelectionChanged;
             targetLanguageComboBox.SelectionChanged -= TargetLanguageComboBox_SelectionChanged;
-            
+
             // Remove focus event handlers
             maxContextPiecesTextBox.LostFocus -= MaxContextPiecesTextBox_LostFocus;
             minContextSizeTextBox.LostFocus -= MinContextSizeTextBox_LostFocus;
@@ -298,7 +308,7 @@ namespace RSTGameTranslation
             minLineConfidenceTextBox.LostFocus -= MinLineConfidenceTextBox_LostFocus;
             blockDetectionPowerTextBox.LostFocus -= BlockDetectionPowerTextBox_LostFocus;
             settleTimeTextBox.LostFocus -= SettleTimeTextBox_LostFocus;
-            
+
             // Set context settings
             maxContextPiecesTextBox.Text = ConfigManager.Instance.GetMaxContextPieces().ToString();
             minContextSizeTextBox.Text = ConfigManager.Instance.GetMinContextSize().ToString();
@@ -307,7 +317,7 @@ namespace RSTGameTranslation
             minTextFragmentSizeTextBox.Text = ConfigManager.Instance.GetMinTextFragmentSize().ToString();
             minLetterConfidenceTextBox.Text = ConfigManager.Instance.GetMinLetterConfidence().ToString();
             minLineConfidenceTextBox.Text = ConfigManager.Instance.GetMinLineConfidence().ToString();
-            
+
             // Reattach focus event handlers
             maxContextPiecesTextBox.LostFocus += MaxContextPiecesTextBox_LostFocus;
             minContextSizeTextBox.LostFocus += MinContextSizeTextBox_LostFocus;
@@ -333,13 +343,13 @@ namespace RSTGameTranslation
                     }
                 }
             }
-            else if (MainWindow.Instance.sourceLanguageComboBox != null && 
+            else if (MainWindow.Instance.sourceLanguageComboBox != null &&
                      MainWindow.Instance.sourceLanguageComboBox.SelectedIndex >= 0)
             {
                 // Fallback to MainWindow if config doesn't have a value
                 sourceLanguageComboBox.SelectedIndex = MainWindow.Instance.sourceLanguageComboBox.SelectedIndex;
             }
-            
+
             // Load target language either from config or MainWindow as fallback
             string configTargetLanguage = ConfigManager.Instance.GetTargetLanguage();
             if (!string.IsNullOrEmpty(configTargetLanguage))
@@ -355,13 +365,13 @@ namespace RSTGameTranslation
                     }
                 }
             }
-            else if (MainWindow.Instance.targetLanguageComboBox != null && 
+            else if (MainWindow.Instance.targetLanguageComboBox != null &&
                      MainWindow.Instance.targetLanguageComboBox.SelectedIndex >= 0)
             {
                 // Fallback to MainWindow if config doesn't have a value
                 targetLanguageComboBox.SelectedIndex = MainWindow.Instance.targetLanguageComboBox.SelectedIndex;
             }
-            
+
             // Reattach event handlers
             sourceLanguageComboBox.SelectionChanged += SourceLanguageComboBox_SelectionChanged;
             targetLanguageComboBox.SelectionChanged += TargetLanguageComboBox_SelectionChanged;
@@ -375,10 +385,10 @@ namespace RSTGameTranslation
             // Set OCR settings from config
             string savedOcrMethod = ConfigManager.Instance.GetOcrMethod();
             Console.WriteLine($"SettingsWindow: Loading OCR method '{savedOcrMethod}'");
-            
+
             // Temporarily remove event handler to prevent triggering during initialization
             ocrMethodComboBox.SelectionChanged -= OcrMethodComboBox_SelectionChanged;
-            
+
             // Find matching ComboBoxItem
             foreach (ComboBoxItem item in ocrMethodComboBox.Items)
             {
@@ -390,40 +400,40 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            
+
             // Re-attach event handler
             ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
-            
+
             // Get auto-translate setting from config instead of MainWindow
             // This ensures the setting persists across application restarts
             autoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAutoTranslateEnabled();
             Console.WriteLine($"Settings window: Loading auto-translate from config: {ConfigManager.Instance.IsAutoTranslateEnabled()}");
-            
+
             // Set leave translation onscreen setting
             leaveTranslationOnscreenCheckBox.IsChecked = ConfigManager.Instance.IsLeaveTranslationOnscreenEnabled();
-            
+
             // Set block detection settings directly from BlockDetectionManager
             // Temporarily remove event handlers to prevent triggering changes
             blockDetectionPowerTextBox.LostFocus -= BlockDetectionPowerTextBox_LostFocus;
             settleTimeTextBox.LostFocus -= SettleTimeTextBox_LostFocus;
-            
-           
+
+
             blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString("F2");
             settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2");
-            
+
             Console.WriteLine($"SettingsWindow: Loaded block detection power: {blockDetectionPowerTextBox.Text}");
             Console.WriteLine($"SettingsWindow: Loaded settle time: {settleTimeTextBox.Text}");
-            
+
             // Reattach event handlers
             blockDetectionPowerTextBox.LostFocus += BlockDetectionPowerTextBox_LostFocus;
             settleTimeTextBox.LostFocus += SettleTimeTextBox_LostFocus;
-            
+
             // Set translation service from config
             string currentService = ConfigManager.Instance.GetCurrentTranslationService();
-            
+
             // Temporarily remove event handler
             translationServiceComboBox.SelectionChanged -= TranslationServiceComboBox_SelectionChanged;
-            
+
             foreach (ComboBoxItem item in translationServiceComboBox.Items)
             {
                 if (string.Equals(item.Content.ToString(), currentService, StringComparison.OrdinalIgnoreCase))
@@ -433,36 +443,36 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            
+
             // Re-attach event handler
             translationServiceComboBox.SelectionChanged += TranslationServiceComboBox_SelectionChanged;
-            
+
             // Initialize API key for Gemini
             geminiApiKeyPasswordBox.Password = ConfigManager.Instance.GetGeminiApiKey();
-            
+
             // Initialize Ollama settings
             ollamaUrlTextBox.Text = ConfigManager.Instance.GetOllamaUrl();
             ollamaPortTextBox.Text = ConfigManager.Instance.GetOllamaPort();
             ollamaModelTextBox.Text = ConfigManager.Instance.GetOllamaModel();
-            
+
             // Update service-specific settings visibility based on selected service
             UpdateServiceSpecificSettings(currentService);
-            
+
             // Load the current service's prompt
             LoadCurrentServicePrompt();
-            
+
             // Load TTS settings
-            
+
             // Temporarily remove TTS event handlers
             ttsEnabledCheckBox.Checked -= TtsEnabledCheckBox_CheckedChanged;
             ttsEnabledCheckBox.Unchecked -= TtsEnabledCheckBox_CheckedChanged;
             ttsServiceComboBox.SelectionChanged -= TtsServiceComboBox_SelectionChanged;
             elevenLabsVoiceComboBox.SelectionChanged -= ElevenLabsVoiceComboBox_SelectionChanged;
             googleTtsVoiceComboBox.SelectionChanged -= GoogleTtsVoiceComboBox_SelectionChanged;
-            
+
             // Set TTS enabled state
             ttsEnabledCheckBox.IsChecked = ConfigManager.Instance.IsTtsEnabled();
-            
+
             // Set TTS service
             string ttsService = ConfigManager.Instance.GetTtsService();
             foreach (ComboBoxItem item in ttsServiceComboBox.Items)
@@ -473,13 +483,13 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            
+
             // Update service-specific settings visibility
             UpdateTtsServiceSpecificSettings(ttsService);
-            
+
             // Set ElevenLabs API key
             elevenLabsApiKeyPasswordBox.Password = ConfigManager.Instance.GetElevenLabsApiKey();
-            
+
             // Set ElevenLabs voice
             string elevenLabsVoiceId = ConfigManager.Instance.GetElevenLabsVoice();
             foreach (ComboBoxItem item in elevenLabsVoiceComboBox.Items)
@@ -490,10 +500,10 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            
+
             // Set Google TTS API key
             googleTtsApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTtsApiKey();
-            
+
             // Set Google TTS voice
             string googleVoiceId = ConfigManager.Instance.GetGoogleTtsVoice();
             foreach (ComboBoxItem item in googleTtsVoiceComboBox.Items)
@@ -504,14 +514,14 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            
+
             // Re-attach TTS event handlers
             ttsEnabledCheckBox.Checked += TtsEnabledCheckBox_CheckedChanged;
             ttsEnabledCheckBox.Unchecked += TtsEnabledCheckBox_CheckedChanged;
             ttsServiceComboBox.SelectionChanged += TtsServiceComboBox_SelectionChanged;
             elevenLabsVoiceComboBox.SelectionChanged += ElevenLabsVoiceComboBox_SelectionChanged;
             googleTtsVoiceComboBox.SelectionChanged += GoogleTtsVoiceComboBox_SelectionChanged;
-            
+
             // Load ignore phrases
             LoadIgnorePhrases();
 
@@ -521,7 +531,7 @@ namespace RSTGameTranslation
             // Load Auto-translate for audio service
             audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
         }
-        
+
         // Language settings
         private void SourceLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -530,15 +540,15 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 string language = selectedItem.Content.ToString() ?? "ja";
                 Console.WriteLine($"Settings: Source language changed to: {language}");
-                
+
                 // Save to config
                 ConfigManager.Instance.SetSourceLanguage(language);
-                
+
                 // Update MainWindow source language
                 if (MainWindow.Instance.sourceLanguageComboBox != null)
                 {
@@ -552,12 +562,12 @@ namespace RSTGameTranslation
                         }
                     }
                 }
-                
+
                 // Reset the OCR hash to force a fresh comparison after changing source language
                 Logic.Instance.ClearAllTextObjects();
             }
         }
-        
+
         private void TargetLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Skip event if we're initializing
@@ -565,15 +575,15 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 string language = selectedItem.Content.ToString() ?? "en";
                 Console.WriteLine($"Settings: Target language changed to: {language}");
-                
+
                 // Save to config
                 ConfigManager.Instance.SetTargetLanguage(language);
-                
+
                 // Update MainWindow target language
                 if (MainWindow.Instance.targetLanguageComboBox != null)
                 {
@@ -587,12 +597,12 @@ namespace RSTGameTranslation
                         }
                     }
                 }
-                
+
                 // Reset the OCR hash to force a fresh comparison after changing target language
                 Logic.Instance.ClearAllTextObjects();
             }
         }
-        
+
         private void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Skip event if we're initializing
@@ -601,26 +611,35 @@ namespace RSTGameTranslation
                 Console.WriteLine("Skipping OCR method change during initialization");
                 return;
             }
-            
+
             if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 string? ocrMethod = selectedItem.Content?.ToString();
-                
+
                 if (!string.IsNullOrEmpty(ocrMethod))
                 {
                     Console.WriteLine($"Setting OCR method to: {ocrMethod}");
-                    
+
                     // Save to config
                     ConfigManager.Instance.SetOcrMethod(ocrMethod);
-                    
+
                     // Update UI
                     MainWindow.Instance.SetOcrMethod(ocrMethod);
                     UpdateMonitorWindowOcrMethod(ocrMethod);
                     SocketManager.Instance.Disconnect();
-                    
+
                     // await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
-                        
-                
+                    if (ocrMethod != "Windows OCR")
+                    {
+                        checkLanguagePack.Visibility = Visibility.Collapsed;
+                        checkLanguagePackButton.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        checkLanguagePack.Visibility = Visibility.Visible;
+                        checkLanguagePackButton.Visibility = Visibility.Visible;
+                    }
+
                 }
             }
         }
@@ -640,7 +659,7 @@ namespace RSTGameTranslation
                 }
             }
         }
-        
+
         private void AutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             // Skip if initializing to prevent overriding values from config
@@ -648,14 +667,14 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             bool isEnabled = autoTranslateCheckBox.IsChecked ?? false;
             Console.WriteLine($"Settings window: Auto-translate changed to {isEnabled}");
-            
+
             // Update auto translate setting in MainWindow
             // This will also save to config and update the UI
             MainWindow.Instance.SetAutoTranslateEnabled(isEnabled);
-            
+
             // Update MonitorWindow CheckBox if needed
             if (MonitorWindow.Instance.autoTranslateCheckBox != null)
             {
@@ -679,7 +698,7 @@ namespace RSTGameTranslation
             MainWindow.Instance.SetOCRCheckIsWanted(true);
             Console.WriteLine($"Settings window: Character level mode changed to {isEnabled}");
         }
-        
+
         private void LeaveTranslationOnscreenCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             // Skip if initializing
@@ -690,28 +709,28 @@ namespace RSTGameTranslation
             ConfigManager.Instance.SetLeaveTranslationOnscreenEnabled(isEnabled);
             Console.WriteLine($"Leave translation onscreen enabled: {isEnabled}");
         }
-        
+
         // Language swap button handler
         private void SwapLanguagesButton_Click(object sender, RoutedEventArgs e)
         {
             // Store the current selections
             int sourceIndex = sourceLanguageComboBox.SelectedIndex;
             int targetIndex = targetLanguageComboBox.SelectedIndex;
-            
+
             // Swap the selections
             sourceLanguageComboBox.SelectedIndex = targetIndex;
             targetLanguageComboBox.SelectedIndex = sourceIndex;
-            
+
             // The SelectionChanged events will handle updating the MainWindow
             Console.WriteLine($"Languages swapped: {GetLanguageCode(sourceLanguageComboBox)} ⇄ {GetLanguageCode(targetLanguageComboBox)}");
         }
-        
+
         // Helper method to get language code from ComboBox
         private string GetLanguageCode(ComboBox comboBox)
         {
             return ((ComboBoxItem)comboBox.SelectedItem).Content.ToString() ?? "";
         }
-        
+
         // Block detection settings
         private void BlockDetectionPowerTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -720,13 +739,13 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             // Update block detection power in MonitorWindow
             if (MonitorWindow.Instance.blockDetectionPowerTextBox != null)
             {
                 MonitorWindow.Instance.blockDetectionPowerTextBox.Text = blockDetectionPowerTextBox.Text;
             }
-            
+
             // Update BlockDetectionManager if applicable
             if (float.TryParse(blockDetectionPowerTextBox.Text, out float power))
             {
@@ -741,7 +760,7 @@ namespace RSTGameTranslation
                 blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString("F2");
             }
         }
-        
+
         private void SettleTimeTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             // Skip if initializing to prevent overriding values from config
@@ -749,13 +768,13 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             // Update settle time in ConfigManager
             if (float.TryParse(settleTimeTextBox.Text, out float settleTime) && settleTime >= 0)
             {
                 ConfigManager.Instance.SetBlockDetectionSettleTime(settleTime);
                 Console.WriteLine($"Block detection settle time set to: {settleTime:F2} seconds");
-                
+
                 // Reset hash to force recalculation of text blocks
                 Logic.Instance.ResetHash();
             }
@@ -765,7 +784,7 @@ namespace RSTGameTranslation
                 settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2");
             }
         }
-        
+
         // Translation service changed
         private void TranslationServiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -776,7 +795,7 @@ namespace RSTGameTranslation
                 Console.WriteLine("Skipping translation service change during initialization");
                 return;
             }
-            
+
             try
             {
                 if (translationServiceComboBox == null)
@@ -784,30 +803,30 @@ namespace RSTGameTranslation
                     Console.WriteLine("Translation service combo box not initialized yet");
                     return;
                 }
-                
+
                 if (translationServiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     string selectedService = selectedItem.Content.ToString() ?? "Gemini";
-                    
+
                     Console.WriteLine($"SettingsWindow translation service changed to: '{selectedService}'");
-                    
+
                     // Save the selected service to config
                     ConfigManager.Instance.SetTranslationService(selectedService);
-                    
+
                     // Update service-specific settings visibility
                     UpdateServiceSpecificSettings(selectedService);
-                    
+
                     // Load the prompt for the selected service
                     LoadCurrentServicePrompt();
-                    
+
                     // Only trigger retranslation if not initializing (i.e., user changed it manually)
                     if (!_isInitializing)
                     {
                         Console.WriteLine("Translation service changed. Triggering retranslation...");
-                        
+
                         // Reset the hash to force a retranslation
                         Logic.Instance.ResetHash();
-                        
+
                         // Clear any existing text objects to refresh the display
                         Logic.Instance.ClearAllTextObjects();
                     }
@@ -818,7 +837,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error handling translation service change: {ex.Message}");
             }
         }
-        
+
         // Load prompt for the currently selected translation service
         private void LoadCurrentServicePrompt()
         {
@@ -829,12 +848,12 @@ namespace RSTGameTranslation
                     Console.WriteLine("Translation service controls not initialized yet. Skipping prompt loading.");
                     return;
                 }
-                
+
                 if (translationServiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     string selectedService = selectedItem.Content.ToString() ?? "Gemini";
                     string prompt = ConfigManager.Instance.GetServicePrompt(selectedService);
-                    
+
                     // Update the text box
                     promptTemplateTextBox.Text = prompt;
                 }
@@ -844,19 +863,19 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error loading prompt template: {ex.Message}");
             }
         }
-        
+
         // Save prompt button clicked
         private void SavePromptButton_Click(object sender, RoutedEventArgs e)
         {
             SaveCurrentPrompt();
         }
-        
+
         // Text box lost focus - save prompt
         private void PromptTemplateTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             SaveCurrentPrompt();
         }
-        
+
         // Save the current prompt to the selected service
         private void SaveCurrentPrompt()
         {
@@ -864,12 +883,12 @@ namespace RSTGameTranslation
             {
                 string selectedService = selectedItem.Content.ToString() ?? "Gemini";
                 string prompt = promptTemplateTextBox.Text;
-                
+
                 if (!string.IsNullOrWhiteSpace(prompt))
                 {
                     // Save to config
                     bool success = ConfigManager.Instance.SaveServicePrompt(selectedService, prompt);
-                    
+
                     if (success)
                     {
                         Console.WriteLine($"Prompt saved for {selectedService}");
@@ -877,7 +896,7 @@ namespace RSTGameTranslation
                 }
             }
         }
-        
+
         private void RestoreDefaultPromptButton_Click(object sender, RoutedEventArgs e)
         {
             // Restore the default prompt for the selected service
@@ -892,7 +911,7 @@ namespace RSTGameTranslation
                 }
             }
         }
-        
+
         // Update service-specific settings visibility
         private void UpdateServiceSpecificSettings(string selectedService)
         {
@@ -1048,29 +1067,29 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating service-specific settings: {ex.Message}");
             }
         }
-        
+
         private void AdjustOverlayConfig_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 // Create options window
                 var optionsWindow = new OverlayOptionsWindow();
-                
+
                 // Set the owner to ensure it appears on top of this window
                 optionsWindow.Owner = this;
-                
+
                 // Make this window appear in front
                 this.Topmost = false;
                 this.Topmost = true;
-                
+
                 // Show the dialog
                 var result = optionsWindow.ShowDialog();
-                
+
                 // If user clicked OK, styling will already be applied by the options window
                 if (result == true)
                 {
                     Console.WriteLine("Chat box options updated");
-                    
+
                     // Create and start the flash animation for visual feedback
                     CreateFlashAnimation(overlayConfig);
                 }
@@ -1087,17 +1106,17 @@ namespace RSTGameTranslation
             {
                 // Get the current background brush
                 SolidColorBrush? currentBrush = button.Background as SolidColorBrush;
-                
+
                 if (currentBrush != null)
                 {
                     // Need to freeze the original brush to animate its clone
                     currentBrush = currentBrush.Clone();
                     System.Windows.Media.Color originalColor = currentBrush.Color;
-                    
+
                     // Create a new brush for animation
                     SolidColorBrush animBrush = new SolidColorBrush(originalColor);
                     button.Background = animBrush;
-                    
+
                     // Create color animation for the brush's Color property
                     var animation = new ColorAnimation
                     {
@@ -1107,7 +1126,7 @@ namespace RSTGameTranslation
                         AutoReverse = true,
                         FillBehavior = FillBehavior.Stop // Stop the animation when complete
                     };
-                    
+
                     // Apply the animation to the brush's Color property
                     animBrush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
                 }
@@ -1117,7 +1136,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error creating flash animation: {ex.Message}");
             }
         }
-        
+
         private void UpdateTtsServiceSpecificSettings(string selectedService)
         {
             try
@@ -1186,14 +1205,14 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating TTS service-specific settings: {ex.Message}");
             }
         }
-        
+
         // Gemini API Key changed
         private void GeminiApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             try
             {
                 // string apiKey = geminiApiKeyPasswordBox.Password.Trim();
-                
+
                 // // Update the config
                 // ConfigManager.Instance.SetGeminiApiKey(apiKey);
                 Console.WriteLine("Gemini API key updated");
@@ -1203,7 +1222,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating Gemini API key: {ex.Message}");
             }
         }
-        
+
         // Ollama URL changed
         private void OllamaUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -1213,7 +1232,7 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetOllamaUrl(url);
             }
         }
-        
+
         // Ollama Port changed
         private void OllamaPortTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -1232,53 +1251,53 @@ namespace RSTGameTranslation
                 }
             }
         }
-        
+
         // Ollama Model changed
         private void OllamaModelTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             // Skip if initializing or if the sender isn't the expected TextBox
             if (_isInitializing || sender != ollamaModelTextBox)
                 return;
-                
+
             string sanitizedModel = ollamaModelTextBox.Text.Trim();
-          
-            
+
+
             // Save valid model to config
             ConfigManager.Instance.SetOllamaModel(sanitizedModel);
             Console.WriteLine($"Ollama model set to: {sanitizedModel}");
-            
+
             // Trigger retranslation if the current service is Ollama
             if (ConfigManager.Instance.GetCurrentTranslationService() == "Ollama")
             {
                 Console.WriteLine("Ollama model changed. Triggering retranslation...");
-                
+
                 // Reset the hash to force a retranslation
                 Logic.Instance.ResetHash();
-                
+
                 // Clear any existing text objects to refresh the display
                 Logic.Instance.ClearAllTextObjects();
             }
         }
-        
+
         // Model downloader instance
         private readonly OllamaModelDownloader _modelDownloader = new OllamaModelDownloader();
-        
+
         private async void TestModelButton_Click(object sender, RoutedEventArgs e)
         {
             string model = ollamaModelTextBox.Text.Trim();
             await _modelDownloader.TestAndDownloadModel(model);
         }
-        
+
         private void ViewModelsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ollama.com/search");
         }
-        
+
         private void GeminiApiLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ai.google.dev/tutorials/setup");
         }
-        
+
         private void GeminiModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -1286,9 +1305,9 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                
+
                 string model;
-                
+
                 // Handle both dropdown selection and manually typed values
                 if (geminiModelComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
@@ -1299,21 +1318,21 @@ namespace RSTGameTranslation
                     // For manually entered text
                     model = geminiModelComboBox.Text?.Trim() ?? "gemini-2.0-flash-lite";
                 }
-                
+
                 if (!string.IsNullOrWhiteSpace(model))
                 {
                     // Save to config
                     ConfigManager.Instance.SetGeminiModel(model);
                     Console.WriteLine($"Gemini model set to: {model}");
-                    
+
                     // Trigger retranslation if the current service is Gemini
                     if (ConfigManager.Instance.GetCurrentTranslationService() == "Gemini")
                     {
                         Console.WriteLine("Gemini model changed. Triggering retranslation...");
-                        
+
                         // Reset the hash to force a retranslation
                         Logic.Instance.ResetHash();
-                        
+
                         // Clear any existing text objects to refresh the display
                         Logic.Instance.ClearAllTextObjects();
                     }
@@ -1324,12 +1343,12 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating Gemini model: {ex.Message}");
             }
         }
-        
+
         private void ViewGeminiModelsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ai.google.dev/gemini-api/docs/models");
         }
-        
+
         private void GeminiModelComboBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -1337,21 +1356,21 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                
+
                 string model = geminiModelComboBox.Text?.Trim() ?? "";
-                
+
                 if (!string.IsNullOrWhiteSpace(model))
                 {
                     // Save to config
                     ConfigManager.Instance.SetGeminiModel(model);
                     Console.WriteLine($"Gemini model set from text input to: {model}");
-                    
+
                     // Trigger retranslation if the current service is Gemini
                     if (ConfigManager.Instance.GetCurrentTranslationService() == "Gemini")
                     {
                         // Reset the hash to force a retranslation
                         Logic.Instance.ResetHash();
-                        
+
                         // Clear any existing text objects to refresh the display
                         Logic.Instance.ClearAllTextObjects();
                     }
@@ -1362,22 +1381,22 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating Gemini model from text input: {ex.Message}");
             }
         }
-        
+
         private void OllamaDownloadLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ollama.com");
         }
-        
+
         private void ChatGptApiLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://platform.openai.com/api-keys");
         }
-        
+
         private void ViewChatGptModelsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://platform.openai.com/docs/models");
         }
-        
+
         // ChatGPT API Key changed
         private void ChatGptApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
@@ -1386,9 +1405,9 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 // string apiKey = chatGptApiKeyPasswordBox.Password.Trim();
-                
+
                 // // Update the config
                 // ConfigManager.Instance.SetChatGptApiKey(apiKey);
                 Console.WriteLine("ChatGPT API key updated");
@@ -1398,7 +1417,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating ChatGPT API key: {ex.Message}");
             }
         }
-        
+
         // ChatGPT Model changed
         private void ChatGptModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1407,23 +1426,23 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (chatGptModelComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     string model = selectedItem.Tag?.ToString() ?? "gpt-3.5-turbo";
-                    
+
                     // Save to config
                     ConfigManager.Instance.SetChatGptModel(model);
                     Console.WriteLine($"ChatGPT model set to: {model}");
-                    
+
                     // Trigger retranslation if the current service is ChatGPT
                     if (ConfigManager.Instance.GetCurrentTranslationService() == "ChatGPT")
                     {
                         Console.WriteLine("ChatGPT model changed. Triggering retranslation...");
-                        
+
                         // Reset the hash to force a retranslation
                         Logic.Instance.ResetHash();
-                        
+
                         // Clear any existing text objects to refresh the display
                         Logic.Instance.ClearAllTextObjects();
                     }
@@ -1434,17 +1453,17 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating ChatGPT model: {ex.Message}");
             }
         }
-        
+
         private void ElevenLabsApiLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://elevenlabs.io/app/api-key");
         }
-        
+
         private void GoogleTtsApiLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://cloud.google.com/text-to-speech");
         }
-        
+
         private void OpenUrl(string url)
         {
             try
@@ -1459,13 +1478,13 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error opening URL: {ex.Message}");
-                MessageBox.Show($"Unable to open URL: {url}\n\nError: {ex.Message}", 
+                MessageBox.Show($"Unable to open URL: {url}\n\nError: {ex.Message}",
                     "Error Opening URL", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        
+
         // Text-to-Speech settings handlers
-        
+
         private void TtsEnabledCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             try
@@ -1473,7 +1492,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 bool isEnabled = ttsEnabledCheckBox.IsChecked ?? false;
                 ConfigManager.Instance.SetTtsEnabled(isEnabled);
                 Console.WriteLine($"TTS enabled: {isEnabled}");
@@ -1483,7 +1502,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating TTS enabled state: {ex.Message}");
             }
         }
-        
+
         private void TtsServiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -1491,13 +1510,13 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (ttsServiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     string service = selectedItem.Content.ToString() ?? "ElevenLabs";
                     ConfigManager.Instance.SetTtsService(service);
                     Console.WriteLine($"TTS service set to: {service}");
-                    
+
                     // Update UI for the selected service
                     UpdateTtsServiceSpecificSettings(service);
                 }
@@ -1507,7 +1526,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating TTS service: {ex.Message}");
             }
         }
-        
+
         private void GoogleTtsApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             try
@@ -1515,7 +1534,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 string apiKey = googleTtsApiKeyPasswordBox.Password.Trim();
                 ConfigManager.Instance.SetGoogleTtsApiKey(apiKey);
                 Console.WriteLine("Google TTS API key updated");
@@ -1525,7 +1544,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating Google TTS API key: {ex.Message}");
             }
         }
-        
+
         private void GoogleTtsVoiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -1533,7 +1552,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (googleTtsVoiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     string voiceId = selectedItem.Tag?.ToString() ?? "ja-JP-Neural2-B"; // Default to Female A
@@ -1546,7 +1565,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating Google TTS voice: {ex.Message}");
             }
         }
-        
+
         private void ElevenLabsApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             try
@@ -1554,7 +1573,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 string apiKey = elevenLabsApiKeyPasswordBox.Password.Trim();
                 ConfigManager.Instance.SetElevenLabsApiKey(apiKey);
                 Console.WriteLine("ElevenLabs API key updated");
@@ -1564,7 +1583,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating ElevenLabs API key: {ex.Message}");
             }
         }
-        
+
         private void ElevenLabsVoiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -1572,7 +1591,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (elevenLabsVoiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     string voiceId = selectedItem.Tag?.ToString() ?? "21m00Tcm4TlvDq8ikWAM"; // Default to Rachel
@@ -1585,7 +1604,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating ElevenLabs voice: {ex.Message}");
             }
         }
-        
+
         // Context settings handlers
         private void MaxContextPiecesTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -1594,7 +1613,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (int.TryParse(maxContextPiecesTextBox.Text, out int maxContextPieces) && maxContextPieces >= 0)
                 {
                     ConfigManager.Instance.SetMaxContextPieces(maxContextPieces);
@@ -1611,7 +1630,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating max context pieces: {ex.Message}");
             }
         }
-        
+
         private void MinContextSizeTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -1619,7 +1638,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (int.TryParse(minContextSizeTextBox.Text, out int minContextSize) && minContextSize >= 0)
                 {
                     ConfigManager.Instance.SetMinContextSize(minContextSize);
@@ -1636,7 +1655,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating min context size: {ex.Message}");
             }
         }
-        
+
         private void MinChatBoxTextSizeTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -1644,7 +1663,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (int.TryParse(minChatBoxTextSizeTextBox.Text, out int minChatBoxTextSize) && minChatBoxTextSize >= 0)
                 {
                     ConfigManager.Instance.SetChatBoxMinTextSize(minChatBoxTextSize);
@@ -1661,7 +1680,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating min ChatBox text size: {ex.Message}");
             }
         }
-        
+
         private void GameInfoTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -1669,11 +1688,11 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 string gameInfo = gameInfoTextBox.Text.Trim();
                 ConfigManager.Instance.SetGameInfo(gameInfo);
                 Console.WriteLine($"Game info updated: {gameInfo}");
-                
+
                 // Reset the hash to force a retranslation when game info changes
                 Logic.Instance.ResetHash();
             }
@@ -1682,7 +1701,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating game info: {ex.Message}");
             }
         }
-        
+
         private void MinTextFragmentSizeTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -1690,12 +1709,12 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (int.TryParse(minTextFragmentSizeTextBox.Text, out int minSize) && minSize >= 0)
                 {
                     ConfigManager.Instance.SetMinTextFragmentSize(minSize);
                     Console.WriteLine($"Minimum text fragment size set to: {minSize}");
-                    
+
                     // Reset the hash to force new OCR processing
                     Logic.Instance.ResetHash();
                 }
@@ -1721,13 +1740,13 @@ namespace RSTGameTranslation
 
                 // Get last threshold value from config
                 string lastThreshold = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
-                
+
                 // Validate input is a valid number
                 if (!double.TryParse(textSimilarThresholdTextBox.Text, System.Globalization.CultureInfo.InvariantCulture, out double similarThreshold))
                 {
                     MessageBox.Show("Please enter a valid number for the threshold.",
                                 "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    
+
                     // Reset textbox to last valid value
                     textSimilarThresholdTextBox.Text = lastThreshold;
                     return;
@@ -1745,7 +1764,7 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Text similar threshold reset to default value: {lastThreshold}");
                     return;
                 }
-                
+
                 // If we get here, the value is valid, so save it
                 ConfigManager.Instance.SetTextSimilarThreshold(similarThreshold.ToString());
                 Console.WriteLine($"Text similar threshold updated to: {similarThreshold}");
@@ -1753,12 +1772,12 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating text similar threshold: {ex}");
-                
+
                 // Restore last known good value in case of any error
                 textSimilarThresholdTextBox.Text = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
             }
         }
-        
+
         private void MinLetterConfidenceTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -1786,7 +1805,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating minimum letter confidence: {ex.Message}");
             }
         }
-        
+
         private void MinLineConfidenceTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -1794,12 +1813,12 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (double.TryParse(minLineConfidenceTextBox.Text, out double confidence) && confidence >= 0 && confidence <= 1)
                 {
                     ConfigManager.Instance.SetMinLineConfidence(confidence);
                     Console.WriteLine($"Minimum line confidence set to: {confidence}");
-                    
+
                     // Reset the hash to force new OCR processing
                     Logic.Instance.ResetHash();
                 }
@@ -1814,49 +1833,95 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating minimum line confidence: {ex.Message}");
             }
         }
-        
+
+        private void CheckLanguagePackButton_Click(object sender, RoutedEventArgs e)
+        {
+            string? sourceLanguage = null;
+    
+            if (sourceLanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                sourceLanguage = selectedItem.Content.ToString();
+            }
+            if (string.IsNullOrEmpty(sourceLanguage))
+            {
+                _isLanguagePackInstall = false;
+
+                MessageBox.Show("No language selected.", "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            else
+            {
+                Console.WriteLine($"Checking language pack for: {sourceLanguage}");
+
+                _isLanguagePackInstall = WindowsOCRManager.Instance.CheckLanguagePackInstall(sourceLanguage);
+
+                if (_isLanguagePackInstall)
+                {
+                    MessageBox.Show("Language pack is installed.", "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(WindowsOCRManager.Instance._currentLanguageCode))
+                    {
+                        string message = "Language pack is not installed. \n\n" +
+                                     "To install the corresponding language pack, please follow these steps:\n\n" +
+                                     "Step 1: Press \"Windows + S\" button, type \"language settings\" and press Enter button.\n\n" +
+                                     "Step 2: Click on \"Add a language\" button.\n\n" +
+                                     $"Step 3: Type \"{WindowsOCRManager.Instance._currentLanguageCode}\" to add, click \"Next\" and click \"install\".\n\n" +
+                                     "Wait for language package install complete and retry";
+
+                        MessageBox.Show(message, "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                    else
+                    {
+                        MessageBox.Show("This language is not supported for WindowsOCR", "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            
+        }
+
         // Handle Clear Context button click
         private void ClearContextButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 Console.WriteLine("Clearing translation context and history");
-                
+
                 // Clear translation history in MainWindow
                 MainWindow.Instance.ClearTranslationHistory();
-                
+
                 // Reset hash to force new translation on next capture
                 Logic.Instance.ResetHash();
-                
+
                 // Clear any existing text objects
                 Logic.Instance.ClearAllTextObjects();
-                
+
                 // Show success message
-                MessageBox.Show("Translation context and history have been cleared.", 
+                MessageBox.Show("Translation context and history have been cleared.",
                     "Context Cleared", MessageBoxButton.OK, MessageBoxImage.Information);
-                
+
                 Console.WriteLine("Translation context cleared successfully");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error clearing translation context: {ex.Message}");
-                MessageBox.Show($"Error clearing context: {ex.Message}", 
+                MessageBox.Show($"Error clearing context: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        
+
         // Ignore Phrases methods
-        
+
         // Load ignore phrases from ConfigManager
         private void LoadIgnorePhrases()
         {
             try
             {
                 _ignorePhrases.Clear();
-                
+
                 // Get phrases from ConfigManager
                 var phrases = ConfigManager.Instance.GetIgnorePhrases();
-                
+
                 // Add each phrase to the collection
                 foreach (var (phrase, exactMatch) in phrases)
                 {
@@ -1865,10 +1930,10 @@ namespace RSTGameTranslation
                         _ignorePhrases.Add(new IgnorePhrase(phrase, exactMatch));
                     }
                 }
-                
+
                 // Set the ListView's ItemsSource
                 ignorePhraseListView.ItemsSource = _ignorePhrases;
-                
+
                 Console.WriteLine($"Loaded {_ignorePhrases.Count} ignore phrases");
             }
             catch (Exception ex)
@@ -1876,7 +1941,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error loading ignore phrases: {ex.Message}");
             }
         }
-        
+
         // Save all ignore phrases to ConfigManager
         private void SaveIgnorePhrases()
         {
@@ -1884,13 +1949,13 @@ namespace RSTGameTranslation
             {
                 if (_isInitializing)
                     return;
-                    
+
                 // Convert collection to list of tuples
                 var phrases = _ignorePhrases.Select(p => (p.Phrase, p.ExactMatch)).ToList();
-                
+
                 // Save to ConfigManager
                 ConfigManager.Instance.SaveIgnorePhrases(phrases);
-                
+
                 // Force the Logic to refresh
                 Logic.Instance.ResetHash();
             }
@@ -1899,50 +1964,50 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error saving ignore phrases: {ex.Message}");
             }
         }
-        
+
         // Add a new ignore phrase
         private void AddIgnorePhraseButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 string phrase = newIgnorePhraseTextBox.Text.Trim();
-                
+
                 if (string.IsNullOrEmpty(phrase))
                 {
-                    MessageBox.Show("Please enter a phrase to ignore.", 
+                    MessageBox.Show("Please enter a phrase to ignore.",
                         "Missing Phrase", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                
+
                 // Check if the phrase already exists
                 if (_ignorePhrases.Any(p => p.Phrase == phrase))
                 {
-                    MessageBox.Show($"The phrase '{phrase}' is already in the list.", 
+                    MessageBox.Show($"The phrase '{phrase}' is already in the list.",
                         "Duplicate Phrase", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                
+
                 bool exactMatch = newExactMatchCheckBox.IsChecked ?? true;
-                
+
                 // Add to the collection
                 _ignorePhrases.Add(new IgnorePhrase(phrase, exactMatch));
-                
+
                 // Save to ConfigManager
                 SaveIgnorePhrases();
-                
+
                 // Clear the input
                 newIgnorePhraseTextBox.Text = "";
-                
+
                 Console.WriteLine($"Added ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error adding ignore phrase: {ex.Message}");
-                MessageBox.Show($"Error adding phrase: {ex.Message}", 
+                MessageBox.Show($"Error adding phrase: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        
+
         // Remove a selected ignore phrase
         private void RemoveIgnorePhraseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1951,19 +2016,19 @@ namespace RSTGameTranslation
                 if (ignorePhraseListView.SelectedItem is IgnorePhrase selectedPhrase)
                 {
                     string phrase = selectedPhrase.Phrase;
-                    
+
                     // Ask for confirmation
-                    MessageBoxResult result = MessageBox.Show($"Are you sure you want to remove the phrase '{phrase}'?", 
+                    MessageBoxResult result = MessageBox.Show($"Are you sure you want to remove the phrase '{phrase}'?",
                         "Confirm Remove", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        
+
                     if (result == MessageBoxResult.Yes)
                     {
                         // Remove from the collection
                         _ignorePhrases.Remove(selectedPhrase);
-                        
+
                         // Save to ConfigManager
                         SaveIgnorePhrases();
-                        
+
                         Console.WriteLine($"Removed ignore phrase: '{phrase}'");
                     }
                 }
@@ -1971,18 +2036,18 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error removing ignore phrase: {ex.Message}");
-                MessageBox.Show($"Error removing phrase: {ex.Message}", 
+                MessageBox.Show($"Error removing phrase: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        
+
         // Handle selection changed event
         private void IgnorePhraseListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Enable or disable the Remove button based on selection
             removeIgnorePhraseButton.IsEnabled = ignorePhraseListView.SelectedItem != null;
         }
-        
+
         // Handle checkbox changed event
         private void IgnorePhrase_CheckedChanged(object sender, RoutedEventArgs e)
         {
@@ -1990,21 +2055,21 @@ namespace RSTGameTranslation
             {
                 if (_isInitializing)
                     return;
-                    
+
                 if (sender is System.Windows.Controls.CheckBox checkbox && checkbox.Tag is string phrase)
                 {
                     bool exactMatch = checkbox.IsChecked ?? false;
-                    
+
                     // Find and update the phrase in the collection
                     foreach (var ignorePhrase in _ignorePhrases)
                     {
                         if (ignorePhrase.Phrase == phrase)
                         {
                             ignorePhrase.ExactMatch = exactMatch;
-                            
+
                             // Save to ConfigManager
                             SaveIgnorePhrases();
-                            
+
                             Console.WriteLine($"Updated ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
                             break;
                         }

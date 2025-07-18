@@ -12,6 +12,9 @@ namespace RSTGameTranslation
     {
         private static WindowsOCRManager? _instance;
 
+        public string? _currentLanguageCode = null;
+
+
         public static WindowsOCRManager Instance
         {
             get
@@ -24,20 +27,45 @@ namespace RSTGameTranslation
             }
         }
 
+        public bool CheckLanguagePackInstall(string languageCode)
+        {
+            var availableLanguages = OcrEngine.AvailableRecognizerLanguages;
+            foreach (var language in availableLanguages)
+            {
+                Console.WriteLine($"------------------------------------------{language.LanguageTag}");
+                if (LanguageMap.TryGetValue(languageCode, out string? languageTag))
+                {
+                    _currentLanguageCode = languageTag;
+                    if (language.LanguageTag == languageTag || language.LanguageTag == languageCode)
+                    {
+                        Console.WriteLine($"Language pack is installed for {languageCode}");
+                        return true;
+                    }
+                }
+                else
+                {
+                    _currentLanguageCode = null;
+                    return false;
+                }
+                
+            }
+            Console.WriteLine($"Language pack is not installed for {languageCode}");
+            return false;
+        }
+
         // Map of language codes to Windows language tags
         private readonly Dictionary<string, string> LanguageMap = new Dictionary<string, string>
         {
             { "en", "en-US" },
-            { "ja", "ja-JP" },
-            { "ch_sim", "zh-CN" },
+            { "ch_sim", "zh-Hans-CN" },
             { "es", "es-ES" },
             { "fr", "fr-FR" },
             { "it", "it-IT" },
             { "de", "de-DE" },
             { "ru", "ru-RU" },
-            { "id", "id-ID" },
-            { "pl", "pl-PL" },
-            { "hi", "hi-IN" },
+            { "ar", "ar-SA" },
+            { "pt", "pt-BR" },
+            { "nl", "nl-BE" },
             { "ko", "ko-KR" }
         };
 

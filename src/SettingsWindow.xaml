@@ -30,6 +30,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Source Language -->
@@ -81,8 +82,17 @@
                                     <ComboBoxItem Content="nl"/>
                                 </ComboBox>
 
+                                <!-- WinOCR Language Pack Check-->
+                                <TextBlock x:Name="checkLanguagePack" Text="Check Language Pack" Grid.Row="2" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Button x:Name="checkLanguagePackButton" Grid.Row="2" Grid.Column="1"
+                                        Width="60" Height="30" Margin="10,0"
+                                        Click="CheckLanguagePackButton_Click" ToolTip="Check if the language package is installed.">
+                                    <TextBlock Text="Check"/>
+                                </Button>
+
                                 <!-- Language Code Explanation -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" 
+                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" 
                                           Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
                                     <Run FontWeight="Bold">Language Codes Mapping:</Run>
                                     <LineBreak/>
