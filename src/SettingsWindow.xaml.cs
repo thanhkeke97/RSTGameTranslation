@@ -1866,7 +1866,8 @@ namespace RSTGameTranslation
                                      "To install the corresponding language pack, please follow these steps:\n\n" +
                                      "Step 1: Press \"Windows + S\" button, type \"language settings\" and press Enter button.\n\n" +
                                      "Step 2: Click on \"Add a language\" button.\n\n" +
-                                     $"Step 3: Type \"{WindowsOCRManager.Instance._currentLanguageCode}\" to add, click \"Next\" and click \"install\".\n\n" +
+                                     $"Step 3: Type \"{WindowsOCRManager.Instance._currentLanguageCode}\" to search.\n\n" +
+                                     "Step 4:  Click \"Next\" button, uncheck all option and click \"install\".\n\n" +
                                      "Wait for language package install complete and retry";
 
                         MessageBox.Show(message, "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Warning);

@@ -65,7 +65,8 @@ namespace RSTGameTranslation
             { "ru", "ru-RU" },
             { "ar", "ar-SA" },
             { "pt", "pt-BR" },
-            { "nl", "nl-BE" },
+            { "nl", "nl-NL" },
+            { "ja", "ja-JP" },
             { "ko", "ko-KR" }
         };
 
