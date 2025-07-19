@@ -63,9 +63,9 @@
 
 #### 1. Initial Configuration
 - Run `RSTGameTranslation/rst.exe`
-- Go to **Settings** → **Language** tab: Choose source and target languages
-- Go to **Settings** → **Translation** tab: Select your preferred translation service
 - Go to **Settings** → **OCR** tab: Choose OCR method
+- Go to **Settings** → **Language** tab: Choose source and target languages (If you are using Windows OCR, please click the "Check" button to verify the language pack before starting)
+- Go to **Settings** → **Translation** tab: Select your preferred translation service
 
 #### 2. Server Setup (One-time)
 - Click **SetupServer** button (Skip if using Windows OCR)
@@ -120,7 +120,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 - **AMD, INTEL**: Windows OCR
 
 ### Alternative Options
-- **Windows OCR**: Lightweight but less accurate for gaming (only support for source language is English)
+- **Windows OCR**: Lightweight but less accurate for gaming
 - **Ollama**: 100% local translation (RTX 4090: ~5s per translation)
 - **ChatGPT**: GPT-4.1 Nano for premium results
 

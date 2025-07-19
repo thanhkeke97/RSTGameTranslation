@@ -112,7 +112,7 @@ namespace RSTGameTranslation
                 timeoutStartServer = false;
                 // Wait for flag file
                 Console.WriteLine("⏳ Waiting for ready flag...");
-                for (int i = 0; i < 60; i++) // 1 minute
+                for (int i = 0; i < 90; i++) // 1 minute 30 seconds
                 {
                     if (File.Exists(flagFile))
                     {
