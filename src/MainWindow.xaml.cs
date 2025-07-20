@@ -617,12 +617,12 @@ namespace RSTGameTranslation
                 MonitorWindow.Instance.Left = captureRect.Left;
                 MonitorWindow.Instance.Top = captureRect.Top;
                 
-                double width = Math.Max(1, captureRect.Width);  
-                double height = Math.Max(1, captureRect.Height);
+                // double width = Math.Max(1, captureRect.Width);  
+                // double height = Math.Max(1, captureRect.Height);
                 
                 // Set the size of the MonitorWindow to match the size of the capture area
-                MonitorWindow.Instance.Width = width;
-                MonitorWindow.Instance.Height = height;
+                MonitorWindow.Instance.Width = captureRect.Width;
+                MonitorWindow.Instance.Height = captureRect.Height;
                 
                 // Save the new position for future display
                 monitorWindowLeft = captureRect.Left;
@@ -1167,7 +1167,8 @@ namespace RSTGameTranslation
         // Toggle the monitor window
         private void MonitorButton_Click(object sender, RoutedEventArgs e)
         {
-            ToggleMonitorWindow();
+
+            ToggleMonitorWindow();   
         }
         
         // Handler for the Log button click
@@ -1313,9 +1314,9 @@ namespace RSTGameTranslation
                 // Store current position before hiding
                 monitorWindowLeft = MonitorWindow.Instance.Left;
                 monitorWindowTop = MonitorWindow.Instance.Top;
-                
+
                 Console.WriteLine($"Saving monitor position: {monitorWindowLeft}, {monitorWindowTop}");
-                
+
                 MonitorWindow.Instance.Hide();
                 Console.WriteLine("Monitor window hidden from MainWindow toggle");
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
@@ -1326,19 +1327,19 @@ namespace RSTGameTranslation
                 {
                     // Close and reset instance
                     MonitorWindow.ResetInstance();
-                    
+
                     Console.WriteLine("Creating new MonitorWindow instance...");
-                    
+
                     // If a custom translation area has been selected, use that area
-                    if (hasSelectedTranslationArea)
-                    {
-                        UpdateMonitorWindowToSelectedArea();
-                    }
-                    else
-                    {
-                        UpdateMonitorWindowPosition();
-                    }
-                    
+                    // if (hasSelectedTranslationArea)
+                    // {
+                    UpdateMonitorWindowPosition();
+                    // }
+                    // else
+                    // {
+                    //     UpdateMonitorWindowPosition();
+                    // }
+
                     // Perform a new capture immediately
                     using (Bitmap bitmap = new Bitmap(captureRect.Width, captureRect.Height))
                     {
@@ -1348,7 +1349,7 @@ namespace RSTGameTranslation
                             g.SmoothingMode = SmoothingMode.HighSpeed;
                             g.InterpolationMode = InterpolationMode.Low;
                             g.PixelOffsetMode = PixelOffsetMode.HighSpeed;
-                            
+
                             g.CopyFromScreen(
                                 captureRect.Left,
                                 captureRect.Top,
@@ -1356,16 +1357,16 @@ namespace RSTGameTranslation
                                 bitmap.Size,
                                 CopyPixelOperation.SourceCopy);
                         }
-                        
+
                         bitmap.Save(outputPath, ImageFormat.Png);
-                        
+
                         Console.WriteLine("Updating MonitorWindow with fresh capture");
                         MonitorWindow.Instance.UpdateScreenshotFromBitmap(bitmap);
                     }
-                    
+
                     // Refresh overlays
                     MonitorWindow.Instance.RefreshOverlays();
-                    
+
                     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
                     Console.WriteLine("MonitorWindow setup complete");
                 }

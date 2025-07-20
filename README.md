@@ -3,7 +3,7 @@
 # 🎮 RSTGameTranslation
 ### Real-time Screen Translation for Gaming
 
-[![Version](https://img.shields.io/badge/version-1.2-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+[![Version](https://img.shields.io/badge/version-1.1-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 [![License](https://img.shields.io/badge/license-BSD-green.svg)](LICENSE.md)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010+-lightgrey.svg)]()
 
@@ -150,7 +150,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 
 > **Performance**: CPU-only mode will use 30-50% CPU power. Dedicated NVIDIA GPU strongly recommended.
 
-> **Compatibility**: Experimental software, primarily tested with Japanese→English and English→Vietnamese translations.
+> **Compatibility**: if you use the overlay translation feature on the original text, you need to meet two conditions: Windows 11 and screen scale = 100%.
 
 ---
 
