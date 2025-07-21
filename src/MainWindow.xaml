@@ -379,6 +379,16 @@
                                                 displays all recent translations and can be positioned anywhere on your screen. It's particularly 
                                                 useful for game dialogues where you need to see a history of conversations.
                                         </TextBlock>
+
+                                        </Expander>
+                                        <!-- FAQ Item 6 -->
+                                        <Expander Header="How do I use the monitor (overlay) feature?" Margin="0,0,0,5" 
+                                                Background="#22FFFFFF" Foreground="White" BorderThickness="0">
+                                        <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
+                                                Click the "Monitor" button (ALT+F) to enable the overlay feature. This feature will place translated text on  
+                                                top of the original text on your screen. This feature requires you to meet 2 conditions: Windows 11 or higher 
+                                                and screen resolution set to 100%
+                                        </TextBlock>
                                         </Expander>
                                 </StackPanel>
                                 </Border>
@@ -398,7 +408,7 @@
                                         
                                         <!-- Support Text -->
                                         <TextBlock Grid.Column="1" Margin="15,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap">
-                                        <Run Text="Need support? Click the Discord icon to join my Discord server." 
+                                        <Run Text="Need support? Click the Discord icon on top right to join my Discord server." 
                                                 FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
                                         </TextBlock>
                                 </Grid>
