@@ -286,7 +286,7 @@
                                         <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         
-                                        <!-- Logo Placeholder (can be replaced with an actual logo) -->
+                                        <!-- Logo Placeholder -->
                                         <Border Grid.Column="0" Width="64" Height="64" CornerRadius="8">
                                                 <Image Source="/media/AppIcon.ico" Width="48" Height="48" 
                                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
