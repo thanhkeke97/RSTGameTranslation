@@ -287,9 +287,9 @@
                                         </Grid.ColumnDefinitions>
                                         
                                         <!-- Logo Placeholder (can be replaced with an actual logo) -->
-                                        <Border Grid.Column="0" Width="64" Height="64" Background="#FF00AAFF" CornerRadius="8">
-                                        <TextBlock Text="RST" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center" 
-                                                VerticalAlignment="Center" Foreground="White"/>
+                                        <Border Grid.Column="0" Width="64" Height="64" CornerRadius="8">
+                                                <Image Source="/media/AppIcon.ico" Width="48" Height="48" 
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         
                                         <!-- App Title and Version -->
