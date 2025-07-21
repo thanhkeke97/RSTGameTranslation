@@ -20,6 +20,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -37,6 +38,7 @@
     <None Remove="src\**\*.xaml" />
     <ApplicationDefinition Include="src\App.xaml" />
     <Page Include="src\**\*.xaml" Exclude="src\App.xaml" />
+    <None Include="app.manifest" />
   </ItemGroup>
   
   <ItemGroup>
