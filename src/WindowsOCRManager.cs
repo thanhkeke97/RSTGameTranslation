@@ -363,7 +363,6 @@ namespace RSTGameTranslation
                         string processedText = line.Text;
                         
                         
-                        /*
                         // If using Japanese language, remove spaces between Japanese characters
                         if (languageCode == "ja")
                         {
@@ -384,7 +383,6 @@ namespace RSTGameTranslation
                             }
                         }
 
-                        */
                         
                         // Add the text line to results
                         results.Add(new

@@ -1759,7 +1759,7 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Mở trình duyệt với liên kết Discord
+                // Open browser and go to discord
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "https://discord.gg/FusrDU5tdn",
@@ -1771,7 +1771,7 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error opening Discord link: {ex.Message}");
                 
-                // Hiển thị thông báo lỗi nếu không thể mở liên kết
+                // Show error message
                 System.Windows.MessageBox.Show($"Cannot open discord link: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
