@@ -50,7 +50,7 @@ namespace RSTGameTranslation
             {
                 _splashWindow = new Window
                 {
-                    Title = "Realtime screen translator",
+                    Title = "Realtime Screen Translator",
                     Width = 550,
                     Height = 350,
                     WindowStyle = WindowStyle.None,
@@ -126,7 +126,7 @@ namespace RSTGameTranslation
                 // Version Text
                 _versionTextBlock = new TextBlock
                 {
-                    Text = $"Realtime screen translator v{CurrentVersion} by Thanh Pham",
+                    Text = $"Realtime Screen Translator v{CurrentVersion} By Thanh Pham",
                     FontSize = 16,
                     FontWeight = FontWeights.SemiBold,
                     Margin = new Thickness(0, 10, 0, 10),

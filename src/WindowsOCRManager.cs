@@ -245,13 +245,12 @@ namespace RSTGameTranslation
                             if (string.IsNullOrWhiteSpace(wordText))
                                 continue;
                             
-                            // For English text, add a special space marker *after* the word to help with spacing
-                            // (unless it's the last word in the line)
+                            // Determine if we should add a space marker after this word
                             bool addSpaceMarker = false;
                             
-                            // Check if we should add a space marker after this word
-                            // For Western languages like English, spaces between words are important
-                            if (languageCode == "en" && word != line.Words.Last())
+                            // Check if we should add a space marker after this word based on language
+                            // For Western languages and some others, spaces between words are important
+                            if (ShouldAddSpaceBetweenWords(languageCode) && word != line.Words.Last())
                             {
                                 addSpaceMarker = true;
                             }
@@ -299,7 +298,7 @@ namespace RSTGameTranslation
                             }
                                 
                             
-                            // Add space marker after word if needed (for English/Western languages)
+                            // Add space marker after word if needed
                             if (addSpaceMarker)
                             {
                                 // Create space character after the word
@@ -339,7 +338,7 @@ namespace RSTGameTranslation
                         
                         // Get bounding box coordinates - use the words to build a bounding rectangle
                         var rectBox = line.Words[0].BoundingRect; // Start with first word
-    
+
                         // Find the complete bounding box for the line (all words)
                         foreach (var word in line.Words)
                         {
@@ -350,7 +349,7 @@ namespace RSTGameTranslation
                             rectBox.Width = Math.Max(rectBox.Width, wordRect.X + wordRect.Width - rectBox.X);
                             rectBox.Height = Math.Max(rectBox.Height, wordRect.Y + wordRect.Height - rectBox.Y);
                         }
-    
+
                         // Calculate box coordinates (polygon points)
                         var box = new[] {
                             new[] { (double)rectBox.X, (double)rectBox.Y },
@@ -358,31 +357,9 @@ namespace RSTGameTranslation
                             new[] { (double)(rectBox.X + rectBox.Width), (double)(rectBox.Y + rectBox.Height) },
                             new[] { (double)rectBox.X, (double)(rectBox.Y + rectBox.Height) }
                         };
-    
-                        // Process text for Japanese characters (remove extra spaces)
-                        string processedText = line.Text;
-                        
-                        
-                        // If using Japanese language, remove spaces between Japanese characters
-                        if (languageCode == "ja")
-                        {
-                            // Remove spaces between Japanese characters
-                            // Apply the regex multiple times to catch all instances
-                            for (int i = 0; i < 10; i++)  // Apply multiple passes to catch all instances
-                            {
-                                string before = processedText;
-                                // Remove spaces between Japanese characters with improved regex
-                                processedText = System.Text.RegularExpressions.Regex.Replace(
-                                    processedText, 
-                                    @"([\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}])\s+([\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}])", 
-                                    "$1$2");
-                                
-                                // If no more changes, break the loop
-                                if (before == processedText)
-                                    break;
-                            }
-                        }
 
+                        // Process text based on language
+                        string processedText = ProcessTextByLanguage(line.Text, languageCode);
                         
                         // Add the text line to results
                         results.Add(new
@@ -432,6 +409,106 @@ namespace RSTGameTranslation
 
             // Return a completed task since this method doesn't use await
             return Task.CompletedTask;
+        }
+
+        // Determine if spaces should be added between words for the given language
+        private bool ShouldAddSpaceBetweenWords(string languageCode)
+        {
+            // Languages that use spaces between words
+            var languagesWithSpaces = new HashSet<string> 
+            { 
+                "en", // English
+                "es", // Spanish
+                "fr", // French
+                "it", // Italian
+                "de", // German
+                "ru", // Russian
+                "ar", // Arabic
+                "pt", // Portuguese
+                "nl", // Dutch
+                "ko"  // Korean (modern Korean uses spaces between words)
+            };
+            
+            // Languages that don't typically use spaces between words
+            var languagesWithoutSpaces = new HashSet<string>
+            {
+                "ja",     // Japanese
+                "ch_sim", // Simplified Chinese
+                // "ch_tra"  // Traditional Chinese
+            };
+            
+            // Default to adding spaces if language is not specifically handled
+            if (languagesWithoutSpaces.Contains(languageCode))
+                return false;
+            
+            return true; // Default to adding spaces
+        }
+
+        // Process text based on language-specific rules
+        private string ProcessTextByLanguage(string text, string languageCode)
+        {
+            string processedText = text;
+            
+            switch (languageCode)
+            {
+                case "ja": // Japanese
+                    // Remove spaces between Japanese characters
+                    for (int i = 0; i < 10; i++)  // Apply multiple passes to catch all instances
+                    {
+                        string before = processedText;
+                        // Remove spaces between Japanese characters with improved regex
+                        processedText = System.Text.RegularExpressions.Regex.Replace(
+                            processedText, 
+                            @"([\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}])\s+([\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}])", 
+                            "$1$2");
+                        
+                        // If no more changes, break the loop
+                        if (before == processedText)
+                            break;
+                    }
+                    break;
+                    
+                // case "ch_sim": // Simplified Chinese
+                // case "ch_tra": // Traditional Chinese
+                //     // Remove spaces between Chinese characters
+                //     for (int i = 0; i < 10; i++)
+                //     {
+                //         string before = processedText;
+                //         processedText = System.Text.RegularExpressions.Regex.Replace(
+                //             processedText, 
+                //             @"([\p{IsCJKUnifiedIdeographs}])\s+([\p{IsCJKUnifiedIdeographs}])", 
+                //             "$1$2");
+                        
+                //         if (before == processedText)
+                //             break;
+                //     }
+                //     break;
+                    
+                // case "th": // Thai
+                //     // Thai doesn't use spaces between words, but may have spaces for sentence breaks
+                //     // Remove excess spaces but keep sentence breaks
+                //     processedText = System.Text.RegularExpressions.Regex.Replace(
+                //         processedText,
+                //         @"([^\s])\s+([^\s])",
+                //         "$1$2");
+                //     break;
+                    
+                // case "ar": // Arabic
+                // case "fa": // Persian/Farsi
+                //     // For right-to-left languages, ensure proper spacing
+                //     // This is a simplified approach; more complex handling might be needed
+                //     processedText = System.Text.RegularExpressions.Regex.Replace(
+                //         processedText,
+                //         @"\s{2,}", // Replace multiple spaces with a single space
+                //         " ");
+                //     break;
+                    
+                default:
+                    // For other languages, keep the text as is
+                    break;
+            }
+            
+            return processedText;
         }
 
     }
