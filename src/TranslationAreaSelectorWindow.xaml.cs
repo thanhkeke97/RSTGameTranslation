@@ -18,6 +18,7 @@ namespace RSTGameTranslation
     {
         private Point startPoint;
         private bool isDrawing = false;
+        public double dpiScale = 1;
         
         // Event to notify when selection is complete
         public event EventHandler<Rect>? SelectionComplete;
@@ -203,21 +204,34 @@ namespace RSTGameTranslation
             }
         }
         
+        public void GetDpiScale()
+        {
+            
+            PresentationSource source = PresentationSource.FromVisual(selectionRectangle);
+            if (source != null)
+            {
+                dpiScale = source.CompositionTarget.TransformToDevice.M11;
+                Console.WriteLine($"------------------------------------------- {dpiScale}");
+            }
+        }
+        
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // Capture mouse and start drawing
             startPoint = e.GetPosition(this);
             isDrawing = true;
-            
+
             // Reset and make visible
             selectionRectangle.Width = 0;
             selectionRectangle.Height = 0;
             selectionRectangle.Visibility = Visibility.Visible;
-            
+
             // Set initial position
             Canvas.SetLeft(selectionRectangle, startPoint.X);
             Canvas.SetTop(selectionRectangle, startPoint.Y);
-            
+
+            GetDpiScale();
+
             // Capture mouse
             this.CaptureMouse();
         }
@@ -292,13 +306,13 @@ namespace RSTGameTranslation
             Rect selectionRect = new Rect(
                 screenPoint.X, 
                 screenPoint.Y, 
-                width, 
-                height
+                width * dpiScale, 
+                height * dpiScale
             );
             
             // Notify listeners
             SelectionComplete?.Invoke(this, selectionRect);
-            
+
             // Close this window
             this.Close();
         }
