@@ -21,6 +21,8 @@ namespace RSTGameTranslation
         private const int DWM_TNP_OPACITY = 4;
         private const int DWM_TNP_RECTDESTINATION = 1;
         private const int WDA_EXCLUDEFROMCAPTURE = 0x00000011;
+
+        public double dpiScale = 1;
         
         [DllImport("user32.dll")]
         private static extern int SetWindowDisplayAffinity(IntPtr hwnd, uint dwAffinity);
@@ -273,25 +275,25 @@ namespace RSTGameTranslation
             {
                 UpdateScreenshot(lastImagePath);
             }
-            
+
             // Initialize controls from MainWindow
             if (MainWindow.Instance != null)
             {
                 // Get OCR method from config
                 string ocrMethod = ConfigManager.Instance.GetOcrMethod();
                 Console.WriteLine($"MonitorWindow_Loaded: Loading OCR method from config: '{ocrMethod}'");
-                
+
                 // Temporarily remove the event handler to prevent triggering
                 // a new connection while initializing
                 ocrMethodComboBox.SelectionChanged -= OcrMethodComboBox_SelectionChanged;
-                
+
                 // Find the matching ComboBoxItem
                 bool foundMatch = false;
                 foreach (ComboBoxItem comboItem in ocrMethodComboBox.Items)
                 {
                     string itemText = comboItem.Content.ToString() ?? "";
                     Console.WriteLine($"Comparing OCR method: '{itemText}' with config value: '{ocrMethod}'");
-                    
+
                     if (string.Equals(itemText, ocrMethod, StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine($"Found matching OCR method: '{itemText}'");
@@ -300,7 +302,7 @@ namespace RSTGameTranslation
                         break;
                     }
                 }
-                
+
                 if (!foundMatch)
                 {
                     Console.WriteLine($"WARNING: Could not find OCR method '{ocrMethod}' in ComboBox. Available items:");
@@ -309,47 +311,49 @@ namespace RSTGameTranslation
                         Console.WriteLine($"  - '{listItem.Content}'");
                     }
                 }
-                
+
                 // Log what we actually set
                 if (ocrMethodComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     Console.WriteLine($"OCR ComboBox is now set to: '{selectedItem.Content}'");
                 }
-                
+
                 // Re-attach the event handler
                 ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
-                
+
                 // Make sure MainWindow has the same OCR method
                 if (ocrMethodComboBox.SelectedItem is ComboBoxItem selectedComboItem)
                 {
                     string selectedOcrMethod = selectedComboItem.Content.ToString() ?? "";
                     MainWindow.Instance.SetOcrMethod(selectedOcrMethod);
                 }
-                
+
                 // Get auto-translate state from MainWindow
                 bool isTranslateEnabled = MainWindow.Instance.GetTranslateEnabled();
-                
+
                 // Initialization complete, now we can save settings changes
                 _isInitializing = false;
                 Console.WriteLine("MonitorWindow initialization complete. Settings changes will now be saved.");
-                
+
                 // Force the OCR method to match the config again
                 // This ensures the config value is preserved and not overwritten
                 string configOcrMethod = ConfigManager.Instance.GetOcrMethod();
                 Console.WriteLine($"Ensuring config OCR method is preserved: {configOcrMethod}");
-                
+
                 // Now that initialization is complete, save the OCR method from config
                 ConfigManager.Instance.SetOcrMethod(configOcrMethod);
-                
+
                 // Temporarily remove event handler
                 autoTranslateCheckBox.Checked -= AutoTranslateCheckBox_CheckedChanged;
                 autoTranslateCheckBox.Unchecked -= AutoTranslateCheckBox_CheckedChanged;
-                
+
                 autoTranslateCheckBox.IsChecked = isTranslateEnabled;
-                
+
                 // Re-attach event handlers
                 autoTranslateCheckBox.Checked += AutoTranslateCheckBox_CheckedChanged;
                 autoTranslateCheckBox.Unchecked += AutoTranslateCheckBox_CheckedChanged;
+
+                GetDpiScale();
             }
             
             Console.WriteLine("MonitorWindow initialization complete");
@@ -605,12 +609,21 @@ namespace RSTGameTranslation
                 }
             }
         }
+
+        public void GetDpiScale()
+        {
+            
+            PresentationSource source = PresentationSource.FromVisual(this);
+            if (source != null)
+            {
+                dpiScale = source.CompositionTarget.TransformToDevice.M11;
+                Console.WriteLine($"------------------------------------------- {dpiScale}");
+            }
+        }
         
         // Handle TextObject added event
         public void CreateMonitorOverlayFromTextObject(object? sender, TextObject textObject)
         {
-
-
 
             try
             {
@@ -627,10 +640,12 @@ namespace RSTGameTranslation
                 {
                     // Reset margin to zero - we'll position with Canvas instead
                     textObject.Border.Margin = new Thickness(0);
+                    double adjustedX = textObject.X / dpiScale;
+                    double adjustedY = textObject.Y / dpiScale;
 
                     // Position the element on the canvas using Canvas.SetLeft/Top
-                    Canvas.SetLeft(textObject.Border, textObject.X);
-                    Canvas.SetTop(textObject.Border, textObject.Y);
+                    Canvas.SetLeft(textObject.Border, adjustedX);
+                    Canvas.SetTop(textObject.Border, adjustedY);
 
                     // Add to canvas
                     textOverlayCanvas.Children.Add(textObject.Border);

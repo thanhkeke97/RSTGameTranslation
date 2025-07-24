@@ -613,23 +613,24 @@ namespace RSTGameTranslation
         // Update MonitorWindow position
         private void UpdateMonitorWindowPosition()
         {
-                // Place the MonitorWindow exactly at the position of the capture area
-                MonitorWindow.Instance.Left = captureRect.Left;
-                MonitorWindow.Instance.Top = captureRect.Top;
-                
-                // double width = Math.Max(1, captureRect.Width);  
-                // double height = Math.Max(1, captureRect.Height);
-                
-                // Set the size of the MonitorWindow to match the size of the capture area
-                MonitorWindow.Instance.Width = captureRect.Width;
-                MonitorWindow.Instance.Height = captureRect.Height;
-                
-                // Save the new position for future display
-                monitorWindowLeft = captureRect.Left;
-                monitorWindowTop = captureRect.Top;
-                
-                // Console.WriteLine($"Updated MonitorWindow position to match capture rect: ({captureRect.Left}, {captureRect.Top}, {captureRect.Width}, {captureRect.Height})");
-            
+            double dpiScale = MonitorWindow.Instance.dpiScale;
+            // Place the MonitorWindow exactly at the position of the capture area
+            MonitorWindow.Instance.Left = captureRect.Left / dpiScale;
+            MonitorWindow.Instance.Top = captureRect.Top / dpiScale;
+
+            // double width = Math.Max(1, captureRect.Width);  
+            // double height = Math.Max(1, captureRect.Height);
+
+            // Set the size of the MonitorWindow to match the size of the capture area
+            MonitorWindow.Instance.Width = captureRect.Width / dpiScale;
+            MonitorWindow.Instance.Height = captureRect.Height / dpiScale;
+
+            // Save the new position for future display
+            monitorWindowLeft = captureRect.Left / dpiScale;
+            monitorWindowTop = captureRect.Top / dpiScale;
+
+            // Console.WriteLine($"Updated MonitorWindow position to match capture rect: ({captureRect.Left}, {captureRect.Top}, {captureRect.Width}, {captureRect.Height})");
+
         }
 
         private void UpdateCaptureRect()
