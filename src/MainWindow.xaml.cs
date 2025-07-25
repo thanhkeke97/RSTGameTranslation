@@ -614,6 +614,11 @@ namespace RSTGameTranslation
         private void UpdateMonitorWindowPosition()
         {
             double dpiScale = MonitorWindow.Instance.dpiScale;
+            if (dpiScale <= 0)
+            {
+                dpiScale = 1.0;
+                Console.WriteLine("Warning: DPI scale was 0 or negative, using default value 1.0");
+            }
             // Place the MonitorWindow exactly at the position of the capture area
             MonitorWindow.Instance.Left = captureRect.Left / dpiScale;
             MonitorWindow.Instance.Top = captureRect.Top / dpiScale;
@@ -622,8 +627,8 @@ namespace RSTGameTranslation
             // double height = Math.Max(1, captureRect.Height);
 
             // Set the size of the MonitorWindow to match the size of the capture area
-            MonitorWindow.Instance.Width = captureRect.Width / dpiScale;
-            MonitorWindow.Instance.Height = captureRect.Height / dpiScale;
+            MonitorWindow.Instance.Width = Math.Max(1.0, captureRect.Width / dpiScale);
+            MonitorWindow.Instance.Height = Math.Max(1.0, captureRect.Height / dpiScale);
 
             // Save the new position for future display
             monitorWindowLeft = captureRect.Left / dpiScale;
