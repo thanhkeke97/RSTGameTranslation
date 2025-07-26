@@ -150,8 +150,6 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 
 > **Performance**: CPU-only mode will use 30-50% CPU power. Dedicated NVIDIA GPU strongly recommended.
 
-> **Compatibility**: if you use the overlay translation feature on the original text, you need to meet two conditions: Windows 11 and screen scale = 100%.
-
 ---
 
 ## 💬 Community
