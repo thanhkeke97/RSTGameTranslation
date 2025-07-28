@@ -362,6 +362,8 @@ namespace RSTGameTranslation
                 "polish" or "pl" => "pl",
                 "arabic" or "ar" => "ar",
                 "dutch" or "nl" => "nl",
+                "Romanian" or "ro" => "ro",
+                "Polish" or "pl" => "pl",
                 _ => language
             };
         }

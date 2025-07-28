@@ -52,6 +52,8 @@
                                     <ComboBoxItem Content="pt"/>
                                     <ComboBoxItem Content="ar"/>
                                     <ComboBoxItem Content="nl"/>
+                                    <ComboBoxItem Content="pl"/>
+                                    <ComboBoxItem Content="ro"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -80,6 +82,8 @@
                                     <ComboBoxItem Content="pt"/>
                                     <ComboBoxItem Content="ar"/>
                                     <ComboBoxItem Content="nl"/>
+                                    <ComboBoxItem Content="pl"/>
+                                    <ComboBoxItem Content="ro"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -123,6 +127,10 @@
                                     <Run>ar = Arabic</Run>
                                     <LineBreak/>
                                     <Run>nl = Dutch</Run>
+                                    <LineBreak/>
+                                    <Run>pl = Polish</Run>
+                                    <LineBreak/>
+                                    <Run>ro = Romanian</Run>
                                 </TextBlock>
                             </Grid>
                         </GroupBox>

@@ -115,6 +115,8 @@
                                     <ComboBoxItem Content="pt"/>
                                     <ComboBoxItem Content="ar"/>
                                     <ComboBoxItem Content="nl"/>
+                                    <ComboBoxItem Content="pl"/>
+                                    <ComboBoxItem Content="ro"/>
                                 </ComboBox>
                                 <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
                                           WindowChrome.IsHitTestVisibleInChrome="True"
@@ -133,6 +135,8 @@
                                     <ComboBoxItem Content="pt"/>
                                     <ComboBoxItem Content="ar"/>
                                     <ComboBoxItem Content="nl"/>
+                                    <ComboBoxItem Content="pl"/>
+                                    <ComboBoxItem Content="ro"/>
                                 </ComboBox>
                                 
                                 <!-- Monitor Toggle Button -->

@@ -215,18 +215,34 @@ namespace RSTGameTranslation
             }
         }
 
+        private static readonly HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(10) };
+
         private async Task<VersionInfo?> FetchVersionInfo()
         {
             try
             {
-                using (HttpClient client = new HttpClient())
-                using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+                
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
                 {
-                    Task<string> downloadTask = client.GetStringAsync(VersionCheckerUrl, cts.Token);
                     
-                    try
+                    if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
                     {
-                        string json = await downloadTask;
+                        _httpClient.DefaultRequestHeaders.Add("User-Agent", "RSTGameTranslation");
+                    }
+
+                    
+                    if (!_httpClient.DefaultRequestHeaders.Contains("Cache-Control"))
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store");
+                    }
+
+                    Console.WriteLine($"Fetching version info from: {VersionCheckerUrl}");
+                    
+                    
+                    using (var response = await _httpClient.GetAsync(VersionCheckerUrl, cts.Token))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        string json = await response.Content.ReadAsStringAsync();
                         Console.WriteLine($"Received JSON: {json}");
                         
                         var options = new JsonSerializerOptions
@@ -238,12 +254,17 @@ namespace RSTGameTranslation
                         Console.WriteLine($"Deserialized version: {result?.LatestVersion}, name: {result?.Name}, message: {result?.Message}");
                         return result;
                     }
-                    catch (TaskCanceledException)
-                    {
-                        Console.WriteLine("Fetching version info timed out after 5 seconds");
-                        return null;
-                    }
                 }
+            }
+            catch (TaskCanceledException)
+            {
+                Console.WriteLine("Fetching version info timed out after 5 seconds");
+                return null;
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"HTTP request error: {ex.Message}");
+                return null;
             }
             catch (Exception ex)
             {
