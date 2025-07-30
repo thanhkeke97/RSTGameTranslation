@@ -1672,19 +1672,58 @@ namespace RSTGameTranslation
             }
         }
 
+        private async void btnInstallConda_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Disable the button to prevent multiple clicks
+                btnSetupOcrServer.IsEnabled = false;
+            
+                
+                // Show setup dialog
+                MessageBoxResult result = System.Windows.MessageBox.Show(
+                    $"Are you sure you want to install conda?\n\n" +
+                    "This process may take a long time and requires an internet connection",
+                    "Confirm installation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+                    
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Show status message
+                    SetStatus($"Setting up conda");
+                    
+                    // Run setup
+                    await Task.Run(() => {
+                        OcrServerManager.Instance.InstallConda();
+                    });
+                    
+                    SetStatus($"Conda setup is completed");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                // Reactivate the button after the operation is complete
+                btnSetupOcrServer.IsEnabled = true;
+            }
+        }
 
         public void UpdateServerButtonStatus(bool isConnected)
         {
-            
+
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.Invoke(() => UpdateServerButtonStatus(isConnected));
                 return;
             }
-            
+
             // Update button status
             btnStopOcrServer.IsEnabled = isConnected;
-            
+
             // Update status text
             if (isConnected)
             {

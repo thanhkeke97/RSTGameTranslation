@@ -246,6 +246,64 @@ namespace RSTGameTranslation
             }
         }
 
+        public bool InstallConda()
+        {
+            try
+            {
+                // Get the base directory of the application
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string webserverPath = Path.Combine(baseDirectory, "webserver");
+
+                // Choose the appropriate batch file and working directory based on the OCR method
+                string setupBatchFileName;
+                string workingDirectory;
+
+                
+                setupBatchFileName = "CondaInstall.bat";
+                workingDirectory = webserverPath;
+                
+
+                // Check if batch file exists
+                string setupBatchFilePath = Path.Combine(workingDirectory, setupBatchFileName);
+                if (!File.Exists(setupBatchFilePath))
+                {
+                    Console.WriteLine($"File installation not found: {setupBatchFilePath}");
+                    return false;
+                }
+
+                // Initialize process start info
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {setupBatchFileName}",
+                    WorkingDirectory = workingDirectory,
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                // Start the process
+                using (Process? setupProcess = Process.Start(startInfo))
+                {
+                    if (setupProcess == null)
+                    {
+                        Console.WriteLine("Unable to install conda");
+                        return false;
+                    }
+
+                    // Wait for the process to finish
+                    setupProcess.WaitForExit();
+
+                    Console.WriteLine($"The conda installation process has been completed");
+                    return setupProcess.ExitCode == 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error when installing conda: {ex.Message}");
+                return false;
+            }
+        }
+
         
 
         /// <summary>

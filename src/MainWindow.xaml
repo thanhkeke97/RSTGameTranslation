@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
         Title="Game Translation Tool" 
-        Height="600" Width="1000"
+        Height="600" Width="1100"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -173,6 +173,10 @@
                                 <Button x:Name="btnSetupOcrServer" Content="SetupServer" Style="{StaticResource ModernButton}"
                                         Background="#FF4577B0" 
                                         Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                
+                                <Button x:Name="btnInstallConda" Content="InstallConda" Style="{StaticResource ModernButton}"
+                                        Background="#FF4577B0" 
+                                        Click="btnInstallConda_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                         
                                 <Button x:Name="btnStartOcrServer" Content="StartServer" Style="{StaticResource ModernButton}"
                                         Background="#FF4577B0" 

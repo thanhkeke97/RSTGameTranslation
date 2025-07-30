@@ -404,6 +404,8 @@ tempbuild/
 unused/
 #disable everything in the app directory except a few things
 /app/*
+app/webserver/Miniconda3
+app/webserver/*.exe
 !app/webserver/
 #but keep a few things...
 !app/webserver/*.bat
