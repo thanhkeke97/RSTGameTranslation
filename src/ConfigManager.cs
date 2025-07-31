@@ -294,7 +294,7 @@ namespace RSTGameTranslation
             _configValues[TRANSLATION_SERVICE] = "Google Translate";
             _configValues[OLLAMA_URL] = "http://localhost";
             _configValues[OLLAMA_PORT] = "11434";
-            _configValues[OCR_METHOD] = "PaddleOCR";
+            _configValues[OCR_METHOD] = "Tesseract OCR";
             _configValues[OLLAMA_MODEL] = "gemma3:12b";
             _configValues[SOURCE_LANGUAGE] = "en";
             _configValues[TARGET_LANGUAGE] = "vi";
@@ -321,7 +321,7 @@ namespace RSTGameTranslation
             _configValues[CHAR_LEVEL] = "true";
             _configValues[IGNORE_PHRASES] = "";
             _configValues[TEXTSIMILAR_THRESHOLD] = "0.75";
-            _configValues[OVERLAY_BACKGROUND_COLOR] = "#80000000";
+            _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
             _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
             
             // Save the default configuration
@@ -487,7 +487,7 @@ namespace RSTGameTranslation
         // Get overlay background color
         public System.Windows.Media.Color GetOverlayBackgroundColor()
         {
-            string colorHex = GetValue(OVERLAY_BACKGROUND_COLOR, "#80000000");
+            string colorHex = GetValue(OVERLAY_BACKGROUND_COLOR, "#FF000000");
             return ParseColor(colorHex);
         }
 
