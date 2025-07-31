@@ -635,7 +635,7 @@ namespace RSTGameTranslation
         public void SetOcrMethod(string method)
         {
             Console.WriteLine($"ConfigManager.SetOcrMethod called with method: {method}");
-            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR")
+            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR" || method == "Tesseract OCR")
             {
                 _configValues[OCR_METHOD] = method;
                 SaveConfig();

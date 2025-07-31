@@ -37,6 +37,7 @@
                 <ComboBoxItem Content="EasyOCR"/>
                 <ComboBoxItem Content="Windows OCR"/>
                 <ComboBoxItem Content="PaddleOCR"/>
+                <ComboBoxItem Content="Tesseract OCR"/>
             </ComboBox>
             
             <CheckBox x:Name="autoTranslateCheckBox" IsChecked="True" Visibility="Collapsed"/>

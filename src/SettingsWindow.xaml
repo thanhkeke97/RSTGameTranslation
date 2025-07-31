@@ -166,6 +166,7 @@
                                     <ComboBoxItem Content="EasyOCR"/>
                                     <ComboBoxItem Content="Windows OCR"/>
                                     <ComboBoxItem Content="PaddleOCR"/>
+                                    <ComboBoxItem Content="Tesseract OCR"/>
                                 </ComboBox>
                                 
                                 <!-- Auto Translate -->

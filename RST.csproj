@@ -31,6 +31,7 @@
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.0.6" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="System.Management" Version="7.0.1" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
   
   <ItemGroup>
