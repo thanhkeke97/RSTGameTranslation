@@ -91,7 +91,19 @@ namespace RSTGameTranslation
                 }
 
                 // Initialize Tesseract engine
-                _engine = new TesseractEngine(tessDataPath, _currentLanguage, EngineMode.TesseractAndLstm);
+                _engine = new TesseractEngine(tessDataPath, _currentLanguage, EngineMode.LstmOnly);
+                _engine.DefaultPageSegMode = PageSegMode.SingleBlock;
+                if (_currentLanguage == "ch_sim" || _currentLanguage == "jpn")
+                {
+                    _engine.SetVariable("preserve_interword_spaces", 1);
+                    _engine.SetVariable("chop_enable", true);
+                    _engine.SetVariable("use_new_state_cost", false);
+                    _engine.SetVariable("segment_segcost_rating", false);
+                    _engine.SetVariable("enable_new_segsearch", 0);
+                    _engine.SetVariable("language_model_ngram_on", 0);
+                    _engine.SetVariable("textord_force_make_prop_words", false);
+                    _engine.SetVariable("edges_max_children_per_outline", 40);
+                }
                 _isInitialized = true;
 
                 Console.WriteLine($"Tesseract OCR initialized with language: {_currentLanguage}");
@@ -140,15 +152,18 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Save bitmap to a MemoryStream
-                using (var memoryStream = new MemoryStream())
+                // Preprocess the image for OCR
+                using (var optimizedBitmap = PreprocessForOcr(bitmap))
                 {
-                    // Save as BMP to avoid losing information
-                    bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
-                    memoryStream.Position = 0;
-                    
-                    // Create Pix from MemoryStream
-                    return Tesseract.Pix.LoadFromMemory(memoryStream.ToArray());
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        // Use TIFF format without compression for best quality
+                        optimizedBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Tiff);
+                        memoryStream.Position = 0;
+                        
+                        // Create Pix from memory data
+                        return Tesseract.Pix.LoadFromMemory(memoryStream.ToArray());
+                    }
                 }
             }
             catch (Exception ex)
@@ -157,6 +172,26 @@ namespace RSTGameTranslation
                 throw;
             }
         }
+
+        private Bitmap PreprocessForOcr(Bitmap source)
+        {
+            // Check and convert pixel format if needed
+            if (source.PixelFormat != System.Drawing.Imaging.PixelFormat.Format24bppRgb &&
+                source.PixelFormat != System.Drawing.Imaging.PixelFormat.Format8bppIndexed)
+            {
+                var newBitmap = new Bitmap(source.Width, source.Height, 
+                                        System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                using (var g = Graphics.FromImage(newBitmap))
+                {
+                    g.DrawImage(source, 0, 0, source.Width, source.Height);
+                }
+                return newBitmap;
+            }
+            
+            return new Bitmap(source);
+        }
+
+
 
         public async Task<bool> ProcessImageAsync(Bitmap bitmap, string languageCode = "eng")
         {
@@ -195,7 +230,7 @@ namespace RSTGameTranslation
                             Console.WriteLine($"Tesseract OCR recognized text with {overallConfidence:P2} confidence");
 
                             // threshold for each character
-                            float minCharConfidence = 0.75f; // 40% - adjust as needed
+                            float minCharConfidence = 0.4f; // adjust as needed
                             
                             // Get character level information
                             var results = new List<object>();
