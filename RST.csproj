@@ -32,6 +32,9 @@
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.0.6" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="System.Management" Version="7.0.1" />
+    <PackageReference Include="OpenCvSharp4" Version="4.7.0.20230115" />
+    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.7.0.20230115" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.7.0.20230115" />
   </ItemGroup>
   
   <ItemGroup>

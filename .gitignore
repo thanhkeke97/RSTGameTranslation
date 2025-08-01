@@ -407,6 +407,7 @@ unused/
 app/webserver/Miniconda3
 app/webserver/*.exe
 !app/webserver/
+!app/tessdata/
 #but keep a few things...
 !app/webserver/*.bat
 !app/webserver/*.py

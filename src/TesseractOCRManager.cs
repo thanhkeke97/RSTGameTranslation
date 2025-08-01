@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Text;
 using Tesseract;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
 
 namespace RSTGameTranslation
 {
@@ -89,7 +91,7 @@ namespace RSTGameTranslation
                 }
 
                 // Initialize Tesseract engine
-                _engine = new TesseractEngine(tessDataPath, _currentLanguage, EngineMode.Default);
+                _engine = new TesseractEngine(tessDataPath, _currentLanguage, EngineMode.TesseractAndLstm);
                 _isInitialized = true;
 
                 Console.WriteLine($"Tesseract OCR initialized with language: {_currentLanguage}");
@@ -138,14 +140,14 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Lưu bitmap vào một MemoryStream
+                // Save bitmap to a MemoryStream
                 using (var memoryStream = new MemoryStream())
                 {
-                    // Lưu bitmap dưới dạng PNG để tránh mất thông tin
+                    // Save as BMP to avoid losing information
                     bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
                     memoryStream.Position = 0;
                     
-                    // Tạo Pix từ MemoryStream
+                    // Create Pix from MemoryStream
                     return Tesseract.Pix.LoadFromMemory(memoryStream.ToArray());
                 }
             }
@@ -179,187 +181,218 @@ namespace RSTGameTranslation
                 // Optimize image for OCR
                 using (var enhancedBitmap = OptimizeImageForOcr(bitmap))
                 {
-                    // Process the image with Tesseract
-                    using (var page = _engine.Process(ConvertBitmapToPix(enhancedBitmap)))
+                    using (var pix = ConvertBitmapToPix(enhancedBitmap))
                     {
-                        // Get text and confidence
-                        var text = page.GetText();
-                        byte[] bytes = Encoding.Default.GetBytes(text);
-                        text = Encoding.UTF8.GetString(bytes);
-                        var confidence = page.GetMeanConfidence();
-
-                        Console.WriteLine($"Tesseract OCR recognized text with {confidence:P2} confidence");
-
-                        // Get character level information
-                        var results = new List<object>();
-                        using (var iterator = page.GetIterator())
+                        // Process the image with Tesseract
+                        using (var page = _engine.Process(pix))
                         {
-                            iterator.Begin();
+                            // Get text and confidence
+                            var text = page.GetText();
+                            byte[] bytes = Encoding.Default.GetBytes(text);
+                            text = Encoding.UTF8.GetString(bytes);
+                            var overallConfidence = page.GetMeanConfidence();
 
-                            do
+                            Console.WriteLine($"Tesseract OCR recognized text with {overallConfidence:P2} confidence");
+
+                            // threshold for each character
+                            float minCharConfidence = 0.75f; // 40% - adjust as needed
+                            
+                            // Get character level information
+                            var results = new List<object>();
+                            using (var iterator = page.GetIterator())
                             {
-                                if (iterator.IsAtBeginningOf(PageIteratorLevel.TextLine))
+                                iterator.Begin();
+
+                                do
                                 {
-                                    // Get line bounding box
-                                    Rect lineBounds;
-                                    if (iterator.TryGetBoundingBox(PageIteratorLevel.TextLine, out lineBounds))
+                                    if (iterator.IsAtBeginningOf(PageIteratorLevel.TextLine))
                                     {
-                                        do
+                                        // Get line bounding box
+                                        Tesseract.Rect lineBounds;
+                                        if (iterator.TryGetBoundingBox(PageIteratorLevel.TextLine, out lineBounds))
                                         {
-                                            if (iterator.IsAtBeginningOf(PageIteratorLevel.Word))
+                                            do
                                             {
-                                                // Get word bounding box
-                                                Rect wordBounds;
-                                                if (iterator.TryGetBoundingBox(PageIteratorLevel.Word, out wordBounds))
+                                                if (iterator.IsAtBeginningOf(PageIteratorLevel.Word))
                                                 {
-                                                    string word = iterator.GetText(PageIteratorLevel.Word);
-                                                    if (!string.IsNullOrEmpty(word))
+                                                    // Get word bounding box
+                                                    Tesseract.Rect wordBounds;
+                                                    if (iterator.TryGetBoundingBox(PageIteratorLevel.Word, out wordBounds))
                                                     {
-                                                        // Process each character in the word
-                                                        double charWidth = wordBounds.Width / word.Length;
-
-                                                        for (int i = 0; i < word.Length; i++)
+                                                        // get word confidence
+                                                        float wordConfidence = iterator.GetConfidence(PageIteratorLevel.Word) / 100.0f;
+                                                        
+                                                        string word = iterator.GetText(PageIteratorLevel.Word);
+                                                        if (!string.IsNullOrEmpty(word))
                                                         {
-                                                            string charText = word[i].ToString();
-
-                                                            // Calculate character position
-                                                            double charX = wordBounds.X1 + (i * charWidth);
-
-                                                            // Create bounding box for this character
-                                                            var charBox = new[] {
-                                                                new[] { charX, (double)wordBounds.Y1 },
-                                                                new[] { charX + charWidth, (double)wordBounds.Y1 },
-                                                                new[] { charX + charWidth, (double)wordBounds.Y2 },
-                                                                new[] { charX, (double)wordBounds.Y2 }
-                                                            };
-
-                                                            // Add the character to results
-                                                            results.Add(new
+                                                            // skip word with low confidence
+                                                            if (wordConfidence < minCharConfidence)
                                                             {
-                                                                text = charText,
-                                                                confidence = confidence,
-                                                                rect = charBox,
-                                                                is_character = true
-                                                            });
-                                                        }
+                                                                Console.WriteLine($"Skipping low confidence word: '{word}' ({wordConfidence:P2})");
+                                                                continue;
+                                                            }
+                                                            
+                                                            // Process each character in the word
+                                                            double charWidth = wordBounds.Width / word.Length;
 
-                                                        // Add space after word if not at end of line
-                                                        if (!iterator.IsAtFinalOf(PageIteratorLevel.TextLine, PageIteratorLevel.Word))
-                                                        {
-                                                            double spaceX = wordBounds.X2;
-                                                            double spaceWidth = charWidth * 0.6;
-
-                                                            var spaceBox = new[] {
-                                                                new[] { spaceX, (double)wordBounds.Y1 },
-                                                                new[] { spaceX + spaceWidth, (double)wordBounds.Y1 },
-                                                                new[] { spaceX + spaceWidth, (double)wordBounds.Y2 },
-                                                                new[] { spaceX, (double)wordBounds.Y2 }
-                                                            };
-
-                                                            results.Add(new
+                                                            for (int i = 0; i < word.Length; i++)
                                                             {
-                                                                text = " ",
-                                                                confidence = confidence,
-                                                                rect = spaceBox,
-                                                                is_character = true
-                                                            });
+                                                                string charText = word[i].ToString();
+                                                                
+                                                                // get character confidence if available
+                                                                float charConfidence = wordConfidence; // default use word confidence
+                                                                
+                                                                // try get character confidence if iterator supports
+                                                                try
+                                                                {
+                                                                    if (iterator.TryGetBoundingBox(PageIteratorLevel.Symbol, out var symbolBounds))
+                                                                    {
+                                                                        charConfidence = iterator.GetConfidence(PageIteratorLevel.Symbol) / 100.0f;
+                                                                    }
+                                                                }
+                                                                catch
+                                                                {
+                                                                    // skip error and use word confidence
+                                                                }
+                                                                
+                                                                // skip character with low confidence
+                                                                if (charConfidence < minCharConfidence)
+                                                                {
+                                                                    Console.WriteLine($"Skipping low confidence character: '{charText}' ({charConfidence:P2})");
+                                                                    continue;
+                                                                }
+
+                                                                // Calculate character position
+                                                                double charX = wordBounds.X1 + (i * charWidth);
+
+                                                                // Create bounding box for this character
+                                                                var charBox = new[] {
+                                                                    new[] { charX, (double)wordBounds.Y1 },
+                                                                    new[] { charX + charWidth, (double)wordBounds.Y1 },
+                                                                    new[] { charX + charWidth, (double)wordBounds.Y2 },
+                                                                    new[] { charX, (double)wordBounds.Y2 }
+                                                                };
+
+                                                                // Add the character to results
+                                                                results.Add(new
+                                                                {
+                                                                    text = charText,
+                                                                    confidence = charConfidence,
+                                                                    rect = charBox,
+                                                                    is_character = true
+                                                                });
+                                                            }
+
+                                                            // Add space after word if not at end of line
+                                                            if (!iterator.IsAtFinalOf(PageIteratorLevel.TextLine, PageIteratorLevel.Word))
+                                                            {
+                                                                double spaceX = wordBounds.X2;
+                                                                double spaceWidth = charWidth * 0.6;
+
+                                                                var spaceBox = new[] {
+                                                                    new[] { spaceX, (double)wordBounds.Y1 },
+                                                                    new[] { spaceX + spaceWidth, (double)wordBounds.Y1 },
+                                                                    new[] { spaceX + spaceWidth, (double)wordBounds.Y2 },
+                                                                    new[] { spaceX, (double)wordBounds.Y2 }
+                                                                };
+
+                                                                results.Add(new
+                                                                {
+                                                                    text = " ",
+                                                                    confidence = wordConfidence, // use word confidence for space
+                                                                    rect = spaceBox,
+                                                                    is_character = true
+                                                                });
+                                                            }
                                                         }
                                                     }
                                                 }
-                                            }
-                                        } while (iterator.Next(PageIteratorLevel.Word));
+                                            } while (iterator.Next(PageIteratorLevel.Word));
+                                        }
                                     }
-                                }
-                            } while (iterator.Next(PageIteratorLevel.TextLine));
+                                } while (iterator.Next(PageIteratorLevel.TextLine));
+                            }
+
+                            // check if there is any result
+                            if (results.Count == 0)
+                            {
+                                Console.WriteLine("No text detected with sufficient confidence");
+                                return false;
+                            }
+
+                            // Create JSON response similar to other OCR engines
+                            var response = new
+                            {
+                                status = "success",
+                                results = results,
+                                processing_time_seconds = 0.1,
+                                char_level = true
+                            };
+
+                            // Convert to JSON
+                            var jsonOptions = new JsonSerializerOptions
+                            {
+                                WriteIndented = true,
+                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                            };
+                            string jsonResponse = JsonSerializer.Serialize(response, jsonOptions);
+
+                            // Process the JSON response on the UI thread
+                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                Logic.Instance.ProcessReceivedTextJsonData(jsonResponse);
+                            });
+                            
+                            return true;
                         }
-
-                        // Create JSON response similar to other OCR engines
-                        var response = new
-                        {
-                            status = "success",
-                            results = results,
-                            processing_time_seconds = 0.1,
-                            char_level = true
-                        };
-
-                        // Convert to JSON
-                        var jsonOptions = new JsonSerializerOptions
-                        {
-                            WriteIndented = true,
-                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                        };
-                        string jsonResponse = JsonSerializer.Serialize(response, jsonOptions);
-
-                        // Process the JSON response on the UI thread
-                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            Logic.Instance.ProcessReceivedTextJsonData(jsonResponse);
-                        });
                     }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error processing image with Tesseract OCR: {ex.Message}");
+                return false;
             }
-            return true;
         }
 
         // Optimize the image for OCR by applying filters
         private Bitmap OptimizeImageForOcr(Bitmap source)
         {
-            // Create a new bitmap to hold the optimized image
-            var result = new Bitmap(source.Width, source.Height);
-            
             try
             {
-                // Create a graphics object for drawing on the result bitmap
-                using (var graphics = System.Drawing.Graphics.FromImage(result))
+                // Convert Bitmap to OpenCV Mat
+                using (var srcMat = source.ToMat())
                 {
-                    // Set the graphics object to use high-quality interpolation and smoothing
-                    graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                    graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                    graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-                    graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                    
-                    // Create a color matrix to adjust brightness and contrast
-                    using (var attributes = new System.Drawing.Imaging.ImageAttributes())
+                    // Create grayscale Mat
+                    using (var grayMat = new Mat())
                     {
-                        // Increase contrast and brightness
-                        float contrast = 1.2f;
-                        float brightness = 0.02f;
-                        
-                        // Create a color matrix to adjust brightness and contrast
-                        float[][] colorMatrix = {
-                            new float[] {contrast, 0, 0, 0, 0},
-                            new float[] {0, contrast, 0, 0, 0},
-                            new float[] {0, 0, contrast, 0, 0},
-                            new float[] {0, 0, 0, 1, 0},
-                            new float[] {brightness, brightness, brightness, 0, 1}
-                        };
-                        
-                        attributes.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix(colorMatrix));
-                        
-                        // Increase gamma to make the image brighter
-                        attributes.SetGamma(1.1f);
-                        
-                        // Draw the source bitmap onto the result bitmap, applying the color matrix and gamma correction
-                        graphics.DrawImage(
-                            source,
-                            new System.Drawing.Rectangle(0, 0, result.Width, result.Height),
-                            0, 0, source.Width, source.Height,
-                            System.Drawing.GraphicsUnit.Pixel,
-                            attributes);
+                        // Convert to grayscale
+                        if (srcMat.Channels() != 1)
+                        {
+                            Cv2.CvtColor(srcMat, grayMat, ColorConversionCodes.BGR2GRAY);
+                        }
+                        else
+                        {
+                            srcMat.CopyTo(grayMat);
+                        }
+
+                        // Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
+                        using (var enhancedMat = new Mat())
+                        {
+                            // Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
+                            var clahe = Cv2.CreateCLAHE(2.0, new OpenCvSharp.Size(8, 8));
+                            clahe.Apply(grayMat, enhancedMat);
+
+                            // Convert Mat back to Bitmap
+                            return enhancedMat.ToBitmap();
+                        }
                     }
                 }
-                               
-                return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Image optimization failed: {ex.Message}");
-                result.Dispose();
-                return new Bitmap(source);
+                Console.WriteLine($"OpenCV image optimization failed: {ex.Message}");
+                return source; // return original image if error
             }
         }
 
@@ -403,20 +436,20 @@ namespace RSTGameTranslation
                 using (var httpClient = new System.Net.Http.HttpClient())
                 {
                     Console.WriteLine($"Downloading Tesseract language pack: {tessLanguage}");
-                    
-                    // Đặt timeout cho request
-                    httpClient.Timeout = TimeSpan.FromMinutes(5); // Tăng timeout vì file ngôn ngữ có thể lớn
-                    
-                    // Tải file bằng HttpClient
+
+                    // set timeout for request
+                    httpClient.Timeout = TimeSpan.FromMinutes(5); // increase timeout because language file can be large
+
+                    // download file by HttpClient
                     var response = await httpClient.GetAsync(downloadUrl);
-                    
-                    // Đảm bảo request thành công
+
+                    // ensure request is successful
                     response.EnsureSuccessStatusCode();
-                    
-                    // Đọc dữ liệu dưới dạng mảng byte
+
+                    // read data as byte array
                     byte[] fileBytes = await response.Content.ReadAsByteArrayAsync();
-                    
-                    // Ghi dữ liệu vào file
+
+                    // write data to file
                     await File.WriteAllBytesAsync(langDataFile, fileBytes);
                 }
 
