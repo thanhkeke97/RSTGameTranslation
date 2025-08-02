@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Text;
 using TesseractOCR;
 using TesseractOCR.Pix;
-using OpenCvSharp;
-using OpenCvSharp.Extensions;
 using TesseractOCR.Enums;
 
 namespace RSTGameTranslation
@@ -235,213 +233,26 @@ namespace RSTGameTranslation
                             Console.WriteLine($"Tesseract OCR recognized text with {overallConfidence:P2} confidence");
 
                             // Threshold for each character
-                            float minCharConfidence = 0.4f; // adjust as needed
+                            float minCharConfidence = 0.9f;
                             
                             // Get character level information
                             var results = new List<object>();
                             
-                            // Try to get the LSTM box text which contains character-level information
-                            string lstmBoxText = page.LstmBoxText;
+                            // Try to get HOCR text
+                            string hocrText = page.HOcrText();
                             
-                            if (!string.IsNullOrEmpty(lstmBoxText))
+                            if (!string.IsNullOrEmpty(hocrText))
                             {
-                                Console.WriteLine("Using LSTM box text for character positioning");
-                                
-                                // Parse LSTM box text (format: "char left top right bottom page")
-                                string[] lines = lstmBoxText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                                
-                                // Get image height for coordinate inversion
-                                int imageHeight = image.Height;
-                                
-                                // Sort lines by top coordinate (ascending) to maintain correct reading order
-                                var sortedCharInfos = new List<(string Char, int Left, int Top, int Right, int Bottom)>();
-                                
-                                foreach (string line in lines)
-                                {
-                                    string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                    
-                                    // LSTM box format should have at least 6 parts: char left top right bottom page
-                                    if (parts.Length >= 6)
-                                    {
-                                        string charText = parts[0];
-                                        
-                                        // Skip empty characters
-                                        if (string.IsNullOrEmpty(charText))
-                                            continue;
-                                        
-                                        // Parse bounding box coordinates
-                                        if (int.TryParse(parts[1], out int left) &&
-                                            int.TryParse(parts[2], out int top) &&
-                                            int.TryParse(parts[3], out int right) &&
-                                            int.TryParse(parts[4], out int bottom))
-                                        {
-                                            // Add to sorted list
-                                            sortedCharInfos.Add((charText, left, top, right, bottom));
-                                        }
-                                    }
-                                }
-                                
-                                // Sort by top coordinate (y-axis) first, then by left coordinate (x-axis)
-                                // This ensures correct reading order: top to bottom, left to right
-                                sortedCharInfos = sortedCharInfos.OrderBy(c => c.Top).ThenBy(c => c.Left).ToList();
-                                
-                                // Process each character
-                                foreach (var charInfo in sortedCharInfos)
-                                {
-                                    // Use overall confidence for character
-                                    float charConfidence = overallConfidence;
-                                    
-                                    // Skip character with low confidence
-                                    if (charConfidence < minCharConfidence)
-                                    {
-                                        Console.WriteLine($"Skipping low confidence character: '{charInfo.Char}' ({charConfidence:P2})");
-                                        continue;
-                                    }
-                                    
-                                    // Create bounding box for this character
-                                    // Format: [[top-left], [top-right], [bottom-right], [bottom-left]]
-                                    var charBox = new[] {
-                                        new[] { (double)charInfo.Left, (double)charInfo.Top },
-                                        new[] { (double)charInfo.Right, (double)charInfo.Top },
-                                        new[] { (double)charInfo.Right, (double)charInfo.Bottom },
-                                        new[] { (double)charInfo.Left, (double)charInfo.Bottom }
-                                    };
-                                    
-                                    // Add the character to results
-                                    results.Add(new
-                                    {
-                                        text = charInfo.Char,
-                                        confidence = charConfidence,
-                                        rect = charBox,
-                                        is_character = true
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("LSTM box text not available, falling back to estimating positions");
+                                Console.WriteLine("Using HOCR text for character positioning");
+                                Console.WriteLine($"HOCR sample: {hocrText.Substring(0, Math.Min(500, hocrText.Length))}...");
+                                results = ParseHocrText(hocrText, image.Width, image.Height, overallConfidence, minCharConfidence);
                             }
                             
-                            // If LSTM boxes didn't provide any results, fall back to the original method
+                            // If HOCR didn't work, fall back to simple method
                             if (results.Count == 0)
                             {
-                                Console.WriteLine("No results from LSTM boxes, using fallback method");
-                                
-                                // Fall back to original method (estimating positions)
-                                if (!string.IsNullOrEmpty(text))
-                                {
-                                    // Get image dimensions
-                                    int imageWidth = image.Width;
-                                    int imageHeight = image.Height;
-                                    
-                                    // Split text into lines
-                                    string[] lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                                    
-                                    // Estimate line height based on image height and number of lines
-                                    double lineHeight = imageHeight / Math.Max(lines.Length, 1);
-                                    
-                                    // Process each line from top to bottom
-                                    for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
-                                    {
-                                        string line = lines[lineIndex];
-                                        
-                                        // Calculate Y position for this line
-                                        double lineTop = lineIndex * lineHeight;
-                                        double lineBottom = lineTop + lineHeight;
-                                        
-                                        // Split line into words
-                                        string[] words = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                        
-                                        // Estimate word width based on image width and number of characters in line
-                                        int totalCharsInLine = line.Length;
-                                        double avgCharWidth = imageWidth / Math.Max(totalCharsInLine, 1);
-                                        
-                                        // Process each word
-                                        double currentX = 0;
-                                        
-                                        foreach (string word in words)
-                                        {
-                                            // Skip empty words
-                                            if (string.IsNullOrEmpty(word))
-                                                continue;
-                                            
-                                            // Use overall confidence for word
-                                            float wordConfidence = overallConfidence;
-                                            
-                                            // Skip word with low confidence
-                                            if (wordConfidence < minCharConfidence)
-                                            {
-                                                Console.WriteLine($"Skipping low confidence word: '{word}' ({wordConfidence:P2})");
-                                                continue;
-                                            }
-                                            
-                                            // Process each character in the word
-                                            for (int i = 0; i < word.Length; i++)
-                                            {
-                                                string charText = word[i].ToString();
-                                                
-                                                // Use word confidence for character
-                                                float charConfidence = wordConfidence;
-                                                
-                                                // Skip character with low confidence
-                                                if (charConfidence < minCharConfidence)
-                                                {
-                                                    Console.WriteLine($"Skipping low confidence character: '{charText}' ({charConfidence:P2})");
-                                                    continue;
-                                                }
-                                                
-                                                // Calculate character position
-                                                double charLeft = currentX;
-                                                double charRight = charLeft + avgCharWidth;
-                                                
-                                                // Create bounding box for this character
-                                                var charBox = new[] {
-                                                    new[] { charLeft, lineTop },
-                                                    new[] { charRight, lineTop },
-                                                    new[] { charRight, lineBottom },
-                                                    new[] { charLeft, lineBottom }
-                                                };
-                                                
-                                                // Add the character to results
-                                                results.Add(new
-                                                {
-                                                    text = charText,
-                                                    confidence = charConfidence,
-                                                    rect = charBox,
-                                                    is_character = true
-                                                });
-                                                
-                                                // Move to next character position
-                                                currentX += avgCharWidth;
-                                            }
-                                            
-                                            // Add space after word if not the last word
-                                            if (System.Array.IndexOf(words, word) < words.Length - 1)
-                                            {
-                                                double spaceLeft = currentX;
-                                                double spaceRight = spaceLeft + avgCharWidth;
-                                                
-                                                var spaceBox = new[] {
-                                                    new[] { spaceLeft, lineTop },
-                                                    new[] { spaceRight, lineTop },
-                                                    new[] { spaceRight, lineBottom },
-                                                    new[] { spaceLeft, lineBottom }
-                                                };
-                                                
-                                                results.Add(new
-                                                {
-                                                    text = " ",
-                                                    confidence = wordConfidence,
-                                                    rect = spaceBox,
-                                                    is_character = true
-                                                });
-                                                
-                                                // Move past the space
-                                                currentX += avgCharWidth;
-                                            }
-                                        }
-                                    }
-                                }
+                                Console.WriteLine("HOCR failed, using simple method");
+                                results = CreateSimpleCharacterResults(text, image.Width, image.Height, overallConfidence, minCharConfidence);
                             }
                             
                             // Check if there is any result
@@ -451,7 +262,7 @@ namespace RSTGameTranslation
                                 return false;
                             }
 
-                            // Create JSON response similar to other OCR engines
+                            // Create JSON response
                             var response = new
                             {
                                 status = "success",
@@ -486,6 +297,406 @@ namespace RSTGameTranslation
             }
         }
 
+        private List<object> ParseHocrText(string hocrText, int imageWidth, int imageHeight, float overallConfidence, float minConfidence)
+        {
+            var results = new List<object>();
+            
+            try
+            {
+                // Parse HOCR HTML properly
+                var doc = new System.Xml.XmlDocument();
+                
+                // Clean up HTML for XML parsing
+                string cleanHocr = hocrText;
+                
+                // Remove DOCTYPE and HTML wrapper to get just the body content
+                var bodyMatch = System.Text.RegularExpressions.Regex.Match(hocrText, @"<body[^>]*>(.*?)</body>", System.Text.RegularExpressions.RegexOptions.Singleline);
+                if (bodyMatch.Success)
+                {
+                    cleanHocr = "<root>" + bodyMatch.Groups[1].Value + "</root>";
+                }
+                
+                // Replace HTML entities and fix self-closing tags
+                cleanHocr = cleanHocr.Replace("&nbsp;", " ");
+                cleanHocr = System.Text.RegularExpressions.Regex.Replace(cleanHocr, @"<(\w+)([^>]*?)/>", "<$1$2></$1>");
+                
+                try
+                {
+                    doc.LoadXml(cleanHocr);
+                }
+                catch
+                {
+                    // If XML parsing fails, fall back to regex
+                    return ParseHocrWithRegex(hocrText, imageWidth, imageHeight, overallConfidence, minConfidence);
+                }
+                
+                // Find all word elements
+                var wordNodes = doc.SelectNodes("//span[@class='ocrx_word']");
+                
+                if (wordNodes == null || wordNodes.Count == 0)
+                {
+                    Console.WriteLine("No word nodes found in HOCR");
+                    return ParseHocrWithRegex(hocrText, imageWidth, imageHeight, overallConfidence, minConfidence);
+                }
+                
+                var allWords = new List<(string text, int left, int top, int right, int bottom, float confidence)>();
+                
+                foreach (System.Xml.XmlNode wordNode in wordNodes)
+                {
+                    string titleAttr = wordNode.Attributes?["title"]?.Value ?? "";
+                    string wordText = wordNode.InnerText?.Trim() ?? "";
+                    
+                    if (string.IsNullOrEmpty(wordText)) continue;
+                    
+                    // Extract bounding box from title attribute
+                    var bboxMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"bbox\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
+                    if (!bboxMatch.Success) continue;
+                    
+                    int left = int.Parse(bboxMatch.Groups[1].Value);
+                    int top = int.Parse(bboxMatch.Groups[2].Value);
+                    int right = int.Parse(bboxMatch.Groups[3].Value);
+                    int bottom = int.Parse(bboxMatch.Groups[4].Value);
+                    
+                    // Extract confidence if available
+                    float wordConfidence = overallConfidence;
+                    var confMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"x_wconf\s+(\d+)");
+                    if (confMatch.Success)
+                    {
+                        wordConfidence = float.Parse(confMatch.Groups[1].Value) / 100.0f;
+                    }
+                    
+                    Console.WriteLine($"Word: '{wordText}' at ({left},{top},{right},{bottom}) conf: {wordConfidence:P2}");
+                    
+                    allWords.Add((wordText, left, top, right, bottom, wordConfidence));
+                }
+                
+                // Sort words by position (top to bottom, left to right)
+                allWords = allWords.OrderBy(w => w.top).ThenBy(w => w.left).ToList();
+                
+                // Process each word
+                for (int wordIndex = 0; wordIndex < allWords.Count; wordIndex++)
+                {
+                    var word = allWords[wordIndex];
+                    
+                    // Skip low confidence words
+                    if (word.confidence < minConfidence)
+                    {
+                        Console.WriteLine($"Skipping low confidence word: '{word.text}' ({word.confidence:P2})");
+                        continue;
+                    }
+                    
+                    // Calculate character width within the word
+                    double charWidth = (double)(word.right - word.left) / word.text.Length;
+                    
+                    // Add each character in the word
+                    for (int charIndex = 0; charIndex < word.text.Length; charIndex++)
+                    {
+                        char c = word.text[charIndex];
+                        
+                        // Skip whitespace characters
+                        if (char.IsWhiteSpace(c)) continue;
+                        
+                        // Calculate character position
+                        double charLeft = word.left + (charIndex * charWidth);
+                        double charRight = charLeft + charWidth;
+                        
+                        var charBox = new[] {
+                            new[] { charLeft, (double)word.top },
+                            new[] { charRight, (double)word.top },
+                            new[] { charRight, (double)word.bottom },
+                            new[] { charLeft, (double)word.bottom }
+                        };
+                        
+                        results.Add(new
+                        {
+                            text = c.ToString(),
+                            confidence = word.confidence,
+                            rect = charBox,
+                            is_character = true
+                        });
+                    }
+                    
+                    // Add space after word (except for last word)
+                    if (wordIndex < allWords.Count - 1)
+                    {
+                        var nextWord = allWords[wordIndex + 1];
+                        
+                        // Check if we need space
+                        bool needSpace = ShouldAddSpaceBetweenWords(word, nextWord);
+                        
+                        if (needSpace)
+                        {
+                            double spaceLeft = word.right;
+                            double spaceRight = nextWord.left;
+                            double spaceTop = Math.Min(word.top, nextWord.top);
+                            double spaceBottom = Math.Max(word.bottom, nextWord.bottom);
+                            
+                            // Ensure reasonable space width
+                            if (spaceRight <= spaceLeft)
+                            {
+                                spaceRight = spaceLeft + (word.right - word.left) * 0.3; // 30% of word width
+                            }
+                            
+                            var spaceBox = new[] {
+                                new[] { spaceLeft, spaceTop },
+                                new[] { spaceRight, spaceTop },
+                                new[] { spaceRight, spaceBottom },
+                                new[] { spaceLeft, spaceBottom }
+                            };
+                            
+                            results.Add(new
+                            {
+                                text = " ",
+                                confidence = Math.Min(word.confidence, nextWord.confidence),
+                                rect = spaceBox,
+                                is_character = true
+                            });
+                            
+                            Console.WriteLine($"Added space between '{word.text}' and '{nextWord.text}'");
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"Parsed {results.Count} characters from HOCR XML");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing HOCR XML: {ex.Message}");
+                return ParseHocrWithRegex(hocrText, imageWidth, imageHeight, overallConfidence, minConfidence);
+            }
+            
+            return results;
+        }
+
+        private List<object> ParseHocrWithRegex(string hocrText, int imageWidth, int imageHeight, float overallConfidence, float minConfidence)
+        {
+            var results = new List<object>();
+            
+            try
+            {
+                Console.WriteLine("Using regex fallback for HOCR parsing");
+                
+                // Regex pattern to match word spans with bounding boxes
+                var wordPattern = @"<span\s+class=['""]ocrx_word['""][^>]*title=['""]([^'""]*)['""][^>]*>([^<]+)</span>";
+                var matches = System.Text.RegularExpressions.Regex.Matches(hocrText, wordPattern);
+                
+                var allWords = new List<(string text, int left, int top, int right, int bottom, float confidence)>();
+                
+                foreach (System.Text.RegularExpressions.Match match in matches)
+                {
+                    if (match.Groups.Count >= 3)
+                    {
+                        string titleAttr = match.Groups[1].Value;
+                        string wordText = match.Groups[2].Value.Trim();
+                        
+                        if (string.IsNullOrEmpty(wordText)) continue;
+                        
+                        // Extract bounding box
+                        var bboxMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"bbox\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
+                        if (!bboxMatch.Success) continue;
+                        
+                        int left = int.Parse(bboxMatch.Groups[1].Value);
+                        int top = int.Parse(bboxMatch.Groups[2].Value);
+                        int right = int.Parse(bboxMatch.Groups[3].Value);
+                        int bottom = int.Parse(bboxMatch.Groups[4].Value);
+                        
+                        // Extract confidence
+                        float wordConfidence = overallConfidence;
+                        var confMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"x_wconf\s+(\d+)");
+                        if (confMatch.Success)
+                        {
+                            wordConfidence = float.Parse(confMatch.Groups[1].Value) / 100.0f;
+                        }
+                        
+                        allWords.Add((wordText, left, top, right, bottom, wordConfidence));
+                    }
+                }
+                
+                // Sort and process words (same logic as XML version)
+                allWords = allWords.OrderBy(w => w.top).ThenBy(w => w.left).ToList();
+                
+                for (int wordIndex = 0; wordIndex < allWords.Count; wordIndex++)
+                {
+                    var word = allWords[wordIndex];
+                    
+                    if (word.confidence < minConfidence) continue;
+                    
+                    double charWidth = (double)(word.right - word.left) / word.text.Length;
+                    
+                    for (int charIndex = 0; charIndex < word.text.Length; charIndex++)
+                    {
+                        char c = word.text[charIndex];
+                        if (char.IsWhiteSpace(c)) continue;
+                        
+                        double charLeft = word.left + (charIndex * charWidth);
+                        double charRight = charLeft + charWidth;
+                        
+                        var charBox = new[] {
+                            new[] { charLeft, (double)word.top },
+                            new[] { charRight, (double)word.top },
+                            new[] { charRight, (double)word.bottom },
+                            new[] { charLeft, (double)word.bottom }
+                        };
+                        
+                        results.Add(new
+                        {
+                            text = c.ToString(),
+                            confidence = word.confidence,
+                            rect = charBox,
+                            is_character = true
+                        });
+                    }
+                    
+                    // Add space logic
+                    if (wordIndex < allWords.Count - 1)
+                    {
+                        var nextWord = allWords[wordIndex + 1];
+                        if (ShouldAddSpaceBetweenWords(word, nextWord))
+                        {
+                            double spaceLeft = word.right;
+                            double spaceRight = nextWord.left;
+                            if (spaceRight <= spaceLeft)
+                            {
+                                spaceRight = spaceLeft + (word.right - word.left) * 0.3;
+                            }
+                            
+                            var spaceBox = new[] {
+                                new[] { spaceLeft, (double)Math.Min(word.top, nextWord.top) },
+                                new[] { spaceRight, (double)Math.Min(word.top, nextWord.top) },
+                                new[] { spaceRight, (double)Math.Max(word.bottom, nextWord.bottom) },
+                                new[] { spaceLeft, (double)Math.Max(word.bottom, nextWord.bottom) }
+                            };
+                            
+                            results.Add(new
+                            {
+                                text = " ",
+                                confidence = Math.Min(word.confidence, nextWord.confidence),
+                                rect = spaceBox,
+                                is_character = true
+                            });
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"Parsed {results.Count} characters from HOCR regex");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in regex HOCR parsing: {ex.Message}");
+            }
+            
+            return results;
+        }
+
+        private bool ShouldAddSpaceBetweenWords((string text, int left, int top, int right, int bottom, float confidence) word1,
+                                            (string text, int left, int top, int right, int bottom, float confidence) word2)
+        {
+            // Different lines - check if vertical distance is significant
+            int lineHeight = word1.bottom - word1.top;
+            if (Math.Abs(word1.top - word2.top) > lineHeight * 0.5)
+            {
+                return true;
+            }
+            
+            // Same line - check horizontal gap
+            int horizontalGap = word2.left - word1.right;
+            int avgCharWidth = ((word1.right - word1.left) + (word2.right - word2.left)) / (word1.text.Length + word2.text.Length);
+            
+            // Add space if gap is larger than 20% of average character width
+            return horizontalGap > avgCharWidth * 0.2;
+        }
+
+        private List<object> CreateSimpleCharacterResults(string text, int imageWidth, int imageHeight, float overallConfidence, float minConfidence)
+        {
+            var results = new List<object>();
+            
+            if (string.IsNullOrEmpty(text)) return results;
+            
+            // Split text into lines
+            string[] lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            double lineHeight = (double)imageHeight / Math.Max(lines.Length, 1);
+            
+            for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+            {
+                string line = lines[lineIndex];
+                if (string.IsNullOrEmpty(line)) continue;
+                
+                double lineTop = lineIndex * lineHeight;
+                double lineBottom = lineTop + lineHeight;
+                
+                // Split into words
+                string[] words = line.Split(' ');
+                
+                // Calculate positions
+                double totalChars = line.Length;
+                double charWidth = imageWidth / totalChars;
+                double currentX = 0;
+                
+                for (int wordIndex = 0; wordIndex < words.Length; wordIndex++)
+                {
+                    string word = words[wordIndex];
+                    
+                    // Add characters in word
+                    for (int i = 0; i < word.Length; i++)
+                    {
+                        char c = word[i];
+                        
+                        double charLeft = currentX;
+                        double charRight = currentX + charWidth;
+                        
+                        var charBox = new[] {
+                            new[] { charLeft, lineTop },
+                            new[] { charRight, lineTop },
+                            new[] { charRight, lineBottom },
+                            new[] { charLeft, lineBottom }
+                        };
+                        
+                        results.Add(new
+                        {
+                            text = c.ToString(),
+                            confidence = overallConfidence,
+                            rect = charBox,
+                            is_character = true
+                        });
+                        
+                        currentX += charWidth;
+                    }
+                    
+                    // Add space after word (except last word)
+                    if (wordIndex < words.Length - 1)
+                    {
+                        double spaceLeft = currentX;
+                        double spaceRight = currentX + charWidth;
+                        
+                        var spaceBox = new[] {
+                            new[] { spaceLeft, lineTop },
+                            new[] { spaceRight, lineTop },
+                            new[] { spaceRight, lineBottom },
+                            new[] { spaceLeft, lineBottom }
+                        };
+                        
+                        results.Add(new
+                        {
+                            text = " ",
+                            confidence = overallConfidence,
+                            rect = spaceBox,
+                            is_character = true
+                        });
+                        
+                        currentX += charWidth;
+                    }
+                }
+            }
+            
+            return results;
+        }
+
+
+
+
+
+
         // Helper method to check if current language matches requested language
         private bool IsCurrentLanguage(string languageCode)
         {
@@ -497,43 +708,61 @@ namespace RSTGameTranslation
         }
 
         // Optimize the image for OCR by applying filters
-        private Bitmap OptimizeImageForOcr(Bitmap source)
+        private System.Drawing.Bitmap OptimizeImageForOcr(System.Drawing.Bitmap source)
         {
+            // Create a new bitmap to hold the optimized image
+            var result = new System.Drawing.Bitmap(source.Width, source.Height);
+            
             try
             {
-                // Convert Bitmap to OpenCV Mat
-                using (var srcMat = source.ToMat())
+                // Create a graphics object for drawing on the result bitmap
+                using (var graphics = System.Drawing.Graphics.FromImage(result))
                 {
-                    // Create grayscale Mat
-                    using (var grayMat = new Mat())
+                    // Set the graphics object to use high-quality interpolation and smoothing
+                    graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                    graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+                    
+                    // Create a color matrix to adjust brightness and contrast
+                    using (var attributes = new System.Drawing.Imaging.ImageAttributes())
                     {
-                        // Convert to grayscale
-                        if (srcMat.Channels() != 1)
-                        {
-                            Cv2.CvtColor(srcMat, grayMat, ColorConversionCodes.BGR2GRAY);
-                        }
-                        else
-                        {
-                            srcMat.CopyTo(grayMat);
-                        }
-
-                        // Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
-                        using (var enhancedMat = new Mat())
-                        {
-                            // Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
-                            var clahe = Cv2.CreateCLAHE(2.0, new OpenCvSharp.Size(8, 8));
-                            clahe.Apply(grayMat, enhancedMat);
-
-                            // Convert Mat back to Bitmap
-                            return enhancedMat.ToBitmap();
-                        }
+                        // Increase contrast and brightness
+                        float contrast = 1.2f;
+                        // Increase brightness
+                        float brightness = 0.02f;
+                        
+                        // Create a color matrix to adjust brightness and contrast
+                        float[][] colorMatrix = {
+                            new float[] {contrast, 0, 0, 0, 0},
+                            new float[] {0, contrast, 0, 0, 0},
+                            new float[] {0, 0, contrast, 0, 0},
+                            new float[] {0, 0, 0, 1, 0},
+                            new float[] {brightness, brightness, brightness, 0, 1}
+                        };
+                        
+                        attributes.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix(colorMatrix));
+                        
+                        // Increase gamma to make the image brighter
+                        attributes.SetGamma(1.1f);
+                        
+                        // Draw the source bitmap onto the result bitmap, applying the color matrix and gamma correction
+                        graphics.DrawImage(
+                            source,
+                            new System.Drawing.Rectangle(0, 0, result.Width, result.Height),
+                            0, 0, source.Width, source.Height,
+                            System.Drawing.GraphicsUnit.Pixel,
+                            attributes);
                     }
                 }
+                               
+                return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"OpenCV image optimization failed: {ex.Message}");
-                return source; // return original image if error
+                Console.WriteLine($"Image optimization failed: {ex.Message}");
+                result.Dispose();
+                return new System.Drawing.Bitmap(source);
             }
         }
     }
