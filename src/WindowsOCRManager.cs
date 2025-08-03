@@ -223,9 +223,6 @@ namespace RSTGameTranslation
                 // Set to true to enable character-level processing for both OCR engines
                 bool useCharacterLevel = true;
                 
-                // Minimum confidence threshold for including results
-                double confidenceThreshold = 0.7; // Adjust this value based on your needs
-                
                 foreach (var line in textLines)
                 {
                     // Skip empty lines
@@ -234,14 +231,10 @@ namespace RSTGameTranslation
                         continue;
                     }
 
-                    // Get the line confidence if available
-                    double lineConfidence = 0.9; // Default confidence
+                    //Console.WriteLine($"Processing line: \"{line.Text}\" with {line.Words.Count} words");
                     
                     if (useCharacterLevel)
                     {
-                        // Track the last character's right edge to prevent overlapping
-                        double lastCharRightEdge = 0;
-                        
                         // Process at character level by splitting words into characters
                         foreach (var word in line.Words)
                         {
@@ -250,13 +243,6 @@ namespace RSTGameTranslation
                             
                             // Skip empty words
                             if (string.IsNullOrWhiteSpace(wordText))
-                                continue;
-                            
-                            // Get word confidence if available
-                            double wordConfidence = CalculateWordConfidence(word, lineConfidence);
-                            
-                            // Skip words with confidence below threshold
-                            if (wordConfidence < confidenceThreshold)
                                 continue;
                             
                             // Determine if we should add a space marker after this word
@@ -268,51 +254,22 @@ namespace RSTGameTranslation
                             {
                                 addSpaceMarker = true;
                             }
-                            
-                            // Ensure this word doesn't overlap with the previous one
-                            if (wordRect.X < lastCharRightEdge)
-                            {
-                                // Adjust the word's X position to avoid overlap
-                                double adjustment = lastCharRightEdge - wordRect.X + 1; // +1 for a small gap
-                                wordRect = new Windows.Foundation.Rect(
-                                    lastCharRightEdge + 1,
-                                    wordRect.Y,
-                                    Math.Max(1, wordRect.Width - adjustment), // Ensure width is at least 1
-                                    wordRect.Height
-                                );
-                            }
-                            
-                            // If the word is too narrow after adjustment, skip it
-                            if (wordRect.Width < 2)
-                                continue;
                                 
                             // Calculate the width of each character in the word
                             double totalWidth = wordRect.Width;
                             double charWidth = totalWidth / wordText.Length;
                             
-                            // Ensure minimum character width
-                            charWidth = Math.Max(charWidth, 2.0);
-                            
-                            double charPadding = Math.Min(charWidth * 0.1, 1.0); // Reduced padding to 10% with a maximum of 1 pixel
-                            double effectiveCharWidth = charWidth - (charPadding * 2); // Padding on both sides
-                            
+                    
+                            double charPadding = charWidth * 0.15; //15% of character width
+                            double effectiveCharWidth = charWidth - charPadding;
+
                             // Process each character in the word
                             for (int i = 0; i < wordText.Length; i++)
                             {
                                 string charText = wordText[i].ToString();
                                 
-                                // Calculate character confidence based on position and context
-                                double charConfidence = CalculateCharacterConfidence(charText, i, wordText, wordConfidence);
-                                
-                                // Skip characters with confidence below threshold
-                                if (charConfidence < confidenceThreshold)
-                                    continue;
-                                
-                                // Calculate the X-coordinate of the character, ensuring no overlap
-                                double charX = Math.Max(
-                                    wordRect.X + (i * charWidth),
-                                    lastCharRightEdge + 1 // Ensure at least 1 pixel gap
-                                );
+                                // Calculate the X-coordinate of the character
+                                double charX = wordRect.X + (i * charWidth) + (charPadding / 2);
                                 
                                 // Create bounding rectangle for this character
                                 var charRect = new Windows.Foundation.Rect(
@@ -321,9 +278,6 @@ namespace RSTGameTranslation
                                     effectiveCharWidth,
                                     wordRect.Height
                                 );
-                                
-                                // Update the last character's right edge
-                                lastCharRightEdge = charRect.X + charRect.Width;
                                 
                                 // Calculate box coordinates (polygon points) for the character
                                 var charBox = new[] {
@@ -337,22 +291,20 @@ namespace RSTGameTranslation
                                 results.Add(new
                                 {
                                     text = charText,
-                                    confidence = charConfidence,
+                                    confidence = 0.9, // Windows OCR doesn't provide confidence
                                     rect = charBox,
                                     is_character = true
                                 });
                             }
                                 
+                            
                             // Add space marker after word if needed
                             if (addSpaceMarker)
                             {
                                 // Create space character after the word
-                                // Position it just to the right of the last character with no overlap
-                                double spaceWidth = Math.Max(charWidth * 0.5, 2.0); // At least 2 pixels wide
-                                double spaceX = lastCharRightEdge + 1; // 1 pixel gap
-                                
-                                // Space confidence is slightly higher than the word confidence
-                                double spaceConfidence = Math.Min(0.95, wordConfidence + 0.05);
+                                // Position it just to the right of the last character
+                                double spaceWidth = charWidth * 0.6; 
+                                double spaceX = wordRect.X + wordRect.Width + (charWidth * 0.1);
                                 
                                 var spaceRect = new Windows.Foundation.Rect(
                                     spaceX,
@@ -360,9 +312,6 @@ namespace RSTGameTranslation
                                     spaceWidth,
                                     wordRect.Height
                                 );
-                                
-                                // Update the last character's right edge
-                                lastCharRightEdge = spaceRect.X + spaceRect.Width;
                                 
                                 // Calculate box coordinates for the space character
                                 var spaceBox = new[] {
@@ -376,7 +325,7 @@ namespace RSTGameTranslation
                                 results.Add(new
                                 {
                                     text = " ", // Actual space character
-                                    confidence = spaceConfidence,
+                                    confidence = 0.95, // High confidence for this artificially added space
                                     rect = spaceBox,
                                     is_character = true
                                 });
@@ -412,18 +361,11 @@ namespace RSTGameTranslation
                         // Process text based on language
                         string processedText = ProcessTextByLanguage(line.Text, languageCode);
                         
-                        // Calculate line confidence based on word confidences
-                        double lineConfidenceCalculated = CalculateLineConfidence(line);
-                        
-                        // Skip lines with confidence below threshold
-                        if (lineConfidenceCalculated < confidenceThreshold)
-                            continue;
-                        
                         // Add the text line to results
                         results.Add(new
                         {
                             text = processedText,
-                            confidence = lineConfidenceCalculated,
+                            confidence = 0.9, // Windows OCR doesn't provide confidence
                             rect = box
                         });
                     }
@@ -467,91 +409,6 @@ namespace RSTGameTranslation
 
             // Return a completed task since this method doesn't use await
             return Task.CompletedTask;
-        }
-
-        // Calculate confidence for a word based on its characteristics
-        private double CalculateWordConfidence(Windows.Media.Ocr.OcrWord word, double lineConfidence)
-        {
-            // Windows OCR doesn't provide word-level confidence, so we need to estimate it
-            double baseConfidence = 0.85; // Start with a reasonable base confidence
-            
-            // Adjust confidence based on word length (very short words might be less reliable)
-            if (word.Text.Length < 2)
-                baseConfidence *= 0.9;
-            
-            // Adjust confidence based on word height/width ratio (extremely narrow or wide words might be less reliable)
-            double ratio = word.BoundingRect.Width / word.BoundingRect.Height;
-            if (ratio < 0.2 || ratio > 10)
-                baseConfidence *= 0.85;
-            
-            // Adjust confidence based on special characters or numbers
-            if (word.Text.Any(c => !char.IsLetterOrDigit(c)))
-                baseConfidence *= 0.95;
-            
-            // Consider line confidence as a factor
-            return Math.Min(0.98, baseConfidence * (0.7 + 0.3 * lineConfidence));
-        }
-
-        // Calculate confidence for a character based on its position and context
-        private double CalculateCharacterConfidence(string charText, int position, string wordText, double wordConfidence)
-        {
-            double charConfidence = wordConfidence; // Start with word confidence
-            
-            // Adjust confidence for special characters
-            if (!char.IsLetterOrDigit(charText[0]))
-                charConfidence *= 0.95;
-            
-            // Characters at word boundaries might be less reliable
-            if (position == 0 || position == wordText.Length - 1)
-                charConfidence *= 0.98;
-            
-            // Uncommon character combinations might indicate OCR errors
-            if (position > 0)
-            {
-                char prevChar = wordText[position - 1];
-                char currentChar = charText[0];
-                
-                // Check for unusual character combinations (customize this for your specific use case)
-                bool isUnusualCombination = false;
-                
-                // Example: mixing different scripts
-                bool isPrevLatinOrDigit = (char.IsLetter(prevChar) && IsLatinCharacter(prevChar)) || char.IsDigit(prevChar);
-                bool isCurrentLatinOrDigit = (char.IsLetter(currentChar) && IsLatinCharacter(currentChar)) || char.IsDigit(currentChar);
-                
-                if (isPrevLatinOrDigit != isCurrentLatinOrDigit)
-                    isUnusualCombination = true;
-                
-                if (isUnusualCombination)
-                    charConfidence *= 0.9;
-            }
-            
-            return Math.Min(0.98, charConfidence);
-        }
-
-        // Helper method to check if a character is from the Latin script
-        private bool IsLatinCharacter(char c)
-        {
-            // Basic Latin characters
-            return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-                // Latin-1 Supplement
-                (c >= '\u00C0' && c <= '\u00FF');
-        }
-
-        // Calculate confidence for a line based on its words
-        private double CalculateLineConfidence(Windows.Media.Ocr.OcrLine line)
-        {
-            // If the line has no words, return a low confidence
-            if (line.Words.Count == 0)
-                return 0.5;
-            
-            // Calculate average confidence of words in the line
-            double totalConfidence = 0;
-            foreach (var word in line.Words)
-            {
-                totalConfidence += CalculateWordConfidence(word, 0.9);
-            }
-            
-            return totalConfidence / line.Words.Count;
         }
 
         // Determine if spaces should be added between words for the given language
