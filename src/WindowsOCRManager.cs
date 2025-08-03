@@ -221,7 +221,7 @@ namespace RSTGameTranslation
                 var results = new List<object>();
                 
                 // Set to true to enable character-level processing for both OCR engines
-                bool useCharacterLevel = true;
+                bool useCharacterLevel = ConfigManager.Instance.IsCharLevelEnabled();
                 
                 foreach (var line in textLines)
                 {
