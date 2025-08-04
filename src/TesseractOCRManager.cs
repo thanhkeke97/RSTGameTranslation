@@ -517,7 +517,7 @@ namespace RSTGameTranslation
                     
                     // Group words by line
                     var lines = new List<List<(string text, int left, int top, int right, int bottom, float confidence)>>();
-                    List<(string text, int left, int top, int right, int bottom, float confidence)> currentLine = null;
+                    List<(string text, int left, int top, int right, int bottom, float confidence)>? currentLine = null;
                     
                     foreach (var word in allWords)
                     {
@@ -736,7 +736,7 @@ namespace RSTGameTranslation
                 {
                     // Group line by word
                     var lines = new List<List<(string text, int left, int top, int right, int bottom, float confidence)>>();
-                    List<(string text, int left, int top, int right, int bottom, float confidence)> currentLine = null;
+                    List<(string text, int left, int top, int right, int bottom, float confidence)>? currentLine = null;
                     
                     foreach (var word in allWords)
                     {
