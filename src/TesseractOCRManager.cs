@@ -104,7 +104,7 @@ namespace RSTGameTranslation
                 }
 
                 // Map language code if needed
-                if (tessdatamap.TryGetValue(_currentLanguage, out string tessdataCode))
+                if (tessdatamap.TryGetValue(_currentLanguage, out string? tessdataCode))
                 {
                     _currentTessdataCode = tessdataCode;
                 }
@@ -233,7 +233,7 @@ namespace RSTGameTranslation
                             Console.WriteLine($"Tesseract OCR recognized text with {overallConfidence:P2} confidence");
 
                             // Threshold for each character
-                            float minCharConfidence = 0.9f;
+                            float minCharConfidence = 0.7f;
                             
                             // Get character level information
                             var results = new List<object>();
@@ -330,134 +330,273 @@ namespace RSTGameTranslation
                     return ParseHocrWithRegex(hocrText, imageWidth, imageHeight, overallConfidence, minConfidence);
                 }
                 
-                // Find all word elements
-                var wordNodes = doc.SelectNodes("//span[@class='ocrx_word']");
                 
-                if (wordNodes == null || wordNodes.Count == 0)
+                bool useCharacterLevel = false;
+                
+                if (useCharacterLevel)
                 {
-                    Console.WriteLine("No word nodes found in HOCR");
-                    return ParseHocrWithRegex(hocrText, imageWidth, imageHeight, overallConfidence, minConfidence);
-                }
-                
-                var allWords = new List<(string text, int left, int top, int right, int bottom, float confidence)>();
-                
-                foreach (System.Xml.XmlNode wordNode in wordNodes)
-                {
-                    string titleAttr = wordNode.Attributes?["title"]?.Value ?? "";
-                    string wordText = wordNode.InnerText?.Trim() ?? "";
+                    // find all element
+                    var wordNodes = doc.SelectNodes("//span[@class='ocrx_word']");
                     
-                    if (string.IsNullOrEmpty(wordText)) continue;
-                    
-                    // Extract bounding box from title attribute
-                    var bboxMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"bbox\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
-                    if (!bboxMatch.Success) continue;
-                    
-                    int left = int.Parse(bboxMatch.Groups[1].Value);
-                    int top = int.Parse(bboxMatch.Groups[2].Value);
-                    int right = int.Parse(bboxMatch.Groups[3].Value);
-                    int bottom = int.Parse(bboxMatch.Groups[4].Value);
-                    
-                    // Extract confidence if available
-                    float wordConfidence = overallConfidence;
-                    var confMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"x_wconf\s+(\d+)");
-                    if (confMatch.Success)
+                    if (wordNodes == null || wordNodes.Count == 0)
                     {
-                        wordConfidence = float.Parse(confMatch.Groups[1].Value) / 100.0f;
+                        Console.WriteLine("No word nodes found in HOCR");
+                        return ParseHocrWithRegex(hocrText, imageWidth, imageHeight, overallConfidence, minConfidence);
                     }
                     
-                    Console.WriteLine($"Word: '{wordText}' at ({left},{top},{right},{bottom}) conf: {wordConfidence:P2}");
+                    var allWords = new List<(string text, int left, int top, int right, int bottom, float confidence)>();
                     
-                    allWords.Add((wordText, left, top, right, bottom, wordConfidence));
-                }
-                
-                // Sort words by position (top to bottom, left to right)
-                allWords = allWords.OrderBy(w => w.top).ThenBy(w => w.left).ToList();
-                
-                // Process each word
-                for (int wordIndex = 0; wordIndex < allWords.Count; wordIndex++)
-                {
-                    var word = allWords[wordIndex];
-                    
-                    // Skip low confidence words
-                    if (word.confidence < minConfidence)
+                    foreach (System.Xml.XmlNode wordNode in wordNodes)
                     {
-                        Console.WriteLine($"Skipping low confidence word: '{word.text}' ({word.confidence:P2})");
-                        continue;
-                    }
-                    
-                    // Calculate character width within the word
-                    double charWidth = (double)(word.right - word.left) / word.text.Length;
-                    
-                    // Add each character in the word
-                    for (int charIndex = 0; charIndex < word.text.Length; charIndex++)
-                    {
-                        char c = word.text[charIndex];
+                        string titleAttr = wordNode.Attributes?["title"]?.Value ?? "";
+                        string wordText = wordNode.InnerText?.Trim() ?? "";
                         
-                        // Skip whitespace characters
-                        if (char.IsWhiteSpace(c)) continue;
+                        if (string.IsNullOrEmpty(wordText)) continue;
                         
-                        // Calculate character position
-                        double charLeft = word.left + (charIndex * charWidth);
-                        double charRight = charLeft + charWidth;
+                        // Extract bounding box from title attribute
+                        var bboxMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"bbox\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
+                        if (!bboxMatch.Success) continue;
                         
-                        var charBox = new[] {
-                            new[] { charLeft, (double)word.top },
-                            new[] { charRight, (double)word.top },
-                            new[] { charRight, (double)word.bottom },
-                            new[] { charLeft, (double)word.bottom }
-                        };
+                        int left = int.Parse(bboxMatch.Groups[1].Value);
+                        int top = int.Parse(bboxMatch.Groups[2].Value);
+                        int right = int.Parse(bboxMatch.Groups[3].Value);
+                        int bottom = int.Parse(bboxMatch.Groups[4].Value);
                         
-                        results.Add(new
+                        // Extract confidence if available
+                        float wordConfidence = overallConfidence;
+                        var confMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"x_wconf\s+(\d+)");
+                        if (confMatch.Success)
                         {
-                            text = c.ToString(),
-                            confidence = word.confidence,
-                            rect = charBox,
-                            is_character = true
-                        });
+                            wordConfidence = float.Parse(confMatch.Groups[1].Value) / 100.0f;
+                        }
+                        
+                        Console.WriteLine($"Word: '{wordText}' at ({left},{top},{right},{bottom}) conf: {wordConfidence:P2}");
+                        
+                        // Add word to list if confidence is high enough
+                        if (wordConfidence >= minConfidence)
+                        {
+                            allWords.Add((wordText, left, top, right, bottom, wordConfidence));
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping low confidence word: '{wordText}' ({wordConfidence:P2})");
+                        }
                     }
                     
-                    // Add space after word (except for last word)
-                    if (wordIndex < allWords.Count - 1)
+                    // Sort words by position
+                    allWords = allWords.OrderBy(w => w.top).ThenBy(w => w.left).ToList();
+                    
+                    // Handle word by word
+                    for (int wordIndex = 0; wordIndex < allWords.Count; wordIndex++)
                     {
-                        var nextWord = allWords[wordIndex + 1];
+                        var word = allWords[wordIndex];
                         
-                        // Check if we need space
-                        bool needSpace = ShouldAddSpaceBetweenWords(word, nextWord);
+                        // Calculate character width
+                        double charWidth = (double)(word.right - word.left) / Math.Max(word.text.Length, 1);
+                        double charPadding = charWidth * 0.15; // 15% char width
+                        double effectiveCharWidth = charWidth - charPadding;
                         
-                        if (needSpace)
+                        
+                        for (int charIndex = 0; charIndex < word.text.Length; charIndex++)
                         {
-                            double spaceLeft = word.right;
-                            double spaceRight = nextWord.left;
-                            double spaceTop = Math.Min(word.top, nextWord.top);
-                            double spaceBottom = Math.Max(word.bottom, nextWord.bottom);
+                            char c = word.text[charIndex];
                             
-                            // Ensure reasonable space width
-                            if (spaceRight <= spaceLeft)
-                            {
-                                spaceRight = spaceLeft + (word.right - word.left) * 0.3; // 30% of word width
-                            }
+                            // Exclude whitespace characters
+                            if (char.IsWhiteSpace(c)) continue;
                             
-                            var spaceBox = new[] {
-                                new[] { spaceLeft, spaceTop },
-                                new[] { spaceRight, spaceTop },
-                                new[] { spaceRight, spaceBottom },
-                                new[] { spaceLeft, spaceBottom }
+                            // Calculate character position
+                            double charLeft = word.left + (charIndex * charWidth) + (charPadding / 2);
+                            double charRight = charLeft + effectiveCharWidth;
+                            
+                            // Create bounding box for character
+                            var charBox = new[] {
+                                new[] { charLeft, (double)word.top },
+                                new[] { charRight, (double)word.top },
+                                new[] { charRight, (double)word.bottom },
+                                new[] { charLeft, (double)word.bottom }
                             };
                             
                             results.Add(new
                             {
-                                text = " ",
-                                confidence = Math.Min(word.confidence, nextWord.confidence),
-                                rect = spaceBox,
+                                text = c.ToString(),
+                                confidence = word.confidence,
+                                rect = charBox,
                                 is_character = true
                             });
+                        }
+                        
+                        // Add space between words if needed
+                        if (wordIndex < allWords.Count - 1)
+                        {
+                            var nextWord = allWords[wordIndex + 1];
                             
-                            Console.WriteLine($"Added space between '{word.text}' and '{nextWord.text}'");
+                            // Check if space is needed
+                            bool needSpace = ShouldAddSpaceBetweenWords(word, nextWord);
+                            
+                            if (needSpace)
+                            {
+                                double spaceLeft = word.right;
+                                double spaceRight = Math.Min(nextWord.left, spaceLeft + charWidth * 0.6);
+                                
+                                
+                                if (spaceRight <= spaceLeft)
+                                {
+                                    spaceRight = spaceLeft + charWidth * 0.6; 
+                                }
+                                
+                                var spaceBox = new[] {
+                                    new[] { spaceLeft, (double)word.top },
+                                    new[] { spaceRight, (double)word.top },
+                                    new[] { spaceRight, (double)word.bottom },
+                                    new[] { spaceLeft, (double)word.bottom }
+                                };
+                                
+                                results.Add(new
+                                {
+                                    text = " ",
+                                    confidence = Math.Min(word.confidence, nextWord.confidence),
+                                    rect = spaceBox,
+                                    is_character = true
+                                });
+                                
+                                Console.WriteLine($"Added space between '{word.text}' and '{nextWord.text}'");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Find all word nodes
+                    var wordNodes = doc.SelectNodes("//span[@class='ocrx_word']");
+                    
+                    if (wordNodes == null || wordNodes.Count == 0)
+                    {
+                        Console.WriteLine("No word nodes found in HOCR");
+                        return ParseHocrWithRegex(hocrText, imageWidth, imageHeight, overallConfidence, minConfidence);
+                    }
+                    
+                    var allWords = new List<(string text, int left, int top, int right, int bottom, float confidence)>();
+                    
+                    foreach (System.Xml.XmlNode wordNode in wordNodes)
+                    {
+                        string titleAttr = wordNode.Attributes?["title"]?.Value ?? "";
+                        string wordText = wordNode.InnerText?.Trim() ?? "";
+                        
+                        if (string.IsNullOrEmpty(wordText)) continue;
+                        
+                        // Extract bounding box from title attribute
+                        var bboxMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"bbox\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
+                        if (!bboxMatch.Success) continue;
+                        
+                        int left = int.Parse(bboxMatch.Groups[1].Value);
+                        int top = int.Parse(bboxMatch.Groups[2].Value);
+                        int right = int.Parse(bboxMatch.Groups[3].Value);
+                        int bottom = int.Parse(bboxMatch.Groups[4].Value);
+                        
+                        // Extract confidence if available
+                        float wordConfidence = overallConfidence;
+                        var confMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"x_wconf\s+(\d+)");
+                        if (confMatch.Success)
+                        {
+                            wordConfidence = float.Parse(confMatch.Groups[1].Value) / 100.0f;
+                        }
+                        
+                        // add word to list if confidence is high enough
+                        if (wordConfidence >= minConfidence)
+                        {
+                            allWords.Add((wordText, left, top, right, bottom, wordConfidence));
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping low confidence word: '{wordText}' ({wordConfidence:P2})");
+                        }
+                    }
+                    
+                    
+                    allWords = allWords.OrderBy(w => w.top).ThenBy(w => w.left).ToList();
+                    
+                    // Group words by line
+                    var lines = new List<List<(string text, int left, int top, int right, int bottom, float confidence)>>();
+                    List<(string text, int left, int top, int right, int bottom, float confidence)> currentLine = null;
+                    
+                    foreach (var word in allWords)
+                    {
+                        if (currentLine == null)
+                        {
+                            currentLine = new List<(string text, int left, int top, int right, int bottom, float confidence)> { word };
+                        }
+                        else
+                        {
+                            // Check if word is on the same line as the last word
+                            var lastWord = currentLine.Last();
+                            int lineHeight = lastWord.bottom - lastWord.top;
+                            
+                            if (Math.Abs(word.top - lastWord.top) <= lineHeight * 0.5)
+                            {
+                                // Same line
+                                currentLine.Add(word);
+                            }
+                            else
+                            {
+                                // New line
+                                lines.Add(currentLine);
+                                currentLine = new List<(string text, int left, int top, int right, int bottom, float confidence)> { word };
+                            }
+                        }
+                    }
+                    
+                    // Add last line
+                    if (currentLine != null && currentLine.Count > 0)
+                    {
+                        lines.Add(currentLine);
+                    }
+                    
+                    // handle each line
+                    foreach (var line in lines)
+                    {
+                        if (line.Count == 0) continue;
+                        
+                       
+                        var lineText = string.Join(" ", line.Select(w => w.text));
+                        
+                        // Calculate bounding box for line
+                        int lineLeft = line.Min(w => w.left);
+                        int lineTop = line.Min(w => w.top);
+                        int lineRight = line.Max(w => w.right);
+                        int lineBottom = line.Max(w => w.bottom);
+                        
+                        // Calculate average confidence
+                        float lineConfidence = line.Average(w => w.confidence);
+                        
+                        // Add line to results if confidence is high enough
+                        if (lineConfidence >= minConfidence)
+                        {
+                            // Create bounding box for line
+                            var lineBox = new[] {
+                                new[] { (double)lineLeft, (double)lineTop },
+                                new[] { (double)lineRight, (double)lineTop },
+                                new[] { (double)lineRight, (double)lineBottom },
+                                new[] { (double)lineLeft, (double)lineBottom }
+                            };
+                            
+                            results.Add(new
+                            {
+                                text = lineText,
+                                confidence = lineConfidence,
+                                rect = lineBox,
+                                is_character = false
+                            });
+                            
+                            Console.WriteLine($"Added line with confidence {lineConfidence:P2}: '{lineText}'");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping low confidence line: '{lineText}' ({lineConfidence:P2})");
                         }
                     }
                 }
                 
-                Console.WriteLine($"Parsed {results.Count} characters from HOCR XML");
+                Console.WriteLine($"Parsed {results.Count} items from HOCR XML");
             }
             catch (Exception ex)
             {
@@ -476,7 +615,10 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Using regex fallback for HOCR parsing");
                 
-                // Regex pattern to match word spans with bounding boxes
+                // Check if we should use character level
+                bool useCharacterLevel = false;
+                
+                
                 var wordPattern = @"<span\s+class=['""]ocrx_word['""][^>]*title=['""]([^'""]*)['""][^>]*>([^<]+)</span>";
                 var matches = System.Text.RegularExpressions.Regex.Matches(hocrText, wordPattern);
                 
@@ -491,7 +633,7 @@ namespace RSTGameTranslation
                         
                         if (string.IsNullOrEmpty(wordText)) continue;
                         
-                        // Extract bounding box
+                        // Extract bounding box from title attribute
                         var bboxMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"bbox\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
                         if (!bboxMatch.Success) continue;
                         
@@ -500,7 +642,7 @@ namespace RSTGameTranslation
                         int right = int.Parse(bboxMatch.Groups[3].Value);
                         int bottom = int.Parse(bboxMatch.Groups[4].Value);
                         
-                        // Extract confidence
+                        // Extract confidence if available
                         float wordConfidence = overallConfidence;
                         var confMatch = System.Text.RegularExpressions.Regex.Match(titleAttr, @"x_wconf\s+(\d+)");
                         if (confMatch.Success)
@@ -508,81 +650,182 @@ namespace RSTGameTranslation
                             wordConfidence = float.Parse(confMatch.Groups[1].Value) / 100.0f;
                         }
                         
-                        allWords.Add((wordText, left, top, right, bottom, wordConfidence));
-                    }
-                }
-                
-                // Sort and process words (same logic as XML version)
-                allWords = allWords.OrderBy(w => w.top).ThenBy(w => w.left).ToList();
-                
-                for (int wordIndex = 0; wordIndex < allWords.Count; wordIndex++)
-                {
-                    var word = allWords[wordIndex];
-                    
-                    if (word.confidence < minConfidence) continue;
-                    
-                    double charWidth = (double)(word.right - word.left) / word.text.Length;
-                    
-                    for (int charIndex = 0; charIndex < word.text.Length; charIndex++)
-                    {
-                        char c = word.text[charIndex];
-                        if (char.IsWhiteSpace(c)) continue;
                         
-                        double charLeft = word.left + (charIndex * charWidth);
-                        double charRight = charLeft + charWidth;
-                        
-                        var charBox = new[] {
-                            new[] { charLeft, (double)word.top },
-                            new[] { charRight, (double)word.top },
-                            new[] { charRight, (double)word.bottom },
-                            new[] { charLeft, (double)word.bottom }
-                        };
-                        
-                        results.Add(new
+                        if (wordConfidence >= minConfidence)
                         {
-                            text = c.ToString(),
-                            confidence = word.confidence,
-                            rect = charBox,
-                            is_character = true
-                        });
-                    }
-                    
-                    // Add space logic
-                    if (wordIndex < allWords.Count - 1)
-                    {
-                        var nextWord = allWords[wordIndex + 1];
-                        if (ShouldAddSpaceBetweenWords(word, nextWord))
+                            allWords.Add((wordText, left, top, right, bottom, wordConfidence));
+                        }
+                        else
                         {
-                            double spaceLeft = word.right;
-                            double spaceRight = nextWord.left;
-                            if (spaceRight <= spaceLeft)
-                            {
-                                spaceRight = spaceLeft + (word.right - word.left) * 0.3;
-                            }
-                            
-                            var spaceBox = new[] {
-                                new[] { spaceLeft, (double)Math.Min(word.top, nextWord.top) },
-                                new[] { spaceRight, (double)Math.Min(word.top, nextWord.top) },
-                                new[] { spaceRight, (double)Math.Max(word.bottom, nextWord.bottom) },
-                                new[] { spaceLeft, (double)Math.Max(word.bottom, nextWord.bottom) }
-                            };
-                            
-                            results.Add(new
-                            {
-                                text = " ",
-                                confidence = Math.Min(word.confidence, nextWord.confidence),
-                                rect = spaceBox,
-                                is_character = true
-                            });
+                            Console.WriteLine($"Skipping low confidence word (regex): '{wordText}' ({wordConfidence:P2})");
                         }
                     }
                 }
                 
-                Console.WriteLine($"Parsed {results.Count} characters from HOCR regex");
+                
+                allWords = allWords.OrderBy(w => w.top).ThenBy(w => w.left).ToList();
+                
+                if (useCharacterLevel)
+                {
+                    
+                    for (int wordIndex = 0; wordIndex < allWords.Count; wordIndex++)
+                    {
+                        var word = allWords[wordIndex];
+                        
+                        double charWidth = (double)(word.right - word.left) / Math.Max(word.text.Length, 1);
+                        double charPadding = charWidth * 0.15; // 15% chiều rộng ký tự
+                        double effectiveCharWidth = charWidth - charPadding;
+                        
+                        for (int charIndex = 0; charIndex < word.text.Length; charIndex++)
+                        {
+                            char c = word.text[charIndex];
+                            if (char.IsWhiteSpace(c)) continue;
+                            
+                            double charLeft = word.left + (charIndex * charWidth) + (charPadding / 2);
+                            double charRight = charLeft + effectiveCharWidth;
+                            
+                            var charBox = new[] {
+                                new[] { charLeft, (double)word.top },
+                                new[] { charRight, (double)word.top },
+                                new[] { charRight, (double)word.bottom },
+                                new[] { charLeft, (double)word.bottom }
+                            };
+                            
+                            results.Add(new
+                            {
+                                text = c.ToString(),
+                                confidence = word.confidence,
+                                rect = charBox,
+                                is_character = true
+                            });
+                        }
+                        
+                        
+                        if (wordIndex < allWords.Count - 1)
+                        {
+                            var nextWord = allWords[wordIndex + 1];
+                            if (ShouldAddSpaceBetweenWords(word, nextWord))
+                            {
+                                double spaceLeft = word.right;
+                                double spaceRight = Math.Min(nextWord.left, spaceLeft + charWidth * 0.6);
+                                
+                                if (spaceRight <= spaceLeft)
+                                {
+                                    spaceRight = spaceLeft + charWidth * 0.6;
+                                }
+                                
+                                var spaceBox = new[] {
+                                    new[] { spaceLeft, (double)word.top },
+                                    new[] { spaceRight, (double)word.top },
+                                    new[] { spaceRight, (double)word.bottom },
+                                    new[] { spaceLeft, (double)word.bottom }
+                                };
+                                
+                                results.Add(new
+                                {
+                                    text = " ",
+                                    confidence = Math.Min(word.confidence, nextWord.confidence),
+                                    rect = spaceBox,
+                                    is_character = true
+                                });
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Group line by word
+                    var lines = new List<List<(string text, int left, int top, int right, int bottom, float confidence)>>();
+                    List<(string text, int left, int top, int right, int bottom, float confidence)> currentLine = null;
+                    
+                    foreach (var word in allWords)
+                    {
+                        if (currentLine == null)
+                        {
+                            currentLine = new List<(string text, int left, int top, int right, int bottom, float confidence)> { word };
+                        }
+                        else
+                        {
+                            // Check if word is on the same line as the last word
+                            var lastWord = currentLine.Last();
+                            int lineHeight = lastWord.bottom - lastWord.top;
+                            
+                            if (Math.Abs(word.top - lastWord.top) <= lineHeight * 0.5)
+                            {
+                                // Same line
+                                currentLine.Add(word);
+                            }
+                            else
+                            {
+                                // New line
+                                lines.Add(currentLine);
+                                currentLine = new List<(string text, int left, int top, int right, int bottom, float confidence)> { word };
+                            }
+                        }
+                    }
+                    
+                    // Add last line
+                    if (currentLine != null && currentLine.Count > 0)
+                    {
+                        lines.Add(currentLine);
+                    }
+                    
+                   
+                    foreach (var line in lines)
+                    {
+                        if (line.Count == 0) continue;
+                        
+                        
+                        var lineText = string.Join(" ", line.Select(w => w.text));
+                        
+                        // Calculate bounding box for line
+                        int lineLeft = line.Min(w => w.left);
+                        int lineTop = line.Min(w => w.top);
+                        int lineRight = line.Max(w => w.right);
+                        int lineBottom = line.Max(w => w.bottom);
+                        
+                        
+                        float lineConfidence = line.Average(w => w.confidence);
+                        
+                        
+                        if (lineConfidence >= minConfidence)
+                        {
+                            
+                            var lineBox = new[] {
+                                new[] { (double)lineLeft, (double)lineTop },
+                                new[] { (double)lineRight, (double)lineTop },
+                                new[] { (double)lineRight, (double)lineBottom },
+                                new[] { (double)lineLeft, (double)lineBottom }
+                            };
+                            
+                            results.Add(new
+                            {
+                                text = lineText,
+                                confidence = lineConfidence,
+                                rect = lineBox,
+                                is_character = false
+                            });
+                            
+                            Console.WriteLine($"Added line with confidence {lineConfidence:P2}: '{lineText}'");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping low confidence line (regex): '{lineText}' ({lineConfidence:P2})");
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"Parsed {results.Count} items from HOCR regex");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in regex HOCR parsing: {ex.Message}");
+                
+                // Fallback to simple character results
+                if (string.IsNullOrEmpty(hocrText))
+                {
+                    return CreateSimpleCharacterResults("", imageWidth, imageHeight, overallConfidence, minConfidence);
+                }
             }
             
             return results;
@@ -612,89 +855,129 @@ namespace RSTGameTranslation
             
             if (string.IsNullOrEmpty(text)) return results;
             
+            // Check if we should use character level
+            bool useCharacterLevel = false;
+            
             // Split text into lines
             string[] lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             
             double lineHeight = (double)imageHeight / Math.Max(lines.Length, 1);
             
-            for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+            // Check overall confidence
+            if (overallConfidence < minConfidence)
             {
-                string line = lines[lineIndex];
-                if (string.IsNullOrEmpty(line)) continue;
+                Console.WriteLine($"Skipping all text due to low overall confidence: {overallConfidence:P2} < {minConfidence:P2}");
+                return results;
+            }
+            
+            if (useCharacterLevel)
+            {
                 
-                double lineTop = lineIndex * lineHeight;
-                double lineBottom = lineTop + lineHeight;
-                
-                // Split into words
-                string[] words = line.Split(' ');
-                
-                // Calculate positions
-                double totalChars = line.Length;
-                double charWidth = imageWidth / totalChars;
-                double currentX = 0;
-                
-                for (int wordIndex = 0; wordIndex < words.Length; wordIndex++)
+                for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
                 {
-                    string word = words[wordIndex];
+                    string line = lines[lineIndex];
+                    if (string.IsNullOrEmpty(line)) continue;
                     
-                    // Add characters in word
-                    for (int i = 0; i < word.Length; i++)
-                    {
-                        char c = word[i];
-                        
-                        double charLeft = currentX;
-                        double charRight = currentX + charWidth;
-                        
-                        var charBox = new[] {
-                            new[] { charLeft, lineTop },
-                            new[] { charRight, lineTop },
-                            new[] { charRight, lineBottom },
-                            new[] { charLeft, lineBottom }
-                        };
-                        
-                        results.Add(new
-                        {
-                            text = c.ToString(),
-                            confidence = overallConfidence,
-                            rect = charBox,
-                            is_character = true
-                        });
-                        
-                        currentX += charWidth;
-                    }
+                    double lineTop = lineIndex * lineHeight;
+                    double lineBottom = lineTop + lineHeight;
                     
-                    // Add space after word (except last word)
-                    if (wordIndex < words.Length - 1)
+                    // Split into words
+                    string[] words = line.Split(' ');
+                    
+                    // Calculate positions
+                    double totalChars = line.Length;
+                    double charWidth = imageWidth / Math.Max(totalChars, 1);
+                    double currentX = 0;
+                    
+                    for (int wordIndex = 0; wordIndex < words.Length; wordIndex++)
                     {
-                        double spaceLeft = currentX;
-                        double spaceRight = currentX + charWidth;
+                        string word = words[wordIndex];
                         
-                        var spaceBox = new[] {
-                            new[] { spaceLeft, lineTop },
-                            new[] { spaceRight, lineTop },
-                            new[] { spaceRight, lineBottom },
-                            new[] { spaceLeft, lineBottom }
-                        };
-                        
-                        results.Add(new
+                        // Add characters in word
+                        for (int i = 0; i < word.Length; i++)
                         {
-                            text = " ",
-                            confidence = overallConfidence,
-                            rect = spaceBox,
-                            is_character = true
-                        });
+                            char c = word[i];
+                            
+                            double charLeft = currentX;
+                            double charRight = currentX + charWidth;
+                            
+                            var charBox = new[] {
+                                new[] { charLeft, lineTop },
+                                new[] { charRight, lineTop },
+                                new[] { charRight, lineBottom },
+                                new[] { charLeft, lineBottom }
+                            };
+                            
+                            results.Add(new
+                            {
+                                text = c.ToString(),
+                                confidence = overallConfidence,
+                                rect = charBox,
+                                is_character = true
+                            });
+                            
+                            currentX += charWidth;
+                        }
                         
-                        currentX += charWidth;
+                        // Add space after word (except last word)
+                        if (wordIndex < words.Length - 1)
+                        {
+                            double spaceLeft = currentX;
+                            double spaceRight = currentX + charWidth;
+                            
+                            var spaceBox = new[] {
+                                new[] { spaceLeft, lineTop },
+                                new[] { spaceRight, lineTop },
+                                new[] { spaceRight, lineBottom },
+                                new[] { spaceLeft, lineBottom }
+                            };
+                            
+                            results.Add(new
+                            {
+                                text = " ",
+                                confidence = overallConfidence,
+                                rect = spaceBox,
+                                is_character = true
+                            });
+                            
+                            currentX += charWidth;
+                        }
                     }
+                }
+            }
+            else
+            {
+                
+                for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+                {
+                    string line = lines[lineIndex];
+                    if (string.IsNullOrEmpty(line)) continue;
+                    
+                    double lineTop = lineIndex * lineHeight;
+                    double lineBottom = lineTop + lineHeight;
+                    
+                    // Create bounding box for line
+                    var lineBox = new[] {
+                        new[] { 0.0, lineTop },
+                        new[] { (double)imageWidth, lineTop },
+                        new[] { (double)imageWidth, lineBottom },
+                        new[] { 0.0, lineBottom }
+                    };
+                    
+                    results.Add(new
+                    {
+                        text = line,
+                        confidence = overallConfidence,
+                        rect = lineBox,
+                        is_character = false
+                    });
+                    
+                    Console.WriteLine($"Added simple line with confidence {overallConfidence:P2}: '{line}'");
                 }
             }
             
             return results;
         }
-
-
-
-
 
 
         // Helper method to check if current language matches requested language
