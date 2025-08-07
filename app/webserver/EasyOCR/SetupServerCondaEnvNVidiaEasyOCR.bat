@@ -21,7 +21,7 @@ call conda activate ocrstuffeasyocr
 
 REM Install PyTorch with GPU support (includes correct CUDA and cuDNN versions)
 echo Installing PyTorch with GPU support...
-call pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu118
+call pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
 
 REM Install additional dependencies
 call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyyaml==6.0.2 requests==2.32.3
