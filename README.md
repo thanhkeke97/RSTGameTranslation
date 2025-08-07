@@ -24,7 +24,7 @@
 - Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, only work win 11)
 
 🤖 **AI-Powered Translation**
-- Support for multiple LLMs: Gemini, ChatGPT, Ollama
+- Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral
 - Google Translate integration
 - Context-aware translations for better accuracy
 
