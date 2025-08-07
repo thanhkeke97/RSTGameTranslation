@@ -920,6 +920,7 @@ namespace RSTGameTranslation
                 bool isOllamaSelected = selectedService == "Ollama";
                 bool isGeminiSelected = selectedService == "Gemini";
                 bool isChatGptSelected = selectedService == "ChatGPT";
+                bool isMistralSelected = selectedService == "Mistral";
                 bool isGoogleTranslateSelected = selectedService == "Google Translate";
 
                 // Make sure the window is fully loaded and controls are initialized
@@ -928,6 +929,8 @@ namespace RSTGameTranslation
                     ollamaModelLabel == null || ollamaModelGrid == null ||
                     geminiApiKeyLabel == null || geminiApiKeyPasswordBox == null ||
                     geminiModelLabel == null || geminiModelGrid == null ||
+                    mistralApiKeyLabel == null || mistralApiKeyPasswordBox == null ||
+                    mistralModelLabel == null || mistralModelGrid == null ||
                     chatGptApiKeyLabel == null || chatGptApiKeyGrid == null ||
                     chatGptModelLabel == null || chatGptModelGrid == null ||
                     googleTranslateApiKeyLabel == null || googleTranslateApiKeyGrid == null ||
@@ -946,6 +949,15 @@ namespace RSTGameTranslation
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiNote.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+
+                // Show/hide Mistral-specific settings
+                mistralApiKeyLabel.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
+                mistralApiKeyPasswordBox.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
+                mistralApiKeyHelpText.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
+                mistralModelLabel.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
+                mistralModelGrid.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
+                viewMistralKeysButton.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
+                mistralNote.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Ollama-specific settings
                 ollamaUrlLabel.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -1017,6 +1029,37 @@ namespace RSTGameTranslation
 
                     // Reattach event handler
                     geminiModelComboBox.SelectionChanged += GeminiModelComboBox_SelectionChanged;
+                }
+                else if (isMistralSelected)
+                {
+                    mistralApiKeyPasswordBox.Password = ConfigManager.Instance.GetMistralApiKey();
+
+                    // Set selected Gemini model
+                    string mistralModel = ConfigManager.Instance.GetMistralModel();
+
+                    // Temporarily remove event handlers to avoid triggering changes
+                    mistralModelComboBox.SelectionChanged -= MistralModelComboBox_SelectionChanged;
+
+                    // First try to find exact match in dropdown items
+                    bool found = false;
+                    foreach (ComboBoxItem item in mistralModelComboBox.Items)
+                    {
+                        if (string.Equals(item.Content?.ToString(), mistralModel, StringComparison.OrdinalIgnoreCase))
+                        {
+                            mistralModelComboBox.SelectedItem = item;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    // If not found in dropdown, set as custom text
+                    if (!found)
+                    {
+                        mistralModelComboBox.Text = mistralModel;
+                    }
+
+                    // Reattach event handler
+                    mistralModelComboBox.SelectionChanged += MistralModelComboBox_SelectionChanged;
                 }
                 else if (isOllamaSelected)
                 {
@@ -1223,6 +1266,19 @@ namespace RSTGameTranslation
             }
         }
 
+        // Mistral API Key changed
+        private void MistralApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Console.WriteLine("Gemini API key updated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Mistral API key: {ex.Message}");
+            }
+        }
+
         // Ollama URL changed
         private void OllamaUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -1298,6 +1354,11 @@ namespace RSTGameTranslation
             OpenUrl("https://ai.google.dev/tutorials/setup");
         }
 
+        private void MistralApiLink_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://docs.mistral.ai/getting-started");
+        }
+
         private void GeminiModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -1344,9 +1405,60 @@ namespace RSTGameTranslation
             }
         }
 
+        private void MistralModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string model;
+
+                // Handle both dropdown selection and manually typed values
+                if (mistralModelComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    model = selectedItem.Content?.ToString() ?? "open-mistral-nemo";
+                }
+                else
+                {
+                    // For manually entered text
+                    model = mistralModelComboBox.Text?.Trim() ?? "open-mistral-nemo";
+                }
+
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetMistralModel(model);
+                    Console.WriteLine($"Mistral model set to: {model}");
+
+                    // Trigger retranslation if the current service is Mistral
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Mistral")
+                    {
+                        Console.WriteLine("Mistral model changed. Triggering retranslation...");
+
+                        // Reset the hash to force a retranslation
+                        Logic.Instance.ResetHash();
+
+                        // Clear any existing text objects to refresh the display
+                        Logic.Instance.ClearAllTextObjects();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Mistral model: {ex.Message}");
+            }
+        }
+
         private void ViewGeminiModelsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ai.google.dev/gemini-api/docs/models");
+        }
+
+        private void ViewMistralModelsButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://docs.mistral.ai/getting-started/models/models_overview/");
         }
 
         private void GeminiModelComboBox_LostFocus(object sender, RoutedEventArgs e)
@@ -1379,6 +1491,39 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating Gemini model from text input: {ex.Message}");
+            }
+        }
+
+        private void MistralModelComboBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string model = mistralModelComboBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetMistralModel(model);
+                    Console.WriteLine($"Mistral model set from text input to: {model}");
+
+                    // Trigger retranslation if the current service is Gemini
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Gemini")
+                    {
+                        // Reset the hash to force a retranslation
+                        Logic.Instance.ResetHash();
+
+                        // Clear any existing text objects to refresh the display
+                        Logic.Instance.ClearAllTextObjects();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Mistral model from text input: {ex.Message}");
             }
         }
 

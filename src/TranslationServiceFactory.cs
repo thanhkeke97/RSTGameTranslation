@@ -21,6 +21,7 @@ namespace RSTGameTranslation
                 "Ollama" => new OllamaTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
+                "Mistral" => new MistralTranslationService(),
                 _ => new GeminiTranslationService() // Default to Gemini if unknown
             };
         }
@@ -38,6 +39,7 @@ namespace RSTGameTranslation
                 "Ollama" => new OllamaTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
+                "Mistral" => new MistralTranslationService(),
                 _ => throw new ArgumentException($"Unknown translation service: {serviceName}")
             };
         }

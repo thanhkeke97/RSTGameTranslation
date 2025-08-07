@@ -19,12 +19,14 @@ namespace RSTGameTranslation
         private readonly string _geminiConfigFilePath;
         private readonly string _ollamaConfigFilePath;
         private readonly string _chatgptConfigFilePath;
+        private readonly string _mistralConfigFilePath;
         private readonly string _googleTranslateConfigFilePath;
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
         public const string GEMINI_API_KEYS = "gemini_api_keys";
         public const string CHATGPT_API_KEYS = "chatgpt_api_keys";
+        public const string MISTRAL_API_KEYS = "mistral_api_keys";
         public const string GOOGLE_TRANSLATE_API_KEYS = "google_translate_api_keys";
         public const string ELEVENLABS_API_KEYS = "elevenlabs_api_keys";
         public const string GOOGLE_TTS_API_KEYS = "google_tts_api_keys";
@@ -33,6 +35,8 @@ namespace RSTGameTranslation
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
         public const string GEMINI_MODEL = "gemini_model";
+        public const string MISTRAL_API_KEY = "mistral_api_key";
+        public const string MISTRAL_MODEL = "mistral_model";
         public const string TRANSLATION_SERVICE = "translation_service";
         public const string OCR_METHOD = "ocr_method";
         public const string OLLAMA_URL = "ollama_url";
@@ -112,6 +116,21 @@ namespace RSTGameTranslation
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +
                     "Here is the input JSON:";
+        public const string defaultMistralPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
+                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
+                    "so please try to infer the context and which parts are menu or dialog.\n" +
+                    "You should:\n" +
+                    "* Output ONLY the resulting JSON data.\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
+                    "* No extra text, explanations, or formatting should be included.\n" +
+                    "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
+                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
+                    "* Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
+                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
+                    "so they aren't mushed together, but each on their own text line.\n\n" +
+                    "Here is the input JSON:";
         public const string defaultChatGptPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
                     "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
                     "so please try to infer the context and which parts are menu or dialog.\n" +
@@ -167,12 +186,14 @@ namespace RSTGameTranslation
             _geminiConfigFilePath = Path.Combine(appDirectory, "gemini_config.txt");
             _ollamaConfigFilePath = Path.Combine(appDirectory, "ollama_config.txt");
             _chatgptConfigFilePath = Path.Combine(appDirectory, "chatgpt_config.txt");
+            _mistralConfigFilePath = Path.Combine(appDirectory, "mistral_config.txt");
             _googleTranslateConfigFilePath = Path.Combine(appDirectory, "google_translate_config.txt");
             
             Console.WriteLine($"Config file path: {_configFilePath}");
             Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
             Console.WriteLine($"Ollama config file path: {_ollamaConfigFilePath}");
             Console.WriteLine($"ChatGPT config file path: {_chatgptConfigFilePath}");
+            Console.WriteLine($"Mistral config file path: {_mistralConfigFilePath}");
             Console.WriteLine($"Google Translate config file path: {_googleTranslateConfigFilePath}");
             
             // Load main config values
@@ -310,6 +331,8 @@ namespace RSTGameTranslation
             _configValues[MIN_TEXT_FRAGMENT_SIZE] = "1";
             _configValues[CHATGPT_MODEL] = "gpt-4.1-nano";
             _configValues[CHATGPT_API_KEY] = "<your API key here>";
+            _configValues[MISTRAL_MODEL] = "open-mistral-nemo";
+            _configValues[MISTRAL_API_KEY] = "<your API key here>";
             _configValues[GEMINI_MODEL] = "gemini-2.0-flash-lite";
             _configValues[BLOCK_DETECTION_SCALE] = "3.00";
             _configValues[BLOCK_DETECTION_SETTLE_TIME] = "0.15";
@@ -543,6 +566,19 @@ namespace RSTGameTranslation
             _configValues[GEMINI_API_KEY] = apiKey;
             SaveConfig();
         }
+
+        // Get Mistral API key
+        public string GetMistralApiKey()
+        {
+            return GetValue(MISTRAL_API_KEY);
+        }
+        
+        // Set Mistral API key
+        public void SetMistralApiKey(string apiKey)
+        {
+            _configValues[MISTRAL_API_KEY] = apiKey;
+            SaveConfig();
+        }
         
         // Get/Set Ollama URL
         public string GetOllamaUrl()
@@ -608,7 +644,7 @@ namespace RSTGameTranslation
         // Set current translation service
         public void SetTranslationService(string service)
         {
-            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate")
+            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral")
             {
                 _currentTranslationService = service;
                 _configValues[TRANSLATION_SERVICE] = service;
@@ -657,6 +693,10 @@ namespace RSTGameTranslation
             {
                 return defaultChatGptPrompt;
             }
+            else if (service == "Mistral")
+            {
+                return defaultMistralPrompt;
+            }
             else if (service == "Ollama")
             {
                 return defaultOllamaPrompt;
@@ -679,6 +719,14 @@ namespace RSTGameTranslation
                     string geminiContent = $"<llm_prompt_multi_start>\n{defaultGeminiPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_geminiConfigFilePath, geminiContent);
                     Console.WriteLine("Created default Gemini config file");
+                }
+
+                // Check and create Mistral config file
+                if (!File.Exists(_mistralConfigFilePath))
+                {
+                    string mistralContent = $"<llm_prompt_multi_start>\n{defaultMistralPrompt}\n<llm_prompt_multi_end>";
+                    File.WriteAllText(_mistralConfigFilePath, mistralContent);
+                    Console.WriteLine("Created default Mistral config file");
                 }
 
                 // Check and create Ollama config file
@@ -733,6 +781,9 @@ namespace RSTGameTranslation
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
                     break;
+                case "Mistral":
+                    filePath = _mistralConfigFilePath;
+                    break;
                 default:
                     filePath = _geminiConfigFilePath;
                     break;
@@ -785,6 +836,9 @@ namespace RSTGameTranslation
                     break;
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
+                    break;
+                case "Mistral":
+                    filePath = _mistralConfigFilePath;
                     break;
                 default:
                     filePath = _geminiConfigFilePath;
@@ -1376,6 +1430,23 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Gemini model set to: {model}");
             }
         }
+
+        // Get Mistral model
+        public string GetMistralModel()
+        {
+            return GetValue(MISTRAL_MODEL, "open-mistral-nemo"); // Default to open-mistral-nemo
+        }
+        
+        // Set Gemini model
+        public void SetMistralModel(string model)
+        {
+            if (!string.IsNullOrWhiteSpace(model))
+            {
+                _configValues[MISTRAL_MODEL] = model;
+                SaveConfig();
+                Console.WriteLine($"Mistral model set to: {model}");
+            }
+        }
         
         // OCR Display methods
         
@@ -1415,6 +1486,9 @@ namespace RSTGameTranslation
                 case "ChatGPT":
                     keysConfigKey = CHATGPT_API_KEYS;
                     break;
+                case "Mistral":
+                    keysConfigKey = MISTRAL_API_KEYS;
+                    break;
                 case "Google Translate":
                     keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
                     break;
@@ -1445,6 +1519,9 @@ namespace RSTGameTranslation
                     break;
                 case "ChatGPT":
                     keysConfigKey = CHATGPT_API_KEYS;
+                    break;
+                case "Mistral":
+                    keysConfigKey = MISTRAL_API_KEYS;
                     break;
                 case "Google Translate":
                     keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
@@ -1502,6 +1579,8 @@ namespace RSTGameTranslation
                     return GEMINI_API_KEY;
                 case "ChatGPT":
                     return CHATGPT_API_KEY;
+                case "Mistral":
+                    return MISTRAL_API_KEY;
                 case "Google Translate":
                     return GOOGLE_TRANSLATE_API_KEY;
                 default:

@@ -435,6 +435,7 @@
                                     <ComboBoxItem Content="Gemini"/>
                                     <ComboBoxItem Content="Ollama"/>
                                     <ComboBoxItem Content="ChatGPT"/>
+                                    <ComboBoxItem Content="Mistral"/>
                                     <ComboBoxItem Content="Google Translate"/>
                                 </ComboBox>
                                 
@@ -484,6 +485,51 @@
                                     <Button x:Name="viewGeminiModelsButton" Content="View Models" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewGeminiModelsButton_Click"
                                            ToolTip="Open Gemini models documentation in browser"/>
+                                </Grid>
+                                
+                                <!-- Mistral Model - Only visible when Mistral is selected -->
+                                <TextBlock x:Name="mistralModelLabel" Text="Gemini Model:" Grid.Row="2" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <Grid Grid.Row="2" Grid.Column="1" Margin="0,5" x:Name="mistralModelGrid">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="mistralModelComboBox" Grid.Column="0"
+                                            SelectionChanged="MistralModelComboBox_SelectionChanged"
+                                            LostFocus="MistralModelComboBox_LostFocus"
+                                            IsEditable="True">
+                                        <ComboBoxItem Content="mistral-medium"/>
+                                        <ComboBoxItem Content="open-mistral-nemo"/>
+                                        <ComboBoxItem Content="mistral-small-2503"/>
+                                    </ComboBox>
+                                    <Button x:Name="viewMistralModelsButton" Content="View Models" Grid.Column="1"
+                                           Margin="5,0,0,0" Padding="5,0" Click="ViewMistralModelsButton_Click"
+                                           ToolTip="Open Mistral models documentation in browser"/>
+                                </Grid>
+
+                                <!-- Mistral API Key - Only visible when Mistral is selected -->
+                                <TextBlock x:Name="mistralApiKeyLabel" Text="Mistral API Key:" Grid.Row="1" Grid.Column="0" 
+                                          VerticalAlignment="Top" Margin="0,8,10,0"/>
+                                <Grid Grid.Row="1" Grid.Column="1" Margin="0,5,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <PasswordBox x:Name="mistralApiKeyPasswordBox" Grid.Row="0"
+                                             VerticalAlignment="Top" Margin="0,0,0,2" 
+                                             PasswordChanged="MistralApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
+                                             Tag="Mistral"/>
+                                    <Button x:Name="viewMistralKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
+                                             Click="ViewApiKeysButton_Click" Tag="Mistral" Width="70"/>
+                                    <TextBlock x:Name="mistralNote" Text="Press Enter after entering each API key" Grid.Row="1" TextWrapping="Wrap" 
+                                        Margin="0,2,0,5" FontSize="11" HorizontalAlignment="Left" FontWeight="Bold">
+                                    </TextBlock>
+                                    <TextBlock x:Name="mistralApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                                        <Run>Get API key from (need login mistral AI website before click this link) </Run>
+                                        <Hyperlink Click="MistralApiLink_Click">https://admin.mistral.ai/organization/api-keys</Hyperlink>
+                                    </TextBlock>
                                 </Grid>
                                 
                                 <!-- Ollama URL - Only visible when Ollama is selected -->

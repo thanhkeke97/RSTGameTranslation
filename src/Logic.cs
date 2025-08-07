@@ -1989,6 +1989,61 @@ namespace RSTGameTranslation
                         }
                     }
                 }
+                else if (currentService == "Mistral")
+                {
+                    // Mistral response structure:
+                    // {"id": "...", "object": "chat.completion", "created": ..., "model": "...", 
+                    // "choices": [{"index": 0, "message": {"role": "assistant", "content": "..."}, "finish_reason": "..."}],
+                    // "usage": {"prompt_tokens": ..., "completion_tokens": ..., "total_tokens": ...}}
+                    if (doc.RootElement.TryGetProperty("choices", out JsonElement choices) && 
+                        choices.GetArrayLength() > 0)
+                    {
+                        var firstChoice = choices[0];
+                        
+                        if (firstChoice.TryGetProperty("message", out JsonElement message) &&
+                            message.TryGetProperty("content", out JsonElement contentElement))
+                        {
+                            var content = contentElement.GetString();
+                            
+                            // Log the raw text for debugging
+                            //Console.WriteLine($"Raw text from Mistral API: {content}");
+                            
+                            // Try to extract the JSON object from the text
+                            if (content != null)
+                            {
+                                // Check if we already have a proper translation with text_blocks
+                                if (content.Contains("\"text_blocks\""))
+                                {
+                                    Console.WriteLine("Direct translation detected in Mistral response, using it as is");
+                                    
+                                    // Look for JSON within the text
+                                    int directJsonStart = content.IndexOf('{');
+                                    int directJsonEnd = content.LastIndexOf('}');
+                                    
+                                    if (directJsonStart >= 0 && directJsonEnd > directJsonStart)
+                                    {
+                                        string directJsonText = content.Substring(directJsonStart, directJsonEnd - directJsonStart + 1);
+                                        
+                                        try
+                                        {
+                                            using JsonDocument translatedDoc = JsonDocument.Parse(directJsonText);
+                                            var translatedRoot = translatedDoc.RootElement;
+                                            
+                                            // Now update the text objects with the translation
+                                            ProcessStructuredJsonTranslation(translatedRoot);
+                                            return; 
+                                        }
+                                        catch (JsonException ex)
+                                        {
+                                            Console.WriteLine($"Error parsing direct translation JSON from Mistral: {ex.Message}");
+                                            // Continue with normal processing
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 else if (currentService == "Google Translate")
                 {
                     // Handle response from google translate
