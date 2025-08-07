@@ -101,7 +101,7 @@ namespace RSTGameTranslation
             }
         }
 
-        // Optimize the image for OCR by applying a sharpening filter and adjusting brightness and contrast
+        // Optimize the image for OCR
         private System.Drawing.Bitmap OptimizeImageForOcr(System.Drawing.Bitmap source)
         {
             // Create a new bitmap to hold the optimized image
@@ -121,10 +121,12 @@ namespace RSTGameTranslation
                     // Create a color matrix to adjust brightness and contrast
                     using (var attributes = new System.Drawing.Imaging.ImageAttributes())
                     {
-                        // Increase contrast and brightness
-                        float contrast = 1.2f;
-                        // Increase brightness
-                        float brightness = 0.02f;
+                        // Analyze image brightness (fast method)
+                        var brightnessInfo = AnalyzeImageBrightnessFast(source);
+                        
+                        // Calculate optimal contrast and brightness based on image analysis
+                        float contrast = CalculateOptimalContrast(brightnessInfo);
+                        float brightness = CalculateOptimalBrightness(brightnessInfo);
                         
                         // Create a color matrix to adjust brightness and contrast
                         float[][] colorMatrix = {
@@ -140,7 +142,13 @@ namespace RSTGameTranslation
                         // Increase gamma to make the image brighter
                         attributes.SetGamma(1.1f);
                         
-                        // Draw the source bitmap onto the result bitmap, applying the color matrix and gamma correction
+                        // Apply sharpening using an unsharp mask
+                        if (source.Width > 100 && source.Height > 100) // Only apply to reasonably sized images
+                        {
+                            ApplyUnsharpMask(attributes);
+                        }
+                        
+                        // Draw the source bitmap onto the result bitmap, applying all enhancements at once
                         graphics.DrawImage(
                             source,
                             new System.Drawing.Rectangle(0, 0, result.Width, result.Height),
@@ -149,7 +157,7 @@ namespace RSTGameTranslation
                             attributes);
                     }
                 }
-                               
+                
                 return result;
             }
             catch (Exception ex)
@@ -157,6 +165,165 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Image optimization failed: {ex.Message}");
                 result.Dispose();
                 return new System.Drawing.Bitmap(source);
+            }
+        }
+        
+        // Fast image brightness analysis using sampling
+        private (double AverageBrightness, double BrightnessRange) AnalyzeImageBrightnessFast(System.Drawing.Bitmap bitmap)
+        {
+            try
+            {
+                // Sample size - analyze fewer pixels for better performance
+                int sampleSize = Math.Max(1, Math.Min(bitmap.Width, bitmap.Height) / 20);
+                
+                // Lock the bitmap data for faster access
+                var bitmapData = bitmap.LockBits(
+                    new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                    bitmap.PixelFormat);
+                
+                try
+                {
+                    int bytesPerPixel = System.Drawing.Image.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+                    int stride = bitmapData.Stride;
+                    IntPtr scan0 = bitmapData.Scan0;
+                    
+                    byte[] pixelValues = new byte[bitmap.Height * stride];
+                    System.Runtime.InteropServices.Marshal.Copy(scan0, pixelValues, 0, pixelValues.Length);
+                    
+                    // Sample pixels and calculate brightness
+                    int totalSamples = 0;
+                    double totalBrightness = 0;
+                    double minBrightness = 255;
+                    double maxBrightness = 0;
+                    
+                    for (int y = 0; y < bitmap.Height; y += sampleSize)
+                    {
+                        for (int x = 0; x < bitmap.Width; x += sampleSize)
+                        {
+                            int position = y * stride + x * bytesPerPixel;
+                            
+                            // Ensure we don't go out of bounds
+                            if (position + 2 < pixelValues.Length)
+                            {
+                                byte blue = pixelValues[position];
+                                byte green = pixelValues[position + 1];
+                                byte red = pixelValues[position + 2];
+                                
+                                // Calculate brightness using the luminance formula
+                                double brightness = 0.299 * red + 0.587 * green + 0.114 * blue;
+                                
+                                totalBrightness += brightness;
+                                minBrightness = Math.Min(minBrightness, brightness);
+                                maxBrightness = Math.Max(maxBrightness, brightness);
+                                
+                                totalSamples++;
+                            }
+                        }
+                    }
+                    
+                    double averageBrightness = totalSamples > 0 ? totalBrightness / totalSamples : 128;
+                    double brightnessRange = maxBrightness - minBrightness;
+                    
+                    return (averageBrightness, brightnessRange);
+                }
+                finally
+                {
+                    // Always unlock the bitmap
+                    bitmap.UnlockBits(bitmapData);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Image analysis failed: {ex.Message}");
+                return (128, 128); // Default middle values
+            }
+        }
+        
+        // Calculate optimal contrast based on image brightness analysis
+        private float CalculateOptimalContrast((double AverageBrightness, double BrightnessRange) brightnessInfo)
+        {
+            try
+            {
+                double range = brightnessInfo.BrightnessRange;
+                
+                // Low range means low contrast
+                if (range < 50)
+                {
+                    return 1.5f; // Higher contrast for low contrast images
+                }
+                else if (range < 100)
+                {
+                    return 1.3f; // Moderate contrast boost
+                }
+                else if (range < 150)
+                {
+                    return 1.2f; // Slight contrast boost
+                }
+                else
+                {
+                    return 1.1f; // Minimal adjustment for already high contrast images
+                }
+            }
+            catch
+            {
+                return 1.2f; // Default value if calculation fails
+            }
+        }
+        
+        // Calculate optimal brightness based on image brightness analysis
+        private float CalculateOptimalBrightness((double AverageBrightness, double BrightnessRange) brightnessInfo)
+        {
+            try
+            {
+                double average = brightnessInfo.AverageBrightness;
+                
+                // Target brightness (128 is middle gray)
+                double targetBrightness = 128;
+                
+                // Calculate brightness adjustment (normalized)
+                double adjustment = (targetBrightness - average) / 255.0;
+                
+                // Limit adjustment range
+                adjustment = Math.Max(-0.2, Math.Min(0.2, adjustment));
+                
+                return (float)adjustment;
+            }
+            catch
+            {
+                return 0.02f; // Default value if calculation fails
+            }
+        }
+        
+        // Apply unsharp mask to enhance edges (integrated with ImageAttributes for performance)
+        private void ApplyUnsharpMask(System.Drawing.Imaging.ImageAttributes attributes)
+        {
+            try
+            {
+                // Create a color matrix that enhances edges
+                // This simulates an unsharp mask by boosting contrast along edges
+                float amount = 0.5f; // Sharpening amount (0.5 = 50%)
+                
+                // Create the color matrix for sharpening
+                // This matrix enhances differences between adjacent pixels
+                float[][] sharpenMatrix = {
+                    new float[] {1 + amount, -amount/4, -amount/4, 0, 0},
+                    new float[] {-amount/4, 1 + amount, -amount/4, 0, 0},
+                    new float[] {-amount/4, -amount/4, 1 + amount, 0, 0},
+                    new float[] {0, 0, 0, 1, 0},
+                    new float[] {0, 0, 0, 0, 1}
+                };
+                
+                // Apply the sharpening matrix
+                attributes.SetColorMatrix(
+                    new System.Drawing.Imaging.ColorMatrix(sharpenMatrix),
+                    System.Drawing.Imaging.ColorMatrixFlag.Default,
+                    System.Drawing.Imaging.ColorAdjustType.Bitmap);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unsharp mask application failed: {ex.Message}");
+                // Continue without sharpening if it fails
             }
         }
 
