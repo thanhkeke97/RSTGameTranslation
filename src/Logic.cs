@@ -1522,49 +1522,6 @@ namespace RSTGameTranslation
             }
         }
         
-        // Process bitmap directly with Windows OCR (no file saving)
-        public async void ProcessWithTesseractOCR(System.Drawing.Bitmap bitmap, string sourceLanguage)
-        {
-            try
-            {
-                
-                try
-                {
-                    // Process the OCR results with language code
-                    await TesseractOCRManager.Instance.ProcessImageAsync(bitmap, sourceLanguage);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Tesseract OCR error: {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error processing bitmap with Tesseract OCR: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            }
-            finally
-            {
-                // Make sure bitmap is properly disposed
-                try
-                {
-                    // Dispose bitmap - System.Drawing.Bitmap doesn't have a Disposed property,
-                    // so we'll just dispose it if it's not null
-                    if (bitmap != null)
-                    {
-                        bitmap.Dispose();
-                    }
-                }
-                catch
-                {
-                    // Ignore disposal errors
-                }
-
-                MainWindow.Instance.SetOCRCheckIsWanted(true);
-
-            }
-        }
         
      
         

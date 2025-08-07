@@ -194,7 +194,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Setting OCR method during initialization: {method}");
                 selectedOcrMethod = method;
                 // Important: Update status text even during initialization
-                if (method == "Windows OCR" || method == "Tesseract OCR")
+                if (method == "Windows OCR")
                 {
                     SetStatus($"Using {method} (built-in)");
                 }
@@ -215,7 +215,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"MainWindow changing OCR method from {selectedOcrMethod} to {method}");
                 selectedOcrMethod = method;
                 // No need to handle socket connection here, the MonitorWindow handles that
-                if (method == "Windows OCR" || method == "Tesseract OCR")
+                if (method == "Windows OCR")
                 {
                     if (isStarted)
                     {
@@ -731,7 +731,7 @@ namespace RSTGameTranslation
             String method = ConfigManager.Instance.GetOcrMethod();
             bool isReady = false;
             
-            if (method == "Windows OCR" || method == "Tesseract OCR")
+            if (method == "Windows OCR")
             {
                 // Windows OCR always ready because it don't need server
                 isReady = true;
@@ -1018,11 +1018,6 @@ namespace RSTGameTranslation
                         string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
                         Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
                     }
-                    else if (GetSelectedOcrMethod() == "Tesseract OCR")
-                    {
-                        string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                        Logic.Instance.ProcessWithTesseractOCR(bitmap, sourceLanguage);
-                    }
                     else
                     {
                         //write saving bitmap to log
@@ -1130,7 +1125,7 @@ namespace RSTGameTranslation
                     OcrServerManager.Instance.StopOcrServer();
                     SocketManager.Instance.Disconnect();
                     // Update the UI and connection state based on the selected OCR method
-                    if (ocrMethod == "Windows OCR" || ocrMethod == "Tesseract OCR")
+                    if (ocrMethod == "Windows OCR")
                     {
                         // Using Windows OCR, no need for socket connection
                         SetStatus($"Using {ocrMethod} (built-in)");
@@ -1551,7 +1546,7 @@ namespace RSTGameTranslation
                 string ocrMethod = GetSelectedOcrMethod();
                 
 
-                if (ocrMethod == "Windows OCR" || ocrMethod == "Tesseract OCR")
+                if (ocrMethod == "Windows OCR")
                 {
                     System.Windows.MessageBox.Show($"{ocrMethod} doesn't require starting a server.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
                     btnStartOcrServer.IsEnabled = true;
@@ -1638,7 +1633,7 @@ namespace RSTGameTranslation
                 string ocrMethod = GetSelectedOcrMethod();
                 
 
-                if (ocrMethod == "Windows OCR" || ocrMethod == "Tesseract OCR")
+                if (ocrMethod == "Windows OCR")
                 {
                     System.Windows.MessageBox.Show($"{ocrMethod} doesn't require installing a environment.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
                     btnSetupOcrServer.IsEnabled = true;

@@ -315,7 +315,7 @@ namespace RSTGameTranslation
             _configValues[TRANSLATION_SERVICE] = "Google Translate";
             _configValues[OLLAMA_URL] = "http://localhost";
             _configValues[OLLAMA_PORT] = "11434";
-            _configValues[OCR_METHOD] = "Tesseract OCR";
+            _configValues[OCR_METHOD] = "Windows OCR";
             _configValues[OLLAMA_MODEL] = "gemma3:12b";
             _configValues[SOURCE_LANGUAGE] = "en";
             _configValues[TARGET_LANGUAGE] = "vi";
@@ -671,7 +671,7 @@ namespace RSTGameTranslation
         public void SetOcrMethod(string method)
         {
             Console.WriteLine($"ConfigManager.SetOcrMethod called with method: {method}");
-            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR" || method == "Tesseract OCR")
+            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR")
             {
                 _configValues[OCR_METHOD] = method;
                 SaveConfig();
