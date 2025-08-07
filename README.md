@@ -18,7 +18,7 @@
 ## ✨ Features
 
 🔥 **Real-time Translation**
-- Live automatic translations using EasyOCR, PaddleOCR, Tesseract OCR and Windows OCR
+- Live automatic translations using EasyOCR, PaddleOCR and Windows OCR
 - Powerful overlay chat window for visual novels
 - Full-screen translation capability
 - Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, only work win 11)
@@ -117,7 +117,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 - **OCR**: PaddleOCR (Better for Asian languages, lower resource usage)
 - **LLM**: Gemini Flash 2 Lite (Fast and accurate)
 - **NVIDIA**: PaddleOCR or EasyOCR
-- **AMD, INTEL**: Tesseract OCR, Windows OCR
+- **AMD, INTEL**: Windows OCR
 
 ### Alternative Options
 - **Windows OCR**: Lightweight but less accurate for gaming
