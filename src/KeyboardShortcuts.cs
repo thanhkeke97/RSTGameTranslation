@@ -80,6 +80,11 @@ namespace RSTGameTranslation
         private const int VK_L = 0x4C;    // L key
         private const int VK_P = 0x50;    // P key
         private const int VK_Q = 0x51;    // Q key
+        private const int VK_1 = 0x31;    // 1 key
+        private const int VK_2 = 0x32;    // 2 key
+        private const int VK_3 = 0x33;    // 3 key
+        private const int VK_4 = 0x34;    // 4 key
+        private const int VK_5 = 0x35;    // 5 key
         
         // Hotkey IDs
         private const int HOTKEY_ID_ALT_G = 1;
@@ -89,6 +94,11 @@ namespace RSTGameTranslation
         private const int HOTKEY_ID_ALT_P = 5;  
         private const int HOTKEY_ID_ALT_L = 6; 
         private const int HOTKEY_ID_ALT_Q = 7;
+        private const int HOTKEY_ID_ALT_1 = 8;
+        private const int HOTKEY_ID_ALT_2 = 9;
+        private const int HOTKEY_ID_ALT_3 = 10;
+        private const int HOTKEY_ID_ALT_4 = 11;
+        private const int HOTKEY_ID_ALT_5 = 12;
         
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
@@ -105,6 +115,13 @@ namespace RSTGameTranslation
         // Key polling system for global hotkeys only
         private static CancellationTokenSource? _pollingCts;
         private static bool _isPolling = false;
+
+        // Event for Multi selection area
+        public static event EventHandler? SelectArea1Requested;
+        public static event EventHandler? SelectArea2Requested;
+        public static event EventHandler? SelectArea3Requested;
+        public static event EventHandler? SelectArea4Requested;
+        public static event EventHandler? SelectArea5Requested;
         
         // Set up global keyboard hook and hotkeys
         public static void InitializeGlobalHook()
@@ -130,7 +147,7 @@ namespace RSTGameTranslation
                     }
                 }
             }
-            
+
             // Start key polling as a backup method for global shortcuts only
             StartKeyPolling();
         }
@@ -202,7 +219,7 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Failed to register Alt+L hotkey. Error: {Marshal.GetLastWin32Error()}");
                 }
-                
+
                 // Try to register Alt+Q as a hotkey for selecting translation area
                 if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_Q, MOD_ALT | MOD_NOREPEAT, (uint)VK_Q))
                 {
@@ -211,6 +228,52 @@ namespace RSTGameTranslation
                 else
                 {
                     Console.WriteLine($"Failed to register Alt+Q hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+                
+                // Register Alt+1 through Alt+5 for area switching
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_1, MOD_ALT | MOD_NOREPEAT, (uint)VK_1))
+                {
+                    Console.WriteLine("Registered Alt+1 as global hotkey for area switching");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+1 hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_2, MOD_ALT | MOD_NOREPEAT, (uint)VK_2))
+                {
+                    Console.WriteLine("Registered Alt+2 as global hotkey for area switching");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+2 hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_3, MOD_ALT | MOD_NOREPEAT, (uint)VK_3))
+                {
+                    Console.WriteLine("Registered Alt+3 as global hotkey for area switching");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+3 hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_4, MOD_ALT | MOD_NOREPEAT, (uint)VK_4))
+                {
+                    Console.WriteLine("Registered Alt+4 as global hotkey for area switching");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+4 hotkey. Error: {Marshal.GetLastWin32Error()}");
+                }
+
+                if (RegisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_5, MOD_ALT | MOD_NOREPEAT, (uint)VK_5))
+                {
+                    Console.WriteLine("Registered Alt+5 as global hotkey for area switching");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register Alt+5 hotkey. Error: {Marshal.GetLastWin32Error()}");
                 }
             }
         }
@@ -251,10 +314,35 @@ namespace RSTGameTranslation
                     Console.WriteLine("Hotkey detected: Alt+L");
                     LogToggleRequested?.Invoke(null, EventArgs.Empty);
                     return true;
-                    
+
                 case HOTKEY_ID_ALT_Q:
                     Console.WriteLine("Hotkey detected: Alt+Q");
                     SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_1:
+                    Console.WriteLine("Hotkey detected: Alt+1");
+                    SelectArea1Requested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_2:
+                    Console.WriteLine("Hotkey detected: Alt+2");
+                    SelectArea2Requested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_3:
+                    Console.WriteLine("Hotkey detected: Alt+3");
+                    SelectArea3Requested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_4:
+                    Console.WriteLine("Hotkey detected: Alt+4");
+                    SelectArea4Requested?.Invoke(null, EventArgs.Empty);
+                    return true;
+                    
+                case HOTKEY_ID_ALT_5:
+                    Console.WriteLine("Hotkey detected: Alt+5");
+                    SelectArea5Requested?.Invoke(null, EventArgs.Empty);
                     return true;
             }
             
@@ -281,6 +369,11 @@ namespace RSTGameTranslation
                 bool altPWasPressed = false;
                 bool altLWasPressed = false;
                 bool altQWasPressed = false;
+                bool alt1WasPressed = false;
+                bool alt2WasPressed = false;
+                bool alt3WasPressed = false;
+                bool alt4WasPressed = false;
+                bool alt5WasPressed = false;
                 DateTime lastAltGTime = DateTime.MinValue;
                 DateTime lastAltHTime = DateTime.MinValue;
                 DateTime lastAltFTime = DateTime.MinValue;
@@ -288,6 +381,11 @@ namespace RSTGameTranslation
                 DateTime lastAltPTime = DateTime.MinValue;
                 DateTime lastAltLTime = DateTime.MinValue;
                 DateTime lastAltQTime = DateTime.MinValue;
+                DateTime lastAlt1Time = DateTime.MinValue;
+                DateTime lastAlt2Time = DateTime.MinValue;
+                DateTime lastAlt3Time = DateTime.MinValue;
+                DateTime lastAlt4Time = DateTime.MinValue;
+                DateTime lastAlt5Time = DateTime.MinValue;
                 
                 try
                 {
@@ -419,8 +517,8 @@ namespace RSTGameTranslation
                             if ((now - lastAltQTime).TotalMilliseconds > 500)
                             {
                                 Console.WriteLine("Polling detected: Alt+Q");
-                                
-                                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                                 {
                                     SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
                                 });
@@ -428,6 +526,91 @@ namespace RSTGameTranslation
                             }
                         }
                         altQWasPressed = isAltPressed && isQPressed;
+
+                        // Check for Alt+1
+                        bool is1Pressed = IsKeyPressed(VK_1);
+                        if (isAltPressed && is1Pressed && !alt1WasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAlt1Time).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+1");
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea1Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAlt1Time = now;
+                            }
+                        }
+                        alt1WasPressed = isAltPressed && is1Pressed;
+
+                        // Check for Alt+2
+                        bool is2Pressed = IsKeyPressed(VK_2);
+                        if (isAltPressed && is2Pressed && !alt2WasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAlt2Time).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+2");
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea2Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAlt2Time = now;
+                            }
+                        }
+                        alt2WasPressed = isAltPressed && is2Pressed;
+
+                        // Check for Alt+3
+                        bool is3Pressed = IsKeyPressed(VK_3);
+                        if (isAltPressed && is3Pressed && !alt3WasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAlt3Time).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+3");
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea3Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAlt3Time = now;
+                            }
+                        }
+                        alt3WasPressed = isAltPressed && is3Pressed;
+
+                        // Check for Alt+4
+                        bool is4Pressed = IsKeyPressed(VK_4);
+                        if (isAltPressed && is4Pressed && !alt4WasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAlt4Time).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+4");
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea4Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAlt4Time = now;
+                            }
+                        }
+                        alt4WasPressed = isAltPressed && is4Pressed;
+
+                        // Check for Alt+5
+                        bool is5Pressed = IsKeyPressed(VK_5);
+                        if (isAltPressed && is5Pressed && !alt5WasPressed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if ((now - lastAlt5Time).TotalMilliseconds > 500)
+                            {
+                                Console.WriteLine("Polling detected: Alt+5");
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea5Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                                lastAlt5Time = now;
+                            }
+                        }
+                        alt5WasPressed = isAltPressed && is5Pressed;
 
                         // Sleep to reduce CPU usage
                         await Task.Delay(30, _pollingCts.Token);
@@ -476,6 +659,11 @@ namespace RSTGameTranslation
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_P);
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_L);
                 UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_Q);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_1);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_2);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_3);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_4);
+                UnregisterHotKey(_mainWindowHandle, HOTKEY_ID_ALT_5);
             }
             
             // Remove low-level keyboard hook
@@ -633,9 +821,9 @@ namespace RSTGameTranslation
                             }
                             return (IntPtr)1; // Prevent further processing
                         }
-                        
+
                         // Check for Alt+Q (Select Translation Area) - Global
-                        if (vkCode == VK_Q && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                        if (vkCode == VK_Q && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) &&
                             ShouldProcessKeyPress(VK_Q | 0x1000))
                         {
                             Console.WriteLine("Global shortcut detected: Alt+Q");
@@ -649,6 +837,100 @@ namespace RSTGameTranslation
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Error invoking Alt+Q action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+                        
+                        if (vkCode == VK_1 && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) &&
+                            ShouldProcessKeyPress(VK_1 | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+1");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea1Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+1 action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+
+                        // Check for Alt+2 (Switch to Area 2)
+                        if (vkCode == VK_2 && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_2 | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+2");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea2Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+2 action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+
+                        // Check for Alt+3 (Switch to Area 3)
+                        if (vkCode == VK_3 && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_3 | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+3");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea3Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+3 action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+
+                        // Check for Alt+4 (Switch to Area 4)
+                        if (vkCode == VK_4 && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_4 | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+4");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea4Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+4 action: {ex.Message}");
+                            }
+                            return (IntPtr)1; // Prevent further processing
+                        }
+
+                        // Check for Alt+5 (Switch to Area 5)
+                        if (vkCode == VK_5 && isAltPressed && !IsKeyPressed(VK_SHIFT) && !IsKeyPressed(VK_CONTROL) && 
+                            ShouldProcessKeyPress(VK_5 | 0x1000))
+                        {
+                            Console.WriteLine("Global shortcut detected: Alt+5");
+                            try
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SelectArea5Requested?.Invoke(null, EventArgs.Empty);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error invoking Alt+5 action: {ex.Message}");
                             }
                             return (IntPtr)1; // Prevent further processing
                         }
@@ -704,6 +986,36 @@ namespace RSTGameTranslation
         {
             try
             {
+                if (e.KeyboardDevice.Modifiers == System.Windows.Input.ModifierKeys.Alt)
+                {
+                    switch (e.Key)
+                    {
+                        case System.Windows.Input.Key.D1:
+                        case System.Windows.Input.Key.NumPad1:
+                            SelectArea1Requested?.Invoke(null, EventArgs.Empty);
+                            return true;
+                            
+                        case System.Windows.Input.Key.D2:
+                        case System.Windows.Input.Key.NumPad2:
+                            SelectArea2Requested?.Invoke(null, EventArgs.Empty);
+                            return true;
+                            
+                        case System.Windows.Input.Key.D3:
+                        case System.Windows.Input.Key.NumPad3:
+                            SelectArea3Requested?.Invoke(null, EventArgs.Empty);
+                            return true;
+                            
+                        case System.Windows.Input.Key.D4:
+                        case System.Windows.Input.Key.NumPad4:
+                            SelectArea4Requested?.Invoke(null, EventArgs.Empty);
+                            return true;
+                            
+                        case System.Windows.Input.Key.D5:
+                        case System.Windows.Input.Key.NumPad5:
+                            SelectArea5Requested?.Invoke(null, EventArgs.Empty);
+                            return true;
+                    }
+                }
                 // Alt+G key: Start/Stop OCR (global shortcut)
                 if (e.Key == Key.G && Keyboard.Modifiers == ModifierKeys.Alt)
                 {

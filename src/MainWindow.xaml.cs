@@ -72,6 +72,8 @@ namespace RSTGameTranslation
         private bool isSelectingTranslationArea = false;
         private Rect selectedTranslationArea;
         private bool hasSelectedTranslationArea = false;
+        private List<Rect> savedTranslationAreas = new List<Rect>();
+        private int currentAreaIndex = 0;
 
 
         // Store previous capture position to calculate offset
@@ -337,8 +339,12 @@ namespace RSTGameTranslation
             KeyboardShortcuts.ChatBoxToggleRequested += (s, e) => ChatBoxButton_Click(chatBoxButton, new RoutedEventArgs());
             KeyboardShortcuts.SettingsToggleRequested += (s, e) => SettingsButton_Click(settingsButton, new RoutedEventArgs());
             KeyboardShortcuts.LogToggleRequested += (s, e) => LogButton_Click(logButton, new RoutedEventArgs());
-            // KeyboardShortcuts.MainWindowVisibilityToggleRequested += (s, e) => ToggleMainWindowVisibility();
             KeyboardShortcuts.SelectTranslationRegion += (s, e) => SelectAreaButton_Click(selectAreaButton, new RoutedEventArgs());
+            KeyboardShortcuts.SelectArea1Requested += (s, e) => SwitchToTranslationArea(0);
+            KeyboardShortcuts.SelectArea2Requested += (s, e) => SwitchToTranslationArea(1);
+            KeyboardShortcuts.SelectArea3Requested += (s, e) => SwitchToTranslationArea(2);
+            KeyboardShortcuts.SelectArea4Requested += (s, e) => SwitchToTranslationArea(3);
+            KeyboardShortcuts.SelectArea5Requested += (s, e) => SwitchToTranslationArea(4);
 
 
             // Set up global keyboard hook to handle shortcuts even when console has focus
@@ -391,33 +397,149 @@ namespace RSTGameTranslation
         // Handle the event when translation region is selected
         private void TranslationAreaSelector_SelectionComplete(object? sender, Rect selectionRect)
         {
-            // Save the selected translation region
-            selectedTranslationArea = selectionRect;
+            // Check if multiple areas are allowed
+            bool allowMultipleAreas = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
+            
+            if (allowMultipleAreas)
+            {
+                
+                if (savedTranslationAreas == null)
+                    savedTranslationAreas = new List<Rect>();
+                    
+                // Add new selection area to the list
+                savedTranslationAreas.Add(selectionRect);
+
+                // Limit selection area = 5
+                if (savedTranslationAreas.Count > 5)
+                {
+                    savedTranslationAreas = savedTranslationAreas.Skip(savedTranslationAreas.Count - 5).Take(5).ToList();
+                    Console.WriteLine("Maximum of 5 areas allowed. Keeping only the 5 most recent selections.");
+                    System.Windows.MessageBox.Show($"Maximum of 5 areas allowed. Keeping only the 5 most recent selections.",
+                        "Maximum selection area", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            else
+            {
+                // Save lastest selection area if multiple areas are not allowed
+                savedTranslationAreas = new List<Rect> { selectionRect };
+            }
+            
+            // Default using lastest selection area
+            currentAreaIndex = savedTranslationAreas.Count - 1;
+            
+            // Current selection area
+            Rect currentRect = savedTranslationAreas[currentAreaIndex];
+            
+            // Save current selection area
+            selectedTranslationArea = currentRect;
             hasSelectedTranslationArea = true;
             
-            Console.WriteLine($"The translation area has been selected: X={selectionRect.X}, Y={selectionRect.Y}, Width={selectionRect.Width}, Height={selectionRect.Height}");
+            Console.WriteLine($"The translation area has been selected: X={currentRect.X}, Y={currentRect.Y}, Width={currentRect.Width}, Height={currentRect.Height}");
+            Console.WriteLine($"Total saved areas: {savedTranslationAreas.Count}, Current index: {currentAreaIndex + 1}");
             
-            // Set capture area to selected region
+            // Update capture for new selection area
             UpdateCustomCaptureRect();
             
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+        }
+        
+        private void SwitchToTranslationArea(int index)
+        {
+            if (savedTranslationAreas.Count == 0)
+            {
+                Console.WriteLine("No translation areas available. Please select an area first.");
+                return;
+            }
+            
+            // Ensure valid index
+            if (index < 0 || index >= savedTranslationAreas.Count)
+            {
+                Console.WriteLine($"Invalid area index: {index+1}. Available areas: {savedTranslationAreas.Count}");
+                return;
+            }
+            
+            // Update current index
+            currentAreaIndex = index;
+            
+            Rect selectedRect = savedTranslationAreas[currentAreaIndex];
+            
+            // Update select area
+            selectedTranslationArea = selectedRect;
+            hasSelectedTranslationArea = true;
+            
+            Console.WriteLine($"Switched to translation area {currentAreaIndex + 1}: X={selectedRect.X}, Y={selectedRect.Y}, Width={selectedRect.Width}, Height={selectedRect.Height}");
+            
+            // Update capture area for new selection area
+            UpdateCustomCaptureRect();
+            
+            // Show notification for user
+            ShowAreaSwitchNotification(currentAreaIndex + 1);
+        }
+
+        private void ShowAreaSwitchNotification(int areaNumber)
+        {
+            // Create a small notification
+            var notification = new System.Windows.Controls.Primitives.Popup
+            {
+                Width = 200,
+                Height = 40,
+                IsOpen = true,
+                StaysOpen = false,
+                AllowsTransparency = true,
+                Placement = System.Windows.Controls.Primitives.PlacementMode.Center,
+                PlacementTarget = this
+            };
+            
+            // Content notification
+            var border = new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(200, 0, 0, 0)),
+                CornerRadius = new CornerRadius(5),
+                Padding = new Thickness(10)
+            };
+            
+            var text = new TextBlock
+            {
+                Text = $"Switched to Selection Area {areaNumber}",
+                Foreground = new SolidColorBrush(Colors.White),
+                FontWeight = FontWeights.Bold,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                VerticalAlignment = System.Windows.VerticalAlignment.Center
+            };
+            
+            border.Child = text;
+            notification.Child = border;
+            
+            // Auto close notification after 1.5 second
+            var timer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1.5)
+            };
+            
+            timer.Tick += (s, e) =>
+            {
+                notification.IsOpen = false;
+                timer.Stop();
+            };
+            
+            timer.Start();
         }
 
         // Set capture area to selected region
         private void UpdateCustomCaptureRect()
         {
             if (!hasSelectedTranslationArea) return;
-            
+
             captureRect = new System.Drawing.Rectangle(
                 (int)selectedTranslationArea.X,
                 (int)selectedTranslationArea.Y,
                 (int)selectedTranslationArea.Width,
                 (int)selectedTranslationArea.Height
             );
-            
+
             previousCaptureX = captureRect.Left;
             previousCaptureY = captureRect.Top;
-            
+
             // Update current capture position for Logic
             Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
         }
@@ -1672,44 +1794,26 @@ namespace RSTGameTranslation
             }
         }
 
-        private async void btnInstallConda_Click(object sender, RoutedEventArgs e)
+        private void btnClearSelectionArea_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                // Disable the button to prevent multiple clicks
-                btnSetupOcrServer.IsEnabled = false;
+            // Clear all save selection areas
+            savedTranslationAreas.Clear();
+            hasSelectedTranslationArea = false;
+            currentAreaIndex = -1;
             
-                
-                // Show setup dialog
-                MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to install conda?\n\n" +
-                    "This process may take a long time and requires an internet connection",
-                    "Confirm installation",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
-                    
-                if (result == MessageBoxResult.Yes)
-                {
-                    // Show status message
-                    SetStatus($"Setting up conda");
-                    
-                    // Run setup
-                    await Task.Run(() => {
-                        OcrServerManager.Instance.InstallConda();
-                    });
-                    
-                    SetStatus($"Conda setup is completed");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                // Reactivate the button after the operation is complete
-                btnSetupOcrServer.IsEnabled = true;
-            }
+            // Set button background to blue
+            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+            
+            // Update capture area to default area
+            UpdateCaptureRect();
+            
+            Console.WriteLine("All translation areas have been cleared.");
+            
+            // Show notification
+            System.Windows.MessageBox.Show("All translation areas have been cleared.", 
+                            "Areas Cleared", 
+                            MessageBoxButton.OK, 
+                            MessageBoxImage.Information);
         }
 
         public void UpdateServerButtonStatus(bool isConnected)

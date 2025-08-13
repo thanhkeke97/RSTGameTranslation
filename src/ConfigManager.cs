@@ -100,6 +100,9 @@ namespace RSTGameTranslation
         public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
         public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
 
+        // Multi selection area
+        public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
+
         // Default prompts
         public const string defaultGeminiPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
                     "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
@@ -346,6 +349,7 @@ namespace RSTGameTranslation
             _configValues[TEXTSIMILAR_THRESHOLD] = "0.75";
             _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
             _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
+            _configValues[MULTI_SELECTION_AREA] = "false";
             
             // Save the default configuration
             SaveConfig();
@@ -1472,6 +1476,13 @@ namespace RSTGameTranslation
             return value.ToLower() == "true";
         }
 
+        // Check if translated text should be kept until replaced
+        public bool IsMultiSelectionAreaEnabled()
+        {
+            string value = GetValue(MULTI_SELECTION_AREA, "false");
+            return value.ToLower() == "true";
+        }
+
         // Get api key for service type
         public List<string> GetApiKeysList(string serviceType)
         {
@@ -1613,6 +1624,14 @@ namespace RSTGameTranslation
             _configValues[KEEP_TRANSLATED_TEXT_UNTIL_REPLACED] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Keep translated text until replaced enabled: {enabled}");
+        }
+
+        // Set whether translated text should be kept until replaced
+        public void SetUseMultiSelectionArea(bool enabled)
+        {
+            _configValues[MULTI_SELECTION_AREA] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Enable Multi seletion area set to: {enabled}");
         }
         
         // Block Detection methods

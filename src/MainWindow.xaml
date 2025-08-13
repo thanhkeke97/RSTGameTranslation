@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
         Title="Game Translation Tool" 
-        Height="600" Width="1100"
+        Height="600" Width="1200"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -174,9 +174,9 @@
                                         Background="#FF4577B0" 
                                         Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                 
-                                <Button x:Name="btnInstallConda" Content="InstallConda" Style="{StaticResource ModernButton}"
+                                <Button x:Name="btnClearSelectionArea" Content="ClearArea" Style="{StaticResource ModernButton}"
                                         Background="#FF4577B0" 
-                                        Click="btnInstallConda_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                         
                                 <Button x:Name="btnStartOcrServer" Content="StartServer" Style="{StaticResource ModernButton}"
                                         Background="#FF4577B0" 
@@ -482,6 +482,10 @@
                                 
                                 <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
                                         <TextBlock Text="Alt+C: ChatBox" Foreground="White"/>
+                                </Border>
+
+                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="Alt+Number: Choose a specific region" Foreground="White"/>
                                 </Border>
                         </StackPanel>
                         </Grid>

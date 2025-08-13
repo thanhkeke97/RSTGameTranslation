@@ -69,6 +69,9 @@ namespace RSTGameTranslation
             };
         }
 
+        // Show message for multi selection are
+        private bool isNeedShowMessage = false;
+
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
 
@@ -381,6 +384,13 @@ namespace RSTGameTranslation
 
             // Set char level from config
             charLevelCheckBox.IsChecked = ConfigManager.Instance.IsCharLevelEnabled();
+
+            // Set multi selection area from config
+            multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
+            if (!ConfigManager.Instance.IsMultiSelectionAreaEnabled())
+            {
+                isNeedShowMessage = true;
+            }
 
             // Set OCR settings from config
             string savedOcrMethod = ConfigManager.Instance.GetOcrMethod();
@@ -723,6 +733,38 @@ namespace RSTGameTranslation
 
             // The SelectionChanged events will handle updating the MainWindow
             Console.WriteLine($"Languages swapped: {GetLanguageCode(sourceLanguageComboBox)} ⇄ {GetLanguageCode(targetLanguageComboBox)}");
+        }
+        // Conda install button
+        private async void CondaInstallButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+            
+                // Show setup dialog
+                MessageBoxResult result = System.Windows.MessageBox.Show(
+                    $"Are you sure you want to install conda?\n\n" +
+                    "This process may take a long time and requires an internet connection",
+                    "Confirm installation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+                    
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Show status message
+                    MainWindow.Instance.SetStatus($"Setting up conda");
+                    
+                    // Run setup
+                    await Task.Run(() => {
+                        OcrServerManager.Instance.InstallConda();
+                    });
+                    
+                    MainWindow.Instance.SetStatus($"Conda setup is completed");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // Helper method to get language code from ComboBox
@@ -2249,6 +2291,26 @@ namespace RSTGameTranslation
             bool enabled = audioServiceAutoTranslateCheckBox.IsChecked ?? false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
             Console.WriteLine($"Settings window: Audio service auto-translate set to {enabled}");
+        }
+
+        // Handle Multi selection area checkbox change for multi selection area
+        private void MultiSelectionAreaCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = multiSelectionAreaCheckBox.IsChecked ?? false;
+            ConfigManager.Instance.SetUseMultiSelectionArea(enabled);
+            Console.WriteLine($"Settings window: Multi selection area set to {enabled}");
+            if (isNeedShowMessage)
+            {
+                // Show notification
+                MessageBox.Show("When this feature is enabled, you can select multiple areas to translate by clicking the SelectArea button \n\n" +
+                "Each selection corresponds to one translation area \n\n" +
+                "To switch between translation areas, press ALT+number (number from 1 to 5) \n\n" +
+                "The numbers correspond to the areas you have created; the first selected area is 1, and it increases up to 5 \n\n",
+                            "Multi selection area guide",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+            }
+            isNeedShowMessage = !enabled;
         }
     }
 }

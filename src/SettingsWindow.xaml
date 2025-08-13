@@ -156,6 +156,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- OCR Method -->
@@ -200,15 +202,29 @@
                                         Margin="0,5" Text="0.2" LostFocus="MinLineConfidenceTextBox_LostFocus"
                                         ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
                                 
+                                <!-- Multi Selection Area -->
+                                <TextBlock Text="Multi Selection Area" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    ToolTip="Enable multi selection area for text selection."/>
+                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="5" Grid.Column="1" Margin="0,5"
+                                         Checked="MultiSelectionAreaCheckBox_CheckedChanged"
+                                         Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
+
                                 <!-- Leave Translation Onscreen -->
-                                <TextBlock Text="Leave translation onscreen:" Grid.Row="5" Grid.Column="0" 
+                                <TextBlock Text="Leave translation onscreen:" Grid.Row="6" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
-                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="5" Grid.Column="1" 
+                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="6" Grid.Column="1" 
                                          Margin="0,5" IsChecked="False" 
                                          Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged" 
                                          Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
                                          ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
+                                
+                                <!-- Install Conda-->
+                                <TextBlock Text="Conda Install:" Grid.Row="7" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Button x:Name="condaInstallButton" Content="Setup Conda" Grid.Row="7" Grid.Column="1"
+                                       HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="CondaInstallButton_Click"
+                                       ToolTip="Setup conda enviroment for easyOCR and paddleOCR"/>
                             </Grid>
                         </GroupBox>
                         
