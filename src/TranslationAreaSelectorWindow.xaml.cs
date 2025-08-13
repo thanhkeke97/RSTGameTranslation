@@ -18,7 +18,6 @@ namespace RSTGameTranslation
     {
         private Point startPoint;
         private bool isDrawing = false;
-        public double dpiScale = 1;
         
         // Event to notify when selection is complete
         public event EventHandler<Rect>? SelectionComplete;
@@ -73,29 +72,11 @@ namespace RSTGameTranslation
             // Reset window to normal state initially
             this.WindowState = WindowState.Normal;
             
-            // Get all screens
-            var allScreens = Forms.Screen.AllScreens;
-            
-            // Calculate the full virtual screen bounds
-            int left = int.MaxValue;
-            int top = int.MaxValue;
-            int right = int.MinValue;
-            int bottom = int.MinValue;
-            
-            foreach (var screen in allScreens)
-            {
-                left = Math.Min(left, screen.Bounds.Left);
-                top = Math.Min(top, screen.Bounds.Top);
-                right = Math.Max(right, screen.Bounds.Right);
-                bottom = Math.Max(bottom, screen.Bounds.Bottom);
-            }
-            
-            // Set window position and size to cover all screens
-            this.Left = left;
-            this.Top = top;
-            this.Width = right - left;
-            this.Height = bottom - top;
-            
+            // Get all screens bound
+            this .Left = SystemParameters.VirtualScreenLeft;
+            this .Top = SystemParameters.VirtualScreenTop;
+            this .Width = SystemParameters.VirtualScreenWidth;
+            this .Height = SystemParameters.VirtualScreenHeight;
             // Position instruction text above the MainWindow
             Loaded += (s, e) => PositionInstructionText();
         }
@@ -204,16 +185,6 @@ namespace RSTGameTranslation
             }
         }
         
-        public void GetDpiScale()
-        {
-            
-            PresentationSource source = PresentationSource.FromVisual(selectionRectangle);
-            if (source != null)
-            {
-                dpiScale = source.CompositionTarget.TransformToDevice.M11;
-                Console.WriteLine($"------------------------------------------- {dpiScale}");
-            }
-        }
         
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -229,8 +200,6 @@ namespace RSTGameTranslation
             // Set initial position
             Canvas.SetLeft(selectionRectangle, startPoint.X);
             Canvas.SetTop(selectionRectangle, startPoint.Y);
-
-            GetDpiScale();
 
             // Capture mouse
             this.CaptureMouse();
@@ -301,13 +270,13 @@ namespace RSTGameTranslation
                 (int)screenPoint.X, 
                 (int)screenPoint.Y
             ));
-            
+
             // Create rectangle for the selection
             Rect selectionRect = new Rect(
                 screenPoint.X, 
                 screenPoint.Y, 
-                width * dpiScale, 
-                height * dpiScale
+                width, 
+                height
             );
             
             // Notify listeners
