@@ -158,6 +158,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- OCR Method -->
@@ -225,6 +226,13 @@
                                 <Button x:Name="condaInstallButton" Content="Setup Conda" Grid.Row="7" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="CondaInstallButton_Click"
                                        ToolTip="Setup conda enviroment for easyOCR and paddleOCR"/>
+                                
+                                <!-- Select Screen -->
+                                <TextBlock Text="Select Screen:" Grid.Row="8" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="screenComboBox" Grid.Row="8" Grid.Column="1" 
+                                         Margin="0,5" SelectedIndex="1" SelectionChanged="ScreenComboBox_SelectionChanged">
+                                </ComboBox>
                             </Grid>
                         </GroupBox>
                         

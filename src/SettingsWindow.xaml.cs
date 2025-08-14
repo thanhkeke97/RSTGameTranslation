@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using ComboBox = System.Windows.Controls.ComboBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
+using System.Windows.Forms;
 
 namespace RSTGameTranslation
 {
@@ -56,6 +57,7 @@ namespace RSTGameTranslation
 
             InitializeComponent();
             _instance = this;
+            LoadAvailableScreens();
 
             // Add Loaded event handler to ensure controls are initialized
             this.Loaded += SettingsWindow_Loaded;
@@ -106,6 +108,18 @@ namespace RSTGameTranslation
                     checkLanguagePackButton.Visibility = Visibility.Collapsed;
                 }
 
+                // Set selected screen from config
+                int selectedScreenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                if (selectedScreenIndex >= 0 && selectedScreenIndex < screenComboBox.Items.Count)
+                {
+                    screenComboBox.SelectedIndex = selectedScreenIndex;
+                }
+                else if (screenComboBox.Items.Count > 0)
+                {
+                    // Default to first screen if saved index is invalid
+                    screenComboBox.SelectedIndex = 0;
+                }
+
                 // Now that initialization is complete, allow saving changes
                 _isInitializing = false;
 
@@ -124,6 +138,95 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error initializing Settings window: {ex.Message}");
                 _isInitializing = false; // Ensure we don't get stuck in initialization mode
+            }
+        }
+
+        // Load list of available screens
+        private void LoadAvailableScreens()
+        {
+            try
+            {
+                // Clear existing items
+                screenComboBox.Items.Clear();
+
+                // Get all screens
+                var screens = System.Windows.Forms.Screen.AllScreens;
+                
+                // Add each screen to the combo box
+                for (int i = 0; i < screens.Length; i++)
+                {
+                    var screen = screens[i];
+                    
+                    // Get native resolution
+                    int width = screen.Bounds.Width;
+                    int height = screen.Bounds.Height;
+                    
+                    // Create display name
+                    string displayName = $"{width} x {height}";
+                    if (screen.Primary)
+                    {
+                        displayName += " (Primary)";
+                    }
+                    
+                    // Create combo box item
+                    ComboBoxItem item = new ComboBoxItem
+                    {
+                        Content = displayName,
+                        Tag = i  // Store screen index as Tag
+                    };
+                    
+                    screenComboBox.Items.Add(item);
+                }
+                
+                // Select the primary screen by default
+                for (int i = 0; i < screenComboBox.Items.Count; i++)
+                {
+                    if (screenComboBox.Items[i] is ComboBoxItem item && 
+                        item.Content.ToString()?.Contains("Primary") == true)
+                    {
+                        screenComboBox.SelectedIndex = i;
+                        break;
+                    }
+                }
+                
+                // If no primary screen was found, select the first item
+                if (screenComboBox.SelectedIndex == -1 && screenComboBox.Items.Count > 0)
+                {
+                    screenComboBox.SelectedIndex = 0;
+                }
+                
+                Console.WriteLine($"Loaded {screenComboBox.Items.Count} screens");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading available screens: {ex.Message}");
+            }
+        }
+
+        // Select screen - placeholder for now
+        private void ScreenComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+                    
+                if (screenComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    // Get the screen index from the Tag
+                    if (selectedItem.Tag is int screenIndex)
+                    {
+                        // Save to config
+                        ConfigManager.Instance.SetSelectedScreenIndex(screenIndex);
+                        Console.WriteLine($"Selected screen index set to: {screenIndex}");
+                        
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error handling screen selection change: {ex.Message}");
             }
         }
 

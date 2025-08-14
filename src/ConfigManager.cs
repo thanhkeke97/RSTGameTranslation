@@ -100,6 +100,10 @@ namespace RSTGameTranslation
         public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
         public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
 
+        // Constants for screen selection
+        private const string SELECTED_SCREEN_INDEX = "SelectedScreenIndex";
+        
+
         // Multi selection area
         public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
 
@@ -350,6 +354,7 @@ namespace RSTGameTranslation
             _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
             _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
             _configValues[MULTI_SELECTION_AREA] = "false";
+            _configValues[MULTI_SELECTION_AREA] = "0";
             
             // Save the default configuration
             SaveConfig();
@@ -556,6 +561,39 @@ namespace RSTGameTranslation
 
             // Return default color if parsing fails
             return System.Windows.Media.Colors.White;
+        }
+
+        // Get selected screen index
+        public int GetSelectedScreenIndex()
+        {
+            try
+            {
+                string value = GetValue(SELECTED_SCREEN_INDEX, "0");
+                if (int.TryParse(value, out int index))
+                {
+                    return index;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting selected screen index: {ex.Message}");
+            }
+            return 0; // Default to first screen
+        }
+
+        // Set selected screen index
+        public void SetSelectedScreenIndex(int index)
+        {
+            try
+            {
+                _configValues[SELECTED_SCREEN_INDEX] = index.ToString();
+                SaveConfig();
+                Console.WriteLine($"Selected screen index set to: {index}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting selected screen index: {ex.Message}");
+            }
         }
 
         // Get Gemini API key
