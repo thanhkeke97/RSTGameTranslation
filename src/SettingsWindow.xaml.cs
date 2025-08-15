@@ -107,6 +107,10 @@ namespace RSTGameTranslation
                     checkLanguagePack.Visibility = Visibility.Collapsed;
                     checkLanguagePackButton.Visibility = Visibility.Collapsed;
                 }
+                // Set default values
+                hotKeyFunctionComboBox.SelectedIndex = 0;
+                combineKey2.SelectedIndex = 0;
+                combineKey1.SelectedIndex = 0;
 
                 // Set selected screen from config
                 int selectedScreenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
@@ -455,6 +459,7 @@ namespace RSTGameTranslation
                 // Fallback to MainWindow if config doesn't have a value
                 sourceLanguageComboBox.SelectedIndex = MainWindow.Instance.sourceLanguageComboBox.SelectedIndex;
             }
+            ListHotKey_TextChanged();
 
             // Load target language either from config or MainWindow as fallback
             string configTargetLanguage = ConfigManager.Instance.GetTargetLanguage();
@@ -643,6 +648,124 @@ namespace RSTGameTranslation
             openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
             // Load Auto-translate for audio service
             audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
+        }
+
+
+        private void SetHotKeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Skip event if we're initializing
+            if (_isInitializing)
+            {
+                return;
+            }
+            
+            string functionName;
+            string? key1 = "";
+            string? key2 = "";
+            string combineKey;
+
+            // Check if selected item is a ComboBoxItem
+            if (hotKeyFunctionComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                functionName = selectedItem.Content.ToString() ?? "Start/Stop";
+                if (combineKey1.SelectedItem is ComboBoxItem selectedItem1)
+                {
+                    key1 = selectedItem1.Content.ToString();
+                }
+                if (combineKey2.SelectedItem is ComboBoxItem selectedItem2)
+                {
+                    key2 = selectedItem2.Content.ToString();
+                }
+                if (key1 == "" || key2 == "" || key1 == "-----------" || key2 == "-----------")
+                {
+                    MessageBox.Show("Can not load combine key", "Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+                }
+                else
+                {
+                    combineKey = key1 + "+" + key2;
+                    // Save HotKey
+                    ConfigManager.Instance.SetHotKey(functionName, combineKey);
+                    statusUpdateHotKey.Visibility = Visibility.Visible;
+                    ListHotKey_TextChanged();
+                    // Auto close notification after 1.5 second
+                    var timer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(1.3)
+                    };
+                    
+                    timer.Tick += (s, e) =>
+                    {
+                        statusUpdateHotKey.Visibility = Visibility.Collapsed;
+                        timer.Stop();
+                    };
+                    
+                    timer.Start();
+                    
+                }
+            }
+            
+        }
+
+        private void ListHotKey_TextChanged()
+        {
+            hotKeyStartStop.Text = "Start/Stop: " + ConfigManager.Instance.GetHotKey("Start/Stop");
+            hotKeyOverlay.Text = "Overlay: " + ConfigManager.Instance.GetHotKey("Overlay");
+            hotKeySetting.Text = "Setting: " + ConfigManager.Instance.GetHotKey("Setting");
+            hotKeyLog.Text = "Log: " + ConfigManager.Instance.GetHotKey("Log");
+            hotKeySelectArea.Text = "Select Area: " + ConfigManager.Instance.GetHotKey("Select Area");
+            hotKeyClearAreas.Text = "Clear Areas: " + ConfigManager.Instance.GetHotKey("Clear Areas");
+            hotKeyChatBox.Text = "ChatBox: " + ConfigManager.Instance.GetHotKey("ChatBox");
+            hotKeyArea1.Text = "Area 1: " + ConfigManager.Instance.GetHotKey("Area 1");
+            hotKeyArea2.Text = "Area 2: " + ConfigManager.Instance.GetHotKey("Area 2");
+            hotKeyArea3.Text = "Area 3: " + ConfigManager.Instance.GetHotKey("Area 3");
+            hotKeyArea4.Text = "Area 4: " + ConfigManager.Instance.GetHotKey("Area 4");
+            hotKeyArea5.Text = "Area 5: " + ConfigManager.Instance.GetHotKey("Area 5");
+        }
+
+        private void HotKeyFunctionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Skip event if we're initializing
+            if (_isInitializing)
+            {
+                return;
+            }
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string functionName = selectedItem.Content.ToString() ?? "Start/Stop";
+
+                // Get HotKey from config
+                string hotKey = ConfigManager.Instance.GetHotKey(functionName);
+                string[] keyParts = hotKey.Split('+');
+
+                if (keyParts.Length >= 2)
+                {
+                    string key1 = keyParts[0].ToUpper();
+                    string key2 = keyParts[1].ToUpper();
+
+                    // Tìm và thiết lập item cho combineKey1
+                    foreach (ComboBoxItem item in combineKey1.Items)
+                    {
+                        if (item.Content.ToString() == key1)
+                        {
+                            combineKey1.SelectedItem = item;
+                            break;
+                        }
+                    }
+
+                    // Tìm và thiết lập item cho combineKey2
+                    foreach (ComboBoxItem item in combineKey2.Items)
+                    {
+                        if (item.Content.ToString() == key2)
+                        {
+                            combineKey2.SelectedItem = item;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         // Language settings

@@ -461,31 +461,25 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <TextBlock Text="HotKey" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
+                                <TextBlock Text="Author:" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
+                                        Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                
+                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
+                                        <TextBlock Text="Thanh Pham" Foreground="White"/>
+                                </Border>
+
+                                <TextBlock Text="Github:" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
                                         Margin="10,0,0,0" VerticalAlignment="Center"/>
 
                                 <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+G: Start/Stop" Foreground="White"/>
-                                </Border>
-                                
-                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+P: Setting" Foreground="White"/>
+                                        <TextBlock Text="https://github.com/thanhkeke97/RSTGameTranslation" Foreground="White"/>
                                 </Border>
 
-                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+F: Monitor" Foreground="White"/>
-                                </Border>
-                                
-                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+Q: Select Area" Foreground="White"/>
-                                </Border>
-                                
-                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+C: ChatBox" Foreground="White"/>
-                                </Border>
+                                <TextBlock Text="Website:" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
+                                        Margin="10,0,0,0" VerticalAlignment="Center"/>
 
                                 <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Alt+Number: Choose a specific region" Foreground="White"/>
+                                        <TextBlock Text="https://thanhkeke97.github.io/RSTGameTranslation" Foreground="White"/>
                                 </Border>
                         </StackPanel>
                         </Grid>
