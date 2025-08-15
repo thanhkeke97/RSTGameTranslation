@@ -15,6 +15,7 @@ using ComboBox = System.Windows.Controls.ComboBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
 using System.Windows.Forms;
+using System.Windows.Interop;
 
 namespace RSTGameTranslation
 {
@@ -689,6 +690,11 @@ namespace RSTGameTranslation
                     ConfigManager.Instance.SetHotKey(functionName, combineKey);
                     statusUpdateHotKey.Visibility = Visibility.Visible;
                     ListHotKey_TextChanged();
+                    KeyboardShortcuts.InitializeGlobalHook();
+                    // IntPtr handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+                    // KeyboardShortcuts.SetMainWindowHandle(handle);
+                    // HwndSource source = HwndSource.FromHwnd(handle);
+                    // source.AddHook(WndProc);
                     // Auto close notification after 1.5 second
                     var timer = new System.Windows.Threading.DispatcherTimer
                     {
@@ -706,6 +712,16 @@ namespace RSTGameTranslation
                 }
             }
             
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == 0x0312) // WM_HOTKEY
+            {
+                handled = KeyboardShortcuts.ProcessHotKey(wParam);
+            }
+            
+            return IntPtr.Zero;
         }
 
         private void ListHotKey_TextChanged()

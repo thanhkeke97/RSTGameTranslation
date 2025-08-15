@@ -20,6 +20,7 @@ namespace RSTGameTranslation
         public static event EventHandler? LogToggleRequested;
         public static event EventHandler? MainWindowVisibilityToggleRequested;
         public static event EventHandler? SelectTranslationRegion;
+        public static event EventHandler? ClearAreasRequested;
         
         #endregion
         
@@ -152,7 +153,7 @@ namespace RSTGameTranslation
             _functionHandlers["Setting"] = SettingsToggleRequested;
             _functionHandlers["Log"] = LogToggleRequested;
             _functionHandlers["Select Area"] = SelectTranslationRegion;
-            // _functionHandlers["Clear Areas"] = ClearAreasRequested;
+            _functionHandlers["Clear Areas"] = ClearAreasRequested;
             _functionHandlers["Area 1"] = SelectArea1Requested;
             _functionHandlers["Area 2"] = SelectArea2Requested;
             _functionHandlers["Area 3"] = SelectArea3Requested;
@@ -387,10 +388,10 @@ namespace RSTGameTranslation
                     SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
                     return true;
                     
-                // case HOTKEY_ID_CLEAR_AREAS:
-                //     Console.WriteLine("Hotkey detected: Clear Areas");
-                //     ClearAreasRequested?.Invoke(null, EventArgs.Empty);
-                //     return true;
+                case HOTKEY_ID_CLEAR_AREAS:
+                    Console.WriteLine("Hotkey detected: Clear Areas");
+                    ClearAreasRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
                     
                 case HOTKEY_ID_AREA_1:
                     Console.WriteLine("Hotkey detected: Area 1");
@@ -421,30 +422,96 @@ namespace RSTGameTranslation
             return false;
         }
         
+        // Process WM_HOTKEY messages in the main window
+        public static void ProcessHandleHotKey(string function)
+        {
+            if (function == "Start/Stop")
+            {
+                Console.WriteLine("Hotkey detected: Start/Stop");
+                StartStopRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Overlay")
+            {
+                Console.WriteLine("Hotkey detected: Overlay");
+                MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "ChatBox")
+            {
+                Console.WriteLine("Hotkey detected: ChatBox");
+                ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Setting")
+            {
+                Console.WriteLine("Hotkey detected: Setting");
+                SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Log")
+            {
+                Console.WriteLine("Hotkey detected: Log");
+                LogToggleRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Select Area")
+            {
+                Console.WriteLine("Hotkey detected: Select Area");
+                SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Clear Areas")
+            {
+                Console.WriteLine("Hotkey detected: Clear Areas");
+                ClearAreasRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Area 1")
+            {
+                Console.WriteLine("Hotkey detected: Area 1");
+                SelectArea1Requested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Area 2")
+            {
+                Console.WriteLine("Hotkey detected: Area 2");
+                SelectArea2Requested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Area 3")
+            {
+                Console.WriteLine("Hotkey detected: Area 3");
+                SelectArea3Requested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Area 4")
+            {
+                Console.WriteLine("Hotkey detected: Area 4");
+                SelectArea4Requested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Area 5")
+            {
+                Console.WriteLine("Hotkey detected: Area 5");
+                SelectArea5Requested?.Invoke(null, EventArgs.Empty);
+            }
+
+        }
+        
         // Start polling for key states as a backup method - ONLY for global shortcuts
         private static void StartKeyPolling()
         {
             if (_isPolling)
                 return;
-                
+
             _isPolling = true;
             _pollingCts = new CancellationTokenSource();
-            
-            Task.Run(async () => 
+
+            Task.Run(async () =>
             {
                 Console.WriteLine("Key polling started as backup method for global shortcuts");
-                
+
                 // Dictionary to track key states
                 Dictionary<string, bool> keyStates = new Dictionary<string, bool>();
                 Dictionary<string, DateTime> lastTriggerTimes = new Dictionary<string, DateTime>();
-                
+
                 // Initialize dictionaries for all functions
                 foreach (string function in _parsedHotkeys.Keys)
                 {
                     keyStates[function] = false;
                     lastTriggerTimes[function] = DateTime.MinValue;
                 }
-                
+
                 try
                 {
                     while (!_pollingCts.Token.IsCancellationRequested)
@@ -453,7 +520,7 @@ namespace RSTGameTranslation
                         {
                             string function = kvp.Key;
                             var (modifiers, vkCode) = kvp.Value;
-                            
+
                             // Check if all required modifiers are pressed
                             bool modifiersPressed = true;
                             if ((modifiers & MOD_ALT) != 0 && !IsKeyPressed(VK_MENU))
@@ -462,13 +529,13 @@ namespace RSTGameTranslation
                                 modifiersPressed = false;
                             if ((modifiers & MOD_SHIFT) != 0 && !IsKeyPressed(VK_SHIFT))
                                 modifiersPressed = false;
-                                
+
                             // Check if the key is pressed
                             bool isKeyPressed = IsKeyPressed(vkCode);
-                            
+
                             // Check if the hotkey is pressed
                             bool isHotkeyPressed = modifiersPressed && isKeyPressed;
-                            
+
                             // If the hotkey state changed from not pressed to pressed
                             if (isHotkeyPressed && !keyStates[function])
                             {
@@ -476,7 +543,7 @@ namespace RSTGameTranslation
                                 if ((now - lastTriggerTimes[function]).TotalMilliseconds > 500)
                                 {
                                     Console.WriteLine($"Polling detected: {function} hotkey");
-                                    
+
                                     // Trigger the event on the UI thread
                                     if (_functionHandlers.TryGetValue(function, out var handler) && handler != null)
                                     {
@@ -485,15 +552,15 @@ namespace RSTGameTranslation
                                             handler.Invoke(null, EventArgs.Empty);
                                         });
                                     }
-                                    
+
                                     lastTriggerTimes[function] = now;
                                 }
                             }
-                            
+
                             // Update key state
                             keyStates[function] = isHotkeyPressed;
                         }
-                        
+
                         // Sleep to reduce CPU usage
                         await Task.Delay(30, _pollingCts.Token);
                     }
@@ -610,6 +677,7 @@ namespace RSTGameTranslation
                                 if (modifiersMatch)
                                 {
                                     Console.WriteLine($"Global shortcut detected: {function}");
+                                    ProcessHandleHotKey(function);
                                     
                                     // Invoke the associated event handler
                                     if (_functionHandlers.TryGetValue(function, out var handler) && handler != null)

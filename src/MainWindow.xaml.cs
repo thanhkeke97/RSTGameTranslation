@@ -335,6 +335,7 @@ namespace RSTGameTranslation
 
             // Register keyboard shortcuts events
             KeyboardShortcuts.StartStopRequested += (s, e) => OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
+            KeyboardShortcuts.ClearAreasRequested += (s, e) => btnClearSelectionArea_Click(toggleButton, new RoutedEventArgs());
             KeyboardShortcuts.MonitorToggleRequested += (s, e) => MonitorButton_Click(monitorButton, new RoutedEventArgs());
             KeyboardShortcuts.ChatBoxToggleRequested += (s, e) => ChatBoxButton_Click(chatBoxButton, new RoutedEventArgs());
             KeyboardShortcuts.SettingsToggleRequested += (s, e) => SettingsButton_Click(settingsButton, new RoutedEventArgs());
@@ -1796,6 +1797,11 @@ namespace RSTGameTranslation
 
         private void btnClearSelectionArea_Click(object sender, RoutedEventArgs e)
         {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(() => btnClearSelectionArea_Click(sender, e));
+                return;
+            }
             // Clear all save selection areas
             savedTranslationAreas.Clear();
             hasSelectedTranslationArea = false;
