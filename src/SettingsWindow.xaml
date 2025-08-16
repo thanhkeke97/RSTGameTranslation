@@ -943,17 +943,17 @@
                                     <LineBreak/>
                                     <Run x:Name="hotKeyStartStop">Start/Stop: ALT+G</Run>
                                     <LineBreak/>
-                                    <Run x:Name="hotKeyOverlay">Overlay: ALT+O</Run>
+                                    <Run x:Name="hotKeyOverlay">Overlay: ALT+F</Run>
                                     <LineBreak/>
-                                    <Run x:Name="hotKeySetting">Setting: ALT+S</Run>
+                                    <Run x:Name="hotKeySetting">Setting: ALT+P</Run>
                                     <LineBreak/>
                                     <Run x:Name="hotKeyLog">Log: ALT+L</Run>
                                     <LineBreak/>
-                                    <Run x:Name="hotKeySelectArea">Select Area: ALT+A</Run>
+                                    <Run x:Name="hotKeySelectArea">Select Area: ALT+Q</Run>
                                     <LineBreak/>
-                                    <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+C</Run>
+                                    <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+R</Run>
                                     <LineBreak/>
-                                    <Run x:Name="hotKeyChatBox">ChatBox: ALT+T</Run>
+                                    <Run x:Name="hotKeyChatBox">ChatBox: ALT+C</Run>
                                     <LineBreak/>
                                     <Run x:Name="hotKeyArea1">Area 1: ALT+1</Run>
                                     <LineBreak/>
