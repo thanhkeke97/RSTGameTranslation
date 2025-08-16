@@ -280,6 +280,7 @@
                         <Grid>
                                 <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/> <!-- Header section -->
+                                <RowDefinition Height="Auto"/> <!-- HotKey -->
                                 <RowDefinition Height="Auto"/> <!-- Tutorial link section -->
                                 <RowDefinition Height="Auto"/> <!-- Copyright section -->
                                 <RowDefinition Height="Auto"/> <!-- FAQ section -->
@@ -332,9 +333,45 @@
                                         </TextBlock>
                                 </Grid>
                                 </Border>
+
+                                <!-- HotKey -->
+                                <Border Grid.Row="2" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
+                                <StackPanel>
+                                        <Expander Header="SHOW ALL GLOBAL HOTKEY" Margin="0,0,0,5" FontSize="16" FontWeight="Bold"
+                                                Foreground="#FF00AAFF" BorderThickness="0">
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Foreground="Orange" 
+                                                        Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12" FontWeight="Bold">
+                                                        <Run x:Name="hotKeyStartStop">Start/Stop: ALT+G</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyOverlay">Overlay: ALT+O</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeySetting">Setting: ALT+S</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyLog">Log: ALT+L</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeySelectArea">Select Area: ALT+A</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+C</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyChatBox">ChatBox: ALT+T</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyArea1">Area 1: ALT+1</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyArea2">Area 2: ALT+2</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyArea3">Area 3: ALT+3</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyArea4">Area 4: ALT+4</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyArea5">Area 5: ALT+5</Run>
+                                                </TextBlock>
+                                        </Expander>
+                                        
+                                </StackPanel>
+                                </Border>
                                 
                                 <!-- FAQ Section -->
-                                <Border Grid.Row="2" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
+                                <Border Grid.Row="3" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
                                 <StackPanel>
                                         <TextBlock Text="FREQUENTLY ASKED QUESTIONS" Foreground="#FF00AAFF" FontSize="16" 
                                                 FontWeight="Bold" Margin="0,0,0,10"/>
@@ -402,7 +439,7 @@
                                 </Border>
                                 
                                 <!-- Support Section (keeping existing Discord reference) -->
-                                <Border Grid.Row="3" Background="#44007ACC" CornerRadius="6" Margin="0,0,0,0" Padding="15">
+                                <Border Grid.Row="4" Background="#44007ACC" CornerRadius="6" Margin="0,0,0,0" Padding="15">
                                 <Grid>
                                         <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -423,7 +460,7 @@
                                 </Border>
 
                                 <!-- Copyright & Developer Information Section -->
-                                <Border Grid.Row="4" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
+                                <Border Grid.Row="5" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
                                 <StackPanel>
                                         <TextBlock Text="DEVELOPER INFORMATION" Foreground="#FF00AAFF" FontSize="16" 
                                                 FontWeight="Bold" Margin="0,0,0,10"/>
