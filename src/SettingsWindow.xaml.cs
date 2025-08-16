@@ -677,9 +677,9 @@ namespace RSTGameTranslation
                 {
                     key2 = selectedItem2.Content.ToString();
                 }
-                if (key1 == "" || key2 == "" || key1 == "-----------" || key2 == "-----------")
+                if (key1 == "" || key2 == "" || key1 == "----------- Select -----------" || key2 == "----------- Select -----------")
                 {
-                    MessageBox.Show("Can not load combine key", "Error",
+                    MessageBox.Show("Hot key is not valid, please try again", "Error",
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Error);
                 }
@@ -690,11 +690,12 @@ namespace RSTGameTranslation
                     ConfigManager.Instance.SetHotKey(functionName, combineKey);
                     statusUpdateHotKey.Visibility = Visibility.Visible;
                     ListHotKey_TextChanged();
+                    // Init keyboard hook
                     KeyboardShortcuts.InitializeGlobalHook();
-                    // IntPtr handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-                    // KeyboardShortcuts.SetMainWindowHandle(handle);
-                    // HwndSource source = HwndSource.FromHwnd(handle);
-                    // source.AddHook(WndProc);
+                    IntPtr handle = new WindowInteropHelper(this).Handle;
+                    KeyboardShortcuts.SetMainWindowHandle(handle);
+                    HwndSource source = HwndSource.FromHwnd(handle);
+                    source.AddHook(WndProc);
                     // Auto close notification after 1.5 second
                     var timer = new System.Windows.Threading.DispatcherTimer
                     {

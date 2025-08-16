@@ -103,20 +103,6 @@ namespace RSTGameTranslation
         private const int HOTKEY_ID_AREA_4 = 11;
         private const int HOTKEY_ID_AREA_5 = 12;
 
-        // private const int HOTKEY_ID_ALT_G = 1;
-        // private const int HOTKEY_ID_ALT_H = 2;
-        // private const int HOTKEY_ID_ALT_F = 3;
-        // private const int HOTKEY_ID_ALT_C = 4; 
-        // private const int HOTKEY_ID_ALT_P = 5;  
-        // private const int HOTKEY_ID_ALT_L = 6; 
-        // private const int HOTKEY_ID_ALT_Q = 7;
-        // private const int HOTKEY_ID_ALT_1 = 8;
-        // private const int HOTKEY_ID_ALT_2 = 9;
-        // private const int HOTKEY_ID_ALT_3 = 10;
-        // private const int HOTKEY_ID_ALT_4 = 11;
-        // private const int HOTKEY_ID_ALT_5 = 12;
-
-
         private static readonly Dictionary<string, EventHandler?> _functionHandlers = new Dictionary<string, EventHandler?>();
         private static readonly Dictionary<string, int> _keyCodeMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<string, (uint modifiers, int vkCode)> _parsedHotkeys = new Dictionary<string, (uint, int)>();
@@ -216,7 +202,6 @@ namespace RSTGameTranslation
             ParseHotkey("Area 5");
         }
 
-        // Thêm phương thức ParseHotkey
         private static void ParseHotkey(string functionName)
         {
             string hotkeyString = ConfigManager.Instance.GetHotKey(functionName);
@@ -304,7 +289,6 @@ namespace RSTGameTranslation
             }
         }
 
-        // Thêm phương thức RegisterConfiguredHotkeys
         private static void RegisterConfiguredHotkeys()
         {
             if (_mainWindowHandle == IntPtr.Zero)
@@ -331,7 +315,6 @@ namespace RSTGameTranslation
             RegisterFunctionHotkey("Area 5", HOTKEY_ID_AREA_5);
         }
 
-        // Thêm phương thức RegisterFunctionHotkey
         private static void RegisterFunctionHotkey(string functionName, int hotkeyId)
         {
             if (_parsedHotkeys.TryGetValue(functionName, out var hotkeyInfo))
@@ -786,18 +769,6 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error handling keyboard shortcut: {ex.Message}");
             }
             
-            return false;
-        }
-        
-        // Method to check if a key combination matches our shortcuts
-        public static bool IsShortcutKey(Key key, ModifierKeys modifiers)
-        {
-            return false;
-        }
-        
-        // Handle raw key input for global hook
-        public static bool HandleRawKeyDown(Key key, ModifierKeys modifiers)
-        {
             return false;
         }
         

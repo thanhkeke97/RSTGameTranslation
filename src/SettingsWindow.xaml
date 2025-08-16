@@ -934,7 +934,7 @@
                                 <Button x:Name="setHotKeyButton" Content="Set HotKey" Grid.Row="2" Grid.Column="1"
                                        HorizontalAlignment="Center" Width="100" Margin="0,8,0,10" Padding="5,3" Click="SetHotKeyButton_Click"
                                        ToolTip="Set Modifed Hotkey"/>
-                                <TextBlock x:Name="statusUpdateHotKey" FontWeight="Bold" Text="HotKey update success" 
+                                <TextBlock x:Name="statusUpdateHotKey" Foreground="Green" Text="HotKey update success" 
                                     Visibility="Collapsed" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <!-- Language Code Explanation -->
                                 <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" 
