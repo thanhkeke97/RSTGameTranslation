@@ -32,6 +32,20 @@ namespace RSTGameTranslation
         public const string GOOGLE_TTS_API_KEYS = "google_tts_api_keys";
         public const string OPENAI_REALTIME_API_KEYS = "openai_realtime_api_keys";
 
+        // HotKey manager
+        public const string HOTKEY_START_STOP = "hotkey_start_stop";
+        public const string HOTKEY_OVERLAY = "hotkey_overlay";
+        public const string HOTKEY_SETTING = "hotkey_setting";
+        public const string HOTKEY_LOG = "hotkey_log";
+        public const string HOTKEY_SELECT_AREA = "hotkey_select_area";
+        public const string HOTKEY_CLEAR_AREAS = "hotkey_clear_areas";
+        public const string HOTKEY_CHATBOX = "hotkey_chatbox";
+        public const string HOTKEY_AREA_1 = "hotkey_area_1";
+        public const string HOTKEY_AREA_2 = "hotkey_area_2";
+        public const string HOTKEY_AREA_3 = "hotkey_area_3";
+        public const string HOTKEY_AREA_4 = "hotkey_area_4";
+        public const string HOTKEY_AREA_5 = "hotkey_area_5";
+
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
         public const string GEMINI_MODEL = "gemini_model";
@@ -354,7 +368,17 @@ namespace RSTGameTranslation
             _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
             _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
             _configValues[MULTI_SELECTION_AREA] = "false";
-            _configValues[MULTI_SELECTION_AREA] = "0";
+            _configValues[HOTKEY_START_STOP] = "ALT+G";
+            _configValues[HOTKEY_OVERLAY] = "ALT+F";
+            _configValues[HOTKEY_SETTING] = "ALT+P";
+            _configValues[HOTKEY_CHATBOX] = "ALT+C";
+            _configValues[HOTKEY_SELECT_AREA] = "ALT+Q";
+            _configValues[HOTKEY_CLEAR_AREAS] = "ALT+R";
+            _configValues[HOTKEY_AREA_1] = "ALT+1";
+            _configValues[HOTKEY_AREA_2] = "ALT+2";
+            _configValues[HOTKEY_AREA_3] = "ALT+3";
+            _configValues[HOTKEY_AREA_4] = "ALT+4";
+            _configValues[HOTKEY_AREA_5] = "ALT+5";
             
             // Save the default configuration
             SaveConfig();
@@ -607,6 +631,115 @@ namespace RSTGameTranslation
         {
             _configValues[GEMINI_API_KEY] = apiKey;
             SaveConfig();
+        }
+
+        // Set Hotkey
+        public void SetHotKey(string functionName, string hotKey)
+        {
+            if (functionName == "Start/Stop")
+            {
+                _configValues[HOTKEY_START_STOP] = hotKey;
+            }
+            else if (functionName == "Overlay")
+            {
+                _configValues[HOTKEY_OVERLAY] = hotKey;
+            }
+            else if (functionName == "ChatBox")
+            {
+                _configValues[HOTKEY_CHATBOX] = hotKey;
+            }
+            else if (functionName == "Select Area")
+            {
+                _configValues[HOTKEY_SELECT_AREA] = hotKey;
+            }
+            else if (functionName == "Log")
+            {
+                _configValues[HOTKEY_LOG] = hotKey;
+            }
+            else if (functionName == "Setting")
+            {
+                _configValues[HOTKEY_SETTING] = hotKey;
+            }
+            else if (functionName == "Clear Areas")
+            {
+                _configValues[HOTKEY_CLEAR_AREAS] = hotKey;
+            }
+            else if (functionName == "Area 1")
+            {
+                _configValues[HOTKEY_AREA_1] = hotKey;
+            }
+            else if (functionName == "Area 2")
+            {
+                _configValues[HOTKEY_AREA_2] = hotKey;
+            }
+            else if (functionName == "Area 3")
+            {
+                _configValues[HOTKEY_AREA_3] = hotKey;
+            }
+            else if (functionName == "Area 4")
+            {
+                _configValues[HOTKEY_AREA_4] = hotKey;
+            }
+            else if (functionName == "Area 5")
+            {
+                _configValues[HOTKEY_AREA_5] = hotKey;
+            }
+            SaveConfig();
+            Console.WriteLine($"Saving {functionName} to hotkey {hotKey}");
+        }
+
+        // Get HotKey
+        public string GetHotKey(string functionName)
+        {
+            if(functionName == "Start/Stop")
+            {
+                return GetValue(HOTKEY_START_STOP, "ALT+G");
+            }
+            else if(functionName == "Overlay")
+            {
+                return GetValue(HOTKEY_OVERLAY, "ALT+F");
+            }
+            else if(functionName == "ChatBox")
+            {
+                return GetValue(HOTKEY_CHATBOX, "ALT+C");
+            }
+            else if(functionName == "Select Area")
+            {
+                return GetValue(HOTKEY_SELECT_AREA, "ALT+Q");
+            }
+            else if(functionName == "Log")
+            {
+                return GetValue(HOTKEY_LOG, "ALT+L");
+            }
+            else if(functionName == "Setting")
+            {
+                return GetValue(HOTKEY_SETTING, "ALT+P");
+            }
+            else if(functionName == "Clear Areas")
+            {
+                return GetValue(HOTKEY_CLEAR_AREAS, "ALT+R");
+            }
+            else if(functionName == "Area 1")
+            {
+                return GetValue(HOTKEY_AREA_1, "ALT+1");
+            }
+            else if(functionName == "Area 2")
+            {
+                return GetValue(HOTKEY_AREA_2, "ALT+2");
+            }
+            else if(functionName == "Area 3")
+            {
+                return GetValue(HOTKEY_AREA_3, "ALT+3");
+            }
+            else if(functionName == "Area 4")
+            {
+                return GetValue(HOTKEY_AREA_4, "ALT+4");
+            }
+            else if(functionName == "Area 5")
+            {
+                return GetValue(HOTKEY_AREA_5, "ALT+5");
+            }
+            return GetValue(HOTKEY_START_STOP, "ALT+G");
         }
 
         // Get Mistral API key
