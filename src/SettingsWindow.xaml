@@ -54,6 +54,7 @@
                                     <ComboBoxItem Content="nl"/>
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
+                                    <ComboBoxItem Content="fa"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -84,6 +85,7 @@
                                     <ComboBoxItem Content="nl"/>
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
+                                    <ComboBoxItem Content="fa"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -131,6 +133,8 @@
                                     <Run>pl = Polish</Run>
                                     <LineBreak/>
                                     <Run>ro = Romanian</Run>
+                                    <LineBreak/>
+                                    <Run>fa = Farsi</Run>
                                 </TextBlock>
                             </Grid>
                         </GroupBox>

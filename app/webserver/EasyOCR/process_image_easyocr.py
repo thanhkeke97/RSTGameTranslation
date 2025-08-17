@@ -39,7 +39,8 @@ def initialize_ocr_engine(lang='english'):
         'Arabic': 'ar',
         'Dutch' : 'nl',
         'Polish': 'pl',
-        'Romanian': 'ro'
+        'Romanian': 'ro',
+        'Farsi': 'fa'
     }
 
     # Use mapped language or default to input if not in map
