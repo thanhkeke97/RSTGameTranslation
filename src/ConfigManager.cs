@@ -16,6 +16,7 @@ namespace RSTGameTranslation
     {
         private static ConfigManager? _instance;
         private readonly string _configFilePath;
+        public readonly string _profileFolderPath;
         private readonly string _geminiConfigFilePath;
         private readonly string _ollamaConfigFilePath;
         private readonly string _chatgptConfigFilePath;
@@ -64,12 +65,12 @@ namespace RSTGameTranslation
         // Google Translate settings
         public const string GOOGLE_TRANSLATE_USE_CLOUD_API = "google_translate_use_cloud_api";
         public const string GOOGLE_TRANSLATE_AUTO_MAP_LANGUAGES = "google_translate_auto_map_languages";
-        
+
         // Translation context keys
         public const string MAX_CONTEXT_PIECES = "max_context_pieces";
         public const string MIN_CONTEXT_SIZE = "min_context_size";
         public const string GAME_INFO = "game_info";
-        
+
         // OCR configuration keys
         public const string MIN_TEXT_FRAGMENT_SIZE = "min_text_fragment_size";
         public const string BLOCK_DETECTION_SCALE = "block_detection_scale";
@@ -81,7 +82,7 @@ namespace RSTGameTranslation
         public const string AUTO_TRANSLATE_ENABLED = "auto_translate_enabled";
         public const string CHAR_LEVEL = "char_level";
         public const string IGNORE_PHRASES = "ignore_phrases";
-        
+
         // Text-to-Speech configuration keys
         public const string TTS_ENABLED = "tts_enabled";
         public const string TTS_SERVICE = "tts_service";
@@ -89,7 +90,7 @@ namespace RSTGameTranslation
         public const string ELEVENLABS_VOICE = "elevenlabs_voice";
         public const string GOOGLE_TTS_API_KEY = "google_tts_api_key";
         public const string GOOGLE_TTS_VOICE = "google_tts_voice";
-        
+
         // ChatBox configuration keys
         public const string CHATBOX_FONT_FAMILY = "chatbox_font_family";
         public const string CHATBOX_FONT_SIZE = "chatbox_font_size";
@@ -116,7 +117,9 @@ namespace RSTGameTranslation
 
         // Constants for screen selection
         private const string SELECTED_SCREEN_INDEX = "SelectedScreenIndex";
-        
+
+        // Constants for translation areas
+        private const string TRANSLATION_AREAS = "translation_areas";
 
         // Multi selection area
         public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
@@ -200,26 +203,28 @@ namespace RSTGameTranslation
         private ConfigManager()
         {
             _configValues = new Dictionary<string, string>();
-            
+
             // Set config file paths to be in the application's directory
             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
             _configFilePath = Path.Combine(appDirectory, "config.txt");
+            _profileFolderPath = Path.Combine(appDirectory, "Profiles");
             _geminiConfigFilePath = Path.Combine(appDirectory, "gemini_config.txt");
             _ollamaConfigFilePath = Path.Combine(appDirectory, "ollama_config.txt");
             _chatgptConfigFilePath = Path.Combine(appDirectory, "chatgpt_config.txt");
             _mistralConfigFilePath = Path.Combine(appDirectory, "mistral_config.txt");
             _googleTranslateConfigFilePath = Path.Combine(appDirectory, "google_translate_config.txt");
-            
+
             Console.WriteLine($"Config file path: {_configFilePath}");
+            Console.WriteLine($"Profile folder path: {_profileFolderPath}");
             Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
             Console.WriteLine($"Ollama config file path: {_ollamaConfigFilePath}");
             Console.WriteLine($"ChatGPT config file path: {_chatgptConfigFilePath}");
             Console.WriteLine($"Mistral config file path: {_mistralConfigFilePath}");
             Console.WriteLine($"Google Translate config file path: {_googleTranslateConfigFilePath}");
-            
+
             // Load main config values
             LoadConfig();
-            
+
             // Load translation service from config
             if (_configValues.TryGetValue(TRANSLATION_SERVICE, out string? service))
             {
@@ -232,7 +237,7 @@ namespace RSTGameTranslation
                 _configValues[TRANSLATION_SERVICE] = _currentTranslationService;
                 SaveConfig();
             }
-            
+
             // Remove the old "llm_prompt_multi" entry if it exists, as it's now stored in separate files
             if (_configValues.ContainsKey("llm_prompt_multi"))
             {
@@ -240,7 +245,7 @@ namespace RSTGameTranslation
                 _configValues.Remove("llm_prompt_multi");
                 SaveConfig();
             }
-            
+
             // Create service-specific config files if they don't exist
             EnsureServiceConfigFilesExist();
         }
@@ -253,12 +258,16 @@ namespace RSTGameTranslation
         }
 
         // Load configuration from file
-        private void LoadConfig()
+        private void LoadConfig(string filePath = "Default")
         {
+            if(filePath == "Default")
+            {
+                filePath = _configFilePath;
+            }
             try
             {
                 // Create default config if it doesn't exist
-                if (!File.Exists(_configFilePath))
+                if (!File.Exists(filePath))
                 {
                     Console.WriteLine("Configuration file not found. Creating default configuration.");
                     CreateDefaultConfig();
@@ -266,11 +275,11 @@ namespace RSTGameTranslation
                 else
                 {
                     // Read all content from the config file
-                    string content = File.ReadAllText(_configFilePath);
-                    
+                    string content = File.ReadAllText(filePath);
+
                     // First, process multiline values with tags
                     ProcessMultilineValues(content);
-                    
+
                     // Then process regular single-line values
                     ProcessSingleLineValues(content);
                 }
@@ -278,10 +287,10 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading config: {ex.Message}");
-                MessageBox.Show($"Error loading configuration: {ex.Message}", "Configuration Error", 
+                MessageBox.Show($"Error loading configuration: {ex.Message}", "Configuration Error",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-            
+
             // Debug output: dump all loaded config values
             Console.WriteLine("=== All Loaded Config Values ===");
             foreach (var entry in _configValues)
@@ -290,7 +299,7 @@ namespace RSTGameTranslation
             }
             Console.WriteLine("===============================");
         }
-        
+
         public bool GetGoogleTranslateUseCloudApi()
         {
             return GetBoolValue(GOOGLE_TRANSLATE_USE_CLOUD_API, false);
@@ -379,12 +388,12 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_AREA_3] = "ALT+3";
             _configValues[HOTKEY_AREA_4] = "ALT+4";
             _configValues[HOTKEY_AREA_5] = "ALT+5";
-            
+
             // Save the default configuration
             SaveConfig();
             Console.WriteLine("Default configuration created and saved.");
         }
-        
+
         // Process multiline values enclosed in tags
         private void ProcessMultilineValues(string content)
         {
@@ -392,20 +401,20 @@ namespace RSTGameTranslation
             {
                 // Use regex to find content between tags like <key_start>content<key_end>
                 string pattern = @"<(\w+)_start>(.*?)<\1_end>";
-                
+
                 // Use RegexOptions.Singleline to make '.' match newlines as well
                 var matches = Regex.Matches(content, pattern, RegexOptions.Singleline);
-                
+
                 foreach (Match match in matches)
                 {
                     if (match.Groups.Count >= 3)
                     {
                         string key = match.Groups[1].Value;
                         string value = match.Groups[2].Value;
-                        
+
                         // Store the value
                         _configValues[key] = value;
-                        
+
                         Console.WriteLine($"Loaded multiline config: {key} ({value.Length} chars)");
                     }
                 }
@@ -415,7 +424,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error parsing multiline values: {ex.Message}");
             }
         }
-        
+
         // Process single-line key-value pairs
         private void ProcessSingleLineValues(string content)
         {
@@ -423,26 +432,26 @@ namespace RSTGameTranslation
             {
                 // Remove sections with multiline tags to avoid parsing them as single-line entries
                 content = Regex.Replace(content, @"<\w+_start>.*?<\w+_end>", "", RegexOptions.Singleline);
-                
+
                 // Split into lines and process each line
                 string[] lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                
+
                 foreach (string line in lines)
                 {
                     // Skip comments and empty lines
                     if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#"))
                         continue;
-                    
+
                     // Skip lines that are part of multiline tags
                     if (line.Contains("_start>") || line.Contains("_end>"))
                         continue;
-                    
+
                     // Parse config entries in format "key|value|"
                     string[] parts = line.Split('|');
                     if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[0]))
                     {
                         string key = parts[0].Trim();
-                        
+
                         // Special handling for IGNORE_PHRASES
                         if (key == IGNORE_PHRASES)
                         {
@@ -451,17 +460,17 @@ namespace RSTGameTranslation
                             // Remove trailing delimiter if present
                             if (phraseValue.EndsWith("|"))
                                 phraseValue = phraseValue.Substring(0, phraseValue.Length - 1);
-                                
+
                             _configValues[key] = phraseValue;
                             Console.WriteLine($"Loaded ignore phrases config: {key}");
                             continue;
                         }
-                        
+
                         // Normal key-value pairs
                         string value = parts[1].Trim();
-                        
+
                         // Only add if not already added by multiline processing
-                        if (!_configValues.ContainsKey(key))
+                        if (!_configValues.ContainsKey(key) || key != "TRANSLATION_AREAS")
                         {
                             _configValues[key] = value;
                             Console.WriteLine($"Loaded config: {key}={value}");
@@ -476,7 +485,7 @@ namespace RSTGameTranslation
         }
 
         // Save configuration to file
-        public void SaveConfig()
+        public void SaveConfig(string filePath="Default")
         {
             try
             {
@@ -485,13 +494,13 @@ namespace RSTGameTranslation
                 sb.AppendLine("# Format for single-line values: key|value|");
                 sb.AppendLine("# Format for multiline values: <key_start>multiple lines of content<key_end>");
                 sb.AppendLine();
-                
+
                 // First add single-line entries
                 foreach (var entry in _configValues.Where(e => !ShouldBeMultiline(e.Key)))
                 {
                     sb.AppendLine($"{entry.Key}|{entry.Value}|");
                 }
-                
+
                 // Then add multiline entries
                 foreach (var entry in _configValues.Where(e => ShouldBeMultiline(e.Key)))
                 {
@@ -500,20 +509,25 @@ namespace RSTGameTranslation
                     sb.AppendLine(entry.Value);
                     sb.AppendLine($"<{entry.Key}_end>");
                 }
-                
+
                 // Write to file
-                File.WriteAllText(_configFilePath, sb.ToString());
-                
+                if (filePath == "Default")
+                    File.WriteAllText(_configFilePath, sb.ToString());
+                else
+                {
+                    File.WriteAllText(filePath, sb.ToString());
+                }
+
                 Console.WriteLine($"Saved config to {_configFilePath}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error saving config: {ex.Message}");
-                MessageBox.Show($"Error saving configuration: {ex.Message}", "Configuration Error", 
+                MessageBox.Show($"Error saving configuration: {ex.Message}", "Configuration Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        
+
         // Determine if a key should be stored as multiline
         private bool ShouldBeMultiline(string key)
         {
@@ -529,7 +543,7 @@ namespace RSTGameTranslation
                 //Console.WriteLine($"ConfigManager.GetValue: Found value for key '{key}': '{value}'");
                 return value;
             }
-            
+
             Console.WriteLine($"ConfigManager.GetValue: Key '{key}' not found, returning default value: '{defaultValue}'");
             return defaultValue;
         }
@@ -625,7 +639,7 @@ namespace RSTGameTranslation
         {
             return GetValue(GEMINI_API_KEY);
         }
-        
+
         // Set Gemini API key
         public void SetGeminiApiKey(string apiKey)
         {
@@ -691,51 +705,51 @@ namespace RSTGameTranslation
         // Get HotKey
         public string GetHotKey(string functionName)
         {
-            if(functionName == "Start/Stop")
+            if (functionName == "Start/Stop")
             {
                 return GetValue(HOTKEY_START_STOP, "ALT+G");
             }
-            else if(functionName == "Overlay")
+            else if (functionName == "Overlay")
             {
                 return GetValue(HOTKEY_OVERLAY, "ALT+F");
             }
-            else if(functionName == "ChatBox")
+            else if (functionName == "ChatBox")
             {
                 return GetValue(HOTKEY_CHATBOX, "ALT+C");
             }
-            else if(functionName == "Select Area")
+            else if (functionName == "Select Area")
             {
                 return GetValue(HOTKEY_SELECT_AREA, "ALT+Q");
             }
-            else if(functionName == "Log")
+            else if (functionName == "Log")
             {
                 return GetValue(HOTKEY_LOG, "ALT+L");
             }
-            else if(functionName == "Setting")
+            else if (functionName == "Setting")
             {
                 return GetValue(HOTKEY_SETTING, "ALT+P");
             }
-            else if(functionName == "Clear Areas")
+            else if (functionName == "Clear Areas")
             {
                 return GetValue(HOTKEY_CLEAR_AREAS, "ALT+R");
             }
-            else if(functionName == "Area 1")
+            else if (functionName == "Area 1")
             {
                 return GetValue(HOTKEY_AREA_1, "ALT+1");
             }
-            else if(functionName == "Area 2")
+            else if (functionName == "Area 2")
             {
                 return GetValue(HOTKEY_AREA_2, "ALT+2");
             }
-            else if(functionName == "Area 3")
+            else if (functionName == "Area 3")
             {
                 return GetValue(HOTKEY_AREA_3, "ALT+3");
             }
-            else if(functionName == "Area 4")
+            else if (functionName == "Area 4")
             {
                 return GetValue(HOTKEY_AREA_4, "ALT+4");
             }
-            else if(functionName == "Area 5")
+            else if (functionName == "Area 5")
             {
                 return GetValue(HOTKEY_AREA_5, "ALT+5");
             }
@@ -747,44 +761,44 @@ namespace RSTGameTranslation
         {
             return GetValue(MISTRAL_API_KEY);
         }
-        
+
         // Set Mistral API key
         public void SetMistralApiKey(string apiKey)
         {
             _configValues[MISTRAL_API_KEY] = apiKey;
             SaveConfig();
         }
-        
+
         // Get/Set Ollama URL
         public string GetOllamaUrl()
         {
             return GetValue(OLLAMA_URL, "http://localhost");
         }
-        
+
         public void SetOllamaUrl(string url)
         {
             _configValues[OLLAMA_URL] = url;
             SaveConfig();
         }
-        
+
         // Get/Set Ollama Port
         public string GetOllamaPort()
         {
             return GetValue(OLLAMA_PORT, "11434");
         }
-        
+
         public void SetOllamaPort(string port)
         {
             _configValues[OLLAMA_PORT] = port;
             SaveConfig();
         }
-        
+
         // Get/Set Ollama Model
         public string GetOllamaModel()
         {
             return GetValue(OLLAMA_MODEL, "llama3"); // Default to llama3
         }
-        
+
         public void SetOllamaModel(string model)
         {
             if (!string.IsNullOrWhiteSpace(model))
@@ -794,28 +808,28 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Ollama model set to: {model}");
             }
         }
-        
+
         // Get the full Ollama API endpoint
         public string GetOllamaApiEndpoint()
         {
             string url = GetOllamaUrl();
             string port = GetOllamaPort();
-            
+
             // Ensure URL doesn't end with a slash
             if (url.EndsWith("/"))
             {
                 url = url.Substring(0, url.Length - 1);
             }
-            
+
             return $"{url}:{port}/api/generate";
         }
-        
+
         // Get current translation service
         public string GetCurrentTranslationService()
         {
             return _currentTranslationService;
         }
-        
+
         // Set current translation service
         public void SetTranslationService(string service)
         {
@@ -827,7 +841,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Translation service set to {service}");
             }
         }
-        
+
         // Get current OCR method
         public string GetOcrMethod()
         {
@@ -836,12 +850,12 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"  Config key: '{key}'");
             }
-            
+
             string ocrMethod = GetValue(OCR_METHOD, "Windows OCR"); // Default to Windows OCR if not set
             Console.WriteLine($"ConfigManager.GetOcrMethod() returning: '{ocrMethod}'");
             return ocrMethod;
         }
-        
+
         // Set current OCR method
         public void SetOcrMethod(string method)
         {
@@ -857,7 +871,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR' or 'PaddleOCR'");
             }
         }
-        
+
         public string GetDefaultServicePrompt(string service)
         {
             if (service == "Gemini")
@@ -881,8 +895,8 @@ namespace RSTGameTranslation
                 return "";
             }
         }
-        
-        
+
+
         // Create service-specific config files if they don't exist
         private void EnsureServiceConfigFilesExist()
         {
@@ -927,13 +941,13 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error ensuring service config files: {ex.Message}");
             }
         }
-        
+
         // Get LLM Prompt from the current translation service
         public string GetLlmPrompt()
         {
             return GetServicePrompt(_currentTranslationService);
         }
-        
+
         // Get prompt for specific translation service
         public string GetServicePrompt(string service)
         {
@@ -942,9 +956,9 @@ namespace RSTGameTranslation
             {
                 return "";
             }
-            
+
             string filePath;
-            
+
             switch (service)
             {
                 case "Gemini":
@@ -963,23 +977,23 @@ namespace RSTGameTranslation
                     filePath = _geminiConfigFilePath;
                     break;
             }
-            
+
             try
             {
                 if (File.Exists(filePath))
                 {
                     string content = File.ReadAllText(filePath);
-                    
+
                     // Extract prompt text using regex
                     string pattern = @"<llm_prompt_multi_start>(.*?)<llm_prompt_multi_end>";
                     Match match = Regex.Match(content, pattern, RegexOptions.Singleline);
-                    
+
                     if (match.Success && match.Groups.Count >= 2)
                     {
                         return match.Groups[1].Value.Trim();
                     }
                 }
-                
+
                 // Return default prompt if file doesn't exist or prompt not found
                 return "You are a translator. Translate the text I'll provide into English. Keep it simple and conversational.";
             }
@@ -989,7 +1003,7 @@ namespace RSTGameTranslation
                 return "Error loading prompt";
             }
         }
-        
+
         // Save prompt for specific translation service
         public bool SaveServicePrompt(string service, string prompt)
         {
@@ -998,9 +1012,9 @@ namespace RSTGameTranslation
             {
                 return true;
             }
-            
+
             string filePath;
-            
+
             switch (service)
             {
                 case "Gemini":
@@ -1019,7 +1033,7 @@ namespace RSTGameTranslation
                     filePath = _geminiConfigFilePath;
                     break;
             }
-            
+
             try
             {
                 string content = $"<llm_prompt_multi_start>\n{prompt}\n<llm_prompt_multi_end>";
@@ -1033,7 +1047,7 @@ namespace RSTGameTranslation
                 return false;
             }
         }
-        
+
         // Check if auto sizing text blocks is enabled
         public bool IsAutoSizeTextBlocksEnabled()
         {
@@ -1051,7 +1065,7 @@ namespace RSTGameTranslation
             }
             return 0.75;
         }
-        
+
         // Set auto translate enabled
         public void SetTextSimilarThreshold(string threshold)
         {
@@ -1066,7 +1080,7 @@ namespace RSTGameTranslation
             SaveConfig();
             Console.WriteLine($"Text similar threshold set to: {threshold}");
         }
-        
+
         // Check if char level is enabled
         public bool IsCharLevelEnabled()
         {
@@ -1089,7 +1103,7 @@ namespace RSTGameTranslation
             string value = GetValue(AUTO_TRANSLATE_ENABLED, "true");
             return value.ToLower() == "true";
         }
-        
+
         // Set auto translate enabled
         public void SetAutoTranslateEnabled(bool enabled)
         {
@@ -1097,13 +1111,13 @@ namespace RSTGameTranslation
             SaveConfig();
             Console.WriteLine($"Auto translate enabled: {enabled}");
         }
-        
+
         // Get ChatBox font family
         public string GetChatBoxFontFamily()
         {
             return GetValue(CHATBOX_FONT_FAMILY, "Segoe UI");
         }
-        
+
         // Get ChatBox font size
         public double GetChatBoxFontSize()
         {
@@ -1114,7 +1128,7 @@ namespace RSTGameTranslation
             }
             return 14; // Default font size
         }
-        
+
         // Get ChatBox font color
         public System.Windows.Media.Color GetChatBoxFontColor()
         {
@@ -1124,19 +1138,19 @@ namespace RSTGameTranslation
                 if (value.StartsWith("#") && value.Length >= 7)
                 {
                     byte a = 255; // Default alpha is fully opaque
-                    
+
                     // Parse alpha if provided (#AARRGGBB format)
                     if (value.Length >= 9)
                     {
                         a = byte.Parse(value.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
                     }
-                    
+
                     // Parse RGB values
                     int offset = value.Length >= 9 ? 3 : 1;
                     byte r = byte.Parse(value.Substring(offset, 2), System.Globalization.NumberStyles.HexNumber);
                     byte g = byte.Parse(value.Substring(offset + 2, 2), System.Globalization.NumberStyles.HexNumber);
                     byte b = byte.Parse(value.Substring(offset + 4, 2), System.Globalization.NumberStyles.HexNumber);
-                    
+
                     return System.Windows.Media.Color.FromArgb(a, r, g, b);
                 }
             }
@@ -1144,11 +1158,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error parsing ChatBox font color: {ex.Message}");
             }
-            
+
             // Return default color if parsing fails
             return System.Windows.Media.Colors.White;
         }
-        
+
         // Get ChatBox background color
         public System.Windows.Media.Color GetChatBoxBackgroundColor()
         {
@@ -1158,19 +1172,19 @@ namespace RSTGameTranslation
                 if (value.StartsWith("#") && value.Length >= 7)
                 {
                     byte a = 255; // Default alpha is fully opaque
-                    
+
                     // Parse alpha if provided (#AARRGGBB format)
                     if (value.Length >= 9)
                     {
                         a = byte.Parse(value.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
                     }
-                    
+
                     // Parse RGB values
                     int offset = value.Length >= 9 ? 3 : 1;
                     byte r = byte.Parse(value.Substring(offset, 2), System.Globalization.NumberStyles.HexNumber);
                     byte g = byte.Parse(value.Substring(offset + 2, 2), System.Globalization.NumberStyles.HexNumber);
                     byte b = byte.Parse(value.Substring(offset + 4, 2), System.Globalization.NumberStyles.HexNumber);
-                    
+
                     return System.Windows.Media.Color.FromArgb(a, r, g, b);
                 }
             }
@@ -1178,11 +1192,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error parsing ChatBox background color: {ex.Message}");
             }
-            
+
             // Return default color if parsing fails
             return System.Windows.Media.Color.FromArgb(128, 0, 0, 0);
         }
-        
+
         // Get ChatBox window opacity (0.1 to 1.0)
         public double GetChatBoxWindowOpacity()
         {
@@ -1194,7 +1208,7 @@ namespace RSTGameTranslation
             }
             return 1.0; // Default opacity
         }
-        
+
         // Get ChatBox background opacity (0.0 to 1.0)
         public double GetChatBoxBackgroundOpacity()
         {
@@ -1205,7 +1219,7 @@ namespace RSTGameTranslation
             }
             return 0.5; // Default opacity
         }
-        
+
         // Get Original Text color
         public System.Windows.Media.Color GetOriginalTextColor()
         {
@@ -1215,19 +1229,19 @@ namespace RSTGameTranslation
                 if (value.StartsWith("#") && value.Length >= 7)
                 {
                     byte a = 255; // Default alpha is fully opaque
-                    
+
                     // Parse alpha if provided (#AARRGGBB format)
                     if (value.Length >= 9)
                     {
                         a = byte.Parse(value.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
                     }
-                    
+
                     // Parse RGB values
                     int offset = value.Length >= 9 ? 3 : 1;
                     byte r = byte.Parse(value.Substring(offset, 2), System.Globalization.NumberStyles.HexNumber);
                     byte g = byte.Parse(value.Substring(offset + 2, 2), System.Globalization.NumberStyles.HexNumber);
                     byte b = byte.Parse(value.Substring(offset + 4, 2), System.Globalization.NumberStyles.HexNumber);
-                    
+
                     return System.Windows.Media.Color.FromArgb(a, r, g, b);
                 }
             }
@@ -1235,11 +1249,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error parsing Original Text color: {ex.Message}");
             }
-            
+
             // Return default color if parsing fails
             return System.Windows.Media.Colors.LightGoldenrodYellow;
         }
-        
+
         // Get Translated Text color
         public System.Windows.Media.Color GetTranslatedTextColor()
         {
@@ -1249,19 +1263,19 @@ namespace RSTGameTranslation
                 if (value.StartsWith("#") && value.Length >= 7)
                 {
                     byte a = 255; // Default alpha is fully opaque
-                    
+
                     // Parse alpha if provided (#AARRGGBB format)
                     if (value.Length >= 9)
                     {
                         a = byte.Parse(value.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
                     }
-                    
+
                     // Parse RGB values
                     int offset = value.Length >= 9 ? 3 : 1;
                     byte r = byte.Parse(value.Substring(offset, 2), System.Globalization.NumberStyles.HexNumber);
                     byte g = byte.Parse(value.Substring(offset + 2, 2), System.Globalization.NumberStyles.HexNumber);
                     byte b = byte.Parse(value.Substring(offset + 4, 2), System.Globalization.NumberStyles.HexNumber);
-                    
+
                     return System.Windows.Media.Color.FromArgb(a, r, g, b);
                 }
             }
@@ -1269,11 +1283,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error parsing Translated Text color: {ex.Message}");
             }
-            
+
             // Return default color if parsing fails
             return System.Windows.Media.Colors.White;
         }
-        
+
         // Get ChatBox history size
         public int GetChatBoxHistorySize()
         {
@@ -1284,7 +1298,7 @@ namespace RSTGameTranslation
             }
             return 20; // Default history size
         }
-        
+
         // Get min ChatBox text size
         public int GetChatBoxMinTextSize()
         {
@@ -1295,7 +1309,7 @@ namespace RSTGameTranslation
             }
             return 2; // Default min size
         }
-        
+
         // Set min ChatBox text size
         public void SetChatBoxMinTextSize(int value)
         {
@@ -1306,7 +1320,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Min ChatBox text size set to: {value}");
             }
         }
-        
+
         // Get/Set translation context settings
         public int GetMaxContextPieces()
         {
@@ -1317,7 +1331,7 @@ namespace RSTGameTranslation
             }
             return 3; // Default: 3 context pieces
         }
-        
+
         public void SetMaxContextPieces(int value)
         {
             if (value >= 0)
@@ -1327,7 +1341,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Max context pieces set to: {value}");
             }
         }
-        
+
         public int GetMinContextSize()
         {
             string value = GetValue(MIN_CONTEXT_SIZE, "20"); // Default: 20 characters
@@ -1337,7 +1351,7 @@ namespace RSTGameTranslation
             }
             return 20; // Default: 20 characters
         }
-        
+
         public void SetMinContextSize(int value)
         {
             if (value >= 0)
@@ -1347,20 +1361,20 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Min context size set to: {value}");
             }
         }
-        
+
         // Get/Set game info
         public string GetGameInfo()
         {
             return GetValue(GAME_INFO, "");
         }
-        
+
         public void SetGameInfo(string gameInfo)
         {
             _configValues[GAME_INFO] = gameInfo;
             SaveConfig();
             Console.WriteLine($"Game info set to: {gameInfo}");
         }
-        
+
         // Get/Set minimum text fragment size
         public int GetMinTextFragmentSize()
         {
@@ -1371,7 +1385,7 @@ namespace RSTGameTranslation
             }
             return 2; // Default: 2 characters
         }
-        
+
         public void SetMinTextFragmentSize(int value)
         {
             if (value >= 0)
@@ -1381,7 +1395,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Minimum text fragment size set to: {value}");
             }
         }
-        
+
         // Get/Set minimum letter confidence
         public double GetMinLetterConfidence()
         {
@@ -1392,7 +1406,7 @@ namespace RSTGameTranslation
             }
             return 0.1; // Default: 0.1 (10%)
         }
-        
+
         public void SetMinLetterConfidence(double value)
         {
             if (value >= 0 && value <= 1)
@@ -1406,7 +1420,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Invalid minimum letter confidence: {value}. Must be between 0 and 1.");
             }
         }
-        
+
         // Get/Set minimum line confidence
         public double GetMinLineConfidence()
         {
@@ -1417,7 +1431,7 @@ namespace RSTGameTranslation
             }
             return 0.2; // Default: 0.2 (20%)
         }
-        
+
         public void SetMinLineConfidence(double value)
         {
             if (value >= 0 && value <= 1)
@@ -1431,13 +1445,13 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Invalid minimum line confidence: {value}. Must be between 0 and 1.");
             }
         }
-        
+
         // Get/Set source language
         public string GetSourceLanguage()
         {
             return GetValue(SOURCE_LANGUAGE, "ja"); // Default to Japanese
         }
-        
+
         public void SetSourceLanguage(string language)
         {
             if (!string.IsNullOrWhiteSpace(language))
@@ -1447,13 +1461,13 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Source language set to: {language}");
             }
         }
-        
+
         // Get/Set target language
         public string GetTargetLanguage()
         {
             return GetValue(TARGET_LANGUAGE, "en"); // Default to English
         }
-        
+
         public void SetTargetLanguage(string language)
         {
             if (!string.IsNullOrWhiteSpace(language))
@@ -1463,29 +1477,29 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Target language set to: {language}");
             }
         }
-        
+
         // Text-to-Speech methods
-        
+
         // Get/Set TTS enabled
         public bool IsTtsEnabled()
         {
             string value = GetValue(TTS_ENABLED, "true");
             return value.ToLower() == "true";
         }
-        
+
         public void SetTtsEnabled(bool enabled)
         {
             _configValues[TTS_ENABLED] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"TTS enabled: {enabled}");
         }
-        
+
         // Get/Set TTS service
         public string GetTtsService()
         {
             return GetValue(TTS_SERVICE, "ElevenLabs"); // Default to ElevenLabs
         }
-        
+
         public void SetTtsService(string service)
         {
             if (!string.IsNullOrWhiteSpace(service))
@@ -1495,26 +1509,26 @@ namespace RSTGameTranslation
                 Console.WriteLine($"TTS service set to: {service}");
             }
         }
-        
+
         // Get/Set ElevenLabs API key
         public string GetElevenLabsApiKey()
         {
             return GetValue(ELEVENLABS_API_KEY, "");
         }
-        
+
         public void SetElevenLabsApiKey(string apiKey)
         {
             _configValues[ELEVENLABS_API_KEY] = apiKey;
             SaveConfig();
             Console.WriteLine("ElevenLabs API key updated");
         }
-        
+
         // Get/Set ElevenLabs voice
         public string GetElevenLabsVoice()
         {
             return GetValue(ELEVENLABS_VOICE, "21m00Tcm4TlvDq8ikWAM"); // Default to Rachel
         }
-        
+
         public void SetElevenLabsVoice(string voiceId)
         {
             if (!string.IsNullOrWhiteSpace(voiceId))
@@ -1524,28 +1538,28 @@ namespace RSTGameTranslation
                 Console.WriteLine($"ElevenLabs voice set to: {voiceId}");
             }
         }
-        
+
         // Google TTS methods
-        
+
         // Get/Set Google TTS API key
         public string GetGoogleTtsApiKey()
         {
             return GetValue(GOOGLE_TTS_API_KEY, "");
         }
-        
+
         public void SetGoogleTtsApiKey(string apiKey)
         {
             _configValues[GOOGLE_TTS_API_KEY] = apiKey;
             SaveConfig();
             Console.WriteLine("Google TTS API key updated");
         }
-        
+
         // Get/Set Google TTS voice
         public string GetGoogleTtsVoice()
         {
             return GetValue(GOOGLE_TTS_VOICE, "ja-JP-Neural2-B"); // Default to Female - Neural2
         }
-        
+
         public void SetGoogleTtsVoice(string voiceId)
         {
             if (!string.IsNullOrWhiteSpace(voiceId))
@@ -1555,28 +1569,28 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Google TTS voice set to: {voiceId}");
             }
         }
-        
+
         // ChatGPT methods
-        
+
         // Get/Set ChatGPT API key
         public string GetChatGptApiKey()
         {
             return GetValue(CHATGPT_API_KEY, "");
         }
-        
+
         public void SetChatGptApiKey(string apiKey)
         {
             _configValues[CHATGPT_API_KEY] = apiKey;
             SaveConfig();
             Console.WriteLine("ChatGPT API key updated");
         }
-        
+
         // Get/Set ChatGPT model
         public string GetChatGptModel()
         {
             return GetValue(CHATGPT_MODEL, "gpt-3.5-turbo"); // Default to gpt-3.5-turbo
         }
-        
+
         public void SetChatGptModel(string model)
         {
             if (!string.IsNullOrWhiteSpace(model))
@@ -1586,15 +1600,15 @@ namespace RSTGameTranslation
                 Console.WriteLine($"ChatGPT model set to: {model}");
             }
         }
-        
+
         // Gemini methods
-        
+
         // Get Gemini model
         public string GetGeminiModel()
         {
             return GetValue(GEMINI_MODEL, "gemini-2.0-flash-lite"); // Default to 2.0 Flash-lite
         }
-        
+
         // Set Gemini model
         public void SetGeminiModel(string model)
         {
@@ -1611,7 +1625,7 @@ namespace RSTGameTranslation
         {
             return GetValue(MISTRAL_MODEL, "open-mistral-nemo"); // Default to open-mistral-nemo
         }
-        
+
         // Set Gemini model
         public void SetMistralModel(string model)
         {
@@ -1622,16 +1636,16 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Mistral model set to: {model}");
             }
         }
-        
+
         // OCR Display methods
-        
+
         // Check if translation should stay onscreen until replaced
         public bool IsLeaveTranslationOnscreenEnabled()
         {
             string value = GetValue(LEAVE_TRANSLATION_ONSCREEN, "false");
             return value.ToLower() == "true";
         }
-        
+
         // Set whether translation should stay onscreen until replaced
         public void SetLeaveTranslationOnscreenEnabled(bool enabled)
         {
@@ -1639,7 +1653,7 @@ namespace RSTGameTranslation
             SaveConfig();
             Console.WriteLine($"Leave translation onscreen enabled: {enabled}");
         }
-        
+
         // Check if translated text should be kept until replaced
         public bool IsKeepTranslatedTextUntilReplacedEnabled()
         {
@@ -1659,7 +1673,7 @@ namespace RSTGameTranslation
         {
             List<string> result = new List<string>();
             string keysConfigKey;
-            
+
             switch (serviceType)
             {
                 case "Gemini":
@@ -1677,15 +1691,15 @@ namespace RSTGameTranslation
                 default:
                     return result;
             }
-            
+
             string keysValue = GetValue(keysConfigKey, "");
             if (!string.IsNullOrEmpty(keysValue))
             {
                 string[] keys = keysValue.Split(new[] { "+++" }, StringSplitOptions.RemoveEmptyEntries);
                 result.AddRange(keys);
             }
-            
-            
+
+
             return result;
         }
 
@@ -1693,7 +1707,7 @@ namespace RSTGameTranslation
         public void SaveApiKeysList(string serviceType, List<string> keys)
         {
             string keysConfigKey;
-            
+
             switch (serviceType)
             {
                 case "Gemini":
@@ -1711,11 +1725,11 @@ namespace RSTGameTranslation
                 default:
                     return;
             }
-            
+
             string keysValue = string.Join("+++", keys);
             _configValues[keysConfigKey] = keysValue;
             SaveConfig();
-            
+
             // Update current api key
             string singleKeyConfigKey = GetSingleKeyConfigKey(serviceType);
             if (keys.Count > 0)
@@ -1726,7 +1740,7 @@ namespace RSTGameTranslation
             {
                 _configValues[singleKeyConfigKey] = "";
             }
-            
+
             Console.WriteLine($"Saved {keys.Count} API keys for {serviceType}");
         }
 
@@ -1778,7 +1792,7 @@ namespace RSTGameTranslation
                 return "";
 
             int index = keys.IndexOf(api_key);
-            if (index == keys.Count-1)
+            if (index == keys.Count - 1)
             {
                 index = 0;
             }
@@ -1788,7 +1802,7 @@ namespace RSTGameTranslation
             }
             return keys[index];
         }
-        
+
         // Set whether translated text should be kept until replaced
         public void SetKeepTranslatedTextUntilReplacedEnabled(bool enabled)
         {
@@ -1804,9 +1818,9 @@ namespace RSTGameTranslation
             SaveConfig();
             Console.WriteLine($"Enable Multi seletion area set to: {enabled}");
         }
-        
+
         // Block Detection methods
-        
+
         // Get Block Detection Scale
         public double GetBlockDetectionScale()
         {
@@ -1817,7 +1831,7 @@ namespace RSTGameTranslation
             }
             return 5.0; // Default
         }
-        
+
         // Set Block Detection Scale
         public void SetBlockDetectionScale(double scale)
         {
@@ -1828,7 +1842,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Block detection scale set to: {scale:F2}");
             }
         }
-        
+
         // Get Block Detection Settle Time
         public double GetBlockDetectionSettleTime()
         {
@@ -1839,13 +1853,13 @@ namespace RSTGameTranslation
             }
             return 0.15; // Default
         }
-        
+
         // Set Block Detection Settle Time
         public void SetBlockDetectionSettleTime(double seconds)
         {
             if (seconds >= 0)
             {
-                _configValues[BLOCK_DETECTION_SETTLE_TIME] = seconds.ToString("F2",  CultureInfo.InvariantCulture);
+                _configValues[BLOCK_DETECTION_SETTLE_TIME] = seconds.ToString("F2", CultureInfo.InvariantCulture);
                 SaveConfig();
                 Console.WriteLine($"Block detection settle time set to: {seconds:F2} seconds");
             }
@@ -1858,7 +1872,7 @@ namespace RSTGameTranslation
         {
             List<(string, bool)> result = new List<(string, bool)>();
             string value = GetValue(IGNORE_PHRASES, "");
-            
+
             if (!string.IsNullOrEmpty(value))
             {
                 // Fix the format if it contains the key prefix (from old format)
@@ -1866,10 +1880,10 @@ namespace RSTGameTranslation
                 {
                     value = value.Substring((IGNORE_PHRASES + "|").Length);
                 }
-                
+
                 // Format should be: phrase1|True|phrase2|False
                 string[] parts = value.Split('|');
-                
+
                 // Process in pairs
                 for (int i = 0; i < parts.Length - 1; i += 2)
                 {
@@ -1877,7 +1891,7 @@ namespace RSTGameTranslation
                     {
                         string phrase = parts[i];
                         bool exactMatch = bool.TryParse(parts[i + 1], out bool match) && match;
-                        
+
                         if (!string.IsNullOrEmpty(phrase))
                         {
                             result.Add((phrase, exactMatch));
@@ -1886,15 +1900,15 @@ namespace RSTGameTranslation
                     }
                 }
             }
-            
+
             return result;
         }
-        
+
         // Save all ignore phrases
         public void SaveIgnorePhrases(List<(string Phrase, bool ExactMatch)> phrases)
         {
             StringBuilder sb = new StringBuilder();
-            
+
             foreach (var (phrase, exactMatch) in phrases)
             {
                 if (!string.IsNullOrEmpty(phrase))
@@ -1905,20 +1919,20 @@ namespace RSTGameTranslation
                     sb.Append('|');
                 }
             }
-            
+
             _configValues[IGNORE_PHRASES] = sb.ToString();
             SaveConfig();
             Console.WriteLine($"Saved {phrases.Count} ignore phrases: {sb.ToString()}");
         }
-        
+
         // Add a single ignore phrase
         public void AddIgnorePhrase(string phrase, bool exactMatch)
         {
             if (string.IsNullOrEmpty(phrase))
                 return;
-                
+
             var phrases = GetIgnorePhrases();
-            
+
             // Check if the phrase already exists
             if (!phrases.Any(p => p.Phrase == phrase))
             {
@@ -1927,33 +1941,33 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Added ignore phrase: '{phrase}' (Exact Match: {exactMatch})");
             }
         }
-        
+
         // Remove a single ignore phrase
         public void RemoveIgnorePhrase(string phrase)
         {
             if (string.IsNullOrEmpty(phrase))
                 return;
-                
+
             var phrases = GetIgnorePhrases();
             var originalCount = phrases.Count;
-            
+
             phrases.RemoveAll(p => p.Phrase == phrase);
-            
+
             if (phrases.Count < originalCount)
             {
                 SaveIgnorePhrases(phrases);
                 Console.WriteLine($"Removed ignore phrase: '{phrase}'");
             }
         }
-        
+
         // Update exact match setting for a phrase
         public void UpdateIgnorePhraseExactMatch(string phrase, bool exactMatch)
         {
             if (string.IsNullOrEmpty(phrase))
                 return;
-                
+
             var phrases = GetIgnorePhrases();
-            
+
             for (int i = 0; i < phrases.Count; i++)
             {
                 if (phrases[i].Phrase == phrase)
@@ -2006,6 +2020,84 @@ namespace RSTGameTranslation
             _configValues[AUDIO_SERVICE_AUTO_TRANSLATE] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Audio service auto-translate enabled: {enabled}");
+        }
+        
+        // Save translation areas to config
+        public void SaveTranslationAreas(List<Rect> areas, string profileName)
+        {
+            try
+            {
+                // Format: X1,Y1,Width1,Height1|X2,Y2,Width2,Height2|...
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var area in areas)
+                {
+                    // Use invariant culture to ensure consistent decimal formatting
+                    sb.Append(area.X.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(',');
+                    sb.Append(area.Y.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(',');
+                    sb.Append(area.Width.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(',');
+                    sb.Append(area.Height.ToString(CultureInfo.InvariantCulture));
+                    sb.Append('+');
+                }
+
+                // Save to config
+                _configValues[TRANSLATION_AREAS] = sb.ToString();
+
+                string pathProfile = Path.Combine(_profileFolderPath, $"{profileName}.txt");
+                // Save config to file
+                SaveConfig(pathProfile);
+
+                Console.WriteLine($"Saved {areas.Count} translation areas to config");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving translation areas: {ex.Message}");
+            }
+        }
+
+        
+        // Get translation areas from config
+        public List<Rect> GetTranslationAreas(string filePath)
+        {
+            List<Rect> areas = new List<Rect>();
+            LoadConfig(filePath);
+            try
+            {
+                string value = GetValue(TRANSLATION_AREAS, "");
+
+                if (!string.IsNullOrEmpty(value))
+                {
+                    string[] areaStrings = value.Split(new[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (string areaString in areaStrings)
+                    {
+                        string[] parts = areaString.Split(',');
+
+                        if (parts.Length == 4)
+                        {
+                            // Parse using invariant culture to handle different decimal separators
+                            if (double.TryParse(parts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out double x) &&
+                                double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out double y) &&
+                                double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out double width) &&
+                                double.TryParse(parts[3], NumberStyles.Any, CultureInfo.InvariantCulture, out double height))
+                            {
+                                areas.Add(new Rect(x, y, width, height));
+                            }
+                        }
+                    }
+                }
+
+                Console.WriteLine($"Loaded {areas.Count} translation areas from config");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading translation areas: {ex.Message}");
+            }
+
+            return areas;
         }
     }
 }

@@ -16,6 +16,7 @@ using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
 using System.Windows.Forms;
 using System.Windows.Interop;
+using System.IO;
 
 namespace RSTGameTranslation
 {
@@ -38,6 +39,8 @@ namespace RSTGameTranslation
         
         public static bool _isLanguagePackInstall = false;
 
+        public string profileName = "";
+
         public static SettingsWindow Instance
         {
             get
@@ -59,6 +62,7 @@ namespace RSTGameTranslation
             InitializeComponent();
             _instance = this;
             LoadAvailableScreens();
+            LoadAllProfile();
 
             // Add Loaded event handler to ensure controls are initialized
             this.Loaded += SettingsWindow_Loaded;
@@ -70,6 +74,14 @@ namespace RSTGameTranslation
                 this.Hide();      // Just hide the window
                 MainWindow.Instance.settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
             };
+        }
+
+        // Reload setting for setting windows
+        public void ReloadSetting()
+        {
+            _instance = this;
+            LoadAvailableScreens();
+            SettingsWindow_Loaded(null, null);
         }
 
         // Show message for multi selection are
@@ -776,7 +788,7 @@ namespace RSTGameTranslation
                     string key1 = keyParts[0].ToUpper();
                     string key2 = keyParts[1].ToUpper();
 
-                    // Tìm và thiết lập item cho combineKey1
+                    
                     foreach (ComboBoxItem item in combineKey1.Items)
                     {
                         if (item.Content.ToString() == key1)
@@ -786,7 +798,7 @@ namespace RSTGameTranslation
                         }
                     }
 
-                    // Tìm và thiết lập item cho combineKey2
+                    
                     foreach (ComboBoxItem item in combineKey2.Items)
                     {
                         if (item.Content.ToString() == key2)
@@ -2325,6 +2337,231 @@ namespace RSTGameTranslation
             
         }
 
+        private void CreateProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button button)
+            {
+                profileName = profileNameTextBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(profileName))
+                {
+                    MessageBox.Show("Please enter a profile name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    // Create profile with current config
+                    ConfigManager.Instance.SaveTranslationAreas(MainWindow.Instance.savedTranslationAreas, profileName);
+                    // Add to combo box
+                    bool exists = false;
+                    foreach (var item in profileComboBox.Items)
+                    {
+                        if (item.ToString() == profileName)
+                        {
+                            profileComboBox.SelectedItem = item;
+                            exists = true;
+                            break;
+                        }
+                    }
+
+
+                    if (!exists)
+                    {
+                        profileComboBox.Items.Add(profileName);
+                        profileComboBox.SelectedIndex = profileComboBox.Items.Count - 1;
+                    }
+                    // Show status
+                    statusUpdateGameProfile.Visibility = Visibility.Visible;
+                    statusUpdateGameProfile.Text = $"Create {profileName} successfully!";
+                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Green);
+
+                    // Auto close status after 1.5 second
+                    var timer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(1.5)
+                    };
+                    
+                    timer.Tick += (s, e) =>
+                    {
+                        statusUpdateGameProfile.Text = "";
+                    timer.Stop();
+                    };
+                    
+                    timer.Start();
+                }
+            }
+        }
+
+        private void RemoveProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (profileComboBox.SelectedItem != null)
+            {
+                string? selectedText = profileComboBox.SelectedItem.ToString();
+                string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    Console.WriteLine("Profile deleted successfully!");
+                    profileComboBox.Items.Remove(selectedText);
+                    profileComboBox.SelectedIndex = -1;
+                    // Clear all save selection areas
+                    MainWindow.Instance.savedTranslationAreas.Clear();
+                    MainWindow.Instance.hasSelectedTranslationArea = false;
+                    MainWindow.Instance.currentAreaIndex = -1;
+                    // Show status
+                    statusUpdateGameProfile.Visibility = Visibility.Visible;
+                    statusUpdateGameProfile.Text = $"Remove {profileName} successfully!";
+                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Red);
+
+                    // Auto close status after 1.5 second
+                    var timer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(1.5)
+                    };
+                    
+                    timer.Tick += (s, e) =>
+                    {
+                        statusUpdateGameProfile.Text = "";
+                    timer.Stop();
+                    };
+                    
+                    timer.Start();
+                }
+                else
+                {
+                    MessageBox.Show("Profile not found, can not remove", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                 MessageBox.Show("No profile selected, please select a profile from combo box", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UpdateProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (profileComboBox.SelectedItem != null)
+            {
+                string selectedText = profileComboBox.SelectedItem.ToString() ?? "Default";
+                string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
+                if (File.Exists(filePath))
+                {
+                    if (MainWindow.Instance.savedTranslationAreas.Count > 0)
+                    {
+                        ConfigManager.Instance.SaveTranslationAreas(MainWindow.Instance.savedTranslationAreas, selectedText);
+                        Console.WriteLine($"Saved {selectedText}.txt {MainWindow.Instance.savedTranslationAreas.Count} translation areas to config");
+                    }
+                    else
+                    {
+                        // Clear saved areas in config if we have none
+                        ConfigManager.Instance.SaveTranslationAreas(new List<Rect>(), selectedText);
+                        Console.WriteLine("Cleared translation areas in config");
+                    }
+                    // Show status
+                    statusUpdateGameProfile.Visibility = Visibility.Visible;
+                    statusUpdateGameProfile.Text = $"Update {profileName} successfully!";
+                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Orange);
+
+                    // Auto close status after 1.5 second
+                    var timer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(1.5)
+                    };
+                    
+                    timer.Tick += (s, e) =>
+                    {
+                        statusUpdateGameProfile.Text = "";
+                    timer.Stop();
+                    };
+                    
+                    timer.Start();
+                }
+                else
+                {
+                    MessageBox.Show("Profile not found, please try to create new other profile", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("No profile selected, please select a profile from combo box", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (profileComboBox.SelectedItem != null)
+            {
+                string? selectedText = profileComboBox.SelectedItem.ToString();
+                string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
+                if (File.Exists(filePath))
+                {
+                    // Get saved areas from config
+                    List<Rect> areas = ConfigManager.Instance.GetTranslationAreas(filePath);
+                    if (areas.Count > 0)
+                    {
+                        // Update our areas list
+                        MainWindow.Instance.savedTranslationAreas.Clear();
+                        MainWindow.Instance.savedTranslationAreas = areas;
+                        MainWindow.Instance.hasSelectedTranslationArea = true;
+                        MainWindow.Instance.SwitchToTranslationArea(MainWindow.Instance.savedTranslationAreas.Count - 1);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No translation areas found in config");
+                    }
+                    // Show status
+                    statusUpdateGameProfile.Visibility = Visibility.Visible;
+                    statusUpdateGameProfile.Text = $"Load {profileName} successfully!";
+                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Violet);
+                    ReloadSetting();
+
+                    // Auto close status after 1.5 second
+                    var timer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(1.5)
+                    };
+                    
+                    timer.Tick += (s, e) =>
+                    {
+                        statusUpdateGameProfile.Text = "";
+                    timer.Stop();
+                    };
+                    
+                    timer.Start();
+                }
+                else
+                {
+                    MessageBox.Show("Profile not found, please try to create new other profile", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("No profile selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadAllProfile()
+        {
+            if (!Directory.Exists(ConfigManager.Instance._profileFolderPath))
+            {
+                Directory.CreateDirectory(ConfigManager.Instance._profileFolderPath);
+            }
+            
+            List<string?> fileNames = Directory.GetFiles(ConfigManager.Instance._profileFolderPath, "*.txt")
+            .Select(Path.GetFileNameWithoutExtension)
+            .Where(name => !string.IsNullOrEmpty(name))
+            .OrderBy(name => name)
+            .ToList();
+
+            foreach (string? name in fileNames)
+            {
+                if (!string.IsNullOrEmpty(name))
+                {
+                    profileComboBox.Items.Add(name);
+                }
+            }
+            
+
+        }
         // Handle Clear Context button click
         private void ClearContextButton_Click(object sender, RoutedEventArgs e)
         {

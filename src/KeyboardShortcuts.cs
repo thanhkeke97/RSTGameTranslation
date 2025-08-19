@@ -18,7 +18,7 @@ namespace RSTGameTranslation
         public static event EventHandler? ChatBoxToggleRequested;
         public static event EventHandler? SettingsToggleRequested;
         public static event EventHandler? LogToggleRequested;
-        public static event EventHandler? MainWindowVisibilityToggleRequested;
+        // public static event EventHandler? MainWindowVisibilityToggleRequested;
         public static event EventHandler? SelectTranslationRegion;
         public static event EventHandler? ClearAreasRequested;
         

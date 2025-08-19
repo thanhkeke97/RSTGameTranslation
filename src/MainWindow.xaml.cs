@@ -71,9 +71,9 @@ namespace RSTGameTranslation
         // Store translate area information
         private bool isSelectingTranslationArea = false;
         private Rect selectedTranslationArea;
-        private bool hasSelectedTranslationArea = false;
-        private List<Rect> savedTranslationAreas = new List<Rect>();
-        private int currentAreaIndex = 0;
+        public bool hasSelectedTranslationArea = false;
+        public List<Rect> savedTranslationAreas = new List<Rect>();
+        public int currentAreaIndex = 0;
 
 
         // Store previous capture position to calculate offset
@@ -444,7 +444,7 @@ namespace RSTGameTranslation
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
         }
         
-        private void SwitchToTranslationArea(int index)
+        public void SwitchToTranslationArea(int index)
         {
             if (savedTranslationAreas.Count == 0)
             {
@@ -487,7 +487,7 @@ namespace RSTGameTranslation
                 IsOpen = true,
                 StaysOpen = false,
                 AllowsTransparency = true,
-                Placement = System.Windows.Controls.Primitives.PlacementMode.Center,
+                Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute,
                 PlacementTarget = this
             };
             
@@ -510,6 +510,10 @@ namespace RSTGameTranslation
             
             border.Child = text;
             notification.Child = border;
+            
+            // Set position to selected area
+            notification.HorizontalOffset = selectedTranslationArea.X + (selectedTranslationArea.Width / 2) - (notification.Width / 2);
+            notification.VerticalOffset = selectedTranslationArea.Y + (selectedTranslationArea.Height / 2) - (notification.Height / 2);
             
             // Auto close notification after 1.5 second
             var timer = new System.Windows.Threading.DispatcherTimer

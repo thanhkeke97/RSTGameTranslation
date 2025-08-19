@@ -515,7 +515,7 @@
                                 </Grid>
                                 
                                 <!-- Mistral Model - Only visible when Mistral is selected -->
-                                <TextBlock x:Name="mistralModelLabel" Text="Gemini Model:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock x:Name="mistralModelLabel" Text="Mistral Model:" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0"/>
                                 <Grid Grid.Row="2" Grid.Column="1" Margin="0,5" x:Name="mistralModelGrid">
                                     <Grid.ColumnDefinitions>
@@ -1001,6 +1001,93 @@
                                          Content="Auto translate (using Google Translate)" 
                                          Checked="AudioServiceAutoTranslateCheckBox_CheckedChanged"
                                          Unchecked="AudioServiceAutoTranslateCheckBox_CheckedChanged"/>
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!--  Game Profile Tab -->
+            <TabItem Header="Game Profile">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <!-- Audio Processing Settings -->
+                        <GroupBox Header="Game Profile Settings" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Profile Name" Grid.Row="0" Grid.Column="0" 
+                                          Margin="0,10,10,0"/>
+                                <TextBox x:Name="profileNameTextBox" Grid.Row="0" Grid.Column="1" 
+                                          Margin="0,5"/>
+                                <TextBlock Text="Select Profile:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="profileComboBox" Grid.Row="1" Grid.Column="1" Margin="0,5">
+                                </ComboBox>
+                                <Button Grid.Row="0" Grid.Column="2" Click="CreateProfileButton_Click"
+                                        Width="100" Height="20" Margin="10,0">
+                                    <TextBlock Text="Create Profile"/>
+                                </Button>
+                                <Button Grid.Row="2" Grid.Column="1" Click="UpdateProfileButton_Click"
+                                        Width="100" Height="20" Margin="10,0">
+                                    <TextBlock Text="Update Profile"/>
+                                </Button>
+                                <Button Grid.Row="1" Grid.Column="2" Click="RemoveProfileButton_Click"
+                                        Width="100" Height="20" Margin="10,0">
+                                    <TextBlock Text="Remove Profile"/>
+                                </Button>
+                                <Button Grid.Row="2" Grid.Column="2" Click="LoadProfileButton_Click"
+                                        Width="100" Height="20" Margin="10,0">
+                                    <TextBlock Text="Load Profile"/>
+                                </Button>
+                                <TextBlock x:Name="statusUpdateGameProfile" Foreground="Green" Text="" HorizontalAlignment="Center"
+                                    Grid.Row="3" Grid.Column="1" Margin="0,20,0,0"/>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Game Profile Detail Function" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock FontWeight="Bold" Text="Create Profile: " HorizontalAlignment="Left"
+                                    Grid.Row="0" Grid.Column="0" Margin="0,10,0,0"/>
+                                <TextBlock Text="To create a new profile, enter the profile name in the 'Profile Name' field and click the 'Create Profile' button." 
+                                    HorizontalAlignment="Left" TextWrapping="Wrap"
+                                    Grid.Row="0" Grid.Column="1" Margin="10,10,0,0"/>
+                                <TextBlock Text="Important: Profile name must be unaccented characters and no spaces, for example: GodOfWar, GTAV, TheLastOfUs, etc" 
+                                    HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="Red"
+                                    Grid.Row="1" Grid.Column="1" Margin="10,10,0,0"/>
+                                <TextBlock FontWeight="Bold" Text="Remove Profile: " HorizontalAlignment="Left"
+                                    Grid.Row="2" Grid.Column="0" Margin="0,10,0,0"/>
+                                <TextBlock Text="To remove a new profile, select the profile name in the combobox 'Select Profile' and click the 'Remove Profile' button." 
+                                    HorizontalAlignment="Left" TextWrapping="Wrap"
+                                    Grid.Row="2" Grid.Column="1" Margin="10,10,0,0"/>
+                                <TextBlock FontWeight="Bold" Text="Update Profile: " HorizontalAlignment="Left"
+                                    Grid.Row="3" Grid.Column="0" Margin="0,10,0,0"/>
+                                <TextBlock Text="To update a new profile, select the profile name in the combobox 'Select Profile' and click the 'Update Profile' button. This will update all current configs in settings to the profile you choose." 
+                                    HorizontalAlignment="Left" TextWrapping="Wrap"
+                                    Grid.Row="3" Grid.Column="1" Margin="10,10,0,0"/>
+                                <TextBlock FontWeight="Bold" Text="Load Profile: " HorizontalAlignment="Left"
+                                    Grid.Row="4" Grid.Column="0" Margin="0,10,0,0"/>
+                                <TextBlock Text="To load a new profile, select the profile name in the combobox 'Select Profile' and click the 'Load Profile' button. This will apply all configurations from the selected profile to your current settings." 
+                                    HorizontalAlignment="Left" TextWrapping="Wrap"
+                                    Grid.Row="4" Grid.Column="1" Margin="10,10,0,0"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
