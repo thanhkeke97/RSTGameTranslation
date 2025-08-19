@@ -40,6 +40,7 @@ namespace RSTGameTranslation
         public const string HOTKEY_LOG = "hotkey_log";
         public const string HOTKEY_SELECT_AREA = "hotkey_select_area";
         public const string HOTKEY_CLEAR_AREAS = "hotkey_clear_areas";
+        public const string HOTKEY_CLEAR_PREVIOUS_AREA = "Clear Previous Area";
         public const string HOTKEY_CHATBOX = "hotkey_chatbox";
         public const string HOTKEY_AREA_1 = "hotkey_area_1";
         public const string HOTKEY_AREA_2 = "hotkey_area_2";
@@ -383,6 +384,7 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_CHATBOX] = "ALT+C";
             _configValues[HOTKEY_SELECT_AREA] = "ALT+Q";
             _configValues[HOTKEY_CLEAR_AREAS] = "ALT+R";
+            _configValues[HOTKEY_CLEAR_PREVIOUS_AREA] = "ALT+H";
             _configValues[HOTKEY_AREA_1] = "ALT+1";
             _configValues[HOTKEY_AREA_2] = "ALT+2";
             _configValues[HOTKEY_AREA_3] = "ALT+3";
@@ -678,6 +680,10 @@ namespace RSTGameTranslation
             {
                 _configValues[HOTKEY_CLEAR_AREAS] = hotKey;
             }
+            else if (functionName == "Clear Previous Area")
+            {
+                _configValues[HOTKEY_CLEAR_PREVIOUS_AREA] = hotKey;
+            }
             else if (functionName == "Area 1")
             {
                 _configValues[HOTKEY_AREA_1] = hotKey;
@@ -732,6 +738,10 @@ namespace RSTGameTranslation
             else if (functionName == "Clear Areas")
             {
                 return GetValue(HOTKEY_CLEAR_AREAS, "ALT+R");
+            }
+            else if (functionName == "Clear Previous Area")
+            {
+                return GetValue(HOTKEY_CLEAR_PREVIOUS_AREA, "ALT+H");
             }
             else if (functionName == "Area 1")
             {

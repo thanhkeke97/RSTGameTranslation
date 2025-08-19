@@ -341,6 +341,7 @@ namespace RSTGameTranslation
             KeyboardShortcuts.SettingsToggleRequested += (s, e) => SettingsButton_Click(settingsButton, new RoutedEventArgs());
             KeyboardShortcuts.LogToggleRequested += (s, e) => LogButton_Click(logButton, new RoutedEventArgs());
             KeyboardShortcuts.SelectTranslationRegion += (s, e) => SelectAreaButton_Click(selectAreaButton, new RoutedEventArgs());
+            KeyboardShortcuts.ClearPreviousAreaRequested += (s, e) => clearPreviousArea();
             KeyboardShortcuts.SelectArea1Requested += (s, e) => SwitchToTranslationArea(0);
             KeyboardShortcuts.SelectArea2Requested += (s, e) => SwitchToTranslationArea(1);
             KeyboardShortcuts.SelectArea3Requested += (s, e) => SwitchToTranslationArea(2);
@@ -415,7 +416,7 @@ namespace RSTGameTranslation
                 {
                     savedTranslationAreas = savedTranslationAreas.Skip(savedTranslationAreas.Count - 5).Take(5).ToList();
                     Console.WriteLine("Maximum of 5 areas allowed. Keeping only the 5 most recent selections.");
-                    System.Windows.MessageBox.Show($"Maximum of 5 areas allowed. Keeping only the 5 most recent selections.",
+                    System.Windows.MessageBox.Show($"Maximum of 5 areas allowed. Keeping only the 5 most recent selections. Please click ClearArea button to clear all areas",
                         "Maximum selection area", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
@@ -1798,6 +1799,28 @@ namespace RSTGameTranslation
                 btnSetupOcrServer.IsEnabled = true;
             }
         }
+        private void clearPreviousArea()
+        {
+            int numberAreaCount = savedTranslationAreas.Count;
+            if (numberAreaCount <= 0)
+            {
+                Console.WriteLine("No previous area to clear");
+                return;
+            }
+            else
+            {
+
+                // Remove the last area from the list
+                savedTranslationAreas.RemoveAt(numberAreaCount - 1);
+
+                // Default switch to area last index
+                if(savedTranslationAreas.Count >= 1)
+                {
+                    SwitchToTranslationArea(savedTranslationAreas.Count - 1);
+                }
+            }
+            Console.WriteLine("Previous translation area have been removed.");
+        }
 
         private void btnClearSelectionArea_Click(object sender, RoutedEventArgs e)
         {
@@ -1810,19 +1833,19 @@ namespace RSTGameTranslation
             savedTranslationAreas.Clear();
             hasSelectedTranslationArea = false;
             currentAreaIndex = -1;
-            
+
             // Set button background to blue
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
-            
+
             // Update capture area to default area
             UpdateCaptureRect();
-            
+
             Console.WriteLine("All translation areas have been cleared.");
-            
+
             // Show notification
-            System.Windows.MessageBox.Show("All translation areas have been cleared.", 
-                            "Areas Cleared", 
-                            MessageBoxButton.OK, 
+            System.Windows.MessageBox.Show("All translation areas have been cleared.",
+                            "Areas Cleared",
+                            MessageBoxButton.OK,
                             MessageBoxImage.Information);
         }
 

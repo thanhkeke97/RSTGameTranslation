@@ -355,6 +355,8 @@
                                                         <LineBreak/>
                                                         <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+R</Run>
                                                         <LineBreak/>
+                                                        <Run x:Name="hotKeyClearPreviousArea">Clear Previous Area: ALT+H</Run>
+                                                        <LineBreak/>
                                                         <Run x:Name="hotKeyChatBox">ChatBox: ALT+C</Run>
                                                         <LineBreak/>
                                                         <Run x:Name="hotKeyArea1">Area 1: ALT+1</Run>
