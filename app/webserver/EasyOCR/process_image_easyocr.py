@@ -40,7 +40,11 @@ def initialize_ocr_engine(lang='english'):
         'Dutch' : 'nl',
         'Polish': 'pl',
         'Romanian': 'ro',
-        'Farsi': 'fa'
+        'Farsi': 'fa',
+        'Czech': 'cs',
+        'Indonesian': 'id',
+        'Thai': 'th',
+        'Chinese_tra': 'ch_tra'
     }
 
     # Use mapped language or default to input if not in map

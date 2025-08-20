@@ -41,6 +41,7 @@
                                     <ComboBoxItem Content="ja"/>
                                     <ComboBoxItem Content="en"/>
                                     <ComboBoxItem Content="ch_sim"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
                                     <ComboBoxItem Content="fr"/>
@@ -55,6 +56,10 @@
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
                                     <ComboBoxItem Content="fa"/>
+                                    <ComboBoxItem Content="cs"/>
+                                    <ComboBoxItem Content="id"/>
+                                    <ComboBoxItem Content="th"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -72,6 +77,7 @@
                                     <ComboBoxItem Content="ja"/>
                                     <ComboBoxItem Content="en"/>
                                     <ComboBoxItem Content="ch_sim"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
                                     <ComboBoxItem Content="fr"/>
@@ -86,6 +92,10 @@
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
                                     <ComboBoxItem Content="fa"/>
+                                    <ComboBoxItem Content="cs"/>
+                                    <ComboBoxItem Content="id"/>
+                                    <ComboBoxItem Content="th"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -96,46 +106,68 @@
                                         Click="CheckLanguagePackButton_Click">
                                     <TextBlock Text="Check"/>
                                 </Button>
-
-                                <!-- Language Code Explanation -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" 
-                                          Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
-                                    <Run FontWeight="Bold">Language Codes Mapping:</Run>
-                                    <LineBreak/>
-                                    <Run>ja = Japanese</Run>
-                                    <LineBreak/>
-                                    <Run>en = English</Run>
-                                    <LineBreak/>
-                                    <Run>ch_sim = Chinese (Simplified)</Run>
-                                    <LineBreak/>
-                                    <Run>ko = Korean</Run>
-                                    <LineBreak/>
-                                    <Run>vi = Vietnamese</Run>
-                                    <LineBreak/>
-                                    <Run>fr = French</Run>
-                                    <LineBreak/>
-                                    <Run>ru = Russian</Run>
-                                    <LineBreak/>
-                                    <Run>de = German</Run>
-                                    <LineBreak/>
-                                    <Run>es = Spanish</Run>
-                                    <LineBreak/>
-                                    <Run>it = Italian</Run>
-                                    <LineBreak/>
-                                    <Run>hi = Hindi</Run>
-                                    <LineBreak/>
-                                    <Run>pt = Portuguese</Run>
-                                    <LineBreak/>
-                                    <Run>ar = Arabic</Run>
-                                    <LineBreak/>
-                                    <Run>nl = Dutch</Run>
-                                    <LineBreak/>
-                                    <Run>pl = Polish</Run>
-                                    <LineBreak/>
-                                    <Run>ro = Romanian</Run>
-                                    <LineBreak/>
-                                    <Run>fa = Farsi</Run>
-                                </TextBlock>
+                            </Grid>
+                        </GroupBox>
+                        <!-- Language Code Explanation -->
+                        <GroupBox Header="Language Mapping" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
+                                    Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
+                                <Run>ja = Japanese</Run>
+                                <LineBreak/>
+                                <Run>en = English</Run>
+                                <LineBreak/>
+                                <Run>ch_sim = Chinese (Simplified)</Run>
+                                <LineBreak/>
+                                <Run>ko = Korean</Run>
+                                <LineBreak/>
+                                <Run>vi = Vietnamese</Run>
+                                <LineBreak/>
+                                <Run>fr = French</Run>
+                                <LineBreak/>
+                                <Run>ru = Russian</Run>
+                                <LineBreak/>
+                                <Run>de = German</Run>
+                                <LineBreak/>
+                                <Run>es = Spanish</Run>
+                                <LineBreak/>
+                                <Run>it = Italian</Run>
+                                <LineBreak/>
+                                <Run>hi = Hindi</Run>
+                            </TextBlock>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
+                                Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
+                                <Run>pt = Portuguese</Run>
+                                <LineBreak/>
+                                <Run>ar = Arabic</Run>
+                                <LineBreak/>
+                                <Run>nl = Dutch</Run>
+                                <LineBreak/>
+                                <Run>pl = Polish</Run>
+                                <LineBreak/>
+                                <Run>ro = Romanian</Run>
+                                <LineBreak/>
+                                <Run>fa = Farsi</Run>
+                                <LineBreak/>
+                                <Run>cs = Czech</Run>
+                                <LineBreak/>
+                                <Run>id = Indonesian</Run>
+                                <LineBreak/>
+                                <Run>th = ThaiLand</Run>
+                                <LineBreak/>
+                                <Run>ch_tra = Traditional Chinese</Run>
+                            </TextBlock>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

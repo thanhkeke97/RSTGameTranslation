@@ -104,6 +104,7 @@
                                     <ComboBoxItem Content="ja"/>
                                     <ComboBoxItem Content="en"/>
                                     <ComboBoxItem Content="ch_sim"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
                                     <ComboBoxItem Content="fr"/>
@@ -118,6 +119,10 @@
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
                                     <ComboBoxItem Content="fa"/>
+                                    <ComboBoxItem Content="cs"/>
+                                    <ComboBoxItem Content="id"/>
+                                    <ComboBoxItem Content="th"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                 </ComboBox>
                                 <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
                                           WindowChrome.IsHitTestVisibleInChrome="True"
@@ -125,6 +130,7 @@
                                     <ComboBoxItem Content="ja"/>
                                     <ComboBoxItem Content="en"/>
                                     <ComboBoxItem Content="ch_sim"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                     <ComboBoxItem Content="ko"/>
                                     <ComboBoxItem Content="vi"/>
                                     <ComboBoxItem Content="fr"/>
@@ -139,6 +145,10 @@
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
                                     <ComboBoxItem Content="fa"/>
+                                    <ComboBoxItem Content="cs"/>
+                                    <ComboBoxItem Content="id"/>
+                                    <ComboBoxItem Content="th"/>
+                                    <ComboBoxItem Content="ch_tra"/>
                                 </ComboBox>
                                 
                                 <!-- Monitor Toggle Button -->
@@ -509,11 +519,11 @@
                                         <TextBlock Text="Thanh Pham" Foreground="White"/>
                                 </Border>
 
-                                <TextBlock Text="Github:" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
+                                <TextBlock Text="Email:" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
                                         Margin="10,0,0,0" VerticalAlignment="Center"/>
 
                                 <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="https://github.com/thanhkeke97/RSTGameTranslation" Foreground="White"/>
+                                        <TextBlock Text="thanhct1507@gmail.com" Foreground="White"/>
                                 </Border>
 
                                 <TextBlock Text="Website:" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"

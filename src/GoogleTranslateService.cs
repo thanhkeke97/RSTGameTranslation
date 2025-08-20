@@ -365,6 +365,10 @@ namespace RSTGameTranslation
                 "Romanian" or "ro" => "ro",
                 "Polish" or "pl" => "pl",
                 "Persian" or "Farsi" or "fa" => "fa",
+                "Czech" or "cs" => "cs",
+                "Indonesian" or "id" => "id",
+                "Thai" or "th" or "Thailand" => "th",
+                "Traditional Chinese" or "ch_tra" => "zh-TW",
                 _ => language
             };
         }
