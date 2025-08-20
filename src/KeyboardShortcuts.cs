@@ -18,7 +18,8 @@ namespace RSTGameTranslation
         public static event EventHandler? ChatBoxToggleRequested;
         public static event EventHandler? SettingsToggleRequested;
         public static event EventHandler? LogToggleRequested;
-        public static event EventHandler? ClearPreviousAreaRequested;
+        public static event EventHandler? ClearSelectedAreaRequested;
+        public static event EventHandler? ShowAreaRequested;
         // public static event EventHandler? MainWindowVisibilityToggleRequested;
         public static event EventHandler? SelectTranslationRegion;
         public static event EventHandler? ClearAreasRequested;
@@ -103,7 +104,8 @@ namespace RSTGameTranslation
         private const int HOTKEY_ID_AREA_3 = 10;
         private const int HOTKEY_ID_AREA_4 = 11;
         private const int HOTKEY_ID_AREA_5 = 12;
-        private const int HOTKEY_ID_CLEAR_PREVIOUS_AREA = 13;
+        private const int HOTKEY_ID_CLEAR_SELECTED_AREA = 13;
+        private const int HOTKEY_ID_SHOW_AREA = 14;
 
         private static readonly Dictionary<string, EventHandler?> _functionHandlers = new Dictionary<string, EventHandler?>();
         private static readonly Dictionary<string, int> _keyCodeMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -142,7 +144,8 @@ namespace RSTGameTranslation
             _functionHandlers["Log"] = LogToggleRequested;
             _functionHandlers["Select Area"] = SelectTranslationRegion;
             _functionHandlers["Clear Areas"] = ClearAreasRequested;
-            _functionHandlers["Clear Previous Area"] = ClearPreviousAreaRequested;
+            _functionHandlers["Clear Selected Area"] = ClearSelectedAreaRequested;
+            _functionHandlers["Show Area"] = ShowAreaRequested;
             _functionHandlers["Area 1"] = SelectArea1Requested;
             _functionHandlers["Area 2"] = SelectArea2Requested;
             _functionHandlers["Area 3"] = SelectArea3Requested;
@@ -198,7 +201,8 @@ namespace RSTGameTranslation
             ParseHotkey("Log");
             ParseHotkey("Select Area");
             ParseHotkey("Clear Areas");
-            ParseHotkey("Clear Previous Area");
+            ParseHotkey("Clear Selected Area");
+            ParseHotkey("Show Area");
             ParseHotkey("Area 1");
             ParseHotkey("Area 2");
             ParseHotkey("Area 3");
@@ -312,7 +316,8 @@ namespace RSTGameTranslation
             RegisterFunctionHotkey("Log", HOTKEY_ID_LOG);
             RegisterFunctionHotkey("Select Area", HOTKEY_ID_SELECT_AREA);
             RegisterFunctionHotkey("Clear Areas", HOTKEY_ID_CLEAR_AREAS);
-            RegisterFunctionHotkey("Clear Previous Area", HOTKEY_ID_CLEAR_PREVIOUS_AREA);
+            RegisterFunctionHotkey("Clear Selected Area", HOTKEY_ID_CLEAR_SELECTED_AREA);
+            RegisterFunctionHotkey("Show Area", HOTKEY_ID_SHOW_AREA);
             RegisterFunctionHotkey("Area 1", HOTKEY_ID_AREA_1);
             RegisterFunctionHotkey("Area 2", HOTKEY_ID_AREA_2);
             RegisterFunctionHotkey("Area 3", HOTKEY_ID_AREA_3);
@@ -381,9 +386,14 @@ namespace RSTGameTranslation
                     ClearAreasRequested?.Invoke(null, EventArgs.Empty);
                     return true;
 
-                case HOTKEY_ID_CLEAR_PREVIOUS_AREA:
-                    Console.WriteLine("Hotkey detected: Clear Areas");
-                    ClearPreviousAreaRequested?.Invoke(null, EventArgs.Empty);
+                case HOTKEY_ID_CLEAR_SELECTED_AREA:
+                    Console.WriteLine("Hotkey detected: Clear Selected Areas");
+                    ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
+
+                case HOTKEY_ID_SHOW_AREA:
+                    Console.WriteLine("Hotkey detected: Show Area");
+                    ShowAreaRequested?.Invoke(null, EventArgs.Empty);
                     return true;
                     
                 case HOTKEY_ID_AREA_1:
@@ -453,10 +463,15 @@ namespace RSTGameTranslation
                 Console.WriteLine("Hotkey detected: Clear Areas");
                 ClearAreasRequested?.Invoke(null, EventArgs.Empty);
             }
-            else if (function == "Clear Previous Area")
+            else if (function == "Clear Selected Area")
             {
-                Console.WriteLine("Hotkey detected: Clear Previous Area");
-                ClearPreviousAreaRequested?.Invoke(null, EventArgs.Empty);
+                Console.WriteLine("Hotkey detected: Clear Selected Area");
+                ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Show Area")
+            {
+                Console.WriteLine("Hotkey detected: Show Area");
+                ShowAreaRequested?.Invoke(null, EventArgs.Empty);
             }
             else if (function == "Area 1")
             {

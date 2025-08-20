@@ -181,6 +181,10 @@
                                         Background="#FFB07D45"
                                         Click="SelectAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
+                                <Button x:Name="showAreaButton" Content="ShowArea" Style="{StaticResource ModernButton}"
+                                        Background="#FF9945B0"
+                                        Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+
                                 <!-- OCR Server Buttons -->
                                 <Button x:Name="btnSetupOcrServer" Content="SetupServer" Style="{StaticResource ModernButton}"
                                         Background="#FF4577B0" 
@@ -365,7 +369,9 @@
                                                         <LineBreak/>
                                                         <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+R</Run>
                                                         <LineBreak/>
-                                                        <Run x:Name="hotKeyClearPreviousArea">Clear Previous Area: ALT+H</Run>
+                                                        <Run x:Name="hotKeyClearPreviousArea">Clear Selected Area: ALT+H</Run>
+                                                        <LineBreak/>
+                                                        <Run x:Name="hotKeyShowArea">Show Area: ALT+B</Run>
                                                         <LineBreak/>
                                                         <Run x:Name="hotKeyChatBox">ChatBox: ALT+C</Run>
                                                         <LineBreak/>

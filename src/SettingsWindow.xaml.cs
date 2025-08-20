@@ -746,7 +746,8 @@ namespace RSTGameTranslation
             hotKeyLog.Text = "Log: " + ConfigManager.Instance.GetHotKey("Log");
             hotKeySelectArea.Text = "Select Area: " + ConfigManager.Instance.GetHotKey("Select Area");
             hotKeyClearAreas.Text = "Clear Areas: " + ConfigManager.Instance.GetHotKey("Clear Areas");
-            hotKeyClearPreviousArea.Text = "Clear Previous Area: " + ConfigManager.Instance.GetHotKey("Clear Previous Area");
+            hotKeyClearPreviousArea.Text = "Clear Selected Area: " + ConfigManager.Instance.GetHotKey("Clear Selected Area");
+            hotKeyShowArea.Text = "Show Area: " + ConfigManager.Instance.GetHotKey("Show Area");
             hotKeyChatBox.Text = "ChatBox: " + ConfigManager.Instance.GetHotKey("ChatBox");
             hotKeyArea1.Text = "Area 1: " + ConfigManager.Instance.GetHotKey("Area 1");
             hotKeyArea2.Text = "Area 2: " + ConfigManager.Instance.GetHotKey("Area 2");
@@ -759,8 +760,9 @@ namespace RSTGameTranslation
             MainWindow.Instance.hotKeySetting.Text = "Setting: " + ConfigManager.Instance.GetHotKey("Setting");
             MainWindow.Instance.hotKeyLog.Text = "Log: " + ConfigManager.Instance.GetHotKey("Log");
             MainWindow.Instance.hotKeySelectArea.Text = "Select Area: " + ConfigManager.Instance.GetHotKey("Select Area");
-            MainWindow.Instance.hotKeyClearPreviousArea.Text = "Clear Previous Area: " + ConfigManager.Instance.GetHotKey("Clear Previous Area");
+            MainWindow.Instance.hotKeyClearPreviousArea.Text = "Clear Selected Area: " + ConfigManager.Instance.GetHotKey("Clear Selected Area");
             MainWindow.Instance.hotKeyClearAreas.Text = "Clear Areas: " + ConfigManager.Instance.GetHotKey("Clear Areas");
+            MainWindow.Instance.hotKeyShowArea.Text = "Show Area: " + ConfigManager.Instance.GetHotKey("Show Area");
             MainWindow.Instance.hotKeyChatBox.Text = "ChatBox: " + ConfigManager.Instance.GetHotKey("ChatBox");
             MainWindow.Instance.hotKeyArea1.Text = "Area 1: " + ConfigManager.Instance.GetHotKey("Area 1");
             MainWindow.Instance.hotKeyArea2.Text = "Area 2: " + ConfigManager.Instance.GetHotKey("Area 2");

@@ -10,6 +10,8 @@
         WindowStyle="None"
         ResizeMode="NoResize"
         AllowsTransparency="True"
+        BorderThickness="0"
+        BorderBrush="Red"
         Background="Transparent"
         IsHitTestVisible="false"
         Icon="/media/AppIcon.ico">

@@ -341,7 +341,8 @@ namespace RSTGameTranslation
             KeyboardShortcuts.SettingsToggleRequested += (s, e) => SettingsButton_Click(settingsButton, new RoutedEventArgs());
             KeyboardShortcuts.LogToggleRequested += (s, e) => LogButton_Click(logButton, new RoutedEventArgs());
             KeyboardShortcuts.SelectTranslationRegion += (s, e) => SelectAreaButton_Click(selectAreaButton, new RoutedEventArgs());
-            KeyboardShortcuts.ClearPreviousAreaRequested += (s, e) => clearPreviousArea();
+            KeyboardShortcuts.ClearSelectedAreaRequested += (s, e) => clearSelectedArea();
+            KeyboardShortcuts.ShowAreaRequested += (s, e) => ShowAreaButton_Click(showAreaButton, new RoutedEventArgs());
             KeyboardShortcuts.SelectArea1Requested += (s, e) => SwitchToTranslationArea(0);
             KeyboardShortcuts.SelectArea2Requested += (s, e) => SwitchToTranslationArea(1);
             KeyboardShortcuts.SelectArea3Requested += (s, e) => SwitchToTranslationArea(2);
@@ -1511,6 +1512,21 @@ namespace RSTGameTranslation
                 }
             }
         }
+
+        // Show current area button click handler
+        private void ShowAreaButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!MonitorWindow.Instance.IsVisible)
+            {
+                ToggleMonitorWindow();
+            }
+            
+            // Toggle BorderThickness: 0 <-> 1
+            MonitorWindow.Instance.BorderThickness = 
+                (MonitorWindow.Instance.BorderThickness == new Thickness(1)) 
+                    ? new Thickness(0) 
+                    : new Thickness(1);
+        }
         
         // ChatBox Button click handler
         private void ChatBoxButton_Click(object sender, RoutedEventArgs e)
@@ -1799,7 +1815,7 @@ namespace RSTGameTranslation
                 btnSetupOcrServer.IsEnabled = true;
             }
         }
-        private void clearPreviousArea()
+        private void clearSelectedArea()
         {
             int numberAreaCount = savedTranslationAreas.Count;
             if (numberAreaCount <= 0)
@@ -1811,7 +1827,7 @@ namespace RSTGameTranslation
             {
 
                 // Remove the last area from the list
-                savedTranslationAreas.RemoveAt(numberAreaCount - 1);
+                savedTranslationAreas.RemoveAt(currentAreaIndex);
 
                 // Default switch to area last index
                 if(savedTranslationAreas.Count >= 1)

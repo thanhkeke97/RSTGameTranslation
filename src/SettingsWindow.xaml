@@ -914,7 +914,8 @@
                                     <ComboBoxItem Content="Log"/>
                                     <ComboBoxItem Content="Select Area"/>
                                     <ComboBoxItem Content="Clear Areas"/>
-                                    <ComboBoxItem Content="Clear Previous Area"/>
+                                    <ComboBoxItem Content="Clear Selected Area"/>
+                                    <ComboBoxItem Content="Show Area"/>
                                     <ComboBoxItem Content="ChatBox"/>
                                     <ComboBoxItem Content="Area 1"/>
                                     <ComboBoxItem Content="Area 2"/>
@@ -990,7 +991,9 @@
                                     <LineBreak/>
                                     <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+R</Run>
                                     <LineBreak/>
-                                    <Run x:Name="hotKeyClearPreviousArea">Clear Previous Area: ALT+H</Run>
+                                    <Run x:Name="hotKeyClearPreviousArea">Clear Selected Area: ALT+H</Run>
+                                    <LineBreak/>
+                                    <Run x:Name="hotKeyShowArea">Show Area: ALT+B</Run>
                                     <LineBreak/>
                                     <Run x:Name="hotKeyChatBox">ChatBox: ALT+C</Run>
                                     <LineBreak/>
