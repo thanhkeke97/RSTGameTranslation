@@ -97,6 +97,8 @@
 | `Alt + C` | Show/Hide ChatBox | Works globally |
 | `Alt + P` | Show/Hide Settings | Works globally |
 | `Alt + L` | Show/Hide Log Console | Works globally |
+| `Alt + B` | Show/Hide Selected Area | Works globally |
+| `Alt + H` | Clear Selected Area | Works globally |
 
 ---
 
