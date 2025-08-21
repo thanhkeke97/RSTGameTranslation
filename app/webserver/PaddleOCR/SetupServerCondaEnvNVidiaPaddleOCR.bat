@@ -24,9 +24,10 @@ call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyy
 
 REM Install PaddleOCR via pip
 echo Installing PaddleOCR...
-call pip install paddleocr==2.10.0
-call pip install paddlepaddle==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
-call pip install paddlepaddle-gpu==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
+call pip install paddleocr==3.1.1 "paddlex<3.2"
+call pip install paddlepaddle==3.1.1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+call pip install paddlepaddle-gpu==3.1.1 -i https://www.paddlepaddle.org.cn/packages/stable/cu129/
+call pip install paddlex==3.1.3
 
 
 
