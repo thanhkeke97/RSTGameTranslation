@@ -33,7 +33,7 @@ namespace RSTGameTranslation
         public UIElement? UIElement { get; set; }
         public TextBlock TextBlock { get; private set; } = null!;  // Will be initialized in CreateUIElement
         public Border Border { get; private set; } = new Border();  // Initialize with a new Border
-        
+        public System.Windows.FlowDirection FlowDirection { get; set; } = System.Windows.FlowDirection.LeftToRight;
         // Store the original capture position
         public double CaptureX { get; set; }
         public double CaptureY { get; set; }
@@ -159,6 +159,7 @@ namespace RSTGameTranslation
                 {
                     // Use translated text if available
                     TextBlock.Text = this.TextTranslated;
+                    TextBlock.FlowDirection = FlowDirection;
                 }
                 // else
                 // {

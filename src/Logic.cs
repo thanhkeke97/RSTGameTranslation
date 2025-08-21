@@ -10,6 +10,7 @@ using Color = System.Windows.Media.Color;
 using MessageBox = System.Windows.MessageBox;
 using System.Diagnostics;
 using System.Collections.Generic;
+using FlowDirection = System.Windows.FlowDirection;
 
 namespace RSTGameTranslation
 {
@@ -296,6 +297,22 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Processing Google Translate JSON response");
                 
+                // Get current target language
+                string targetLanguage = ConfigManager.Instance.GetTargetLanguage().ToLower();
+                
+                // Define RTL (Right-to-Left) languages
+                HashSet<string> rtlLanguages = new HashSet<string> { 
+                    "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu" 
+                };
+                
+                // Check if target language is RTL
+                bool isRtlLanguage = rtlLanguages.Contains(targetLanguage);
+                
+                if (isRtlLanguage)
+                {
+                    Console.WriteLine($"Detected RTL language: {targetLanguage}");
+                }
+                
                 // Check if the JSON contains the "translations" array
                 if (translatedRoot.TryGetProperty("translations", out JsonElement translationsElement) &&
                     translationsElement.ValueKind == JsonValueKind.Array)
@@ -317,10 +334,30 @@ namespace RSTGameTranslation
                             
                             if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(translatedText))
                             {
+                                // Apply RTL handling if needed
+                                if (isRtlLanguage)
+                                {
+                                    // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                    if (!translatedText.StartsWith("\u200F"))
+                                    {
+                                        translatedText = "\u200F" + translatedText;
+                                    }
+                                }
+                                
                                 // Find the matching text object based on the ID
                                 var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
                                 if (matchingTextObj != null)
                                 {
+                                    // Set flow direction based on language
+                                    if (isRtlLanguage)
+                                    {
+                                        matchingTextObj.FlowDirection = System.Windows.FlowDirection.RightToLeft;
+                                    }
+                                    else
+                                    {
+                                        matchingTextObj.FlowDirection = System.Windows.FlowDirection.LeftToRight;
+                                    }
+                                    
                                     // Update the text object with the translated text
                                     matchingTextObj.TextTranslated = translatedText;
                                     matchingTextObj.UpdateUIElement();
@@ -332,6 +369,16 @@ namespace RSTGameTranslation
                                     string indexStr = id.Substring(5); // Subtract "text_" prefix
                                     if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
                                     {
+                                        // Set flow direction based on language
+                                        if (isRtlLanguage)
+                                        {
+                                            _textObjects[index].FlowDirection = System.Windows.FlowDirection.RightToLeft;
+                                        }
+                                        else
+                                        {
+                                            _textObjects[index].FlowDirection = System.Windows.FlowDirection.LeftToRight;
+                                        }
+                                        
                                         // Update the text object at the specified index
                                         _textObjects[index].TextTranslated = translatedText;
                                         _textObjects[index].UpdateUIElement();
@@ -1741,7 +1788,6 @@ namespace RSTGameTranslation
         //! Process structured JSON translation from ChatGPT or other services
         private void ProcessStructuredJsonTranslation(JsonElement translatedRoot)
         {
-  
             try
             {
                 Console.WriteLine("Processing structured JSON translation");
@@ -1750,6 +1796,22 @@ namespace RSTGameTranslation
                     textBlocksElement.ValueKind == JsonValueKind.Array)
                 {
                     Console.WriteLine($"Found {textBlocksElement.GetArrayLength()} text blocks in translated JSON");
+                    
+                    // Get current target language
+                    string targetLanguage = ConfigManager.Instance.GetTargetLanguage().ToLower();
+                    Console.WriteLine($"Target language: ----------------------------{targetLanguage}");
+                    // Define RTL (Right-to-Left) languages
+                    HashSet<string> rtlLanguages = new HashSet<string> { 
+                        "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu" 
+                    };
+                    
+                    // Check if target language is RTL
+                    bool isRtlLanguage = rtlLanguages.Contains(targetLanguage);
+                    
+                    if (isRtlLanguage)
+                    {
+                        Console.WriteLine($"Detected RTL language: {targetLanguage}");
+                    }
                     
                     // Process each translated block
                     for (int i = 0; i < textBlocksElement.GetArrayLength(); i++)
@@ -1764,12 +1826,29 @@ namespace RSTGameTranslation
                             
                             if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(translatedText))
                             {
-                                //Console.WriteLine($"Processing text block with id={id}, text={translatedText}");
-                                
                                 // Find the matching text object by ID
                                 var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
                                 if (matchingTextObj != null)
                                 {
+                                    // Apply RTL specific handling if needed
+                                    if (isRtlLanguage)
+                                    {
+                                        // Set flow direction for RTL languages
+                                        matchingTextObj.FlowDirection = FlowDirection.RightToLeft;
+                                        
+                                        // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                        // This can help with mixed content
+                                        if (!translatedText.StartsWith("\u200F"))
+                                        {
+                                            translatedText = "\u200F" + translatedText;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Ensure LTR for non-RTL languages
+                                        matchingTextObj.FlowDirection = FlowDirection.LeftToRight;
+                                    }
+                                    
                                     // Update the corresponding text object
                                     matchingTextObj.TextTranslated = translatedText;
                                     matchingTextObj.UpdateUIElement();
@@ -1781,6 +1860,24 @@ namespace RSTGameTranslation
                                     string indexStr = id.Substring(5); // Remove "text_" prefix
                                     if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
                                     {
+                                        // Apply RTL specific handling if needed
+                                        if (isRtlLanguage)
+                                        {
+                                            // Set flow direction for RTL languages
+                                            _textObjects[index].FlowDirection = FlowDirection.RightToLeft;
+                                            
+                                            // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                            if (!translatedText.StartsWith("\u200F"))
+                                            {
+                                                translatedText = "\u200F" + translatedText;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Ensure LTR for non-RTL languages
+                                            _textObjects[index].FlowDirection = FlowDirection.LeftToRight;
+                                        }
+                                        
                                         // Update by index if ID matches format
                                         _textObjects[index].TextTranslated = translatedText;
                                         _textObjects[index].UpdateUIElement();
@@ -1805,9 +1902,6 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error processing structured JSON translation: {ex.Message}");
             }
 
-
-
-
             // Sort text objects by Y coordinate
             var sortedTextObjects = _textObjects.OrderBy(t => t.Y).ToList();
             // Add each translated text to the ChatBox
@@ -1819,7 +1913,6 @@ namespace RSTGameTranslation
                 // Only add to chatbox if we have both texts and translation is not empty
                 if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
                 {
-                    //Console.WriteLine($"Adding to chatbox: Original: '{originalText}', Translated: '{translatedText}'");
                     // Add to TranslationCompleted, this will add it to the chatbox also
                     TranslationCompleted?.Invoke(this, new TranslationEventArgs
                     {
@@ -1831,9 +1924,7 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Skipping empty translation - Original: '{originalText}', Translated: '{translatedText}'");
                 }
-
             }
-
         }
         
         //!Process the finished translation into text blocks and the chatbox
