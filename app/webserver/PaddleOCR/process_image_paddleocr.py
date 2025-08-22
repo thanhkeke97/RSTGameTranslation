@@ -16,7 +16,7 @@ def initialize_ocr_engine(lang='en'):
     Initialize or reinitialize the OCR engine with the specified language.
     
     Args:
-        lang (str): Language to use for OCR (default: 'english')
+        lang (str): Language to use for OCR (default: 'en')
     
     Returns:
         PaddleOCR: Initialized OCR engine
@@ -52,24 +52,16 @@ def initialize_ocr_engine(lang='en'):
 
     # Only reinitialize if language has changed
     if OCR_ENGINE is None or CURRENT_LANG != lang:
-    #     # Giải phóng tài nguyên của engine cũ nếu có
-    #     if OCR_ENGINE is not None and torch.cuda.is_available():
-    #         # Giải phóng bộ nhớ GPU
-    #         torch.cuda.empty_cache()
-    #         print("Released GPU resources from previous OCR engine")
-    #     # Check for GPU availability using PyTorch
-    #     if torch.cuda.is_available():
-    #         device_name = torch.cuda.get_device_name(0)
-    #         print(f"GPU is available: {device_name}. Using GPU for OCR.")
-    #         usegpu = True;
-    #     else:
-    #         print("GPU is not available. PaddleOCR will use CPU.")
-    #         usegpu = False;
         print(f"Initializing PaddleOCR engine with language: {paddle_lang}...")
         start_time = time.time()
 
-        # Initialize PaddleOCR with the specified language
-        OCR_ENGINE = PaddleOCR(use_angle_cls=True, lang=paddle_lang)
+        # Initialize PaddleOCR with the specified language and new parameters
+        OCR_ENGINE = PaddleOCR(
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
+            use_textline_orientation=False,
+            lang=paddle_lang
+        )
         CURRENT_LANG = lang
         initialization_time = time.time() - start_time
         print(f"PaddleOCR initialization completed in {initialization_time:.2f} seconds")
@@ -136,13 +128,13 @@ def upscale_image(image, min_width=1024, min_height=768):
 # Initialize with default language at module load time
 initialize_ocr_engine('en')
 
-def process_image(image_path, lang='english', preprocess_images=False, upscale_if_needed=False, char_level="True"):
+def process_image(image_path, lang='en', preprocess_images=False, upscale_if_needed=False, char_level="True"):
     """
     Process an image using PaddleOCR and return the OCR results.
     
     Args:
         image_path (str): Path to the image to process.
-        lang (str): Language to use for OCR (default: 'english').
+        lang (str): Language to use for OCR (default: 'en').
         preprocess_images (bool): Flag to determine whether to preprocess the image.
         upscale_if_needed (bool): Flag to determine whether to upscale the image if it's low resolution.
         char_level (bool): If True, split text into characters with their estimated positions.
@@ -160,9 +152,6 @@ def process_image(image_path, lang='english', preprocess_images=False, upscale_i
         
         # Open the image using PIL
         image = Image.open(image_path)
-        
-        # Store original size for coordinate scaling later
-        # original_width, original_height = image.size
         
         # Preprocess image if the flag is set
         if preprocess_images:
@@ -186,8 +175,18 @@ def process_image(image_path, lang='english', preprocess_images=False, upscale_i
             print(f"Saved preprocessed image to {temp_image_path}")
         
         # Use the initialized OCR engine
-        # PaddleOCR returns results in a different format than EasyOCR
-        result = ocr_engine.ocr(temp_image_path, cls=True)
+        result = ocr_engine.predict(temp_image_path)
+        print(f"OCR results received. Processing...")
+        
+        # Debug output to understand the result structure
+        print(f"Result type: {type(result)}")
+        if isinstance(result, list):
+            print(f"Result length: {len(result)}")
+            if len(result) > 0:
+                print(f"First element type: {type(result[0])}")
+                # Print the keys if it's a dictionary
+                if isinstance(result[0], dict):
+                    print(f"Dictionary keys: {result[0].keys()}")
         
         # Remove temporary file if created
         if temp_image_path != image_path and os.path.exists(temp_image_path):
@@ -200,35 +199,280 @@ def process_image(image_path, lang='english', preprocess_images=False, upscale_i
         # Prepare the results
         ocr_results = []
         
-        # Process PaddleOCR results
-        if result and len(result) > 0 and result[0] is not None:
-            # PaddleOCR returns a list of results for each image
-            for line in result[0]:
-                # Each line contains coordinates and text with confidence
-                # Format: [[[x1,y1],[x2,y2],[x3,y3],[x4,y4]], [text, confidence]]
-                box = line[0]
-                text = line[1][0]
-                confidence = float(line[1][1])
+        # Process the result based on its structure
+        try:
+            # Handle the OCRResult format from the log - direct dictionary with rec_texts, rec_polys, rec_scores
+            if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict):
+                for item in result:
+                    # Check if the dictionary has the required keys directly
+                    if 'rec_texts' in item and 'rec_polys' in item and 'rec_scores' in item:
+                        texts = item['rec_texts']
+                        polys = item['rec_polys']
+                        scores = item['rec_scores']
+                        
+                        print(f"Found {len(texts)} text items")
+                        
+                        # Process each text detection
+                        for i in range(len(texts)):
+                            if i < len(polys) and i < len(scores):
+                                text = texts[i]
+                                poly = polys[i]
+                                confidence = float(scores[i]) if i < len(scores) else 0.0
+                                
+                                # Convert NumPy arrays to lists if needed
+                                if hasattr(poly, 'tolist'):
+                                    poly = poly.tolist()
+                                
+                                # Convert all coordinates to float for JSON serialization
+                                try:
+                                    box_native = [[float(coord) for coord in point] for point in poly]
+                                except Exception as e:
+                                    print(f"Error converting poly to box_native: {e}")
+                                    print(f"Poly: {poly}")
+                                    # Create a default box if conversion fails
+                                    box_native = [[0, 0], [100, 0], [100, 30], [0, 30]]
+                                
+                                # Apply scaling if image was upscaled
+                                if scale != 1.0:
+                                    box_native = [[coord / scale for coord in point] for point in box_native]
+                                
+                                if char_level == 'True' and len(text) > 1:
+                                    # Estimate character positions
+                                    char_results = split_into_characters(text, box_native, confidence)
+                                    ocr_results.extend(char_results)
+                                else:
+                                    # Keep the original word-level detection
+                                    ocr_results.append({
+                                        "rect": box_native,
+                                        "text": text,
+                                        "confidence": confidence,
+                                        "is_character": False
+                                    })
+                    
+                    # Handle the case where result is a dictionary with 'res' key
+                    elif 'res' in item:
+                        res = item['res']
+                        
+                        # Check if we have recognized texts and polygons
+                        if 'rec_texts' in res and 'rec_polys' in res and 'rec_scores' in res:
+                            texts = res['rec_texts']
+                            polys = res['rec_polys']
+                            scores = res['rec_scores']
+                            
+                            print(f"Found {len(texts)} text items in 'res'")
+                            
+                            # Process each text detection
+                            for i in range(len(texts)):
+                                if i < len(polys) and i < len(scores):
+                                    text = texts[i]
+                                    poly = polys[i]
+                                    confidence = float(scores[i]) if i < len(scores) else 0.0
+                                    
+                                    # Convert NumPy arrays to lists if needed
+                                    if hasattr(poly, 'tolist'):
+                                        poly = poly.tolist()
+                                    
+                                    # Convert all coordinates to float for JSON serialization
+                                    try:
+                                        box_native = [[float(coord) for coord in point] for point in poly]
+                                    except Exception as e:
+                                        print(f"Error converting poly to box_native: {e}")
+                                        print(f"Poly: {poly}")
+                                        # Create a default box if conversion fails
+                                        box_native = [[0, 0], [100, 0], [100, 30], [0, 30]]
+                                    
+                                    # Apply scaling if image was upscaled
+                                    if scale != 1.0:
+                                        box_native = [[coord / scale for coord in point] for point in box_native]
+                                    
+                                    if char_level == 'True' and len(text) > 1:
+                                        # Estimate character positions
+                                        char_results = split_into_characters(text, box_native, confidence)
+                                        ocr_results.extend(char_results)
+                                    else:
+                                        # Keep the original word-level detection
+                                        ocr_results.append({
+                                            "rect": box_native,
+                                            "text": text,
+                                            "confidence": confidence,
+                                            "is_character": False
+                                        })
+            
+            # Handle the case where result is a list (standard PaddleOCR output)
+            elif isinstance(result, list) and len(result) > 0 and isinstance(result[0], list):
+                for line in result[0]:
+                    try:
+                        # Each line contains coordinates and text with confidence
+                        # Format: [[[x1,y1],[x2,y2],[x3,y3],[x4,y4]], [text, confidence]]
+                        if len(line) < 2:
+                            print(f"Warning: Line doesn't have enough elements: {line}")
+                            continue
+                            
+                        box = line[0]
+                        
+                        # Handle different result formats
+                        if isinstance(line[1], list) and len(line[1]) >= 2:
+                            text = line[1][0]
+                            confidence = float(line[1][1])
+                        elif isinstance(line[1], str):
+                            text = line[1]
+                            confidence = 0.0  # Default confidence if not provided
+                        else:
+                            print(f"Warning: Unexpected result format: {line}")
+                            continue
+                        
+                        # Convert coordinates back to the original image scale if upscaled
+                        if scale != 1.0:
+                            box = [[coord / scale for coord in point] for point in box]
+                        
+                        # Convert all NumPy types to native Python types for JSON serialization
+                        box_native = [[float(coord) for coord in point] for point in box]
+                        
+                        if char_level == 'True' and len(text) > 1:
+                            # Estimate character positions
+                            char_results = split_into_characters(text, box_native, confidence)
+                            ocr_results.extend(char_results)
+                        else:
+                            # Keep the original word-level detection
+                            ocr_results.append({
+                                "rect": box_native,
+                                "text": text,
+                                "confidence": confidence,
+                                "is_character": False
+                            })
+                    except Exception as e:
+                        print(f"Error processing line: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        continue
+            
+            # Handle the case where result is a dictionary with 'res' key
+            elif isinstance(result, dict) and 'res' in result:
+                res = result['res']
                 
-                # Convert coordinates back to the original image scale if upscaled
-                if scale != 1.0:
-                    box = [[coord / scale for coord in point] for point in box]
-                
-                # Convert all NumPy types to native Python types for JSON serialization
-                box_native = [[float(coord) for coord in point] for point in box]
-                
-                if char_level == 'True' and len(text) > 1:
-                    # Estimate character positions - PaddleOCR doesn't natively provide char-level boxes
-                    char_results = split_into_characters(text, box_native, confidence)
-                    ocr_results.extend(char_results)
-                else:
-                    # Keep the original word-level detection
-                    ocr_results.append({
-                        "rect": box_native,
-                        "text": text,
-                        "confidence": confidence,
-                        "is_character": False
-                    })
+                # Check if we have recognized texts and polygons
+                if isinstance(res, dict) and 'rec_texts' in res and 'rec_polys' in res and 'rec_scores' in res:
+                    texts = res['rec_texts']
+                    polys = res['rec_polys']
+                    scores = res['rec_scores']
+                    
+                    # Process each text detection
+                    for i in range(len(texts)):
+                        if i < len(polys) and i < len(scores):
+                            text = texts[i]
+                            poly = polys[i]
+                            confidence = float(scores[i]) if i < len(scores) else 0.0
+                            
+                            # Convert NumPy arrays to lists if needed
+                            if hasattr(poly, 'tolist'):
+                                poly = poly.tolist()
+                            
+                            # Ensure poly is a list of points (4 corners)
+                            if not isinstance(poly[0], list) and len(poly) >= 8:
+                                # If poly is a flat list of coordinates, convert to points
+                                # Assuming format [x1, y1, x2, y2, x3, y3, x4, y4]
+                                poly = [
+                                    [poly[0], poly[1]],  # top-left
+                                    [poly[2], poly[3]],  # top-right
+                                    [poly[4], poly[5]],  # bottom-right
+                                    [poly[6], poly[7]]   # bottom-left
+                                ]
+                            
+                            # Convert all coordinates to float for JSON serialization
+                            try:
+                                box_native = [[float(coord) for coord in point] for point in poly]
+                            except Exception as e:
+                                print(f"Error converting poly to box_native: {e}")
+                                print(f"Poly: {poly}")
+                                # Create a default box if conversion fails
+                                box_native = [[0, 0], [100, 0], [100, 30], [0, 30]]
+                            
+                            # Apply scaling if image was upscaled
+                            if scale != 1.0:
+                                box_native = [[coord / scale for coord in point] for point in box_native]
+                            
+                            if char_level == 'True' and len(text) > 1:
+                                # Estimate character positions
+                                char_results = split_into_characters(text, box_native, confidence)
+                                ocr_results.extend(char_results)
+                            else:
+                                # Keep the original word-level detection
+                                ocr_results.append({
+                                    "rect": box_native,
+                                    "text": text,
+                                    "confidence": confidence,
+                                    "is_character": False
+                                })
+            
+            # If we didn't process any results, try one more approach with OCRResult objects
+            if not ocr_results and isinstance(result, list) and len(result) > 0:
+                # Try to convert OCRResult objects to dictionaries
+                for item in result:
+                    try:
+                        # Convert the object to a dictionary if it's not already
+                        if not isinstance(item, dict):
+                            item_dict = vars(item)  # Try to get object attributes as dict
+                        else:
+                            item_dict = item
+                            
+                        # Now try to process the dictionary
+                        if 'rec_texts' in item_dict and 'rec_polys' in item_dict and 'rec_scores' in item_dict:
+                            texts = item_dict['rec_texts']
+                            polys = item_dict['rec_polys']
+                            scores = item_dict['rec_scores']
+                            
+                            print(f"Found {len(texts)} text items after conversion")
+                            
+                            # Process each text detection
+                            for i in range(len(texts)):
+                                if i < len(polys) and i < len(scores):
+                                    text = texts[i]
+                                    poly = polys[i]
+                                    confidence = float(scores[i]) if i < len(scores) else 0.0
+                                    
+                                    # Convert NumPy arrays to lists if needed
+                                    if hasattr(poly, 'tolist'):
+                                        poly = poly.tolist()
+                                    
+                                    # Convert all coordinates to float for JSON serialization
+                                    try:
+                                        box_native = [[float(coord) for coord in point] for point in poly]
+                                    except Exception as e:
+                                        print(f"Error converting poly to box_native: {e}")
+                                        print(f"Poly: {poly}")
+                                        # Create a default box if conversion fails
+                                        box_native = [[0, 0], [100, 0], [100, 30], [0, 30]]
+                                    
+                                    # Apply scaling if image was upscaled
+                                    if scale != 1.0:
+                                        box_native = [[coord / scale for coord in point] for point in box_native]
+                                    
+                                    if char_level == 'True' and len(text) > 1:
+                                        # Estimate character positions
+                                        char_results = split_into_characters(text, box_native, confidence)
+                                        ocr_results.extend(char_results)
+                                    else:
+                                        # Keep the original word-level detection
+                                        ocr_results.append({
+                                            "rect": box_native,
+                                            "text": text,
+                                            "confidence": confidence,
+                                            "is_character": False
+                                        })
+                    except Exception as e:
+                        print(f"Error converting OCRResult to dictionary: {e}")
+                        import traceback
+                        traceback.print_exc()
+            
+            # If we still didn't process any results, log an error
+            if not ocr_results:
+                print("Warning: No OCR results were processed. Result format may not be supported.")
+                print(f"Result: {result}")
+        
+        except Exception as e:
+            print(f"Error processing OCR results: {str(e)}")
+            import traceback
+            traceback.print_exc()
         
         return {
             "status": "success",
@@ -271,7 +515,11 @@ def split_into_characters(text, box, confidence, max_chars=500):
         text = text[:max_chars]
         print(f"Warning: Text truncated to {max_chars} characters to avoid performance issues")
     
-    char_results = []
+    # Ensure box has 4 points
+    if len(box) != 4:
+        print(f"Warning: Box doesn't have 4 points: {box}. Creating simple rectangle.")
+        # Create a simple rectangle if the box doesn't have 4 points
+        box = [[0, 0], [100, 0], [100, 30], [0, 30]]
     
     # Extract coordinates from the box
     tl = box[0]  # top-left
