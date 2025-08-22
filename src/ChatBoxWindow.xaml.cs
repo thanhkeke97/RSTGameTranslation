@@ -29,7 +29,7 @@ namespace RSTGameTranslation
 
         // We'll use MainWindow.Instance.translationHistory instead of maintaining our own
         private int _maxHistorySize; // Display history size from config
-        private int _displayMode = 0; // 0 = both, 1 = target only, 2 = source only
+        private int _displayMode = 1; // 0 = both, 1 = target only, 2 = source only
 
         public static ChatBoxWindow? Instance { get; private set; }
 
@@ -704,7 +704,7 @@ namespace RSTGameTranslation
             return result;
         }
 
-        private void ModeButton_Click(object sender, RoutedEventArgs e)
+        private void ModeButton_Click(object? sender, RoutedEventArgs? e)
         {
             try
             {

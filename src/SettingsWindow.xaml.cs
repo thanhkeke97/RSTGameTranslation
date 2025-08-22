@@ -93,7 +93,7 @@ namespace RSTGameTranslation
         // Collection to hold the ignore phrases
         private ObservableCollection<IgnorePhrase> _ignorePhrases = new ObservableCollection<IgnorePhrase>();
 
-        private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
+        private void SettingsWindow_Loaded(object? sender, RoutedEventArgs? e)
         {
             try
             {
