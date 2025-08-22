@@ -1172,7 +1172,6 @@ namespace RSTGameTranslation
                                     Console.WriteLine($"Error parsing rect: {ex.Message}");
                                 }
                             }
-                            string ocrMethod = MainWindow.Instance.GetSelectedOcrMethod();
                             
                             // Handle dpiscale for multi monitor
                             double dpiScale = MonitorWindow.Instance.dpiScale;
