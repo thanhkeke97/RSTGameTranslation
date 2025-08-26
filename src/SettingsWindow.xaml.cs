@@ -2403,32 +2403,36 @@ namespace RSTGameTranslation
                 string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
                 if (File.Exists(filePath))
                 {
-                    File.Delete(filePath);
-                    Console.WriteLine("Profile deleted successfully!");
-                    profileComboBox.Items.Remove(selectedText);
-                    profileComboBox.SelectedIndex = -1;
-                    // Clear all save selection areas
-                    MainWindow.Instance.savedTranslationAreas.Clear();
-                    MainWindow.Instance.hasSelectedTranslationArea = false;
-                    MainWindow.Instance.currentAreaIndex = -1;
-                    // Show status
-                    statusUpdateGameProfile.Visibility = Visibility.Visible;
-                    statusUpdateGameProfile.Text = $"Remove {profileName} successfully!";
-                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Red);
+                    MessageBoxResult result = MessageBox.Show("Are you sure to remove this profile?", "Confirm", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+                    if (result == MessageBoxResult.OK)
+                    {
+                        File.Delete(filePath);
+                        Console.WriteLine("Profile deleted successfully!");
+                        profileComboBox.Items.Remove(selectedText);
+                        profileComboBox.SelectedIndex = -1;
+                        // Clear all save selection areas
+                        MainWindow.Instance.savedTranslationAreas.Clear();
+                        MainWindow.Instance.hasSelectedTranslationArea = false;
+                        MainWindow.Instance.currentAreaIndex = -1;
+                        // Show status
+                        statusUpdateGameProfile.Visibility = Visibility.Visible;
+                        statusUpdateGameProfile.Text = $"Remove {profileName} successfully!";
+                        statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Red);
 
-                    // Auto close status after 1.5 second
-                    var timer = new System.Windows.Threading.DispatcherTimer
-                    {
-                        Interval = TimeSpan.FromSeconds(1.5)
-                    };
-                    
-                    timer.Tick += (s, e) =>
-                    {
-                        statusUpdateGameProfile.Text = "";
-                    timer.Stop();
-                    };
-                    
-                    timer.Start();
+                        // Auto close status after 1.5 second
+                        var timer = new System.Windows.Threading.DispatcherTimer
+                        {
+                            Interval = TimeSpan.FromSeconds(1.5)
+                        };
+                        
+                        timer.Tick += (s, e) =>
+                        {
+                            statusUpdateGameProfile.Text = "";
+                        timer.Stop();
+                        };
+                        
+                        timer.Start();
+                    }
                 }
                 else
                 {
@@ -2449,17 +2453,20 @@ namespace RSTGameTranslation
                 string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
                 if (File.Exists(filePath))
                 {
-                    if (MainWindow.Instance.savedTranslationAreas.Count > 0)
+                    MessageBoxResult result = MessageBox.Show("Are you sure to update this profile?", "Confirm", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+                    if (result == MessageBoxResult.OK)
                     {
-                        ConfigManager.Instance.SaveTranslationAreas(MainWindow.Instance.savedTranslationAreas, selectedText);
-                        Console.WriteLine($"Saved {selectedText}.txt {MainWindow.Instance.savedTranslationAreas.Count} translation areas to config");
-                    }
-                    else
-                    {
-                        // Clear saved areas in config if we have none
-                        ConfigManager.Instance.SaveTranslationAreas(new List<Rect>(), selectedText);
-                        Console.WriteLine("Cleared translation areas in config");
-                    }
+                        if (MainWindow.Instance.savedTranslationAreas.Count > 0)
+                        {
+                            ConfigManager.Instance.SaveTranslationAreas(MainWindow.Instance.savedTranslationAreas, selectedText);
+                            Console.WriteLine($"Saved {selectedText}.txt {MainWindow.Instance.savedTranslationAreas.Count} translation areas to config");
+                        }
+                        else
+                        {
+                            // Clear saved areas in config if we have none
+                            ConfigManager.Instance.SaveTranslationAreas(new List<Rect>(), selectedText);
+                            Console.WriteLine("Cleared translation areas in config");
+                        }
                     // Show status
                     statusUpdateGameProfile.Visibility = Visibility.Visible;
                     statusUpdateGameProfile.Text = $"Update {profileName} successfully!";
@@ -2478,6 +2485,8 @@ namespace RSTGameTranslation
                     };
                     
                     timer.Start();
+                    }
+                    
                 }
                 else
                 {
