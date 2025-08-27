@@ -205,6 +205,7 @@
                                     <ComboBoxItem Content="EasyOCR"/>
                                     <ComboBoxItem Content="Windows OCR"/>
                                     <ComboBoxItem Content="PaddleOCR"/>
+                                    <ComboBoxItem Content="RapidOCR"/>
                                 </ComboBox>
                                 
                                 <!-- Auto Translate -->

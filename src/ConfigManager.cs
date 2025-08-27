@@ -880,7 +880,7 @@ namespace RSTGameTranslation
         public void SetOcrMethod(string method)
         {
             Console.WriteLine($"ConfigManager.SetOcrMethod called with method: {method}");
-            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR")
+            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR" || method == "RapidOCR")
             {
                 _configValues[OCR_METHOD] = method;
                 SaveConfig();
@@ -888,7 +888,7 @@ namespace RSTGameTranslation
             }
             else
             {
-                Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR' or 'PaddleOCR'");
+                Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR' or 'PaddleOCR' or 'RapidOCR'");
             }
         }
 
