@@ -1172,9 +1172,11 @@ namespace RSTGameTranslation
                                     Console.WriteLine($"Error parsing rect: {ex.Message}");
                                 }
                             }
-                         
-                            // Create text object with bounding box coordinates
-                            CreateTextObjectAtPosition(text, x, y, width, height, confidence);
+                            
+                            // Handle dpiscale for multi monitor
+                            double dpiScale = MonitorWindow.Instance.dpiScale;
+                            CreateTextObjectAtPosition(text, x, y, width / dpiScale, height / dpiScale, confidence);
+                                
                         }
                     }
                 }

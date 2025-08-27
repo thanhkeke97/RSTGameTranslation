@@ -134,7 +134,7 @@
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ClearButton_Click"
                         ToolTip="Clear translation history"/>
-                <Button x:Name="modeButton" Content="Source&amp;Translated Text" Width="Auto" MinWidth="50" Height="28" 
+                <Button x:Name="modeButton" Content="Translated Text" Width="Auto" MinWidth="50" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ModeButton_Click"
