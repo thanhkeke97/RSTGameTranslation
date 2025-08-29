@@ -82,6 +82,23 @@ namespace RSTGameTranslation
 
 
                 }
+                else if (ocrMethod == "RapidOCR")
+                {
+                    batchFileName = "RunServerRapidOCR.bat";
+                    workingDirectory = Path.Combine(webserverPath, "RapidOCR");
+                    flagFile = Path.Combine(Path.GetTempPath(), "rapidocr_ready.txt");
+                    try
+                    {
+                        File.Delete(flagFile);
+                        Console.WriteLine("Delete temp file success");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Delete temp file fail {e.Message}");
+                    }
+
+
+                }
                 else
                 {
                     Console.WriteLine($"OCR method not supported: {ocrMethod}");
@@ -156,6 +173,7 @@ namespace RSTGameTranslation
                 {
                     KillProcessesByPort(SocketManager.Instance.get_EasyOcrPort());
                     KillProcessesByPort(SocketManager.Instance.get_PaddleOcrPort());
+                    KillProcessesByPort(SocketManager.Instance.get_RapidOcrPort());
                     MainWindow.Instance.UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
                     // Get the process ID of the current server process
                     int processId = _currentServerProcess.Id;
@@ -331,6 +349,11 @@ namespace RSTGameTranslation
                 {
                     setupBatchFileName = "SetupServerCondaEnvNVidiaPaddleOCR.bat";
                     workingDirectory = Path.Combine(webserverPath, "PaddleOCR");
+                }
+                else if (ocrMethod == "RapidOCR")
+                {
+                    setupBatchFileName = "SetupServerCondaEnvNVidiaRapidOCR.bat";
+                    workingDirectory = Path.Combine(webserverPath, "RapidOCR");
                 }
                 else
                 {

@@ -130,7 +130,7 @@ namespace RSTGameTranslation
                 // Force cursor visibility is now handled by MouseManager
                 
                 // Only connect to socket server if using EasyOCR or PaddleOCR
-                if (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR")
+                if (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "RapidOCR")
                 {
                     await ConnectToSocketServerAsync();
                 }

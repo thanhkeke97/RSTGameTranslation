@@ -205,6 +205,7 @@
                                     <ComboBoxItem Content="EasyOCR"/>
                                     <ComboBoxItem Content="Windows OCR"/>
                                     <ComboBoxItem Content="PaddleOCR"/>
+                                    <ComboBoxItem Content="RapidOCR"/>
                                 </ComboBox>
                                 
                                 <!-- Auto Translate -->
@@ -396,12 +397,19 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <!-- Clear Context Button -->
-                                <TextBlock Text="Overlay config:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="Text Overlay Config:" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"
                                           ToolTip="Adjust overlay background and text colour"/>
                                 <Button x:Name="overlayConfig" Content="Adjust Config" Grid.Row="0" Grid.Column="1"
-                                       HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="AdjustOverlayConfig_Click"
+                                       HorizontalAlignment="Left" Width="100" Margin="20,8,0,10" Padding="5,3" Click="AdjustOverlayConfig_Click"
                                        ToolTip="Adjust overlay background and text colour"/>
+                                <TextBlock Text="Show Icon Signal When Start OCR" Grid.Row="1" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,8,10,0"
+                                          ToolTip="Show small icon when starting OCR and translate"/>
+                                <CheckBox x:Name="showIconSignalCheckBox" Grid.Row="1" Grid.Column="1" 
+                                         Margin="20,8,0,0" IsChecked="True" 
+                                         Checked="ShowIconSignal_CheckedChanged" 
+                                         Unchecked="ShowIconSignal_CheckedChanged"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

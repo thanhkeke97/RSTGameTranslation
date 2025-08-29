@@ -18,6 +18,7 @@ namespace RSTGameTranslation
         // Constants for OCR server ports
         public const int EASYOCR_PORT = 9999;
         public const int PADDLEOCR_PORT = 9998;
+        public const int RAPIDOCR_PORT = 9997;
         
         // Events for data received and connection status changes
         public event EventHandler<string>? DataReceived;
@@ -25,6 +26,7 @@ namespace RSTGameTranslation
         
         public int get_EasyOcrPort() => EASYOCR_PORT;
         public int get_PaddleOcrPort() => PADDLEOCR_PORT;
+        public int get_RapidOcrPort() => RAPIDOCR_PORT;
 
         // Singleton pattern
         public static SocketManager Instance
@@ -51,7 +53,8 @@ namespace RSTGameTranslation
             {
                 "PaddleOCR" => PADDLEOCR_PORT,
                 "EasyOCR" => EASYOCR_PORT,
-                _ => EASYOCR_PORT // Default to EasyOCR port
+                "RapidOCR" => RAPIDOCR_PORT,
+                _ => PADDLEOCR_PORT // Default to PADDLEOCR_PORT 
             };
             Console.WriteLine($"SocketManager initialized with port: {_port} for {ocrMethod}");
             _isConnected = false;
@@ -64,7 +67,8 @@ namespace RSTGameTranslation
             {
                 "PaddleOCR" => PADDLEOCR_PORT,
                 "EasyOCR" => EASYOCR_PORT,
-                _ => EASYOCR_PORT // Default to EasyOCR port
+                "RapidOCR" => RAPIDOCR_PORT,
+                _ => PADDLEOCR_PORT // Default to PADDLEOCR_PORT 
             };
 
             if (_port != newPort)

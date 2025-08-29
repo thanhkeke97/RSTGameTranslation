@@ -204,6 +204,10 @@ namespace RSTGameTranslation
                 {
                     SetStatus("Please start EasyOCR server");
                 }
+                else if (method == "RapidOCR")
+                {
+                    SetStatus("Please start RapidOCR server");
+                }
                 else
                 {
                     SetStatus("Please start PaddleOCR server");
@@ -867,7 +871,7 @@ namespace RSTGameTranslation
             }
             else 
             {
-                // EasyOCR and PaddleOCR need connect to server
+                // EasyOCR, RapidOCR and PaddleOCR need connect to server
                 isReady = socketStatusText != null &&
                         (socketStatusText.Text == $"Successfully connected to {method} server");
             }
@@ -1261,7 +1265,7 @@ namespace RSTGameTranslation
                     }
                     else
                     {
-                        // Using EasyOCR or PaddleOCR, try to connect to the socket server
+                        // Using EasyOCR, RapidOCR or PaddleOCR, try to connect to the socket server
                         SetStatus($"Connecting to Server {ocrMethod}.");
 
                         _ = OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
@@ -1743,7 +1747,7 @@ namespace RSTGameTranslation
 
         private void btnStopOcrServer_Click(object sender, RoutedEventArgs e)
         {
-            if (ConfigManager.Instance.GetOcrMethod() == "PaddleOCR" || ConfigManager.Instance.GetOcrMethod() == "EasyOCR")
+            if (ConfigManager.Instance.GetOcrMethod() == "PaddleOCR" || ConfigManager.Instance.GetOcrMethod() == "EasyOCR" || ConfigManager.Instance.GetOcrMethod() == "RapidOCR")
             {
                 if (isStarted)
                 {
