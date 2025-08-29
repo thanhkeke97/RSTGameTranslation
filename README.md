@@ -18,7 +18,7 @@
 ## ✨ Features
 
 🔥 **Real-time Translation**
-- Live automatic translations using EasyOCR, PaddleOCR and Windows OCR
+- Live automatic translations using EasyOCR, PaddleOCR, RapidOCR and Windows OCR
 - Powerful overlay chat window for visual novels
 - Full-screen translation capability
 - Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, only work win 11)
@@ -118,17 +118,15 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 ### Recommended Setup
 - **OCR**: PaddleOCR (Better for Asian languages, lower resource usage)
 - **LLM**: Gemini Flash 2 Lite (Fast and accurate)
-- **NVIDIA**: PaddleOCR or EasyOCR
-- **AMD, INTEL**: Windows OCR
+- **NVIDIA**: PaddleOCR, RapidOCR or EasyOCR
+- **AMD, INTEL**: RapidOCR or Windows OCR
 
 ### Alternative Options
-- **Windows OCR**: Lightweight but less accurate for gaming
 - **Ollama**: 100% local translation (RTX 4090: ~5s per translation)
 - **ChatGPT**: GPT-4.1 Nano for premium results
 
 ### Performance Tips
 - Smaller translation areas = faster processing
-- NVIDIA GPU highly recommended
 - First-time language downloads may take 1-2 minutes
 - The application will automatically change API keys if the previous API is rate-limited, so please enter as many API keys as possible
 - The translation speed depends on the LLM model; if you are using Gemini, you should check the translation speed at [here](https://aistudio.google.com/prompts/new_chat)
