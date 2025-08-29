@@ -506,6 +506,9 @@ namespace RSTGameTranslation
             // Set char level from config
             charLevelCheckBox.IsChecked = ConfigManager.Instance.IsCharLevelEnabled();
 
+            // Set show icon signal
+            showIconSignalCheckBox.IsChecked = ConfigManager.Instance.IsShowIconSignalEnabled();
+
             // Set multi selection area from config
             multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
             if (!ConfigManager.Instance.IsMultiSelectionAreaEnabled())
@@ -2775,6 +2778,13 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error updating ignore phrase: {ex.Message}");
             }
+        }
+
+        private void ShowIconSignal_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = showIconSignalCheckBox.IsChecked ?? false;
+            ConfigManager.Instance.SetShowIconSignal(enabled);
+            Console.WriteLine($"Show icon signal set to {enabled}");
         }
 
         private void AudioProcessingProviderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

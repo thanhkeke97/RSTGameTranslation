@@ -152,7 +152,7 @@
                                 </ComboBox>
                                 
                                 <!-- Monitor Toggle Button -->
-                                <Button x:Name="monitorButton" Content="Monitor" Style="{StaticResource ModernButton}"
+                                <Button x:Name="monitorButton" Content="Overlay" Style="{StaticResource ModernButton}"
                                         Background="#FF4569B0"
                                         Click="MonitorButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                         

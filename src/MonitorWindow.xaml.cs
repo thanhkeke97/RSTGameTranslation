@@ -23,7 +23,7 @@ namespace RSTGameTranslation
         private const int WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
         public double dpiScale = 1;
-        
+
         [DllImport("user32.dll")]
         private static extern int SetWindowDisplayAffinity(IntPtr hwnd, uint dwAffinity);
 
@@ -801,7 +801,14 @@ namespace RSTGameTranslation
                 Dispatcher.Invoke(() =>
                 {
                     translationStatusLabel.Text = $"Settling...";
-                    translationStatusBorder.Visibility = Visibility.Visible;
+                    if (ConfigManager.Instance.IsShowIconSignalEnabled())
+                    {
+                        translationStatusBorder.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        translationStatusBorder.Visibility = Visibility.Collapsed;
+                    }
                 });
 
                     return;
@@ -814,7 +821,14 @@ namespace RSTGameTranslation
             Dispatcher.Invoke(() =>
             {
                 translationStatusLabel.Text = $"Waiting for {service}... 0:00";
-                translationStatusBorder.Visibility = Visibility.Visible;
+                if (ConfigManager.Instance.IsShowIconSignalEnabled())
+                {
+                    translationStatusBorder.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    translationStatusBorder.Visibility = Visibility.Collapsed;
+                }
                 
                 // Start the timer if not already running
                 if (_translationStatusTimer == null)

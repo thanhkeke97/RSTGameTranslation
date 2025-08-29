@@ -25,6 +25,7 @@ namespace RSTGameTranslation
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
+        private const string SHOW_ICON_SIGNAL = "show_icon_signal";
         public const string GEMINI_API_KEYS = "gemini_api_keys";
         public const string CHATGPT_API_KEYS = "chatgpt_api_keys";
         public const string MISTRAL_API_KEYS = "mistral_api_keys";
@@ -392,6 +393,7 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_AREA_3] = "ALT+3";
             _configValues[HOTKEY_AREA_4] = "ALT+4";
             _configValues[HOTKEY_AREA_5] = "ALT+5";
+            _configValues[SHOW_ICON_SIGNAL] = "true";
 
             // Save the default configuration
             SaveConfig();
@@ -1099,6 +1101,21 @@ namespace RSTGameTranslation
             }
             SaveConfig();
             Console.WriteLine($"Text similar threshold set to: {threshold}");
+        }
+
+        // Check if show icon signal is enabled
+        public bool IsShowIconSignalEnabled()
+        {
+            string value = GetValue(SHOW_ICON_SIGNAL, "true");
+            return value.ToLower() == "true";
+        }
+
+        // Set Show Icon Signal
+        public void SetShowIconSignal(bool enabled)
+        {
+            _configValues[SHOW_ICON_SIGNAL] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Show icon signal enabled: {enabled}");
         }
 
         // Check if char level is enabled
