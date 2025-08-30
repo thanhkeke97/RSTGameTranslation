@@ -1069,19 +1069,25 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBlock Text="Install Server (Once time):" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button Grid.Row="0" Grid.Column="1" Click="InstallServerButton_Click" HorizontalAlignment="Left"
                                         Width="100" Height="20" Margin="50,10,10,0">
                                     <TextBlock Text="Install"/>
                                 </Button>
-                                <TextBlock Text="Start Server:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <Button Grid.Row="1" Grid.Column="1" Click="StartServerButton_Click" HorizontalAlignment="Left"
+                                <TextBlock Text="Remove Server:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Button Grid.Row="1" Grid.Column="1" Click="RemoveServerButton_Click" HorizontalAlignment="Left"
+                                        Width="100" Height="20" Margin="50,10,10,0">
+                                    <TextBlock Text="Remove"/>
+                                </Button>
+                                <TextBlock Text="Start Server:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Button Grid.Row="2" Grid.Column="1" Click="StartServerButton_Click" HorizontalAlignment="Left"
                                         Width="100" Height="20" Margin="50,10,10,0">
                                     <TextBlock Text="Start"/>
                                 </Button>
-                                <TextBlock Text="Send Translated Data To Server:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,10,10,0"/>
-                                <CheckBox x:Name="isSendDataToServerCheckBox" Grid.Row="2" Grid.Column="1" Margin="50,10,10,0"
+                                <TextBlock Text="Send Translated Data To Server:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <CheckBox x:Name="isSendDataToServerCheckBox" Grid.Row="3" Grid.Column="1" Margin="50,10,10,0"
                                          Checked="IsSendDataToServerCheckBox_CheckedChanged"
                                          Unchecked="IsSendDataToServerCheckBox_CheckedChanged"/>
                             </Grid>

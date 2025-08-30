@@ -2928,6 +2928,53 @@ namespace RSTGameTranslation
             }
         }
 
+        private void RemoveServerButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get the base directory of the application
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string workingDirectory = Path.Combine(baseDirectory, "translation_server");
+                // Choose the appropriate batch file and working directory based on the OCR method
+                string setupBatchFileName = "Remove_server.bat";
+                // Check if batch file exists
+                string setupBatchFilePath = Path.Combine(workingDirectory, setupBatchFileName);
+                if (!File.Exists(setupBatchFilePath))
+                {
+                    Console.WriteLine($"File start not found: {setupBatchFilePath}");
+                    return;
+                }
+                // Initialize process start info
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {setupBatchFileName}",
+                    WorkingDirectory = workingDirectory,
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                // Start the process
+                using (Process? setupProcess = Process.Start(startInfo))
+                {
+                    if (setupProcess == null)
+                    {
+                        Console.WriteLine("Unable to Remove the server");
+                        return;
+                    }
+
+                    Console.WriteLine($"The server has been removed");
+                    return;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error when remove server: {ex.Message}");
+                return;
+            }
+        }
+
         private void IsSendDataToServerCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             bool enabled = isSendDataToServerCheckBox.IsChecked ?? false;
