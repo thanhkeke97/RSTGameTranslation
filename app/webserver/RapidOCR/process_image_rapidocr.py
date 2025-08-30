@@ -35,8 +35,8 @@ def initialize_ocr_engine(lang='en'):
         # Note: RapidOCR may have different initialization parameters
         # Adjust as needed based on RapidOCR documentation
         OCR_ENGINE = RapidOCR(params={"EngineConfig.onnxruntime.use_dml": True,
-                              "Rec.ocr_version": OCRVersion.PPOCRV5,
-                              "Det.ocr_version": OCRVersion.PPOCRV5,
+                              "Rec.ocr_version": OCRVersion.PPOCRV4,
+                              "Det.ocr_version": OCRVersion.PPOCRV4,
                               "Det.model_type": ModelType.MOBILE,
                               "Rec.model_type": ModelType.MOBILE})
         CURRENT_LANG = lang
@@ -106,7 +106,7 @@ def upscale_image(image, min_width=1024, min_height=768):
 # Initialize with default language at module load time
 initialize_ocr_engine('en')
 
-def process_image(image_path, lang='en', preprocess_images=False, upscale_if_needed=False, char_level="True"):
+def process_image(image_path, lang='en', preprocess_images=True, upscale_if_needed=True, char_level="True"):
     """
     Process an image using RapidOCR and return the OCR results.
     

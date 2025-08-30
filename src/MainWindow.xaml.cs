@@ -1693,52 +1693,50 @@ namespace RSTGameTranslation
         private Queue<TranslationItem> _pendingTranslations = new Queue<TranslationItem>();
         private volatile int _isSendingFlag = 0;
 
-        // Class để lưu trữ bản dịch và thứ tự
+        
         private class TranslationItem
         {
             public string Text { get; set; } = "";
             public int SequenceNumber { get; set; }
         }
 
-        // Biến đếm toàn cục để theo dõi thứ tự các bản dịch
+        
         private int _translationSequence = 0;
 
         private async Task SendTranslatedTextToServer(string text, string serverUrl = "http://localhost:9191")
         {
-            // Nếu text trống, không cần xử lý
+            
             if (string.IsNullOrEmpty(text))
                 return;
                 
-            // Tạo một đối tượng TranslationItem với số thứ tự
+            
             var translationItem = new TranslationItem
             {
                 Text = text,
                 SequenceNumber = Interlocked.Increment(ref _translationSequence)
             };
             
-            // Thêm vào hàng đợi
+            // Add to queue
             lock (_pendingTranslations)
             {
                 _pendingTranslations.Enqueue(translationItem);
             }
             
-            // Nếu đang có một quá trình gửi đang chạy, thoát ra
             if (Interlocked.CompareExchange(ref _isSendingFlag, 1, 0) == 1)
                 return;
             
             try
-            {
-                // Xử lý tất cả các bản dịch trong hàng đợi
+            {        
                 while (true)
                 {
-                    // Lấy tất cả các bản dịch hiện có trong hàng đợi
+                    // Get all translated text in queue
                     List<TranslationItem> itemsToProcess;
                     lock (_pendingTranslations)
                     {
                         if (_pendingTranslations.Count == 0)
                             break;
                         
-                        // Lấy tối đa 10 bản dịch mỗi lần để xử lý hàng loạt
+                        // Get max 10 item
                         itemsToProcess = new List<TranslationItem>();
                         int batchSize = Math.Min(10, _pendingTranslations.Count);
                         for (int i = 0; i < batchSize; i++)
@@ -1750,16 +1748,13 @@ namespace RSTGameTranslation
                         }
                     }
                     
-                    // Sắp xếp theo số thứ tự để đảm bảo thứ tự đúng
                     itemsToProcess.Sort((a, b) => a.SequenceNumber.CompareTo(b.SequenceNumber));
                     
-                    // Thử gửi qua WebSocket trước (nhanh hơn)
                     bool sentViaWebSocket = false;
                     if (_socketClient != null && _socketClient.Connected)
                     {
                         try
                         {
-                            // Gửi từng bản dịch theo đúng thứ tự qua WebSocket
                             foreach (var item in itemsToProcess)
                             {
                                 await _socketClient.EmitAsync("send_translation", new { 
@@ -1778,12 +1773,11 @@ namespace RSTGameTranslation
                         }
                     }
                     
-                    // Nếu WebSocket thất bại hoặc không khả dụng, thử gửi qua HTTP
+                    // Fallback to HTTP
                     if (!sentViaWebSocket)
                     {
                         try
                         {
-                            // Thử gửi hàng loạt trước
                             var batchData = new
                             {
                                 translations = itemsToProcess.Select(i => new { 
@@ -1803,7 +1797,6 @@ namespace RSTGameTranslation
                                 {
                                     Console.WriteLine($"✅ Sent {itemsToProcess.Count} translations via HTTP batch API");
                                     
-                                    // Khởi tạo kết nối WebSocket nếu chưa có
                                     if (_socketClient == null || !_socketClient.Connected)
                                     {
                                         InitSocketIO(serverUrl);
@@ -1811,11 +1804,9 @@ namespace RSTGameTranslation
                                     continue;
                                 }
                                 
-                                // Nếu API batch không khả dụng, gửi từng cái một
                                 Console.WriteLine("Batch API not available, sending individually");
                             }
                             
-                            // Gửi từng cái một nếu batch không thành công
                             foreach (var item in itemsToProcess)
                             {
                                 try
@@ -1847,7 +1838,6 @@ namespace RSTGameTranslation
                                 }
                             }
                             
-                            // Khởi tạo kết nối WebSocket nếu chưa có
                             if (_socketClient == null || !_socketClient.Connected)
                             {
                                 InitSocketIO(serverUrl);
@@ -1862,10 +1852,8 @@ namespace RSTGameTranslation
             }
             finally
             {
-                // Đặt lại cờ để cho phép quá trình gửi tiếp theo
                 Interlocked.Exchange(ref _isSendingFlag, 0);
                 
-                // Nếu trong quá trình xử lý có thêm bản dịch mới, khởi động lại quá trình gửi
                 lock (_pendingTranslations)
                 {
                     if (_pendingTranslations.Count > 0)
