@@ -199,7 +199,7 @@ namespace RSTGameTranslation
         }
         
 
-        private void KillProcessesByPort(int port)
+        public void KillProcessesByPort(int port)
         {
             try
             {

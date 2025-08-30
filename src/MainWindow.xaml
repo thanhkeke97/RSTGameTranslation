@@ -186,7 +186,7 @@
                                         Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
                                 <!-- OCR Server Buttons -->
-                                <Button x:Name="btnSetupOcrServer" Content="SetupServer" Style="{StaticResource ModernButton}"
+                                <Button x:Name="btnSetupOcrServer" Content="SetupOCR" Style="{StaticResource ModernButton}"
                                         Background="#FF4577B0" 
                                         Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                 
@@ -194,11 +194,11 @@
                                         Background="#FF4577B0" 
                                         Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                         
-                                <Button x:Name="btnStartOcrServer" Content="StartServer" Style="{StaticResource ModernButton}"
+                                <Button x:Name="btnStartOcrServer" Content="StartOCR" Style="{StaticResource ModernButton}"
                                         Background="#FF4577B0" 
                                         Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                         
-                                <Button x:Name="btnStopOcrServer" Content="StopServer" Style="{StaticResource ModernButton}"
+                                <Button x:Name="btnStopOcrServer" Content="StopOCR" Style="{StaticResource ModernButton}"
                                         Background="#DC3545"
                                         Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                             </StackPanel>

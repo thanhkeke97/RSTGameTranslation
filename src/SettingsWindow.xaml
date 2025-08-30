@@ -1053,6 +1053,62 @@
                 </ScrollViewer>
             </TabItem>
 
+            <!-- Server Tab -->
+            <TabItem Header="Server">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <!-- Server Settings -->
+                        <GroupBox Header="Server Setting" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Install Server (Once time):" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Button Grid.Row="0" Grid.Column="1" Click="InstallServerButton_Click" HorizontalAlignment="Left"
+                                        Width="100" Height="20" Margin="50,10,10,0">
+                                    <TextBlock Text="Install"/>
+                                </Button>
+                                <TextBlock Text="Start Server:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Button Grid.Row="1" Grid.Column="1" Click="StartServerButton_Click" HorizontalAlignment="Left"
+                                        Width="100" Height="20" Margin="50,10,10,0">
+                                    <TextBlock Text="Start"/>
+                                </Button>
+                                <TextBlock Text="Send Translated Data To Server:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <CheckBox x:Name="isSendDataToServerCheckBox" Grid.Row="2" Grid.Column="1" Margin="50,10,10,0"
+                                         Checked="IsSendDataToServerCheckBox_CheckedChanged"
+                                         Unchecked="IsSendDataToServerCheckBox_CheckedChanged"/>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Server Guide" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="This feature allows you to create a local hotspot server. The server is responsible for displaying translated text retrieved from the RSTGameTranslation app. You can access the server from any device within the LAN network." 
+                                    HorizontalAlignment="Left" TextWrapping="Wrap"
+                                    Grid.Row="1" Grid.Column="1" Margin="10,10,0,0"/>
+                                <TextBlock Text="This feature allows you to use your phone as a screen to view translations, which is useful for people who do not use multiple monitors." 
+                                    HorizontalAlignment="Left" TextWrapping="Wrap"
+                                    Grid.Row="2" Grid.Column="1" Margin="10,10,0,0"/>
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <!--  Game Profile Tab -->
             <TabItem Header="Game Profile">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">

@@ -25,6 +25,7 @@ namespace RSTGameTranslation
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
+        private const string SEND_DATA_TO_SERVER = "send_data_to_server";
         private const string SHOW_ICON_SIGNAL = "show_icon_signal";
         public const string GEMINI_API_KEYS = "gemini_api_keys";
         public const string CHATGPT_API_KEYS = "chatgpt_api_keys";
@@ -394,6 +395,7 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_AREA_4] = "ALT+4";
             _configValues[HOTKEY_AREA_5] = "ALT+5";
             _configValues[SHOW_ICON_SIGNAL] = "true";
+            _configValues[SEND_DATA_TO_SERVER] = "false";
 
             // Save the default configuration
             SaveConfig();
@@ -1515,7 +1517,18 @@ namespace RSTGameTranslation
             }
         }
 
-        // Text-to-Speech methods
+        public bool IsSendDataToServerEnabled()
+        {
+            string value = GetValue(SEND_DATA_TO_SERVER, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetSendDataToServer(bool enabled)
+        {
+            _configValues[SEND_DATA_TO_SERVER] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Send data to server enabled: {enabled}");
+        }
 
         // Get/Set TTS enabled
         public bool IsTtsEnabled()

@@ -12,6 +12,9 @@ using System.Drawing.Drawing2D;
 using System.Diagnostics;
 using System.Text;
 using System.Windows.Shell;
+using System.Net.Http;
+using System.Text.Json;
+using SocketIOClient;
 
 
 namespace RSTGameTranslation
@@ -41,6 +44,8 @@ namespace RSTGameTranslation
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
         
+        private static readonly HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(5) };
+
 
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
@@ -1012,6 +1017,7 @@ namespace RSTGameTranslation
             
             Logic.Instance.Finish();
             OcrServerManager.Instance.StopOcrServer();
+            OcrServerManager.Instance.KillProcessesByPort(9191);
 
             // Make sure the console is closed
             if (consoleWindow != IntPtr.Zero)
@@ -1642,7 +1648,7 @@ namespace RSTGameTranslation
                 chatBoxWindow.UpdateChatHistory();
             }
         }
-        
+
         public void AddTranslationToHistory(string originalText, string translatedText)
         {
             // Check for duplicate with most recent entry
@@ -1655,7 +1661,7 @@ namespace RSTGameTranslation
                     return;
                 }
             }
-            
+
             // Create new entry
             var entry = new TranslationEntry
             {
@@ -1676,7 +1682,132 @@ namespace RSTGameTranslation
 
             //Console.WriteLine($"Translation added to history. History size: {_translationHistory.Count}");
             ChatBoxWindow.Instance!.OnTranslationWasAdded(originalText, translatedText);
+            if (ConfigManager.Instance.IsSendDataToServerEnabled())
+            {
+                _ = Task.Run(() => SendTranslatedTextToServer(translatedText));
+            }
+            
         }
+
+        private SocketIOClient.SocketIO? _socketClient;
+
+        private Queue<string> _pendingTranslations = new Queue<string>();
+
+        private async Task SendTranslatedTextToServer(string text, string serverUrl = "http://localhost:9191")
+        {
+            
+            lock (_pendingTranslations)
+            {
+                _pendingTranslations.Enqueue(text);
+            }
+            
+            
+            if (Interlocked.CompareExchange(ref _isSendingFlag, 1, 0) == 1)
+                return;
+            
+            try
+            {
+                
+                while (true)
+                {
+                    string nextText;
+                    lock (_pendingTranslations)
+                    {
+                        if (_pendingTranslations.Count == 0)
+                            break;
+                        
+                        nextText = _pendingTranslations.Dequeue();
+                    }
+                    
+                    
+                    try
+                    {
+                        
+                        if (_socketClient != null && _socketClient.Connected)
+                        {
+                            
+                            await _socketClient.EmitAsync("send_translation", new { translation = nextText });
+                            Console.WriteLine($"✅ Sent to WebSocket: {(nextText.Length > 50 ? nextText.Substring(0, 50) + "..." : nextText)}");
+                        }
+                        else
+                        {
+                            
+                            var translationData = new { translation = nextText };
+                            var jsonContent = JsonSerializer.Serialize(translationData);
+                            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                            
+                            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+                            {
+                                var response = await _httpClient.PostAsync($"{serverUrl}/api/update", content, cts.Token);
+                                
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    Console.WriteLine($"✅ Sent to HTTP: {(nextText.Length > 50 ? nextText.Substring(0, 50) + "..." : nextText)}");
+                                    
+                                    
+                                    if (_socketClient == null || !_socketClient.Connected)
+                                    {
+                                        Task.Run(() => InitSocketIO(serverUrl));
+                                    }
+                                }
+                                else
+                                {
+                                    string errorContent = await response.Content.ReadAsStringAsync();
+                                    Console.WriteLine($"❌ HTTP Error {(int)response.StatusCode}: {errorContent}");
+                                }
+                            }
+                        }
+                        
+                        
+                        await Task.Delay(20);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Error: {ex.Message}");
+                    }
+                }
+            }
+            finally
+            {
+                
+                Interlocked.Exchange(ref _isSendingFlag, 0);
+                
+                if (_pendingTranslations.Count > 0)
+                {
+                    _ = SendTranslatedTextToServer(string.Empty);
+                }
+            }
+        }
+
+        private volatile int _isSendingFlag = 0;
+        
+        private void InitSocketIO(string serverUrl = "http://localhost:9191")
+        {
+            try
+            {
+                _socketClient = new SocketIOClient.SocketIO(serverUrl);
+                
+
+                _socketClient.OnConnected += (sender, e) =>
+                {
+                    Console.WriteLine("✅ Connected to Websocket");
+                };
+                
+                _socketClient.OnDisconnected += (sender, e) =>
+                {
+                    Console.WriteLine("❌ Disconnected to Websocket");
+                };
+                
+                Task.Run(async () => await _socketClient.ConnectAsync()).Wait();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Websocket init error: {ex.Message}");
+                _socketClient = null;
+            }
+        }
+
         // Handle translation events from Logic
         private void Logic_TranslationCompleted(object? sender, TranslationEventArgs e)
         {

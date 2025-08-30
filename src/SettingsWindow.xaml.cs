@@ -36,7 +36,7 @@ namespace RSTGameTranslation
     public partial class SettingsWindow : Window
     {
         private static SettingsWindow? _instance;
-        
+
         public static bool _isLanguagePackInstall = false;
 
         public string profileName = "";
@@ -168,50 +168,50 @@ namespace RSTGameTranslation
 
                 // Get all screens
                 var screens = System.Windows.Forms.Screen.AllScreens;
-                
+
                 // Add each screen to the combo box
                 for (int i = 0; i < screens.Length; i++)
                 {
                     var screen = screens[i];
-                    
+
                     // Get native resolution
                     int width = screen.Bounds.Width;
                     int height = screen.Bounds.Height;
-                    
+
                     // Create display name
                     string displayName = $"{width} x {height}";
                     if (screen.Primary)
                     {
                         displayName += " (Primary)";
                     }
-                    
+
                     // Create combo box item
                     ComboBoxItem item = new ComboBoxItem
                     {
                         Content = displayName,
                         Tag = i  // Store screen index as Tag
                     };
-                    
+
                     screenComboBox.Items.Add(item);
                 }
-                
+
                 // Select the primary screen by default
                 for (int i = 0; i < screenComboBox.Items.Count; i++)
                 {
-                    if (screenComboBox.Items[i] is ComboBoxItem item && 
+                    if (screenComboBox.Items[i] is ComboBoxItem item &&
                         item.Content.ToString()?.Contains("Primary") == true)
                     {
                         screenComboBox.SelectedIndex = i;
                         break;
                     }
                 }
-                
+
                 // If no primary screen was found, select the first item
                 if (screenComboBox.SelectedIndex == -1 && screenComboBox.Items.Count > 0)
                 {
                     screenComboBox.SelectedIndex = 0;
                 }
-                
+
                 Console.WriteLine($"Loaded {screenComboBox.Items.Count} screens");
             }
             catch (Exception ex)
@@ -228,7 +228,7 @@ namespace RSTGameTranslation
                 // Skip if initializing
                 if (_isInitializing)
                     return;
-                    
+
                 if (screenComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
                     // Get the screen index from the Tag
@@ -237,7 +237,7 @@ namespace RSTGameTranslation
                         // Save to config
                         ConfigManager.Instance.SetSelectedScreenIndex(screenIndex);
                         Console.WriteLine($"Selected screen index set to: {screenIndex}");
-                        
+
                     }
                 }
             }
@@ -674,7 +674,7 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             string functionName;
             string? key1 = "";
             string? key2 = "";
@@ -716,18 +716,18 @@ namespace RSTGameTranslation
                     {
                         Interval = TimeSpan.FromSeconds(1.3)
                     };
-                    
+
                     timer.Tick += (s, e) =>
                     {
                         statusUpdateHotKey.Visibility = Visibility.Collapsed;
                         timer.Stop();
                     };
-                    
+
                     timer.Start();
-                    
+
                 }
             }
-            
+
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -736,7 +736,7 @@ namespace RSTGameTranslation
             {
                 handled = KeyboardShortcuts.ProcessHotKey(wParam);
             }
-            
+
             return IntPtr.Zero;
         }
 
@@ -795,7 +795,7 @@ namespace RSTGameTranslation
                     string key1 = keyParts[0].ToUpper();
                     string key2 = keyParts[1].ToUpper();
 
-                    
+
                     foreach (ComboBoxItem item in combineKey1.Items)
                     {
                         if (item.Content.ToString() == key1)
@@ -805,7 +805,7 @@ namespace RSTGameTranslation
                         }
                     }
 
-                    
+
                     foreach (ComboBoxItem item in combineKey2.Items)
                     {
                         if (item.Content.ToString() == key2)
@@ -1015,7 +1015,7 @@ namespace RSTGameTranslation
         {
             try
             {
-            
+
                 // Show setup dialog
                 MessageBoxResult result = System.Windows.MessageBox.Show(
                     $"Are you sure you want to install conda?\n\n" +
@@ -1023,17 +1023,18 @@ namespace RSTGameTranslation
                     "Confirm installation",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
-                    
+
                 if (result == MessageBoxResult.Yes)
                 {
                     // Show status message
                     MainWindow.Instance.SetStatus($"Setting up conda");
-                    
+
                     // Run setup
-                    await Task.Run(() => {
+                    await Task.Run(() =>
+                    {
                         OcrServerManager.Instance.InstallConda();
                     });
-                    
+
                     MainWindow.Instance.SetStatus($"Conda setup is completed");
                 }
             }
@@ -2300,7 +2301,7 @@ namespace RSTGameTranslation
         private void CheckLanguagePackButton_Click(object sender, RoutedEventArgs e)
         {
             string? sourceLanguage = null;
-    
+
             if (sourceLanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 sourceLanguage = selectedItem.Content.ToString();
@@ -2341,7 +2342,7 @@ namespace RSTGameTranslation
                     }
                 }
             }
-            
+
         }
 
         private void CreateProfileButton_Click(object sender, RoutedEventArgs e)
@@ -2386,13 +2387,13 @@ namespace RSTGameTranslation
                     {
                         Interval = TimeSpan.FromSeconds(1.5)
                     };
-                    
+
                     timer.Tick += (s, e) =>
                     {
                         statusUpdateGameProfile.Text = "";
-                    timer.Stop();
+                        timer.Stop();
                     };
-                    
+
                     timer.Start();
                 }
             }
@@ -2427,13 +2428,13 @@ namespace RSTGameTranslation
                         {
                             Interval = TimeSpan.FromSeconds(1.5)
                         };
-                        
+
                         timer.Tick += (s, e) =>
                         {
                             statusUpdateGameProfile.Text = "";
-                        timer.Stop();
+                            timer.Stop();
                         };
-                        
+
                         timer.Start();
                     }
                 }
@@ -2444,7 +2445,7 @@ namespace RSTGameTranslation
             }
             else
             {
-                 MessageBox.Show("No profile selected, please select a profile from combo box", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("No profile selected, please select a profile from combo box", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -2470,26 +2471,26 @@ namespace RSTGameTranslation
                             ConfigManager.Instance.SaveTranslationAreas(new List<Rect>(), selectedText);
                             Console.WriteLine("Cleared translation areas in config");
                         }
-                    // Show status
-                    statusUpdateGameProfile.Visibility = Visibility.Visible;
-                    statusUpdateGameProfile.Text = $"Update {profileName} successfully!";
-                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Orange);
+                        // Show status
+                        statusUpdateGameProfile.Visibility = Visibility.Visible;
+                        statusUpdateGameProfile.Text = $"Update {profileName} successfully!";
+                        statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Orange);
 
-                    // Auto close status after 1.5 second
-                    var timer = new System.Windows.Threading.DispatcherTimer
-                    {
-                        Interval = TimeSpan.FromSeconds(1.5)
-                    };
-                    
-                    timer.Tick += (s, e) =>
-                    {
-                        statusUpdateGameProfile.Text = "";
-                    timer.Stop();
-                    };
-                    
-                    timer.Start();
+                        // Auto close status after 1.5 second
+                        var timer = new System.Windows.Threading.DispatcherTimer
+                        {
+                            Interval = TimeSpan.FromSeconds(1.5)
+                        };
+
+                        timer.Tick += (s, e) =>
+                        {
+                            statusUpdateGameProfile.Text = "";
+                            timer.Stop();
+                        };
+
+                        timer.Start();
                     }
-                    
+
                 }
                 else
                 {
@@ -2535,13 +2536,13 @@ namespace RSTGameTranslation
                     {
                         Interval = TimeSpan.FromSeconds(1.5)
                     };
-                    
+
                     timer.Tick += (s, e) =>
                     {
                         statusUpdateGameProfile.Text = "";
-                    timer.Stop();
+                        timer.Stop();
                     };
-                    
+
                     timer.Start();
                 }
                 else
@@ -2561,7 +2562,7 @@ namespace RSTGameTranslation
             {
                 Directory.CreateDirectory(ConfigManager.Instance._profileFolderPath);
             }
-            
+
             List<string?> fileNames = Directory.GetFiles(ConfigManager.Instance._profileFolderPath, "*.txt")
             .Select(Path.GetFileNameWithoutExtension)
             .Where(name => !string.IsNullOrEmpty(name))
@@ -2575,7 +2576,7 @@ namespace RSTGameTranslation
                     profileComboBox.Items.Add(name);
                 }
             }
-            
+
 
         }
         // Handle Clear Context button click
@@ -2828,6 +2829,110 @@ namespace RSTGameTranslation
                             MessageBoxImage.Information);
             }
             isNeedShowMessage = !enabled;
+        }
+
+        private void InstallServerButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get the base directory of the application
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string workingDirectory = Path.Combine(baseDirectory, "translation_server");
+                // Choose the appropriate batch file and working directory based on the OCR method
+                string setupBatchFileName = "install_requirements.bat";
+                // Check if batch file exists
+                string setupBatchFilePath = Path.Combine(workingDirectory, setupBatchFileName);
+                if (!File.Exists(setupBatchFilePath))
+                {
+                    Console.WriteLine($"File installation not found: {setupBatchFilePath}");
+                    return;
+                }
+                // Initialize process start info
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {setupBatchFileName}",
+                    WorkingDirectory = workingDirectory,
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                // Start the process
+                using (Process? setupProcess = Process.Start(startInfo))
+                {
+                    if (setupProcess == null)
+                    {
+                        Console.WriteLine("Unable to start the server installation process");
+                        return;
+                    }
+
+                    // Wait for the process to finish
+                    setupProcess.WaitForExit();
+
+                    Console.WriteLine($"The server installation process has been completed");
+                    return;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error when installing server: {ex.Message}");
+                return;
+            }
+        }
+
+        private void StartServerButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get the base directory of the application
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string workingDirectory = Path.Combine(baseDirectory, "translation_server");
+                // Choose the appropriate batch file and working directory based on the OCR method
+                string setupBatchFileName = "start_server.bat";
+                // Check if batch file exists
+                string setupBatchFilePath = Path.Combine(workingDirectory, setupBatchFileName);
+                if (!File.Exists(setupBatchFilePath))
+                {
+                    Console.WriteLine($"File start not found: {setupBatchFilePath}");
+                    return;
+                }
+                // Initialize process start info
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {setupBatchFileName}",
+                    WorkingDirectory = workingDirectory,
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                // Start the process
+                using (Process? setupProcess = Process.Start(startInfo))
+                {
+                    if (setupProcess == null)
+                    {
+                        Console.WriteLine("Unable to start the server process");
+                        return;
+                    }
+
+                    Console.WriteLine($"The server start process has been completed");
+                    return;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error when start server: {ex.Message}");
+                return;
+            }
+        }
+
+        private void IsSendDataToServerCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = isSendDataToServerCheckBox.IsChecked ?? false;
+            ConfigManager.Instance.SetSendDataToServer(enabled);
+            Console.WriteLine($"Settings window: Is send data to server set to {enabled}");
         }
     }
 }
