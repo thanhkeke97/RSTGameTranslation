@@ -1690,120 +1690,224 @@ namespace RSTGameTranslation
         }
 
         private SocketIOClient.SocketIO? _socketClient;
+        private Queue<TranslationItem> _pendingTranslations = new Queue<TranslationItem>();
+        private volatile int _isSendingFlag = 0;
 
-        private Queue<string> _pendingTranslations = new Queue<string>();
+        // Class để lưu trữ bản dịch và thứ tự
+        private class TranslationItem
+        {
+            public string Text { get; set; } = "";
+            public int SequenceNumber { get; set; }
+        }
+
+        // Biến đếm toàn cục để theo dõi thứ tự các bản dịch
+        private int _translationSequence = 0;
 
         private async Task SendTranslatedTextToServer(string text, string serverUrl = "http://localhost:9191")
         {
+            // Nếu text trống, không cần xử lý
+            if (string.IsNullOrEmpty(text))
+                return;
+                
+            // Tạo một đối tượng TranslationItem với số thứ tự
+            var translationItem = new TranslationItem
+            {
+                Text = text,
+                SequenceNumber = Interlocked.Increment(ref _translationSequence)
+            };
             
+            // Thêm vào hàng đợi
             lock (_pendingTranslations)
             {
-                _pendingTranslations.Enqueue(text);
+                _pendingTranslations.Enqueue(translationItem);
             }
             
-            
+            // Nếu đang có một quá trình gửi đang chạy, thoát ra
             if (Interlocked.CompareExchange(ref _isSendingFlag, 1, 0) == 1)
                 return;
             
             try
             {
-                
+                // Xử lý tất cả các bản dịch trong hàng đợi
                 while (true)
                 {
-                    string nextText;
+                    // Lấy tất cả các bản dịch hiện có trong hàng đợi
+                    List<TranslationItem> itemsToProcess;
                     lock (_pendingTranslations)
                     {
                         if (_pendingTranslations.Count == 0)
                             break;
                         
-                        nextText = _pendingTranslations.Dequeue();
+                        // Lấy tối đa 10 bản dịch mỗi lần để xử lý hàng loạt
+                        itemsToProcess = new List<TranslationItem>();
+                        int batchSize = Math.Min(10, _pendingTranslations.Count);
+                        for (int i = 0; i < batchSize; i++)
+                        {
+                            if (_pendingTranslations.Count > 0)
+                                itemsToProcess.Add(_pendingTranslations.Dequeue());
+                            else
+                                break;
+                        }
                     }
                     
+                    // Sắp xếp theo số thứ tự để đảm bảo thứ tự đúng
+                    itemsToProcess.Sort((a, b) => a.SequenceNumber.CompareTo(b.SequenceNumber));
                     
-                    try
+                    // Thử gửi qua WebSocket trước (nhanh hơn)
+                    bool sentViaWebSocket = false;
+                    if (_socketClient != null && _socketClient.Connected)
                     {
-                        
-                        if (_socketClient != null && _socketClient.Connected)
+                        try
                         {
-                            
-                            await _socketClient.EmitAsync("send_translation", new { translation = nextText });
-                            Console.WriteLine($"✅ Sent to WebSocket: {(nextText.Length > 50 ? nextText.Substring(0, 50) + "..." : nextText)}");
-                        }
-                        else
-                        {
-                            
-                            var translationData = new { translation = nextText };
-                            var jsonContent = JsonSerializer.Serialize(translationData);
-                            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                            
-                            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+                            // Gửi từng bản dịch theo đúng thứ tự qua WebSocket
+                            foreach (var item in itemsToProcess)
                             {
-                                var response = await _httpClient.PostAsync($"{serverUrl}/api/update", content, cts.Token);
+                                await _socketClient.EmitAsync("send_translation", new { 
+                                    translation = item.Text,
+                                    sequence = item.SequenceNumber
+                                });
+                            }
+                            
+                            Console.WriteLine($"✅ Sent {itemsToProcess.Count} translations via WebSocket");
+                            sentViaWebSocket = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"❌ WebSocket error: {ex.Message}. Falling back to HTTP.");
+                            sentViaWebSocket = false;
+                        }
+                    }
+                    
+                    // Nếu WebSocket thất bại hoặc không khả dụng, thử gửi qua HTTP
+                    if (!sentViaWebSocket)
+                    {
+                        try
+                        {
+                            // Thử gửi hàng loạt trước
+                            var batchData = new
+                            {
+                                translations = itemsToProcess.Select(i => new { 
+                                    translation = i.Text, 
+                                    sequence = i.SequenceNumber
+                                }).ToArray()
+                            };
+                            
+                            var jsonContent = JsonSerializer.Serialize(batchData);
+                            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                            
+                            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+                            {
+                                var response = await _httpClient.PostAsync($"{serverUrl}/api/update-batch", content, cts.Token);
                                 
                                 if (response.IsSuccessStatusCode)
                                 {
-                                    Console.WriteLine($"✅ Sent to HTTP: {(nextText.Length > 50 ? nextText.Substring(0, 50) + "..." : nextText)}");
+                                    Console.WriteLine($"✅ Sent {itemsToProcess.Count} translations via HTTP batch API");
                                     
-                                    
+                                    // Khởi tạo kết nối WebSocket nếu chưa có
                                     if (_socketClient == null || !_socketClient.Connected)
                                     {
-                                        Task.Run(() => InitSocketIO(serverUrl));
+                                        InitSocketIO(serverUrl);
+                                    }
+                                    continue;
+                                }
+                                
+                                // Nếu API batch không khả dụng, gửi từng cái một
+                                Console.WriteLine("Batch API not available, sending individually");
+                            }
+                            
+                            // Gửi từng cái một nếu batch không thành công
+                            foreach (var item in itemsToProcess)
+                            {
+                                try
+                                {
+                                    var singleData = new { 
+                                        translation = item.Text,
+                                        sequence = item.SequenceNumber
+                                    };
+                                    var singleJson = JsonSerializer.Serialize(singleData);
+                                    var singleContent = new StringContent(singleJson, Encoding.UTF8, "application/json");
+                                    
+                                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
+                                    {
+                                        var response = await _httpClient.PostAsync($"{serverUrl}/api/update", singleContent, cts.Token);
+                                        
+                                        if (response.IsSuccessStatusCode)
+                                        {
+                                            Console.WriteLine($"✅ Sent translation #{item.SequenceNumber} via HTTP");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"❌ Failed to send translation #{item.SequenceNumber}");
+                                        }
                                     }
                                 }
-                                else
+                                catch (Exception ex)
                                 {
-                                    string errorContent = await response.Content.ReadAsStringAsync();
-                                    Console.WriteLine($"❌ HTTP Error {(int)response.StatusCode}: {errorContent}");
+                                    Console.WriteLine($"❌ Error sending individual translation: {ex.Message}");
                                 }
                             }
+                            
+                            // Khởi tạo kết nối WebSocket nếu chưa có
+                            if (_socketClient == null || !_socketClient.Connected)
+                            {
+                                InitSocketIO(serverUrl);
+                            }
                         }
-                        
-                        
-                        await Task.Delay(20);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"❌ Error: {ex.Message}");
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"❌ HTTP batch error: {ex.Message}");
+                        }
                     }
                 }
             }
             finally
             {
-                
+                // Đặt lại cờ để cho phép quá trình gửi tiếp theo
                 Interlocked.Exchange(ref _isSendingFlag, 0);
                 
-                if (_pendingTranslations.Count > 0)
+                // Nếu trong quá trình xử lý có thêm bản dịch mới, khởi động lại quá trình gửi
+                lock (_pendingTranslations)
                 {
-                    _ = SendTranslatedTextToServer(string.Empty);
+                    if (_pendingTranslations.Count > 0)
+                    {
+                        _ = SendTranslatedTextToServer(string.Empty);
+                    }
                 }
             }
         }
 
-        private volatile int _isSendingFlag = 0;
-        
         private void InitSocketIO(string serverUrl = "http://localhost:9191")
         {
             try
             {
-                _socketClient = new SocketIOClient.SocketIO(serverUrl);
+                if (_socketClient != null)
+                {
+                    try { _socketClient.DisconnectAsync().Wait(1000); } catch { }
+                }
                 
-
+                _socketClient = new SocketIOClient.SocketIO(serverUrl, new SocketIOClient.SocketIOOptions
+                {
+                    ConnectionTimeout = TimeSpan.FromSeconds(3),
+                    Reconnection = true,
+                    ReconnectionAttempts = 3,
+                    ReconnectionDelay = 1000
+                });
+                
                 _socketClient.OnConnected += (sender, e) =>
                 {
-                    Console.WriteLine("✅ Connected to Websocket");
+                    Console.WriteLine("✅ Connected to WebSocket");
                 };
                 
                 _socketClient.OnDisconnected += (sender, e) =>
                 {
-                    Console.WriteLine("❌ Disconnected to Websocket");
+                    Console.WriteLine("❌ Disconnected from WebSocket");
                 };
                 
-                Task.Run(async () => await _socketClient.ConnectAsync()).Wait();
+                _socketClient.ConnectAsync().Wait(3000);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Websocket init error: {ex.Message}");
+                Console.WriteLine($"❌ WebSocket init error: {ex.Message}");
                 _socketClient = null;
             }
         }
