@@ -68,12 +68,12 @@
 - Go to **Settings** → **Translation** tab: Select your preferred translation service
 
 #### 2. Server Setup (One-time)
-- Click **SetupServer** button (Skip if using Windows OCR)
+- Click **SetupOCR** button (Skip if using Windows OCR)
 - Wait 5-15 minutes for setup completion
 - Look for "environment setup completed" message
 
 #### 3. Start Translating
-- Click **StartServer** and wait for connection confirmation (Skip if using Windows OCR)
+- Click **StartOCR** and wait for connection confirmation (Skip if using Windows OCR)
 - Select translate area (ALT+Q or Click on SelectArea button)
 - Click Start button (ALT+G) to begin translation
 - View results in ChatBox or Monitor window
