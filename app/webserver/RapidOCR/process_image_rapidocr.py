@@ -141,7 +141,7 @@ def upscale_image(image, min_width=1024, min_height=768):
 # Initialize with default language at module load time
 initialize_ocr_engine('en')
 
-def process_image(image_path, lang='en', preprocess_images=True, upscale_if_needed=True, char_level="True"):
+def process_image(image_path, lang='en', preprocess_images=True, upscale_if_needed=False, char_level="True"):
     """
     Process an image using RapidOCR and return the OCR results.
     
