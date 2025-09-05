@@ -1,5 +1,5 @@
 @echo off
-echo ===== Setting up an PaddleOCR with NVidia GPU Support Conda Env =====
+echo ===== Setting up an RapidOCR with NVidia GPU Support Conda Env =====
 echo 
 echo This is something you only have to do once, it creates (or recreates) a Conda environment called "ocrstuffrapidocr".
 echo This can take quite a long time to setup.  It's for NVidia cards, you'll have to hack this script up or do it
