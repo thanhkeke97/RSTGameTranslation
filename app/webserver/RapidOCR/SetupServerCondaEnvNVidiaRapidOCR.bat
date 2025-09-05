@@ -16,7 +16,7 @@ echo Removing existing ocrstuffrapidocr environment if it exists...
 call conda env remove -n ocrstuffrapidocr -y
 
 echo Creating and setting up new Conda environment...
-call conda create -y --name ocrstuffrapidocr python=3.9
+call conda create -y --name ocrstuffrapidocr python=3.12
 call conda activate ocrstuffrapidocr
 echo Installing dependencies
 call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyyaml==6.0.2 requests==2.32.3
@@ -25,7 +25,7 @@ call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyy
 REM Install RapidOCR via pip
 echo Installing RapidOCR...
 call pip install rapidocr==3.3.1
-call pip install onnxruntime-directml==1.19.2
+call pip install onnxruntime-directml==1.22.0
 
 
 

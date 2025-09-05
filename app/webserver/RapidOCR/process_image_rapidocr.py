@@ -4,7 +4,7 @@ import time
 import numpy as np
 import tempfile
 from PIL import Image, ImageEnhance, ImageFilter
-from rapidocr import RapidOCR, OCRVersion, ModelType
+from rapidocr import RapidOCR, OCRVersion, ModelType, LangDet, LangRec, EngineType
 # import torch
 
 # Global variables to manage OCR engine
@@ -24,7 +24,38 @@ def initialize_ocr_engine(lang='en'):
     global OCR_ENGINE, CURRENT_LANG
 
     # Note: RapidOCR might handle languages differently than PaddleOCR
-    # This might need adjustment based on RapidOCR's language support
+
+    # Map language codes to PaddleOCR language codes
+    lang_map = {
+        'ja': 'CH',
+        'ko': 'LATIN',
+        'en': 'LATIN',
+        'ch_sim': 'CH',
+        'fr': 'LATIN',
+        'ru': 'LATIN',
+        'de': 'LATIN',
+        'es': 'LATIN',
+        'it': 'LATIN',
+        'hi': 'LATIN',
+        'pt': 'LATIN',
+        'ar': 'LATIN',
+        'nl': 'LATIN',
+        'pl': 'LATIN',
+        'ro': 'LATIN',
+        'fa': 'LATIN',
+        'cs': 'LATIN',
+        'id': 'LATIN',
+        'th': 'LATIN',
+        'ch_tra': 'CH'
+    }
+
+    # Use mapped language or default to input if not in map
+    rapid_lang = lang_map.get(lang, lang)
+    if rapid_lang == "LATIN":
+        lang_ocr = LangRec.LATIN
+    else:
+        lang_ocr = LangRec.CH
+    
     
     # Only reinitialize if language has changed or engine is not initialized
     if OCR_ENGINE is None or CURRENT_LANG != lang:
@@ -35,8 +66,12 @@ def initialize_ocr_engine(lang='en'):
         # Note: RapidOCR may have different initialization parameters
         # Adjust as needed based on RapidOCR documentation
         OCR_ENGINE = RapidOCR(params={"EngineConfig.onnxruntime.use_dml": True,
-                              "Rec.ocr_version": OCRVersion.PPOCRV4,
-                              "Det.ocr_version": OCRVersion.PPOCRV4,
+                              "Det.ocr_version": OCRVersion.PPOCRV5,
+                              "Rec.ocr_version": OCRVersion.PPOCRV5,
+                              "Det.lang_type": LangDet.CH,
+                              "Rec.lang_type": lang_ocr,
+                              "Det.engine_type": EngineType.ONNXRUNTIME,
+                              "Rec.engine_type": EngineType.ONNXRUNTIME,
                               "Det.model_type": ModelType.MOBILE,
                               "Rec.model_type": ModelType.MOBILE})
         CURRENT_LANG = lang
