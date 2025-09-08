@@ -86,6 +86,7 @@ namespace RSTGameTranslation
         public const string AUTO_TRANSLATE_ENABLED = "auto_translate_enabled";
         public const string CHAR_LEVEL = "char_level";
         public const string IGNORE_PHRASES = "ignore_phrases";
+        public const string WINDOWS_OCR_INTEGRATION = "windows_ocr_integration";
 
         // Text-to-Speech configuration keys
         public const string TTS_ENABLED = "tts_enabled";
@@ -396,6 +397,7 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_AREA_5] = "ALT+5";
             _configValues[SHOW_ICON_SIGNAL] = "true";
             _configValues[SEND_DATA_TO_SERVER] = "false";
+            _configValues[WINDOWS_OCR_INTEGRATION] = "false";
 
             // Save the default configuration
             SaveConfig();
@@ -1528,6 +1530,19 @@ namespace RSTGameTranslation
             _configValues[SEND_DATA_TO_SERVER] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Send data to server enabled: {enabled}");
+        }
+
+        // Get/Set windows OCR integration status
+        public bool IsWindowsOCRIntegrationEnabled()
+        {
+            string value = GetValue(WINDOWS_OCR_INTEGRATION, "false");
+            return value.ToLower() == "true";
+        }
+        public void SetWindowsOCRIntegration(bool enabled)
+        {
+            _configValues[WINDOWS_OCR_INTEGRATION] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Windows OCR integration enabled: {enabled}");
         }
 
         // Get/Set TTS enabled

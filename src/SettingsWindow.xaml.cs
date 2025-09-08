@@ -509,6 +509,9 @@ namespace RSTGameTranslation
             // Set show icon signal
             showIconSignalCheckBox.IsChecked = ConfigManager.Instance.IsShowIconSignalEnabled();
 
+            // Set WindowsOCR integration
+            windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
+
             // Set multi selection area from config
             multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
             if (!ConfigManager.Instance.IsMultiSelectionAreaEnabled())
@@ -2931,9 +2934,9 @@ namespace RSTGameTranslation
         private void RemoveServerButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to remove this hotspot server?", 
-                    "Confirm Removal", 
-                    MessageBoxButton.YesNo, 
+                    $"Are you sure you want to remove this hotspot server?",
+                    "Confirm Removal",
+                    MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
@@ -2989,6 +2992,13 @@ namespace RSTGameTranslation
             bool enabled = isSendDataToServerCheckBox.IsChecked ?? false;
             ConfigManager.Instance.SetSendDataToServer(enabled);
             Console.WriteLine($"Settings window: Is send data to server set to {enabled}");
+        }
+
+        private void WindowsOCRIntegrationCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = windowsOCRIntegrationCheckBox.IsChecked ?? false;
+            ConfigManager.Instance.SetWindowsOCRIntegration(enabled);
+            Console.WriteLine($"WindowsOCR integration set to {enabled}");
         }
     }
 }

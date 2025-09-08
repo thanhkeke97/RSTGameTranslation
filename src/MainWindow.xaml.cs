@@ -1157,6 +1157,14 @@ namespace RSTGameTranslation
                         string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
                         Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
                     }
+                    else if (GetSelectedOcrMethod() != "Windows OCR" & ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
+                    {
+                        string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                        //write saving bitmap to log
+                        Console.WriteLine($"Saving bitmap to {outputPath}");
+                        bitmap.Save(outputPath, ImageFormat.Png);
+                        Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
+                    }
                     else
                     {
                         //write saving bitmap to log

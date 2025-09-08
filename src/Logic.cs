@@ -1570,8 +1570,59 @@ namespace RSTGameTranslation
 
             }
         }
-        
-        
+
+        // Using Windows OCR integration with other OCR
+        public async void ProcessWithWindowsOCRIntegration(System.Drawing.Bitmap bitmap, string sourceLanguage, string filePath)
+        {
+            try
+            {
+                try
+                {
+                    // Get the text lines from Windows OCR directly from the bitmap
+                    var textLines = await WindowsOCRManager.Instance.GetOcrLinesFromBitmapAsync(bitmap, sourceLanguage);
+
+                    if (textLines.Count > 0)
+                    {
+                        SendImageToServerOCR(filePath);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Windows OCR error: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                }
+                
+            }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing bitmap with Windows OCR: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                }
+                finally
+                {
+                    // Make sure bitmap is properly disposed
+                    try
+                    {
+                        // Dispose bitmap - System.Drawing.Bitmap doesn't have a Disposed property,
+                        // so we'll just dispose it if it's not null
+                        if (bitmap != null)
+                        {
+                            bitmap.Dispose();
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore disposal errors
+                    }
+
+                    MainWindow.Instance.SetOCRCheckIsWanted(true);
+
+                }
+        }
      
         
         // Called when a screenshot is saved (for EasyOCR method)

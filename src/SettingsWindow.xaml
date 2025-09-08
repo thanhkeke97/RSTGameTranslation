@@ -195,6 +195,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- OCR Method -->
@@ -208,66 +209,76 @@
                                     <ComboBoxItem Content="RapidOCR"/>
                                 </ComboBox>
                                 
-                                <!-- Auto Translate -->
-                                <TextBlock Text="Auto Translate:" Grid.Row="1" Grid.Column="0" 
+                                <!-- WINDOWS OCR integration -->
+                                <TextBlock Text="Windows OCR integration:" Grid.Row="1" Grid.Column="0" 
+                                          ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="1" Grid.Column="1" 
+                                <CheckBox x:Name="windowsOCRIntegrationCheckBox" Grid.Row="1" Grid.Column="1" 
+                                         Margin="0,5"
+                                         ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
+                                         Checked="WindowsOCRIntegrationCheckBox_CheckedChanged" 
+                                         Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/>
+                                         
+                                <!-- Auto Translate -->
+                                <TextBlock Text="Auto Translate:" Grid.Row="2" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="2" Grid.Column="1" 
                                          Margin="0,5" IsChecked="True" 
                                          Checked="AutoTranslateCheckBox_CheckedChanged" 
                                          Unchecked="AutoTranslateCheckBox_CheckedChanged"/>
                                          
                                 <!-- Minimum Text Fragment Size -->
-                                <TextBlock Text="Smallest text fragment:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="Smallest text fragment:" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
-                                <TextBox x:Name="minTextFragmentSizeTextBox" Grid.Row="2" Grid.Column="1" 
+                                <TextBox x:Name="minTextFragmentSizeTextBox" Grid.Row="3" Grid.Column="1" 
                                         Margin="0,5" Text="2" LostFocus="MinTextFragmentSizeTextBox_LostFocus"
                                         ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
                                 
                                 <!-- Minimum Letter Confidence -->
-                                <TextBlock Text="Min letter confidence:" Grid.Row="3" Grid.Column="0" 
+                                <TextBlock Text="Min letter confidence:" Grid.Row="4" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
-                                <TextBox x:Name="minLetterConfidenceTextBox" Grid.Row="3" Grid.Column="1" 
+                                <TextBox x:Name="minLetterConfidenceTextBox" Grid.Row="4" Grid.Column="1" 
                                         Margin="0,5" Text="0.1" LostFocus="MinLetterConfidenceTextBox_LostFocus"
                                         ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
                                 
                                 <!-- Minimum Line Confidence -->
-                                <TextBlock Text="Min line confidence:" Grid.Row="4" Grid.Column="0" 
+                                <TextBlock Text="Min line confidence:" Grid.Row="5" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
-                                <TextBox x:Name="minLineConfidenceTextBox" Grid.Row="4" Grid.Column="1" 
+                                <TextBox x:Name="minLineConfidenceTextBox" Grid.Row="5" Grid.Column="1" 
                                         Margin="0,5" Text="0.2" LostFocus="MinLineConfidenceTextBox_LostFocus"
                                         ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
                                 
                                 <!-- Multi Selection Area -->
-                                <TextBlock Text="Multi Selection Area" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                <TextBlock Text="Multi Selection Area" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
                                     ToolTip="Enable multi selection area for text selection."/>
-                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="5" Grid.Column="1" Margin="0,5"
+                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="6" Grid.Column="1" Margin="0,5"
                                          Checked="MultiSelectionAreaCheckBox_CheckedChanged"
                                          Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
 
                                 <!-- Leave Translation Onscreen -->
-                                <TextBlock Text="Leave translation onscreen:" Grid.Row="6" Grid.Column="0" 
+                                <TextBlock Text="Leave translation onscreen:" Grid.Row="7" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
-                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="6" Grid.Column="1" 
+                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="7" Grid.Column="1" 
                                          Margin="0,5" IsChecked="False" 
                                          Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged" 
                                          Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
                                          ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
                                 
                                 <!-- Install Conda-->
-                                <TextBlock Text="Conda Install:" Grid.Row="7" Grid.Column="0" 
+                                <TextBlock Text="Conda Install:" Grid.Row="8" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <Button x:Name="condaInstallButton" Content="Setup Conda" Grid.Row="7" Grid.Column="1"
+                                <Button x:Name="condaInstallButton" Content="Setup Conda" Grid.Row="8" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="CondaInstallButton_Click"
                                        ToolTip="Setup conda enviroment for easyOCR and paddleOCR"/>
                                 
                                 <!-- Select Screen -->
-                                <TextBlock Text="Select Screen:" Grid.Row="8" Grid.Column="0" 
+                                <TextBlock Text="Select Screen:" Grid.Row="9" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="screenComboBox" Grid.Row="8" Grid.Column="1" 
+                                <ComboBox x:Name="screenComboBox" Grid.Row="9" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="ScreenComboBox_SelectionChanged">
                                 </ComboBox>
                             </Grid>
