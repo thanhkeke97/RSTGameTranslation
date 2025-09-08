@@ -1587,7 +1587,14 @@ namespace RSTGameTranslation
                     }
                     else
                     {
-                        return;
+                        // Windows OCR didn't find any text
+                        Console.WriteLine("Windows OCR integration: No text detected in the image");
+                        
+                        // Clear existing text objects to prevent old text from staying on screen
+                        ClearAllTextObjects();
+                        
+                        // Refresh the monitor window to update the UI
+                        MonitorWindow.Instance.RefreshOverlays();
                     }
                 }
                 catch (Exception ex)
@@ -1595,7 +1602,7 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Windows OCR error: {ex.Message}");
                     Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 }
-                
+
             }
             catch (Exception ex)
             {

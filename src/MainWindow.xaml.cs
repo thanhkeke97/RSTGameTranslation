@@ -387,6 +387,11 @@ namespace RSTGameTranslation
                 }
                 return;
             }
+            if (MonitorWindow.Instance.textOverlayCanvas != null)
+            {
+                //MonitorWindow.Instance.RefreshOverlays();
+                Logic.Instance.ClearAllTextObjects();
+            }
             
             // Show translation region picker window
             TranslationAreaSelectorWindow selectorWindow = TranslationAreaSelectorWindow.GetInstance();
@@ -400,11 +405,6 @@ namespace RSTGameTranslation
                 }
             };
             selectorWindow.Show();
-            if (MonitorWindow.Instance.textOverlayCanvas != null)
-            {
-                //MonitorWindow.Instance.RefreshOverlays();
-                Logic.Instance.ClearAllTextObjects();
-            }
 
             isSelectingTranslationArea = true;
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
@@ -890,7 +890,7 @@ namespace RSTGameTranslation
                 Logic.Instance.ResetHash();
                 isStarted = false;
                 btn.Content = "Start";
-                btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green                                                                //erase any active text objects
+                btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green                                                   
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.HideTranslationStatus();
             }
