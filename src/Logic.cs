@@ -1590,11 +1590,7 @@ namespace RSTGameTranslation
                         // Windows OCR didn't find any text
                         Console.WriteLine("Windows OCR integration: No text detected in the image");
                         
-                        // Clear existing text objects to prevent old text from staying on screen
-                        ClearAllTextObjects();
-                        
-                        // Refresh the monitor window to update the UI
-                        MonitorWindow.Instance.RefreshOverlays();
+                        await WindowsOCRManager.Instance.ProcessWindowsOcrResults(textLines, sourceLanguage);
                     }
                 }
                 catch (Exception ex)
