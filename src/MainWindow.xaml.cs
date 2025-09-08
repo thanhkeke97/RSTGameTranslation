@@ -375,7 +375,7 @@ namespace RSTGameTranslation
                 // Cancel translation region selection if active
                 isSelectingTranslationArea = false;
                 selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
-                
+              
                 // Find and close the region selection window if currently open
                 foreach (Window window in System.Windows.Application.Current.Windows)
                 {
@@ -400,7 +400,11 @@ namespace RSTGameTranslation
                 }
             };
             selectorWindow.Show();
-            
+            if (MonitorWindow.Instance.textOverlayCanvas != null)
+            {
+                //MonitorWindow.Instance.RefreshOverlays();
+                Logic.Instance.ClearAllTextObjects();
+            }
 
             isSelectingTranslationArea = true;
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
@@ -2089,7 +2093,7 @@ namespace RSTGameTranslation
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
 
             // Update capture area to default area
-            UpdateCaptureRect();
+                UpdateCaptureRect();
 
             Console.WriteLine("All translation areas have been cleared.");
 

@@ -1597,31 +1597,31 @@ namespace RSTGameTranslation
                 }
                 
             }
-                catch (Exception ex)
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing bitmap with Windows OCR: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
+            finally
+            {
+                // Make sure bitmap is properly disposed
+                try
                 {
-                    Console.WriteLine($"Error processing bitmap with Windows OCR: {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    // Dispose bitmap - System.Drawing.Bitmap doesn't have a Disposed property,
+                    // so we'll just dispose it if it's not null
+                    if (bitmap != null)
+                    {
+                        bitmap.Dispose();
+                    }
                 }
-                finally
+                catch
                 {
-                    // Make sure bitmap is properly disposed
-                    try
-                    {
-                        // Dispose bitmap - System.Drawing.Bitmap doesn't have a Disposed property,
-                        // so we'll just dispose it if it's not null
-                        if (bitmap != null)
-                        {
-                            bitmap.Dispose();
-                        }
-                    }
-                    catch
-                    {
-                        // Ignore disposal errors
-                    }
-
-                    MainWindow.Instance.SetOCRCheckIsWanted(true);
-
+                    // Ignore disposal errors
                 }
+
+                MainWindow.Instance.SetOCRCheckIsWanted(true);
+
+            }
         }
      
         
