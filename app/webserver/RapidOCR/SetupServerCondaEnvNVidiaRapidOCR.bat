@@ -24,7 +24,7 @@ call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyy
 
 REM Install RapidOCR via pip
 echo Installing RapidOCR...
-call pip install rapidocr==3.3.1
+call pip install rapidocr==3.4.0
 call pip install onnxruntime-directml==1.22.0
 
 
