@@ -389,7 +389,7 @@ namespace RSTGameTranslation
             }
             if (MonitorWindow.Instance.textOverlayCanvas != null)
             {
-                //MonitorWindow.Instance.RefreshOverlays();
+                MonitorWindow.Instance.RefreshOverlays();
                 Logic.Instance.ClearAllTextObjects();
             }
             
@@ -466,6 +466,11 @@ namespace RSTGameTranslation
                 Console.WriteLine("No translation areas available. Please select an area first.");
                 return;
             }
+            if (MonitorWindow.Instance.textOverlayCanvas != null)
+            {
+                Logic.Instance.ClearAllTextObjects();
+                MonitorWindow.Instance.RefreshOverlays();
+            }
             
             // Ensure valid index
             if (index < 0 || index >= savedTranslationAreas.Count)
@@ -535,11 +540,12 @@ namespace RSTGameTranslation
             {
                 Interval = TimeSpan.FromSeconds(1.5)
             };
-            
+            SetOCRCheckIsWanted(false);
             timer.Tick += (s, e) =>
             {
                 notification.IsOpen = false;
                 timer.Stop();
+                SetOCRCheckIsWanted(true);
             };
             
             timer.Start();
