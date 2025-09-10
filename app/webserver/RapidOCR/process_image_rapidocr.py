@@ -66,9 +66,11 @@ def initialize_ocr_engine(lang='en'):
         # Note: RapidOCR may have different initialization parameters
         # Adjust as needed based on RapidOCR documentation
         OCR_ENGINE = RapidOCR(params={"EngineConfig.onnxruntime.use_dml": True,
-                              "Det.ocr_version": OCRVersion.PPOCRV5,
+                              "Global.text_score": 0.7,
+                              "Global.return_word_box": False,
+                              "Det.ocr_version": OCRVersion.PPOCRV4,
                               "Rec.ocr_version": OCRVersion.PPOCRV5,
-                              "Det.lang_type": LangDet.CH,
+                              "Det.lang_type": LangDet.EN,
                               "Rec.lang_type": lang_ocr,
                               "Det.engine_type": EngineType.ONNXRUNTIME,
                               "Rec.engine_type": EngineType.ONNXRUNTIME,
