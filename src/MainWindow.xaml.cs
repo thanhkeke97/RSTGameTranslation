@@ -1079,11 +1079,11 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    // Position to the right of the main window for first run
-                    double mainRight = this.Left + this.ActualWidth;
+                    // Position to the center of mainwindow
+                    double mainCenter = this.Left + this.ActualWidth/2;
                     double mainTop = this.Top;
-                    
-                    SettingsWindow.Instance.Left = mainRight + 10; // 10px gap
+
+                    SettingsWindow.Instance.Left = mainCenter;
                     SettingsWindow.Instance.Top = mainTop;
                     Console.WriteLine("No saved position, positioning settings window to the right");
                 }
