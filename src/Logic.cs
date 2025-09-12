@@ -2196,13 +2196,13 @@ namespace RSTGameTranslation
             {
                 // Show translation status at the beginning
                 MonitorWindow.Instance.ShowTranslationStatus(false);
-                
+
                 // Also show translation status in ChatBoxWindow if it's open
                 if (ChatBoxWindow.Instance != null)
                 {
                     ChatBoxWindow.Instance.ShowTranslationStatus(false);
                 }
-                
+
                 if (_textObjects.Count == 0)
                 {
                     Console.WriteLine("No text objects to translate");
@@ -2240,10 +2240,10 @@ namespace RSTGameTranslation
 
                 // Get previous context if enabled
                 var previousContext = GetPreviousContext();
-                
+
                 // Get game info if available
                 string gameInfo = ConfigManager.Instance.GetGameInfo();
-                
+
                 // Create the full JSON object with OCR results, context and game info
                 var ocrData = new
                 {
@@ -2263,8 +2263,8 @@ namespace RSTGameTranslation
 
                 // Get the prompt template
                 string prompt = GetLlmPrompt();
-                prompt = prompt.Replace("source_language", MapLanguageCode(GetSourceLanguage())).Replace("target_language", MapLanguageCode(GetTargetLanguage()));             
-               
+                prompt = prompt.Replace("source_language", MapLanguageCode(GetSourceLanguage())).Replace("target_language", MapLanguageCode(GetTargetLanguage()));
+
                 // Log the LLM request
                 LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
 
@@ -2275,10 +2275,10 @@ namespace RSTGameTranslation
                 // Create translation service based on current configuration
                 ITranslationService translationService = TranslationServiceFactory.CreateService();
                 string currentService = ConfigManager.Instance.GetCurrentTranslationService();
-                
+
                 // Call the translation API with the modified prompt if context exists
                 string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
-                
+
                 if (string.IsNullOrEmpty(translationResponse))
                 {
                     Console.WriteLine($"Translation failed with {currentService} - empty response");
@@ -2294,6 +2294,10 @@ namespace RSTGameTranslation
                 // LogManager.Instance.LogLlmReply(translationResponse);
 
                 ProcessTranslatedJSON(translationResponse);
+                if (!ConfigManager.Instance.IsAutoOCREnabled())
+                {
+                    MainWindow.Instance.isStopOCR = true;
+                }
               
             }
             catch (Exception ex)

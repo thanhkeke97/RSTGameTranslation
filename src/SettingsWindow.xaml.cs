@@ -509,6 +509,9 @@ namespace RSTGameTranslation
             // Set show icon signal
             showIconSignalCheckBox.IsChecked = ConfigManager.Instance.IsShowIconSignalEnabled();
 
+            // Set auto OCR
+            AutoOCRCheckBox.IsChecked = ConfigManager.Instance.IsAutoOCREnabled();
+
             // Set WindowsOCR integration
             windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
 
@@ -2999,6 +3002,13 @@ namespace RSTGameTranslation
             bool enabled = windowsOCRIntegrationCheckBox.IsChecked ?? false;
             ConfigManager.Instance.SetWindowsOCRIntegration(enabled);
             Console.WriteLine($"WindowsOCR integration set to {enabled}");
+        }
+
+        private void AutoOCRCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = AutoOCRCheckBox.IsChecked ?? true;
+            ConfigManager.Instance.SetAutoOCR(enabled);
+            Console.WriteLine($"Auto OCR set to {enabled}");
         }
     }
 }

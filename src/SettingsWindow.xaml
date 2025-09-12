@@ -196,6 +196,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- OCR Method -->
@@ -281,6 +282,14 @@
                                 <ComboBox x:Name="screenComboBox" Grid.Row="9" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="ScreenComboBox_SelectionChanged">
                                 </ComboBox>
+
+                                <!-- Auto OCR -->
+                                <TextBlock Text="Auto OCR:" Grid.Row="10" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="AutoOCRCheckBox" Grid.Row="10" Grid.Column="1" 
+                                         Checked="AutoOCRCheckBox_CheckedChanged" 
+                                         Unchecked="AutoOCRCheckBox_CheckedChanged"
+                                         ToolTip="Auto OCR realtime, turn off this feature the program will not auto translate"/>
                             </Grid>
                         </GroupBox>
                         

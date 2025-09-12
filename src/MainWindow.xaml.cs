@@ -68,6 +68,7 @@ namespace RSTGameTranslation
         public void SetOCRCheckIsWanted(bool bCaptureIsWanted) { _bOCRCheckIsWanted = bCaptureIsWanted; }
         public bool GetOCRCheckIsWanted() { return _bOCRCheckIsWanted; }
         private bool isStarted = false;
+        public bool isStopOCR = false;
         private DispatcherTimer _captureTimer;
         private string outputPath = DEFAULT_OUTPUT_PATH;
         private WindowInteropHelper helper;
@@ -890,7 +891,7 @@ namespace RSTGameTranslation
                 isReady = socketStatusText != null &&
                         (socketStatusText.Text == $"Successfully connected to {method} server");
             }
-           
+
             if (isStarted)
             {
                 Logic.Instance.ResetHash();
@@ -898,6 +899,7 @@ namespace RSTGameTranslation
                 btn.Content = "Start";
                 btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green                                                   
                 Logic.Instance.ClearAllTextObjects();
+                MonitorWindow.Instance.RefreshOverlays();
                 MonitorWindow.Instance.HideTranslationStatus();
             }
             else
@@ -905,6 +907,7 @@ namespace RSTGameTranslation
                 if (isReady)
                 {
                     isStarted = true;
+                    isStopOCR = false;
                     btn.Content = "Stop";
                     UpdateCaptureRect();
                     SetOCRCheckIsWanted(true);
@@ -1147,9 +1150,13 @@ namespace RSTGameTranslation
                     {
                         MonitorWindow.Instance.UpdateScreenshotFromBitmap(bitmap);
                     }
+                    if (isStopOCR & !ConfigManager.Instance.IsAutoOCREnabled())
+                    {
+                        return;
+                    }
 
                     //do we actually want to do OCR right now?  
-                    if (!GetIsStarted()) return;
+                        if (!GetIsStarted()) return;
 
                     if (!GetOCRCheckIsWanted())
                     {
