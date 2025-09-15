@@ -291,7 +291,7 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Error calling ChatGPT API: {response.StatusCode}");
                     Console.WriteLine($"Response: {responseContent}");
                     string newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
-                    ConfigManager.Instance.SetGeminiApiKey(newApikey);
+                    ConfigManager.Instance.SetChatGptApiKey(newApikey);
                     Console.WriteLine("Change new api key successfully");
                 }
 

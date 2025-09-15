@@ -255,7 +255,7 @@ namespace RSTGameTranslation
         private void OnSocketConnectionChanged(object? sender, bool isConnected)
         {
             // If not connected and we're using EasyOCR or PaddleOCR, start the reconnect timer
-            if (!isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR")
+            if (!isConnected && (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR"))
             {
                 Console.WriteLine("Connection status changed to disconnected. Starting reconnect timer.");
                 SocketManager.Instance._isConnected = false;
