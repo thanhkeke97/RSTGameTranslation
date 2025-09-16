@@ -21,6 +21,9 @@ namespace RSTGameTranslation
         // This will be populated dynamically based on installed voices
         public static readonly Dictionary<string, string> AvailableVoices = new Dictionary<string, string>();
         
+        // TaskCompletionSource to track current playback
+        private TaskCompletionSource<bool>? _currentPlaybackTcs;
+        
         public static WindowsTTSService Instance
         {
             get
@@ -147,10 +150,10 @@ namespace RSTGameTranslation
                 
                 Console.WriteLine($"Audio saved to {audioFile}, playing...");
                 
-                // Play the audio file
-                PlayAudioFile(audioFile);
+                // Play the audio file and wait for it to complete
+                bool playbackResult = await PlayAudioFileAsync(audioFile);
                 
-                return true;
+                return playbackResult;
             }
             catch (Exception ex)
             {
@@ -167,12 +170,16 @@ namespace RSTGameTranslation
             }
         }
         
-        private void PlayAudioFile(string filePath)
+        // New async version that returns a Task<bool> for completion status
+        private async Task<bool> PlayAudioFileAsync(string filePath)
         {
+            // Create a TaskCompletionSource to track playback completion
+            _currentPlaybackTcs = new TaskCompletionSource<bool>();
+            
             try
             {
-                // Use a separate thread for audio playback to not block the UI
-                Task.Run(() =>
+                // Start a task to play the audio
+                _= Task.Run(() =>
                 {
                     IWavePlayer? wavePlayer = null;
                     AudioFileReader? audioFile = null;
@@ -185,6 +192,9 @@ namespace RSTGameTranslation
                         wavePlayer.PlaybackStopped += (sender, args) =>
                         {
                             playbackFinished.Set(); // Signal when playback ends
+                            
+                            // Signal completion to the TaskCompletionSource
+                            _currentPlaybackTcs?.TrySetResult(true);
                         };
 
                         // Open the audio file
@@ -208,6 +218,9 @@ namespace RSTGameTranslation
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error playing audio file: {ex.Message}");
+                        
+                        // Signal failure to the TaskCompletionSource
+                        _currentPlaybackTcs?.TrySetException(ex);
                         
                         // Show a message to the user
                         System.Windows.Application.Current.Dispatcher.Invoke(() =>
@@ -242,13 +255,27 @@ namespace RSTGameTranslation
                         {
                             Console.WriteLine($"Failed to delete temp audio file: {ex.Message}");
                         }
+                        
+                        // Make sure we always signal completion in case of errors
+                        _currentPlaybackTcs?.TrySetResult(false);
                     }
                 });
+                
+                // Wait for the playback to complete
+                return await _currentPlaybackTcs.Task;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting audio playback thread: {ex.Message}");
+                Console.WriteLine($"Error starting audio playback: {ex.Message}");
+                return false;
             }
+        }
+        
+        // Keep the old method for backward compatibility but make it private
+        private void PlayAudioFile(string filePath)
+        {
+            // Just call the async version and ignore the result
+            _ = PlayAudioFileAsync(filePath);
         }
         
         // Method to get the list of installed voices for settings UI

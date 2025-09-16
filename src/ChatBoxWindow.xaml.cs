@@ -8,10 +8,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Media;
+using System.Collections.Concurrent;
 using Color = System.Windows.Media.Color;
 using Colors = System.Windows.Media.Colors;
 using FontFamily = System.Windows.Media.FontFamily;
@@ -35,6 +38,19 @@ namespace RSTGameTranslation
 
         // Animation timer for translation status
         private DispatcherTimer? _animationTimer;
+
+        // Semaphore to ensure only one speech request is processed at a time
+        private static readonly SemaphoreSlim _speechSemaphore = new SemaphoreSlim(1, 1);
+        
+        // Thread-safe queue for speech requests
+        private static readonly ConcurrentQueue<string> _speechQueue = new ConcurrentQueue<string>();
+        
+        // Flag to track if we're currently processing speech
+        private static bool _isProcessingSpeech = false;
+        
+        // Cancellation token source for speech processing
+        private static CancellationTokenSource? _speechCancellationTokenSource;
+
         private int _animationStep = 0;
 
         public ChatBoxWindow()
@@ -163,7 +179,7 @@ namespace RSTGameTranslation
             }
         }
 
-        private async void SpeakMenuItem_Click(object sender, RoutedEventArgs e)
+        private void SpeakMenuItem_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -175,57 +191,7 @@ namespace RSTGameTranslation
                 if (!string.IsNullOrWhiteSpace(selectedText.Text))
                 {
                     string text = selectedText.Text.Trim();
-                    Console.WriteLine($"Speak function called with text: {text.Substring(0, Math.Min(50, text.Length))}...");
-
-                    // Check if TTS is enabled in config
-                    if (ConfigManager.Instance.IsTtsEnabled())
-                    {
-                        string ttsService = ConfigManager.Instance.GetTtsService();
-
-                        // Show a small notification that we're processing the speech request
-                        var currentCursor = this.Cursor;
-                        this.Cursor = WinCursors.Wait;
-
-                        try
-                        {
-                            bool success = false;
-
-                            if (ttsService == "ElevenLabs")
-                            {
-                                success = await ElevenLabsService.Instance.SpeakText(text);
-                            }
-                            else if (ttsService == "Google Cloud TTS")
-                            {
-                                success = await GoogleTTSService.Instance.SpeakText(text);
-                            }
-                            else if (ttsService == "Window TTS")
-                            {
-                                success = await WindowsTTSService.Instance.SpeakText(text);
-                            }
-                            else
-                            {
-                                System.Windows.MessageBox.Show($"Text-to-Speech service '{ttsService}' is not supported yet.",
-                                    "Unsupported Service", MessageBoxButton.OK, MessageBoxImage.Information);
-                                return;
-                            }
-
-                            if (!success)
-                            {
-                                System.Windows.MessageBox.Show($"Failed to generate speech using {ttsService}. Please check the API key and settings.",
-                                    "Text-to-Speech Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                            }
-                        }
-                        finally
-                        {
-                            // Reset cursor back
-                            this.Cursor = currentCursor;
-                        }
-                    }
-                    else
-                    {
-                        System.Windows.MessageBox.Show("Text-to-Speech is disabled in settings. Please enable it first.",
-                            "TTS Disabled", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+                    EnqueueSpeechRequest(text);
                 }
                 else
                 {
@@ -240,6 +206,148 @@ namespace RSTGameTranslation
                 System.Windows.MessageBox.Show($"Error: {ex.Message}", "Text-to-Speech Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // Enqueue a speech request and start processing if needed
+        public static void EnqueueSpeechRequest(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            try
+            {
+                // Add the text to the queue
+                _speechQueue.Enqueue(text);
+                Console.WriteLine($"Speech request enqueued. Queue size: {_speechQueue.Count}");
+
+                // Start processing if not already doing so
+                if (!_isProcessingSpeech)
+                {
+                    // Create a new cancellation token source
+                    _speechCancellationTokenSource = new CancellationTokenSource();
+                    
+                    // Start the processing task
+                    Task.Run(() => ProcessSpeechQueueAsync(_speechCancellationTokenSource.Token));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enqueueing speech request: {ex.Message}");
+            }
+        }
+
+        // Process the speech queue
+        private static async Task ProcessSpeechQueueAsync(CancellationToken cancellationToken)
+        {
+            if (_isProcessingSpeech)
+                return;
+
+            _isProcessingSpeech = true;
+            Console.WriteLine("Starting speech queue processing");
+
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    // Try to get the next text to speak
+                    if (!_speechQueue.TryDequeue(out string? textToSpeak) || string.IsNullOrWhiteSpace(textToSpeak))
+                    {
+                        // Queue is empty, exit the loop
+                        break;
+                    }
+
+                    Console.WriteLine($"Processing speech request. Remaining in queue: {_speechQueue.Count}");
+                    
+                    // Process this speech request
+                    await Speak_Item_InternalAsync(textToSpeak, cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("Speech processing was cancelled");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in speech queue processing: {ex.Message}");
+            }
+            finally
+            {
+                _isProcessingSpeech = false;
+                Console.WriteLine("Speech queue processing completed");
+            }
+        }
+
+        private static async Task Speak_Item_InternalAsync(string text, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(text) || cancellationToken.IsCancellationRequested)
+                return;
+
+            try
+            {
+                string trimmedText = text.Trim();
+                Console.WriteLine($"Speaking text: {trimmedText.Substring(0, Math.Min(50, trimmedText.Length))}...");
+
+                // Check if TTS is enabled in config
+                if (ConfigManager.Instance.IsTtsEnabled())
+                {
+                    string ttsService = ConfigManager.Instance.GetTtsService();
+                    
+                    // Wait to acquire the semaphore - this ensures only one speech request runs at a time
+                    await _speechSemaphore.WaitAsync(cancellationToken);
+                    
+                    try
+                    {
+                        bool success = false;
+
+                        if (ttsService == "ElevenLabs")
+                        {
+                            success = await ElevenLabsService.Instance.SpeakText(trimmedText);
+                        }
+                        else if (ttsService == "Google Cloud TTS")
+                        {
+                            success = await GoogleTTSService.Instance.SpeakText(trimmedText);
+                        }
+                        else if (ttsService == "Window TTS")
+                        {
+                            success = await WindowsTTSService.Instance.SpeakText(trimmedText);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unsupported TTS service: {ttsService}");
+                            return;
+                        }
+
+                        if (!success)
+                        {
+                            Console.WriteLine($"Failed to generate speech using {ttsService}");
+                        }
+                    }
+                    finally
+                    {
+                        // Always release the semaphore when done
+                        _speechSemaphore.Release();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Text-to-Speech is disabled in settings");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("Speech operation was cancelled");
+                throw; // Re-throw to propagate cancellation
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Speak function: {ex.Message}");
+            }
+        }
+
+        // For backward compatibility - now just enqueues the speech request
+        private void Speak_Item(string text)
+        {
+            EnqueueSpeechRequest(text);
         }
 
         private void ChatBoxWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -572,6 +680,10 @@ namespace RSTGameTranslation
 
             // Update UI with existing history
             UpdateChatHistory();
+            if (!string.IsNullOrEmpty(translatedText) & ConfigManager.Instance.IsTtsEnabled())
+            {
+                EnqueueSpeechRequest(translatedText);
+            }
         }
 
         // Handle animation timer tick
@@ -947,9 +1059,9 @@ namespace RSTGameTranslation
     }
 
     public class TranslationEntry
-        {
-            public string OriginalText { get; set; } = string.Empty;
-            public string TranslatedText { get; set; } = string.Empty;
-            public DateTime Timestamp { get; set; }
-        }
+    {
+        public string OriginalText { get; set; } = string.Empty;
+        public string TranslatedText { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+    }
 }
