@@ -198,6 +198,10 @@ namespace RSTGameTranslation
                             {
                                 success = await GoogleTTSService.Instance.SpeakText(text);
                             }
+                            else if (ttsService == "Window TTS")
+                            {
+                                success = await WindowsTTSService.Instance.SpeakText(text);
+                            }
                             else
                             {
                                 System.Windows.MessageBox.Show($"Text-to-Speech service '{ttsService}' is not supported yet.",

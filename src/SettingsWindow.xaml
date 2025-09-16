@@ -816,6 +816,7 @@
                                          Margin="0,5" SelectedIndex="0" SelectionChanged="TtsServiceComboBox_SelectionChanged">
                                     <ComboBoxItem Content="ElevenLabs"/>
                                     <ComboBoxItem Content="Google Cloud TTS"/>
+                                    <ComboBoxItem Content="Window TTS"/>
                                 </ComboBox>
                                 
                                 <!-- ElevenLabs API Key - Only visible when ElevenLabs is selected -->
@@ -850,6 +851,15 @@
                                     <ComboBoxItem Content="Arnold" Tag="VR6AewLTigWG4xSOukaG"/>
                                     <ComboBoxItem Content="Adam" Tag="pNInz6obpgDQGcFmaJgB"/>
                                     <ComboBoxItem Content="Sam" Tag="yoZ06aMxZJJ28mfd3POQ"/>
+                                </ComboBox>
+
+                                <!-- Window TTS Voice - Only visible when Window TTS is selected -->
+                                <TextBlock x:Name="windowTTSVoiceLabel" Text="Window TTS Voice:" Grid.Row="3" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <ComboBox x:Name="windowTTSVoiceComboBox" Grid.Row="3" Grid.Column="1" 
+                                         Margin="0,5" SelectionChanged="WindowTTSVoiceComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Microsoft An (vi-VN, Male)"/>
+                                    <ComboBoxItem Content="Microsoft David (en-US, Male)"/>
                                 </ComboBox>
                                 
                                 <!-- Google TTS API Key - Only visible when Google TTS is selected -->

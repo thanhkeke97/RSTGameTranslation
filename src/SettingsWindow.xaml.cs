@@ -609,6 +609,7 @@ namespace RSTGameTranslation
             ttsServiceComboBox.SelectionChanged -= TtsServiceComboBox_SelectionChanged;
             elevenLabsVoiceComboBox.SelectionChanged -= ElevenLabsVoiceComboBox_SelectionChanged;
             googleTtsVoiceComboBox.SelectionChanged -= GoogleTtsVoiceComboBox_SelectionChanged;
+            windowTTSVoiceComboBox.SelectionChanged -= WindowTTSVoiceComboBox_SelectionChanged;
 
             // Set TTS enabled state
             ttsEnabledCheckBox.IsChecked = ConfigManager.Instance.IsTtsEnabled();
@@ -641,6 +642,17 @@ namespace RSTGameTranslation
                 }
             }
 
+            // Set Window TTS voice
+            string windowTTSvoiceId = ConfigManager.Instance.GetWindowsTtsVoice();
+            foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
+            {
+                if (string.Equals(item.Tag?.ToString(), windowTTSvoiceId, StringComparison.OrdinalIgnoreCase))
+                {
+                    windowTTSVoiceComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
             // Set Google TTS API key
             googleTtsApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTtsApiKey();
 
@@ -661,6 +673,7 @@ namespace RSTGameTranslation
             ttsServiceComboBox.SelectionChanged += TtsServiceComboBox_SelectionChanged;
             elevenLabsVoiceComboBox.SelectionChanged += ElevenLabsVoiceComboBox_SelectionChanged;
             googleTtsVoiceComboBox.SelectionChanged += GoogleTtsVoiceComboBox_SelectionChanged;
+            windowTTSVoiceComboBox.SelectionChanged += WindowTTSVoiceComboBox_SelectionChanged;
 
             // Load ignore phrases
             LoadIgnorePhrases();
@@ -1511,13 +1524,14 @@ namespace RSTGameTranslation
             {
                 bool isElevenLabsSelected = selectedService == "ElevenLabs";
                 bool isGoogleTtsSelected = selectedService == "Google Cloud TTS";
+                bool isWindowTtsSelected = selectedService == "Window TTS";
 
                 // Make sure the window is fully loaded and controls are initialized
                 if (elevenLabsApiKeyLabel == null || elevenLabsApiKeyGrid == null ||
                     elevenLabsApiKeyHelpText == null || elevenLabsVoiceLabel == null ||
                     elevenLabsVoiceComboBox == null || googleTtsApiKeyLabel == null ||
                     googleTtsApiKeyGrid == null || googleTtsVoiceLabel == null ||
-                    googleTtsVoiceComboBox == null)
+                    googleTtsVoiceComboBox == null || windowTTSVoiceLabel == null || windowTTSVoiceComboBox == null)
                 {
                     Console.WriteLine("TTS UI elements not initialized yet. Skipping visibility update.");
                     return;
@@ -1536,6 +1550,9 @@ namespace RSTGameTranslation
                 googleTtsVoiceLabel.Visibility = isGoogleTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTtsVoiceComboBox.Visibility = isGoogleTtsSelected ? Visibility.Visible : Visibility.Collapsed;
 
+                // Show/hide Window TTS-specific settings
+                windowTTSVoiceLabel.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
+                windowTTSVoiceComboBox.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 // Load service-specific settings if they're being shown
                 if (isElevenLabsSelected)
                 {
@@ -1563,6 +1580,19 @@ namespace RSTGameTranslation
                         if (string.Equals(item.Tag?.ToString(), voiceId, StringComparison.OrdinalIgnoreCase))
                         {
                             googleTtsVoiceComboBox.SelectedItem = item;
+                            break;
+                        }
+                    }
+                }
+                else if (isWindowTtsSelected)
+                {
+                    // Set selected voice
+                    string voiceId = ConfigManager.Instance.GetWindowsTtsVoice();
+                    foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
+                    {
+                        if (string.Equals(item.Content?.ToString(), voiceId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            windowTTSVoiceComboBox.SelectedItem = item;
                             break;
                         }
                     }
@@ -2072,6 +2102,28 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating ElevenLabs voice: {ex.Message}");
+            }
+        }
+
+        
+        private void WindowTTSVoiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                if (windowTTSVoiceComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    string voiceId = selectedItem.Content?.ToString() ?? "Microsoft David (en-US, Male)"; 
+                    ConfigManager.Instance.SetWindowsTtsVoice(voiceId);
+                    Console.WriteLine($"Window TTS voice set to: {selectedItem.Content} (ID: {voiceId})");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Window TTS voice: {ex.Message}");
             }
         }
 

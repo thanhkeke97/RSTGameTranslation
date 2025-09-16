@@ -96,6 +96,7 @@ namespace RSTGameTranslation
         public const string ELEVENLABS_VOICE = "elevenlabs_voice";
         public const string GOOGLE_TTS_API_KEY = "google_tts_api_key";
         public const string GOOGLE_TTS_VOICE = "google_tts_voice";
+        public const string WINDOWS_TTS_VOICE = "windows_tts_voice";
 
         // ChatBox configuration keys
         public const string CHATBOX_FONT_FAMILY = "chatbox_font_family";
@@ -360,6 +361,7 @@ namespace RSTGameTranslation
             _configValues[TTS_SERVICE] = "Google Cloud TTS";
             _configValues[GOOGLE_TTS_API_KEY] = "<your API key here>";
             _configValues[GOOGLE_TTS_VOICE] = "ja-JP-Neural2-B";
+            _configValues[WINDOWS_TTS_VOICE ] = "Microsoft David (en-US, Male)";
             _configValues[TTS_ENABLED] = "true";
             _configValues[MAX_CONTEXT_PIECES] = "20";
             _configValues[MIN_CONTEXT_SIZE] = "8";
@@ -1620,7 +1622,22 @@ namespace RSTGameTranslation
             }
         }
 
-        // Google TTS methods
+        // Get/Set Windows TTS voice
+        public string GetWindowsTtsVoice()
+        {
+            return GetValue(WINDOWS_TTS_VOICE, "Microsoft David (en-US, Male)");
+        }
+
+        public void SetWindowsTtsVoice(string voiceName)
+        {
+            if (!string.IsNullOrWhiteSpace(voiceName))
+            {
+                _configValues[WINDOWS_TTS_VOICE] = voiceName;
+                SaveConfig();
+                Console.WriteLine($"Windows TTS voice set to: {voiceName}");
+            }
+        }
+
 
         // Get/Set Google TTS API key
         public string GetGoogleTtsApiKey()
