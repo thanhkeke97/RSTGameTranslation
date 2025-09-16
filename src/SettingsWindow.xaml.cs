@@ -1560,7 +1560,7 @@ namespace RSTGameTranslation
             {
                 bool isElevenLabsSelected = selectedService == "ElevenLabs";
                 bool isGoogleTtsSelected = selectedService == "Google Cloud TTS";
-                bool isWindowTtsSelected = selectedService == "Window TTS";
+                bool isWindowTtsSelected = selectedService == "Windows TTS";
 
                 // Make sure the window is fully loaded and controls are initialized
                 if (elevenLabsApiKeyLabel == null || elevenLabsApiKeyGrid == null ||
@@ -2157,12 +2157,12 @@ namespace RSTGameTranslation
                 {
                     string voiceId = selectedItem.Content?.ToString() ?? "Microsoft David (en-US, Male)"; 
                     ConfigManager.Instance.SetWindowsTtsVoice(voiceId);
-                    Console.WriteLine($"Window TTS voice set to: {selectedItem.Content} (ID: {voiceId})");
+                    Console.WriteLine($"Windows TTS voice set to: {selectedItem.Content} (ID: {voiceId})");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating Window TTS voice: {ex.Message}");
+                Console.WriteLine($"Error updating Windows TTS voice: {ex.Message}");
             }
         }
 

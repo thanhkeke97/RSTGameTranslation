@@ -816,7 +816,7 @@
                                          Margin="0,5" SelectedIndex="0" SelectionChanged="TtsServiceComboBox_SelectionChanged">
                                     <ComboBoxItem Content="ElevenLabs"/>
                                     <ComboBoxItem Content="Google Cloud TTS"/>
-                                    <ComboBoxItem Content="Window TTS"/>
+                                    <ComboBoxItem Content="Windows TTS"/>
                                 </ComboBox>
                                 
                                 <!-- ElevenLabs API Key - Only visible when ElevenLabs is selected -->
@@ -853,8 +853,8 @@
                                     <ComboBoxItem Content="Sam" Tag="yoZ06aMxZJJ28mfd3POQ"/>
                                 </ComboBox>
 
-                                <!-- Window TTS Voice - Only visible when Window TTS is selected -->
-                                <TextBlock x:Name="windowTTSVoiceLabel" Text="Window TTS Voice:" Grid.Row="3" Grid.Column="0" 
+                                <!-- Windows TTS Voice - Only visible when Windows TTS is selected -->
+                                <TextBlock x:Name="windowTTSVoiceLabel" Text="Windows TTS Voice:" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0"/>
                                 <ComboBox x:Name="windowTTSVoiceComboBox" Grid.Row="3" Grid.Column="1" 
                                          Margin="0,5" SelectionChanged="WindowTTSVoiceComboBox_SelectionChanged">

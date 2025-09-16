@@ -21,8 +21,14 @@ namespace RSTGameTranslation
         // This will be populated dynamically based on installed voices
         public static readonly Dictionary<string, string> AvailableVoices = new Dictionary<string, string>();
         
-        // TaskCompletionSource to track current playback
-        private TaskCompletionSource<bool>? _currentPlaybackTcs;
+        // Semaphore to ensure only one speech request is processed at a time
+        private static readonly SemaphoreSlim _speechSemaphore = new SemaphoreSlim(1, 1);
+        
+        // Flag to track if we're currently playing audio
+        private static bool _isPlayingAudio = false;
+        
+        // Current audio player
+        private static IWavePlayer? _currentPlayer = null;
         
         public static WindowsTTSService Instance
         {
@@ -79,6 +85,13 @@ namespace RSTGameTranslation
         
         public async Task<bool> SpeakText(string text)
         {
+            // Try to acquire the semaphore to ensure only one speech request runs at a time
+            if (!await _speechSemaphore.WaitAsync(0))
+            {
+                Console.WriteLine("Another speech request is already in progress. Skipping this one.");
+                return false;
+            }
+            
             try
             {
                 if (string.IsNullOrWhiteSpace(text))
@@ -86,6 +99,9 @@ namespace RSTGameTranslation
                     Console.WriteLine("Cannot speak empty text");
                     return false;
                 }
+                
+                // Stop any current playback
+                StopCurrentPlayback();
                 
                 // Get voice ID from config
                 string voiceName = ConfigManager.Instance.GetWindowsTtsVoice();
@@ -168,114 +184,127 @@ namespace RSTGameTranslation
                 
                 return false;
             }
+            finally
+            {
+                // Always release the semaphore when done
+                _speechSemaphore.Release();
+            }
+        }
+        
+        // Stop any current playback
+        private void StopCurrentPlayback()
+        {
+            if (_isPlayingAudio && _currentPlayer != null)
+            {
+                try
+                {
+                    Console.WriteLine("Stopping current audio playback");
+                    _currentPlayer.Stop();
+                    _currentPlayer.Dispose();
+                    _currentPlayer = null;
+                    _isPlayingAudio = false;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error stopping current playback: {ex.Message}");
+                }
+            }
         }
         
         // New async version that returns a Task<bool> for completion status
         private async Task<bool> PlayAudioFileAsync(string filePath)
         {
-            // Create a TaskCompletionSource to track playback completion
-            _currentPlaybackTcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>();
             
             try
             {
-                // Start a task to play the audio
-                _= Task.Run(() =>
+                // Mark as playing audio
+                _isPlayingAudio = true;
+                
+                // Create a WaveOut device
+                _currentPlayer = new WaveOutEvent();
+                
+                // Set up playback stopped event
+                _currentPlayer.PlaybackStopped += (sender, args) =>
                 {
-                    IWavePlayer? wavePlayer = null;
-                    AudioFileReader? audioFile = null;
-                    ManualResetEvent playbackFinished = new ManualResetEvent(false);
-
+                    Console.WriteLine("Audio playback completed");
+                    _isPlayingAudio = false;
+                    
+                    // Clean up resources
+                    if (_currentPlayer != null)
+                    {
+                        _currentPlayer.Dispose();
+                        _currentPlayer = null;
+                    }
+                    
+                    // Delete the temp file
                     try
                     {
-                        // Create a WaveOut device
-                        wavePlayer = new WaveOutEvent();
-                        wavePlayer.PlaybackStopped += (sender, args) =>
+                        if (File.Exists(filePath))
                         {
-                            playbackFinished.Set(); // Signal when playback ends
-                            
-                            // Signal completion to the TaskCompletionSource
-                            _currentPlaybackTcs?.TrySetResult(true);
-                        };
-
-                        // Open the audio file
-                        audioFile = new AudioFileReader(filePath);
-                        
-                        // Hook up the audio file to the WaveOut device
-                        wavePlayer.Init(audioFile);
-                        
-                        // Start playback
-                        Console.WriteLine($"Starting audio playback of file: {filePath}");
-                        wavePlayer.Play();
-                        
-                        // Wait for playback to complete
-                        playbackFinished.WaitOne();
-                        
-                        // Close resources properly
-                        wavePlayer.Stop();
-                        
-                        Console.WriteLine("Audio playback completed successfully");
+                            File.Delete(filePath);
+                            Console.WriteLine($"Temp audio file deleted: {filePath}");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error playing audio file: {ex.Message}");
-                        
-                        // Signal failure to the TaskCompletionSource
-                        _currentPlaybackTcs?.TrySetException(ex);
-                        
-                        // Show a message to the user
-                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            MessageBox.Show($"Error playing audio: {ex.Message}",
-                                "Audio Playback Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        });
+                        Console.WriteLine($"Failed to delete temp audio file: {ex.Message}");
                     }
-                    finally
-                    {
-                        // Clean up resources
-                        if (wavePlayer != null)
-                        {
-                            wavePlayer.Dispose();
-                        }
-                        
-                        if (audioFile != null)
-                        {
-                            audioFile.Dispose();
-                        }
-                        
-                        // Delete the temp file
-                        try
-                        {
-                            if (File.Exists(filePath))
-                            {
-                                File.Delete(filePath);
-                                Console.WriteLine($"Temp audio file deleted: {filePath}");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Failed to delete temp audio file: {ex.Message}");
-                        }
-                        
-                        // Make sure we always signal completion in case of errors
-                        _currentPlaybackTcs?.TrySetResult(false);
-                    }
-                });
+                    
+                    // Signal completion
+                    tcs.TrySetResult(true);
+                };
+                
+                // Open the audio file
+                var audioFile = new AudioFileReader(filePath);
+                
+                // Hook up the audio file to the WaveOut device
+                _currentPlayer.Init(audioFile);
+                
+                // Start playback
+                Console.WriteLine($"Starting audio playback of file: {filePath}");
+                _currentPlayer.Play();
                 
                 // Wait for the playback to complete
-                return await _currentPlaybackTcs.Task;
+                return await tcs.Task;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting audio playback: {ex.Message}");
+                Console.WriteLine($"Error playing audio file: {ex.Message}");
+                
+                // Show a message to the user
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Error playing audio: {ex.Message}",
+                        "Audio Playback Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                });
+                
+                // Clean up
+                _isPlayingAudio = false;
+                if (_currentPlayer != null)
+                {
+                    _currentPlayer.Dispose();
+                    _currentPlayer = null;
+                }
+                
+                // Delete the temp file
+                try
+                {
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                        Console.WriteLine($"Temp audio file deleted: {filePath}");
+                    }
+                }
+                catch (Exception fileEx)
+                {
+                    Console.WriteLine($"Failed to delete temp audio file: {fileEx.Message}");
+                }
+                
+                // Signal failure
+                tcs.TrySetResult(false);
                 return false;
             }
-        }
-        
-        // Keep the old method for backward compatibility but make it private
-        private void PlayAudioFile(string filePath)
-        {
-            // Just call the async version and ignore the result
-            _ = PlayAudioFileAsync(filePath);
         }
         
         // Method to get the list of installed voices for settings UI

@@ -307,7 +307,7 @@ namespace RSTGameTranslation
                         {
                             success = await GoogleTTSService.Instance.SpeakText(trimmedText);
                         }
-                        else if (ttsService == "Window TTS")
+                        else if (ttsService == "Windows TTS")
                         {
                             success = await WindowsTTSService.Instance.SpeakText(trimmedText);
                         }
