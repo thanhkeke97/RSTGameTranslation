@@ -1711,6 +1711,10 @@ namespace RSTGameTranslation
             {
                 _ = Task.Run(() => SendTranslatedTextToServer(translatedText));
             }
+            if (!string.IsNullOrEmpty(translatedText) & ConfigManager.Instance.IsTtsEnabled())
+            {
+                ChatBoxWindow.EnqueueSpeechRequest(translatedText);
+            }
             
         }
 

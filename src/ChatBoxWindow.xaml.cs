@@ -680,10 +680,6 @@ namespace RSTGameTranslation
 
             // Update UI with existing history
             UpdateChatHistory();
-            if (!string.IsNullOrEmpty(translatedText) & ConfigManager.Instance.IsTtsEnabled())
-            {
-                EnqueueSpeechRequest(translatedText);
-            }
         }
 
         // Handle animation timer tick
