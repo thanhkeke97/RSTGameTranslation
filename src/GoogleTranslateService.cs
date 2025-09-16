@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace RSTGameTranslation
 {
@@ -17,6 +18,7 @@ namespace RSTGameTranslation
         private readonly string _apiKey;
         private readonly bool _useCloudApi;
         private readonly bool _autoMapLanguages;
+        public static Regex GoogleTranslateResultRegex { get; set; }
 
         public GoogleTranslateService()
         {
@@ -222,7 +224,7 @@ namespace RSTGameTranslation
                 }
                 
                 // Use a more robust URL with additional parameters
-                string url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sourceLanguage}&tl={targetLanguage}&dt=t&q={encodedText}";
+                string url = $"https://translate.google.com/m?hl={targetLanguage}&sl={sourceLanguage}&tl={targetLanguage}&ie=UTF-8&prev=_m&q={encodedText}";
                 
                 // Log translation attempt (truncate long texts)
                 string logText = normalizedText.Length > 50 
@@ -236,96 +238,87 @@ namespace RSTGameTranslation
                 // Check if the request was successful
                 if (response.IsSuccessStatusCode)
                 {
+                    string result = "";
                     string jsonResponse = await response.Content.ReadAsStringAsync();
-                    
-                    try
+                    GoogleTranslateResultRegex = new Regex("(?<=(<div(.*)class=\"result-container\"(.*)>))[\\s\\S]*?(?=(<\\/div>))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    var matchResult = GoogleTranslateResultRegex.Match(jsonResponse);
+                    if (matchResult.Success)
                     {
-                        // The response is a nested JSON array, not a proper JSON object
-                        // Format: [[[translated_text, original_text, ...], ...], ...]
-                        using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                        
-                        // Build the full translated text from all segments
-                        StringBuilder translatedText = new StringBuilder();
-                        
-                        // Navigate through the nested arrays
-                        JsonElement outerArray = doc.RootElement;
-                        if (outerArray.GetArrayLength() > 0)
-                        {
-                            JsonElement translationArray = outerArray[0];
-                            
-                            // Iterate through each translation segment
-                            foreach (JsonElement segment in translationArray.EnumerateArray())
-                            {
-                                if (segment.GetArrayLength() > 0 && segment[0].ValueKind == JsonValueKind.String)
-                                {
-                                    string segmentText = segment[0].GetString() ?? "";
-                                    translatedText.Append(segmentText);
-                                }
-                            }
-                        }
-                        
-                        string result = translatedText.ToString();
-                        
-                        // Log the result for debugging (truncate long results)
-                        string logResult = result.Length > 50 
-                            ? result.Substring(0, 50) + "..." 
-                            : result;
-                        Console.WriteLine($"Translation result: {logResult}");
-                        
-                        if (!string.IsNullOrEmpty(result))
-                        {
-                            return result;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Translated text was empty after processing");
-                            return $"[EMPTY RESULT] {text}";
-                        }
+                        result = matchResult.Value.ToString();
                     }
-                    catch (JsonException jsonEx)
+                    if (!string.IsNullOrEmpty(result))
                     {
-                        Console.WriteLine($"JSON parsing error: {jsonEx.Message}");
-                        Console.WriteLine($"Response content: {jsonResponse}");
-                        return $"[JSON ERROR] {text}";
+                        return result;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Translated text was empty after processing");
+                        return $"[EMPTY RESULT] {text}";
                     }
                 }
                 
                 Console.WriteLine($"Google Translate free service error: {response.StatusCode}");
-                
+
                 // Try alternative endpoint if the first one fails
-                if (response.StatusCode == System.Net.HttpStatusCode.Forbidden || 
+                if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
                     response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 {
                     Console.WriteLine("Trying alternative endpoint...");
-                    url = $"https://translate.google.com/translate_a/single?client=at&dt=t&dt=ld&dt=qca&dt=rm&dt=bd&dj=1&sl={sourceLanguage}&tl={targetLanguage}&q={encodedText}";
-                    
+                    url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sourceLanguage}&tl={targetLanguage}&dt=t&q={encodedText}";
                     response = await _httpClient.GetAsync(url);
                     if (response.IsSuccessStatusCode)
                     {
                         string jsonResponse = await response.Content.ReadAsStringAsync();
+                        
                         try
                         {
+                            // The response is a nested JSON array, not a proper JSON object
+                            // Format: [[[translated_text, original_text, ...], ...], ...]
                             using JsonDocument doc = JsonDocument.Parse(jsonResponse);
                             
-                            if (doc.RootElement.TryGetProperty("sentences", out JsonElement sentences))
+                            // Build the full translated text from all segments
+                            StringBuilder translatedText = new StringBuilder();
+                            
+                            // Navigate through the nested arrays
+                            JsonElement outerArray = doc.RootElement;
+                            if (outerArray.GetArrayLength() > 0)
                             {
-                                StringBuilder translatedText = new StringBuilder();
+                                JsonElement translationArray = outerArray[0];
                                 
-                                foreach (JsonElement sentence in sentences.EnumerateArray())
+                                // Iterate through each translation segment
+                                foreach (JsonElement segment in translationArray.EnumerateArray())
                                 {
-                                    if (sentence.TryGetProperty("trans", out JsonElement trans))
+                                    if (segment.GetArrayLength() > 0 && segment[0].ValueKind == JsonValueKind.String)
                                     {
-                                        translatedText.Append(trans.GetString());
+                                        string segmentText = segment[0].GetString() ?? "";
+                                        translatedText.Append(segmentText);
                                     }
                                 }
-                                
-                                string result = translatedText.ToString();
-                                return !string.IsNullOrEmpty(result) ? result : $"[EMPTY RESULT] {text}";
+                            }
+                            
+                            string result = translatedText.ToString();
+                            
+                            // Log the result for debugging (truncate long results)
+                            string logResult = result.Length > 50 
+                                ? result.Substring(0, 50) + "..." 
+                                : result;
+                            Console.WriteLine($"Translation result: {logResult}");
+                            
+                            if (!string.IsNullOrEmpty(result))
+                            {
+                                return result;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Translated text was empty after processing");
+                                return $"[EMPTY RESULT] {text}";
                             }
                         }
-                        catch (JsonException)
+                        catch (JsonException jsonEx)
                         {
-                            // Fall through to error return
+                            Console.WriteLine($"JSON parsing error: {jsonEx.Message}");
+                            Console.WriteLine($"Response content: {jsonResponse}");
+                            return $"[JSON ERROR] {text}";
                         }
                     }
                 }
