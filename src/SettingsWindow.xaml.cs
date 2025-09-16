@@ -16,6 +16,7 @@ using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
 using System.Windows.Forms;
 using System.Windows.Interop;
+using Windows.Media.SpeechSynthesis;
 using System.IO;
 
 namespace RSTGameTranslation
@@ -63,6 +64,7 @@ namespace RSTGameTranslation
             _instance = this;
             LoadAvailableScreens();
             LoadAllProfile();
+            LoadAvailableWindowTTSVoice();
 
             // Add Loaded event handler to ensure controls are initialized
             this.Loaded += SettingsWindow_Loaded;
@@ -155,6 +157,40 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error initializing Settings window: {ex.Message}");
                 _isInitializing = false; // Ensure we don't get stuck in initialization mode
+            }
+        }
+        // Load list of available window TTS voice
+        private void LoadAvailableWindowTTSVoice()
+        {
+            try
+            {
+                windowTTSVoiceComboBox.Items.Clear();
+                
+                // Get all installed voices
+                var installedVoices = SpeechSynthesizer.AllVoices;
+
+                foreach (var voice in installedVoices)
+                {
+                    string language = voice.Language;
+                    string displayName = voice.DisplayName;
+                    string gender = voice.Gender.ToString();
+
+                    // Create a descriptive name for the voice
+                    string voiceKey = $"{displayName} ({language}, {gender})";
+                    // Create combo box item
+                    ComboBoxItem item = new ComboBoxItem
+                    {
+                        Content = voiceKey
+                    };
+                    windowTTSVoiceComboBox.Items.Add(item);
+                }
+                windowTTSVoiceComboBox.SelectedIndex = 0;
+                
+                Console.WriteLine($"Loaded Windows TTS voices");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error load Windows TTS voices: {ex.Message}");
             }
         }
 
@@ -1536,6 +1572,9 @@ namespace RSTGameTranslation
                     Console.WriteLine("TTS UI elements not initialized yet. Skipping visibility update.");
                     return;
                 }
+
+                // Init combobox window TTS
+                
 
                 // Show/hide ElevenLabs-specific settings
                 elevenLabsApiKeyLabel.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;

@@ -362,7 +362,7 @@ namespace RSTGameTranslation
             _configValues[GOOGLE_TTS_API_KEY] = "<your API key here>";
             _configValues[GOOGLE_TTS_VOICE] = "ja-JP-Neural2-B";
             _configValues[WINDOWS_TTS_VOICE ] = "Microsoft David (en-US, Male)";
-            _configValues[TTS_ENABLED] = "true";
+            _configValues[TTS_ENABLED] = "false";
             _configValues[MAX_CONTEXT_PIECES] = "20";
             _configValues[MIN_CONTEXT_SIZE] = "8";
             _configValues[GAME_INFO] = "We're playing an unspecified game.";
@@ -1566,7 +1566,7 @@ namespace RSTGameTranslation
         // Get/Set TTS enabled
         public bool IsTtsEnabled()
         {
-            string value = GetValue(TTS_ENABLED, "true");
+            string value = GetValue(TTS_ENABLED, "false");
             return value.ToLower() == "true";
         }
 
