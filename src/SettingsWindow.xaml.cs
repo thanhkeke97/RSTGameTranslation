@@ -166,31 +166,62 @@ namespace RSTGameTranslation
             {
                 windowTTSVoiceComboBox.Items.Clear();
                 
-                // Get all installed voices
-                var installedVoices = SpeechSynthesizer.AllVoices;
-
-                foreach (var voice in installedVoices)
+                // Get all available voices from the WindowsTTSService
+                var voiceNames = WindowsTTSService.GetInstalledVoiceNames();
+                
+                foreach (var voiceName in voiceNames)
                 {
-                    string language = voice.Language;
-                    string displayName = voice.DisplayName;
-                    string gender = voice.Gender.ToString();
-
-                    // Create a descriptive name for the voice
-                    string voiceKey = $"{displayName} ({language}, {gender})";
-                    // Create combo box item
+                    // Create combo box itm
                     ComboBoxItem item = new ComboBoxItem
                     {
-                        Content = voiceKey
+                        Content = voiceName
                     };
                     windowTTSVoiceComboBox.Items.Add(item);
                 }
-                windowTTSVoiceComboBox.SelectedIndex = 0;
                 
-                Console.WriteLine($"Loaded Windows TTS voices");
+                // Try to select the current voice from config
+                string configuredVoice = ConfigManager.Instance.GetWindowsTtsVoice();
+                bool foundVoice = false;
+                
+                foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
+                {
+                    if (item.Content.ToString() == configuredVoice)
+                    {
+                        windowTTSVoiceComboBox.SelectedItem = item;
+                        foundVoice = true;
+                        break;
+                    }
+                }
+                
+                // If the configured voice wasn't found, try to select the default system voice
+                if (!foundVoice)
+                {
+                    string? defaultVoice = WindowsTTSService.GetDefaultSystemVoice();
+                    if (!string.IsNullOrEmpty(defaultVoice))
+                    {
+                        foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
+                        {
+                            if (item.Content.ToString() == defaultVoice)
+                            {
+                                windowTTSVoiceComboBox.SelectedItem = item;
+                                foundVoice = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // If still no voice selected, just select the first one
+                if (!foundVoice && windowTTSVoiceComboBox.Items.Count > 0)
+                {
+                    windowTTSVoiceComboBox.SelectedIndex = 0;
+                }
+                
+        Console.WriteLine($"Loaded {voiceNames.Count} Windows TTS voices");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error load Windows TTS voices: {ex.Message}");
+                Console.WriteLine($"Error loading Windows TTS voices: {ex.Message}");
             }
         }
 
