@@ -562,12 +562,11 @@
                                             SelectionChanged="GeminiModelComboBox_SelectionChanged"
                                             LostFocus="GeminiModelComboBox_LostFocus"
                                             IsEditable="True">
-                                        <ComboBoxItem Content="gemini-1.5-flash"/>
                                         <ComboBoxItem Content="gemini-2.0-flash"/>
                                         <ComboBoxItem Content="gemini-2.0-flash-lite"/>
                                         <ComboBoxItem Content="gemma-3-12b-it"/>
                                         <ComboBoxItem Content="gemini-2.5-flash"/>
-                                        <ComboBoxItem Content="gemini-2.5-flash-lite-preview-06-17"/>
+                                        <ComboBoxItem Content="gemini-2.5-flash-lite"/>
                                     </ComboBox>
                                     <Button x:Name="viewGeminiModelsButton" Content="View Models" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewGeminiModelsButton_Click"

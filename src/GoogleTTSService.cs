@@ -52,7 +52,11 @@ namespace RSTGameTranslation
             
             // Chinese - Neural2 voices
             { "Chinese (Female) - Neural2", "cmn-CN-Neural2-A" },
-            { "Chinese (Male) - Neural2", "cmn-CN-Neural2-C" }
+            { "Chinese (Male) - Neural2", "cmn-CN-Neural2-C" },
+
+            // Vietnamese - Neural2 voices
+            { "Vietnamese (Female) - Neural2", "vi-VN-Neural2-A" },
+            { "Vietnamese (Male) - Neural2", "vi-VN-Neural2-D" }
         };
         
         // Semaphore to ensure only one speech request is processed at a time
