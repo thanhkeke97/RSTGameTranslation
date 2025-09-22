@@ -851,6 +851,8 @@
                                     <ComboBoxItem Content="Arnold" Tag="VR6AewLTigWG4xSOukaG"/>
                                     <ComboBoxItem Content="Adam" Tag="pNInz6obpgDQGcFmaJgB"/>
                                     <ComboBoxItem Content="Sam" Tag="yoZ06aMxZJJ28mfd3POQ"/>
+                                    <ComboBoxItem Content="MC Anh Đức" Tag="XBDAUT8ybuJTTCoOLSUj"/>
+                                    <ComboBoxItem Content="Mc Hà My - Vietnames - calm and kind" Tag="RmcV9cAq1TByxNSgbii7"/>
                                 </ComboBox>
 
                                 <!-- Windows TTS Voice - Only visible when Windows TTS is selected -->
