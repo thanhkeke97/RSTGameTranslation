@@ -208,34 +208,6 @@ namespace RSTGameTranslation
             }
         }
 
-        // Enqueue a speech request and start processing if needed
-        public static void EnqueueSpeechRequest(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                return;
-
-            try
-            {
-                // Add the text to the queue
-                _speechQueue.Enqueue(text);
-                Console.WriteLine($"Speech request enqueued. Queue size: {_speechQueue.Count}");
-
-                // Start processing if not already doing so
-                if (!_isProcessingSpeech)
-                {
-                    // Create a new cancellation token source
-                    _speechCancellationTokenSource = new CancellationTokenSource();
-                    
-                    // Start the processing task
-                    Task.Run(() => ProcessSpeechQueueAsync(_speechCancellationTokenSource.Token));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error enqueueing speech request: {ex.Message}");
-            }
-        }
-
         // Process the speech queue
         private static async Task ProcessSpeechQueueAsync(CancellationToken cancellationToken)
         {
@@ -244,22 +216,48 @@ namespace RSTGameTranslation
 
             _isProcessingSpeech = true;
             Console.WriteLine("Starting speech queue processing");
-
+            
             try
             {
-                while (!cancellationToken.IsCancellationRequested)
+                // Giảm thời gian chờ ban đầu xuống còn 20ms
+                // Chỉ đủ để gộp các bản dịch đến gần như cùng lúc
+                await Task.Delay(5, cancellationToken);
+                
+                // Vòng lặp xử lý liên tục cho đến khi hàng đợi trống
+                while (!_speechQueue.IsEmpty && !cancellationToken.IsCancellationRequested)
                 {
-                    // Try to get the next text to speak
-                    if (!_speechQueue.TryDequeue(out string? textToSpeak) || string.IsNullOrWhiteSpace(textToSpeak))
-                    {
-                        // Queue is empty, exit the loop
-                        break;
-                    }
-
-                    Console.WriteLine($"Processing speech request. Remaining in queue: {_speechQueue.Count}");
+                    // Gộp tất cả văn bản hiện có trong hàng đợi thành một đoạn liên tục
+                    StringBuilder combinedText = new StringBuilder();
+                    int queueSize = _speechQueue.Count;
+                    Console.WriteLine($"Processing {queueSize} speech requests as one batch");
                     
-                    // Process this speech request
-                    await Speak_Item_InternalAsync(textToSpeak, cancellationToken);
+                    // Dequeue all items and combine them
+                    while (_speechQueue.TryDequeue(out string? textToSpeak) && !cancellationToken.IsCancellationRequested)
+                    {
+                        if (!string.IsNullOrWhiteSpace(textToSpeak))
+                        {
+                            // Add a space between items if needed
+                            if (combinedText.Length > 0)
+                            {
+                                combinedText.Append(" ");
+                            }
+                            
+                            combinedText.Append(textToSpeak);
+                        }
+                    }
+                    
+                    // If we have text to speak, process it as one request
+                    if (combinedText.Length > 0 && !cancellationToken.IsCancellationRequested)
+                    {
+                        string finalText = combinedText.ToString();
+                        Console.WriteLine($"Speaking combined text ({finalText.Length} chars): {finalText.Substring(0, Math.Min(50, finalText.Length))}...");
+                        
+                        // Process the combined speech request
+                        await Speak_Item_InternalAsync(finalText, cancellationToken);
+                    }
+                    
+                    // Không cần đợi thêm thời gian giữa các lần xử lý
+                    // Vòng lặp sẽ tiếp tục ngay lập tức nếu có bản dịch mới trong hàng đợi
                 }
             }
             catch (OperationCanceledException)
@@ -277,10 +275,85 @@ namespace RSTGameTranslation
             }
         }
 
-        private static async Task Speak_Item_InternalAsync(string text, CancellationToken cancellationToken)
+        // Enqueue a speech request and start processing if needed
+        public static void EnqueueSpeechRequest(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            try
+            {
+                // Process the text to remove line breaks and normalize spaces
+                string processedText = ProcessTextForSpeech(text);
+                
+                // Add the processed text to the queue
+                _speechQueue.Enqueue(processedText);
+                Console.WriteLine($"Speech request enqueued. Queue size: {_speechQueue.Count}");
+
+                // Start processing if not already doing so
+                if (!_isProcessingSpeech)
+                {
+                    // Hủy token nguồn hiện tại nếu có
+                    if (_speechCancellationTokenSource != null)
+                    {
+                        _speechCancellationTokenSource.Cancel();
+                        _speechCancellationTokenSource.Dispose();
+                    }
+                    
+                    // Create a new cancellation token source
+                    _speechCancellationTokenSource = new CancellationTokenSource();
+                    
+                    // Start the processing task
+                    Task.Run(() => ProcessSpeechQueueAsync(_speechCancellationTokenSource.Token));
+                }
+                else
+                {
+                    // Nếu đang xử lý nhưng có bản dịch mới, hủy bản dịch hiện tại để xử lý bản mới ngay
+                    // Chỉ hủy nếu cấu hình cho phép
+                    bool interruptCurrentSpeech = false;
+                    if (interruptCurrentSpeech && _speechCancellationTokenSource != null)
+                    {
+                        _speechCancellationTokenSource.Cancel();
+                        _speechCancellationTokenSource.Dispose();
+                        _speechCancellationTokenSource = new CancellationTokenSource();
+                        
+                        // Đặt lại cờ xử lý để bắt đầu lại quy trình
+                        _isProcessingSpeech = false;
+                        
+                        // Bắt đầu xử lý lại với token mới
+                        Task.Run(() => ProcessSpeechQueueAsync(_speechCancellationTokenSource.Token));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enqueueing speech request: {ex.Message}");
+            }
+        }
+
+        // Process text to optimize for speech with minimal pauses
+        private static string ProcessTextForSpeech(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+            
+            // Replace multiple newlines with a single space to reduce pauses
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\n+", " ");
+            
+            // Replace multiple spaces with a single space
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
+            
+            // Xóa các dấu câu thừa có thể gây ra độ trễ
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\.{2,}", ".");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([.,;:!?])\s*", "$1 ");
+            
+            return text.Trim();
+        }
+
+        private static async Task<bool> Speak_Item_InternalAsync(string text, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(text) || cancellationToken.IsCancellationRequested)
-                return;
+                return false;
 
             try
             {
@@ -314,13 +387,15 @@ namespace RSTGameTranslation
                         else
                         {
                             Console.WriteLine($"Unsupported TTS service: {ttsService}");
-                            return;
+                            return false;
                         }
 
                         if (!success)
                         {
                             Console.WriteLine($"Failed to generate speech using {ttsService}");
                         }
+                        
+                        return success;
                     }
                     finally
                     {
@@ -331,6 +406,7 @@ namespace RSTGameTranslation
                 else
                 {
                     Console.WriteLine("Text-to-Speech is disabled in settings");
+                    return true; // Consider this successful since TTS is disabled
                 }
             }
             catch (OperationCanceledException)
@@ -341,6 +417,7 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in Speak function: {ex.Message}");
+                return false;
             }
         }
 
@@ -680,6 +757,10 @@ namespace RSTGameTranslation
 
             // Update UI with existing history
             UpdateChatHistory();
+            if (!string.IsNullOrEmpty(translatedText) & ConfigManager.Instance.IsTtsEnabled())
+            {
+                EnqueueSpeechRequest(translatedText);
+            }
         }
 
         // Handle animation timer tick

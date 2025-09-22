@@ -164,64 +164,156 @@ namespace RSTGameTranslation
         {
             try
             {
+                // Clear any existing items
                 windowTTSVoiceComboBox.Items.Clear();
-                
-                // Get all available voices from the WindowsTTSService
-                var voiceNames = WindowsTTSService.GetInstalledVoiceNames();
-                
-                foreach (var voiceName in voiceNames)
+
+                // Get all available voices from WindowsTTSService
+                var availableVoices = WindowsTTSService.GetInstalledVoiceNames();
+
+                if (availableVoices.Count == 0)
                 {
-                    // Create combo box itm
-                    ComboBoxItem item = new ComboBoxItem
+                    // Add a placeholder item if no voices are available
+                    ComboBoxItem noVoicesItem = new ComboBoxItem
                     {
-                        Content = voiceName
+                        Content = "No voices available",
+                        IsEnabled = false
                     };
-                    windowTTSVoiceComboBox.Items.Add(item);
+                    windowTTSVoiceComboBox.Items.Add(noVoicesItem);
+                    Console.WriteLine("No Windows TTS voices found");
                 }
-                
-                // Try to select the current voice from config
-                string configuredVoice = ConfigManager.Instance.GetWindowsTtsVoice();
-                bool foundVoice = false;
-                
-                foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
+                else
                 {
-                    if (item.Content.ToString() == configuredVoice)
+                    // Nhóm các giọng nói theo ngôn ngữ để dễ tìm
+                    var groupedVoices = new Dictionary<string, List<string>>();
+                    
+                    foreach (string voiceName in availableVoices)
                     {
-                        windowTTSVoiceComboBox.SelectedItem = item;
-                        foundVoice = true;
-                        break;
+                        // Trích xuất thông tin ngôn ngữ từ tên giọng nói
+                        string languageCode = "Other";
+                        
+                        // Tìm mã ngôn ngữ trong ngoặc đơn, ví dụ: (vi-VN, ...)
+                        int startIndex = voiceName.IndexOf('(');
+                        if (startIndex > 0)
+                        {
+                            int endIndex = voiceName.IndexOf(',', startIndex);
+                            if (endIndex > startIndex)
+                            {
+                                languageCode = voiceName.Substring(startIndex + 1, endIndex - startIndex - 1).Trim();
+                            }
+                        }
+                        
+                        // Thêm vào nhóm tương ứng
+                        if (!groupedVoices.ContainsKey(languageCode))
+                        {
+                            groupedVoices[languageCode] = new List<string>();
+                        }
+                        groupedVoices[languageCode].Add(voiceName);
                     }
-                }
-                
-                // If the configured voice wasn't found, try to select the default system voice
-                if (!foundVoice)
-                {
-                    string? defaultVoice = WindowsTTSService.GetDefaultSystemVoice();
-                    if (!string.IsNullOrEmpty(defaultVoice))
+                    
+                    // Ưu tiên hiển thị giọng tiếng Việt trước
+                    List<string> languagePriority = new List<string> { "vi-VN", "Vietnamese" };
+                    
+                    // Thêm các giọng nói theo thứ tự ưu tiên
+                    foreach (string priorityLang in languagePriority)
+                    {
+                        if (groupedVoices.ContainsKey(priorityLang))
+                        {
+                            foreach (string voiceName in groupedVoices[priorityLang])
+                            {
+                                ComboBoxItem item = new ComboBoxItem
+                                {
+                                    Content = voiceName
+                                };
+                                windowTTSVoiceComboBox.Items.Add(item);
+                            }
+                            // Xóa khỏi từ điển để không thêm lại
+                            groupedVoices.Remove(priorityLang);
+                        }
+                    }
+                    
+                    // Thêm các giọng nói còn lại
+                    foreach (var group in groupedVoices)
+                    {
+                        foreach (string voiceName in group.Value)
+                        {
+                            ComboBoxItem item = new ComboBoxItem
+                            {
+                                Content = voiceName
+                            };
+                            windowTTSVoiceComboBox.Items.Add(item);
+                        }
+                    }
+
+                    // Try to select the current voice from config
+                    string currentVoice = ConfigManager.Instance.GetWindowsTtsVoice();
+                    bool foundVoice = false;
+
+                    // First try to find an exact match
+                    foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
+                    {
+                        if (string.Equals(item.Content?.ToString(), currentVoice, StringComparison.OrdinalIgnoreCase))
+                        {
+                            windowTTSVoiceComboBox.SelectedItem = item;
+                            foundVoice = true;
+                            Console.WriteLine($"Selected voice from config: {currentVoice}");
+                            break;
+                        }
+                    }
+
+                    // If the configured voice wasn't found, try to find a Vietnamese voice
+                    if (!foundVoice)
                     {
                         foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
                         {
-                            if (item.Content.ToString() == defaultVoice)
+                            string? itemContent = item.Content?.ToString();
+                            if (itemContent != null && 
+                                (itemContent.Contains("Vietnamese") || 
+                                itemContent.Contains("vi-VN") || 
+                                itemContent.Contains("An")))
                             {
                                 windowTTSVoiceComboBox.SelectedItem = item;
                                 foundVoice = true;
+                                Console.WriteLine($"Selected Vietnamese voice: {itemContent}");
                                 break;
                             }
                         }
                     }
+
+                    // If still no voice selected, try to get the default system voice
+                    if (!foundVoice)
+                    {
+                        string? defaultVoice = WindowsTTSService.GetDefaultSystemVoice();
+                        
+                        if (!string.IsNullOrEmpty(defaultVoice))
+                        {
+                            foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
+                            {
+                                if (string.Equals(item.Content?.ToString(), defaultVoice, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    windowTTSVoiceComboBox.SelectedItem = item;
+                                    foundVoice = true;
+                                    Console.WriteLine($"Selected default system voice: {defaultVoice}");
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // If still no voice selected, select the first one
+                        if (!foundVoice && windowTTSVoiceComboBox.Items.Count > 0)
+                        {
+                            windowTTSVoiceComboBox.SelectedIndex = 0;
+                            ComboBoxItem? firstItem = windowTTSVoiceComboBox.SelectedItem as ComboBoxItem;
+                            Console.WriteLine($"Selected first available voice: {firstItem?.Content}");
+                        }
+                    }
                 }
-                
-                // If still no voice selected, just select the first one
-                if (!foundVoice && windowTTSVoiceComboBox.Items.Count > 0)
-                {
-                    windowTTSVoiceComboBox.SelectedIndex = 0;
-                }
-                
-        Console.WriteLine($"Loaded {voiceNames.Count} Windows TTS voices");
+
+                Console.WriteLine($"Loaded {availableVoices.Count} Windows TTS voices");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading Windows TTS voices: {ex.Message}");
+                MessageBox.Show($"Error loading TTS voices: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

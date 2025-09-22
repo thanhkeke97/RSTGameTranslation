@@ -36,17 +36,18 @@ namespace RSTGameTranslation
         
         // Current audio player
         private static IWavePlayer? _currentPlayer = null;
+        private string audioFile;
         
         // Current audio file reader
         private static AudioFileReader? _currentAudioFile = null;
         
         // Speech rate (from -10 to 10, where 0 is normal speed)
-        private static int _speechRate = 3;
+        private static int _speechRate = 2;
         
         // Default speech rate values
         public const int MinSpeechRate = -10;
         public const int MaxSpeechRate = 10;
-        public const int DefaultSpeechRate = 3;
+        public const int DefaultSpeechRate = 2;
         
         // Path to temp directory
         private static readonly string _tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
@@ -216,7 +217,7 @@ namespace RSTGameTranslation
                     if (!AvailableVoices.ContainsKey(voiceKey))
                     {
                         AvailableVoices.Add(voiceKey, voice.Id);
-                        _voiceApiSource.Add(voice.Id, true); // true = UWP API
+                        _voiceApiSource.Add(voice.Id, true); // Sửa: Lưu theo voice.Id, không phải voiceKey
                         Console.WriteLine($"Found Windows UWP TTS voice: {voiceKey} - {voice.Id}");
                     }
                 }
@@ -243,7 +244,7 @@ namespace RSTGameTranslation
                             if (!AvailableVoices.ContainsKey(voiceKey))
                             {
                                 AvailableVoices.Add(voiceKey, info.Name);
-                                _voiceApiSource.Add(info.Name, false); // false = System.Speech API
+                                _voiceApiSource.Add(info.Name, false); // Sửa: Lưu theo info.Name, không phải voiceKey
                                 Console.WriteLine($"Found SAPI TTS voice: {voiceKey} - {info.Name}");
                             }
                         }
@@ -285,17 +286,19 @@ namespace RSTGameTranslation
                 // Process text to reduce pauses between lines
                 string processedText = ProcessTextForSpeech(text);
                 
-                // Get voice ID from config
+                // Get voice name from config
                 string voiceName = ConfigManager.Instance.GetWindowsTtsVoice();
-                AvailableVoices.TryGetValue(voiceName, out string? voiceId);
                 
-                // If no voice is configured or the configured voice is not available, use the default voice
-                if (string.IsNullOrWhiteSpace(voiceId))
+                // Check if this voice exists in our dictionary
+                if (!AvailableVoices.ContainsKey(voiceName))
                 {
+                    Console.WriteLine($"Voice '{voiceName}' not found in available voices");
+                    
                     // Use the first available voice as default
                     if (AvailableVoices.Count > 0)
                     {
-                        voiceId = AvailableVoices.Values.First();
+                        voiceName = AvailableVoices.Keys.First();
+                        Console.WriteLine($"Using first available voice: {voiceName}");
                     }
                     else
                     {
@@ -306,12 +309,23 @@ namespace RSTGameTranslation
                     }
                 }
                 
-                Console.WriteLine($"Using TTS voice ID: {voiceId} with speech rate: {_speechRate}");
+                // Get the voice ID for the selected voice
+                string voiceId = AvailableVoices[voiceName];
                 
                 // Check which API this voice belongs to
                 bool isUwpVoice = _voiceApiSource.TryGetValue(voiceId, out bool isUwp) && isUwp;
                 
+                // Thêm log để debug
+                if (!_voiceApiSource.ContainsKey(voiceId))
+                {
+                    Console.WriteLine($"WARNING: Voice ID '{voiceId}' not found in _voiceApiSource dictionary");
+                    Console.WriteLine($"Available keys in _voiceApiSource: {string.Join(", ", _voiceApiSource.Keys.Take(5))}...");
+                }
+                
+                Console.WriteLine($"Using TTS voice: {voiceName} (ID: {voiceId}, UWP: {isUwpVoice}) with speech rate: {_speechRate}");
+                
                 string audioFile = string.Empty;
+                
                 
                 if (isUwpVoice)
                 {
@@ -331,36 +345,15 @@ namespace RSTGameTranslation
                     // Set the voice
                     _synthesizer.Voice = selectedVoice;
                     
-                    // Set speech rate for UWP API (convert our -10 to 10 scale to UWP's scale)
-                    // UWP uses a double from 0.5 (half speed) to 2.0 (double speed)
-                    double uwpRate = 1.0; // Default normal speed
-                    
-                    if (_speechRate > 0)
-                    {
-                        // Map 1-10 to 1.0-2.0 (faster)
-                        uwpRate = 1.0 + (_speechRate / 10.0);
-                    }
-                    else if (_speechRate < 0)
-                    {
-                        // Map -1 to -10 to 1.0-0.5 (slower)
-                        uwpRate = 1.0 + (_speechRate / 20.0); // Divide by 20 to map -10 to -0.5
-                    }
-                    
-                    // Apply the speech rate
-                    _synthesizer.Options.SpeakingRate = uwpRate;
-                    
-                    // Create SSML with minimal pauses
-                    string ssml = CreateSsmlWithMinimalPauses(processedText);
-                    
-                    Console.WriteLine($"UWP speech rate set to: {uwpRate}");
-                    
                     // Create a temp file path for the audio
-                    audioFile = Path.Combine(_tempDir, $"tts_windows_{DateTime.Now.Ticks}.wav");
+                    string tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
+                    Directory.CreateDirectory(tempDir); // Create directory if it doesn't exist
+                    audioFile = Path.Combine(tempDir, $"tts_windows_{DateTime.Now.Ticks}.wav");
                     
-                    Console.WriteLine($"Speaking text with UWP API: {processedText.Substring(0, Math.Min(50, processedText.Length))}...");
+                    Console.WriteLine($"Speaking text: {text.Substring(0, Math.Min(50, text.Length))}...");
                     
-                    // Generate speech stream using SSML
-                    SpeechSynthesisStream stream = await _synthesizer.SynthesizeSsmlToStreamAsync(ssml);
+                    // Generate speech stream
+                    SpeechSynthesisStream stream = await _synthesizer.SynthesizeTextToStreamAsync(text);
                     
                     // Save to WAV file
                     using (var fileStream = new FileStream(audioFile, FileMode.Create, FileAccess.Write))
@@ -388,17 +381,13 @@ namespace RSTGameTranslation
                     // Set speech rate for SAPI (convert our -10 to 10 scale to SAPI's -10 to 10 scale)
                     _systemSynthesizer.Rate = _speechRate;
                     
-                    // Create a prompt with SSML for minimal pauses
-                    string ssml = CreateSsmlWithMinimalPauses(processedText);
-                    var prompt = new SystemSpeech.Prompt(ssml, SystemSpeech.SynthesisTextFormat.Ssml);
-                    
                     Console.WriteLine($"SAPI speech rate set to: {_speechRate}");
                     
                     // Set output to audio file
                     _systemSynthesizer.SetOutputToWaveFile(audioFile);
                     
-                    // Speak the text using SSML
-                    _systemSynthesizer.Speak(prompt);
+                    // Speak the text directly without using SSML
+                    _systemSynthesizer.Speak(processedText);
                     
                     // Reset output to null to close the file
                     _systemSynthesizer.SetOutputToNull();
@@ -449,41 +438,13 @@ namespace RSTGameTranslation
             // Replace multiple spaces with a single space
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
             
+            // Xóa các dấu câu thừa có thể gây ra độ trễ
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\.{2,}", ".");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([.,;:!?])\s*", "$1 ");
+            
             return text.Trim();
         }
         
-        // Create SSML with minimal pauses between sentences
-        private string CreateSsmlWithMinimalPauses(string text)
-        {
-            StringBuilder ssml = new StringBuilder();
-            ssml.Append("<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"en-US\">");
-            
-            // Set overall prosody for the speech
-            ssml.Append("<prosody rate=\"medium\" pitch=\"medium\">");
-            
-            // Escape the text for XML
-            string escapedText = System.Security.SecurityElement.Escape(text);
-            
-            // Replace sentence endings with minimal pauses (10ms)
-            escapedText = System.Text.RegularExpressions.Regex.Replace(
-                escapedText, 
-                @"([.!?]) ", 
-                "$1<break time=\"10ms\"/> "
-            );
-            
-            // Replace commas with even shorter pauses (5ms)
-            escapedText = System.Text.RegularExpressions.Regex.Replace(
-                escapedText, 
-                @"(,) ", 
-                "$1<break time=\"5ms\"/> "
-            );
-            
-            ssml.Append(escapedText);
-            ssml.Append("</prosody>");
-            ssml.Append("</speak>");
-            
-            return ssml.ToString();
-        }
         
         // Stop any current playback
         private void StopCurrentPlayback()
@@ -526,8 +487,11 @@ namespace RSTGameTranslation
                 // Mark as playing audio
                 _isPlayingAudio = true;
                 
-                // Create a WaveOut device
-                _currentPlayer = new WaveOutEvent();
+                // Create a WaveOut device with low latency settings
+                _currentPlayer = new WaveOutEvent
+                {
+                    DesiredLatency = 100 // Giảm độ trễ xuống 100ms (mặc định là 300ms)
+                };
                 
                 // Set up playback stopped event
                 _currentPlayer.PlaybackStopped += (sender, args) =>
@@ -571,13 +535,6 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error playing audio file: {ex.Message}");
-                
-                // Show a message to the user
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    MessageBox.Show($"Error playing audio: {ex.Message}",
-                        "Audio Playback Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                });
                 
                 // Clean up
                 _isPlayingAudio = false;
@@ -725,10 +682,13 @@ namespace RSTGameTranslation
                     {
                         if (!pair.Value) // Not UWP, so it's a SAPI voice
                         {
-                            string? displayName = GetDisplayNameFromVoiceId(pair.Key);
-                            if (displayName != null)
+                            // Tìm voiceKey tương ứng với voice ID này
+                            foreach (var voicePair in AvailableVoices)
                             {
-                                return displayName;
+                                if (voicePair.Value == pair.Key)
+                                {
+                                    return voicePair.Key;
+                                }
                             }
                         }
                     }
@@ -750,6 +710,17 @@ namespace RSTGameTranslation
             {
                 _instance.CleanupTempFiles();
             }
+        }
+        
+        // Phương thức để lấy và đặt tốc độ phát âm
+        public static int GetSpeechRate()
+        {
+            return _speechRate;
+        }
+        
+        public static void SetSpeechRate(int rate)
+        {
+            _speechRate = Math.Clamp(rate, MinSpeechRate, MaxSpeechRate);
         }
     }
 }
