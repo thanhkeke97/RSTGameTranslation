@@ -28,8 +28,11 @@ namespace RSTGameTranslation
         // true = UWP (Windows.Media.SpeechSynthesis), false = System.Speech
         private static readonly Dictionary<string, bool> _voiceApiSource = new Dictionary<string, bool>();
         
-        // Semaphore to ensure only one speech request is processed at a time
-        private static readonly SemaphoreSlim _speechSemaphore = new SemaphoreSlim(1, 1);
+        // Semaphore to ensure only one playback runs at a time (but allows multiple synthesis)
+        private static readonly SemaphoreSlim _playbackSemaphore = new SemaphoreSlim(1, 1);
+        
+        // Queue for pending audio files to play
+        private static readonly Queue<string> _audioFileQueue = new Queue<string>();
         
         // Flag to track if we're currently playing audio
         private static bool _isPlayingAudio = false;
@@ -58,6 +61,12 @@ namespace RSTGameTranslation
         // Timer to periodically clean up temp files
         private static System.Timers.Timer? _cleanupTimer;
         
+        // Flag to track if we're currently processing the audio queue
+        private static bool _isProcessingQueue = false;
+        
+        // Cancellation token source for stopping current playback
+        private static CancellationTokenSource? _playbackCancellationTokenSource = null;
+        private static readonly HashSet<string> _activeAudioFiles = new HashSet<string>();
         public static WindowsTTSService Instance
         {
             get
@@ -112,6 +121,20 @@ namespace RSTGameTranslation
                         
                         foreach (string file in _tempFilesToDelete)
                         {
+                            // Check if the file is currently active
+                            bool isActive = false;
+                            lock (_activeAudioFiles)
+                            {
+                                isActive = _activeAudioFiles.Contains(file);
+                            }
+                            
+                            // If the file is active, skip it
+                            if (isActive)
+                            {
+                                Console.WriteLine($"Skipping active audio file: {file}");
+                                continue;
+                            }
+                            
                             try
                             {
                                 if (File.Exists(file))
@@ -152,6 +175,19 @@ namespace RSTGameTranslation
                     int count = 0;
                     foreach (string file in tempFiles)
                     {
+                        // Check if the file is currently active
+                        bool isActive = false;
+                        lock (_activeAudioFiles)
+                        {
+                            isActive = _activeAudioFiles.Contains(file);
+                        }
+                        
+                        // If the file is active, skip it
+                        if (isActive)
+                        {
+                            continue;
+                        }
+                        
                         // Check if the file is older than 10 minutes
                         FileInfo fileInfo = new FileInfo(file);
                         if (DateTime.Now - fileInfo.CreationTime > TimeSpan.FromMinutes(10))
@@ -217,7 +253,7 @@ namespace RSTGameTranslation
                     if (!AvailableVoices.ContainsKey(voiceKey))
                     {
                         AvailableVoices.Add(voiceKey, voice.Id);
-                        _voiceApiSource.Add(voice.Id, true); // Sửa: Lưu theo voice.Id, không phải voiceKey
+                        _voiceApiSource.Add(voice.Id, true); // Store by voice.Id
                         Console.WriteLine($"Found Windows UWP TTS voice: {voiceKey} - {voice.Id}");
                     }
                 }
@@ -244,7 +280,7 @@ namespace RSTGameTranslation
                             if (!AvailableVoices.ContainsKey(voiceKey))
                             {
                                 AvailableVoices.Add(voiceKey, info.Name);
-                                _voiceApiSource.Add(info.Name, false); // Sửa: Lưu theo info.Name, không phải voiceKey
+                                _voiceApiSource.Add(info.Name, false); // Store by info.Name
                                 Console.WriteLine($"Found SAPI TTS voice: {voiceKey} - {info.Name}");
                             }
                         }
@@ -265,13 +301,6 @@ namespace RSTGameTranslation
         
         public async Task<bool> SpeakText(string text)
         {
-            // Try to acquire the semaphore to ensure only one speech request runs at a time
-            if (!await _speechSemaphore.WaitAsync(0))
-            {
-                Console.WriteLine("Another speech request is already in progress. Skipping this one.");
-                return false;
-            }
-            
             try
             {
                 if (string.IsNullOrWhiteSpace(text))
@@ -279,9 +308,6 @@ namespace RSTGameTranslation
                     Console.WriteLine("Cannot speak empty text");
                     return false;
                 }
-                
-                // Stop any current playback
-                StopCurrentPlayback();
                 
                 // Process text to reduce pauses between lines
                 string processedText = ProcessTextForSpeech(text);
@@ -315,7 +341,7 @@ namespace RSTGameTranslation
                 // Check which API this voice belongs to
                 bool isUwpVoice = _voiceApiSource.TryGetValue(voiceId, out bool isUwp) && isUwp;
                 
-                // Thêm log để debug
+                // Add log for debugging
                 if (!_voiceApiSource.ContainsKey(voiceId))
                 {
                     Console.WriteLine($"WARNING: Voice ID '{voiceId}' not found in _voiceApiSource dictionary");
@@ -324,8 +350,41 @@ namespace RSTGameTranslation
                 
                 Console.WriteLine($"Using TTS voice: {voiceName} (ID: {voiceId}, UWP: {isUwpVoice}) with speech rate: {_speechRate}");
                 
-                string audioFile = string.Empty;
+                // Generate audio file asynchronously (can happen in parallel)
+                string audioFilePath = await GenerateAudioFileAsync(processedText, voiceId, isUwpVoice);
                 
+                if (string.IsNullOrEmpty(audioFilePath))
+                {
+                    Console.WriteLine("Failed to generate audio file");
+                    return false;
+                }
+                
+                // Add to audio playback queue
+                EnqueueAudioFile(audioFilePath);
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error preparing TTS: {ex.Message}");
+                
+                // Show a message to the user on the UI thread
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Error with Text-to-Speech: {ex.Message}",
+                        "TTS Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                });
+                
+                return false;
+            }
+        }
+        
+        // Generate audio file asynchronously
+        private async Task<string> GenerateAudioFileAsync(string text, string voiceId, bool isUwpVoice)
+        {
+            try
+            {
+                string audioFile = string.Empty;
                 
                 if (isUwpVoice)
                 {
@@ -337,20 +396,38 @@ namespace RSTGameTranslation
                     if (selectedVoice == null)
                     {
                         Console.WriteLine($"Could not find UWP voice with ID: {voiceId}");
-                        MessageBox.Show($"Could not find voice with ID: {voiceId}",
-                            "Voice Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return false;
+                        return string.Empty;
                     }
                     
                     // Set the voice
                     _synthesizer.Voice = selectedVoice;
+                    
+                    // Set speech rate for UWP API (convert our -10 to 10 scale to UWP's scale)
+                    // UWP uses a double from 0.5 (half speed) to 2.0 (double speed)
+                    double uwpRate = 1.0; // Default normal speed
+                    
+                    if (_speechRate > 0)
+                    {
+                        // Map 1-10 to 1.0-2.0 (faster)
+                        uwpRate = 1.0 + (_speechRate / 10.0);
+                    }
+                    else if (_speechRate < 0)
+                    {
+                        // Map -1 to -10 to 1.0-0.5 (slower)
+                        uwpRate = 1.0 + (_speechRate / 20.0); // Divide by 20 to map -10 to -0.5
+                    }
+                    
+                    // Apply the speech rate
+                    _synthesizer.Options.SpeakingRate = uwpRate;
+                    
+                    Console.WriteLine($"UWP speech rate set to: {uwpRate}");
                     
                     // Create a temp file path for the audio
                     string tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
                     Directory.CreateDirectory(tempDir); // Create directory if it doesn't exist
                     audioFile = Path.Combine(tempDir, $"tts_windows_{DateTime.Now.Ticks}.wav");
                     
-                    Console.WriteLine($"Speaking text: {text.Substring(0, Math.Min(50, text.Length))}...");
+                    Console.WriteLine($"Generating audio for text: {text.Substring(0, Math.Min(50, text.Length))}...");
                     
                     // Generate speech stream
                     SpeechSynthesisStream stream = await _synthesizer.SynthesizeTextToStreamAsync(text);
@@ -370,27 +447,36 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    // Use System.Speech.Synthesis API (SAPI 5, which Narrator typically uses)
-                    audioFile = Path.Combine(_tempDir, $"tts_system_{DateTime.Now.Ticks}.wav");
-                    
-                    Console.WriteLine($"Speaking text with SAPI: {processedText.Substring(0, Math.Min(50, processedText.Length))}...");
-                    
-                    // Set the voice
-                    _systemSynthesizer.SelectVoice(voiceId);
-                    
-                    // Set speech rate for SAPI (convert our -10 to 10 scale to SAPI's -10 to 10 scale)
-                    _systemSynthesizer.Rate = _speechRate;
-                    
-                    Console.WriteLine($"SAPI speech rate set to: {_speechRate}");
-                    
-                    // Set output to audio file
-                    _systemSynthesizer.SetOutputToWaveFile(audioFile);
-                    
-                    // Speak the text directly without using SSML
-                    _systemSynthesizer.Speak(processedText);
-                    
-                    // Reset output to null to close the file
-                    _systemSynthesizer.SetOutputToNull();
+                    // Use Task.Run to run SAPI file generation in a separate thread
+                    // because SAPI doesn't support async/await
+                    await Task.Run(() =>
+                    {
+                        // Use System.Speech.Synthesis API (SAPI 5, which Narrator typically uses)
+                        audioFile = Path.Combine(_tempDir, $"tts_system_{DateTime.Now.Ticks}.wav");
+                        
+                        Console.WriteLine($"Generating audio with SAPI for text: {text.Substring(0, Math.Min(50, text.Length))}...");
+                        
+                        // Create a new instance to avoid conflicts when generating multiple files simultaneously
+                        using (var synthesizer = new SystemSpeech.SpeechSynthesizer())
+                        {
+                            // Set the voice
+                            synthesizer.SelectVoice(voiceId);
+                            
+                            // Set speech rate for SAPI
+                            synthesizer.Rate = _speechRate;
+                            
+                            Console.WriteLine($"SAPI speech rate set to: {_speechRate}");
+                            
+                            // Set output to audio file
+                            synthesizer.SetOutputToWaveFile(audioFile);
+                            
+                            // Speak the text directly without using SSML
+                            synthesizer.Speak(text);
+                            
+                            // Reset output to null to close the file
+                            synthesizer.SetOutputToNull();
+                        }
+                    });
                 }
                 
                 // Track this file for deletion
@@ -402,30 +488,108 @@ namespace RSTGameTranslation
                     }
                 }
                 
-                Console.WriteLine($"Audio saved to {audioFile}, playing...");
-                
-                // Play the audio file and wait for it to complete
-                bool playbackResult = await PlayAudioFileAsync(audioFile);
-                
-                return playbackResult;
+                Console.WriteLine($"Audio file generated: {audioFile}");
+                return audioFile;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during TTS: {ex.Message}");
-                
-                // Show a message to the user on the UI thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    MessageBox.Show($"Error with Text-to-Speech: {ex.Message}",
-                        "TTS Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                });
-                
-                return false;
+                Console.WriteLine($"Error generating audio file: {ex.Message}");
+                return string.Empty;
             }
-            finally
+        }
+        
+        // Add audio file to playback queue
+        private void EnqueueAudioFile(string audioFilePath)
+        {
+            if (string.IsNullOrEmpty(audioFilePath) || !File.Exists(audioFilePath))
             {
-                // Always release the semaphore when done
-                _speechSemaphore.Release();
+                Console.WriteLine($"Cannot enqueue invalid audio file: {audioFilePath}");
+                return;
+            }
+            
+            lock (_audioFileQueue)
+            {
+                // Mark file as active
+                lock (_activeAudioFiles)
+                {
+                    _activeAudioFiles.Add(audioFilePath);
+                }
+                
+                // Add file to queue
+                _audioFileQueue.Enqueue(audioFilePath);
+                Console.WriteLine($"Audio file enqueued: {audioFilePath}. Queue size: {_audioFileQueue.Count}");
+                
+                // If no queue processing is running, start a new one
+                if (!_isProcessingQueue)
+                {
+                    Task.Run(ProcessAudioQueueAsync);
+                }
+            }
+        }
+        
+        // Process audio playback queue
+        private async Task ProcessAudioQueueAsync()
+        {
+            lock (_audioFileQueue)
+            {
+                if (_isProcessingQueue)
+                {
+                    return; // A processing task is already running
+                }
+                _isProcessingQueue = true;
+            }
+            
+            try
+            {
+                while (true)
+                {
+                    string? audioFilePath = null;
+                    
+                    lock (_audioFileQueue)
+                    {
+                        if (_audioFileQueue.Count == 0)
+                        {
+                            _isProcessingQueue = false;
+                            return; // Queue is empty, end processing
+                        }
+                        
+                        // Get next file from queue
+                        audioFilePath = _audioFileQueue.Dequeue();
+                    }
+                    
+                    if (!string.IsNullOrEmpty(audioFilePath) && File.Exists(audioFilePath))
+                    {
+                        // Stop current playback (if any)
+                        StopCurrentPlayback();
+                        
+                        // Wait for semaphore to ensure only one playback process at a time
+                        await _playbackSemaphore.WaitAsync();
+                        
+                        try
+                        {
+                            // Play the audio file
+                            await PlayAudioFileAsync(audioFilePath);
+                        }
+                        finally
+                        {
+                            // Release semaphore
+                            _playbackSemaphore.Release();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Skipping invalid audio file: {audioFilePath}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing audio queue: {ex.Message}");
+                
+                lock (_audioFileQueue)
+                {
+                    _isProcessingQueue = false;
+                }
             }
         }
         
@@ -438,13 +602,12 @@ namespace RSTGameTranslation
             // Replace multiple spaces with a single space
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
             
-            // Xóa các dấu câu thừa có thể gây ra độ trễ
+            // Remove extra punctuation that might cause delays
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\.{2,}", ".");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([.,;:!?])\s*", "$1 ");
             
             return text.Trim();
         }
-        
         
         // Stop any current playback
         private void StopCurrentPlayback()
@@ -454,6 +617,14 @@ namespace RSTGameTranslation
                 try
                 {
                     Console.WriteLine("Stopping current audio playback");
+                    
+                    // Cancel token to signal playback stop
+                    if (_playbackCancellationTokenSource != null)
+                    {
+                        _playbackCancellationTokenSource.Cancel();
+                        _playbackCancellationTokenSource.Dispose();
+                        _playbackCancellationTokenSource = null;
+                    }
                     
                     if (_currentPlayer != null)
                     {
@@ -487,10 +658,14 @@ namespace RSTGameTranslation
                 // Mark as playing audio
                 _isPlayingAudio = true;
                 
+                // Create a new cancellation token source
+                _playbackCancellationTokenSource = new CancellationTokenSource();
+                var cancellationToken = _playbackCancellationTokenSource.Token;
+                
                 // Create a WaveOut device with low latency settings
                 _currentPlayer = new WaveOutEvent
                 {
-                    DesiredLatency = 100 // Giảm độ trễ xuống 100ms (mặc định là 300ms)
+                    DesiredLatency = 100 // Reduce latency to 100ms (default is 300ms)
                 };
                 
                 // Set up playback stopped event
@@ -512,6 +687,12 @@ namespace RSTGameTranslation
                         _currentAudioFile = null;
                     }
                     
+                    // Remove file from active files list
+                    lock (_activeAudioFiles)
+                    {
+                        _activeAudioFiles.Remove(filePath);
+                    }
+                    
                     // Delete the temp file with retry mechanism
                     DeleteFileWithRetry(filePath);
                     
@@ -528,6 +709,16 @@ namespace RSTGameTranslation
                 // Start playback
                 Console.WriteLine($"Starting audio playback of file: {filePath}");
                 _currentPlayer.Play();
+                
+                // Register cancellation
+                cancellationToken.Register(() =>
+                {
+                    if (_currentPlayer != null && _isPlayingAudio)
+                    {
+                        Console.WriteLine("Playback cancelled");
+                        _currentPlayer.Stop();
+                    }
+                });
                 
                 // Wait for the playback to complete
                 return await tcs.Task;
@@ -549,6 +740,12 @@ namespace RSTGameTranslation
                 {
                     _currentPlayer.Dispose();
                     _currentPlayer = null;
+                }
+                
+                // Remove file from active files list
+                lock (_activeAudioFiles)
+                {
+                    _activeAudioFiles.Remove(filePath);
                 }
                 
                 // Delete the temp file with retry mechanism
@@ -682,7 +879,7 @@ namespace RSTGameTranslation
                     {
                         if (!pair.Value) // Not UWP, so it's a SAPI voice
                         {
-                            // Tìm voiceKey tương ứng với voice ID này
+                            // Find the voiceKey corresponding to this voice ID
                             foreach (var voicePair in AvailableVoices)
                             {
                                 if (voicePair.Value == pair.Key)
@@ -712,7 +909,7 @@ namespace RSTGameTranslation
             }
         }
         
-        // Phương thức để lấy và đặt tốc độ phát âm
+        // Method to get and set speech rate
         public static int GetSpeechRate()
         {
             return _speechRate;
@@ -721,6 +918,26 @@ namespace RSTGameTranslation
         public static void SetSpeechRate(int rate)
         {
             _speechRate = Math.Clamp(rate, MinSpeechRate, MaxSpeechRate);
+        }
+        
+        // Method to clear the audio queue
+        public static void ClearAudioQueue()
+        {
+            lock (_audioFileQueue)
+            {
+                Console.WriteLine($"Clearing audio queue. {_audioFileQueue.Count} items removed.");
+                
+                // Remove all files in the queue from active files list
+                lock (_activeAudioFiles)
+                {
+                    foreach (string file in _audioFileQueue)
+                    {
+                        _activeAudioFiles.Remove(file);
+                    }
+                }
+                
+                _audioFileQueue.Clear();
+            }
         }
     }
 }

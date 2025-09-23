@@ -183,15 +183,15 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    // Nhóm các giọng nói theo ngôn ngữ để dễ tìm
+                    // Group voices by language
                     var groupedVoices = new Dictionary<string, List<string>>();
                     
                     foreach (string voiceName in availableVoices)
                     {
-                        // Trích xuất thông tin ngôn ngữ từ tên giọng nói
+                        // Extract language information from voice
                         string languageCode = "Other";
                         
-                        // Tìm mã ngôn ngữ trong ngoặc đơn, ví dụ: (vi-VN, ...)
+                        
                         int startIndex = voiceName.IndexOf('(');
                         if (startIndex > 0)
                         {
@@ -202,7 +202,7 @@ namespace RSTGameTranslation
                             }
                         }
                         
-                        // Thêm vào nhóm tương ứng
+                        // Add to group
                         if (!groupedVoices.ContainsKey(languageCode))
                         {
                             groupedVoices[languageCode] = new List<string>();
@@ -210,10 +210,9 @@ namespace RSTGameTranslation
                         groupedVoices[languageCode].Add(voiceName);
                     }
                     
-                    // Ưu tiên hiển thị giọng tiếng Việt trước
+                    // Prefer show VN language
                     List<string> languagePriority = new List<string> { "vi-VN", "Vietnamese" };
                     
-                    // Thêm các giọng nói theo thứ tự ưu tiên
                     foreach (string priorityLang in languagePriority)
                     {
                         if (groupedVoices.ContainsKey(priorityLang))
@@ -226,12 +225,10 @@ namespace RSTGameTranslation
                                 };
                                 windowTTSVoiceComboBox.Items.Add(item);
                             }
-                            // Xóa khỏi từ điển để không thêm lại
                             groupedVoices.Remove(priorityLang);
                         }
                     }
                     
-                    // Thêm các giọng nói còn lại
                     foreach (var group in groupedVoices)
                     {
                         foreach (string voiceName in group.Value)

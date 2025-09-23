@@ -219,14 +219,11 @@ namespace RSTGameTranslation
             
             try
             {
-                // Giảm thời gian chờ ban đầu xuống còn 20ms
-                // Chỉ đủ để gộp các bản dịch đến gần như cùng lúc
+                
                 await Task.Delay(5, cancellationToken);
                 
-                // Vòng lặp xử lý liên tục cho đến khi hàng đợi trống
                 while (!_speechQueue.IsEmpty && !cancellationToken.IsCancellationRequested)
                 {
-                    // Gộp tất cả văn bản hiện có trong hàng đợi thành một đoạn liên tục
                     StringBuilder combinedText = new StringBuilder();
                     int queueSize = _speechQueue.Count;
                     Console.WriteLine($"Processing {queueSize} speech requests as one batch");
@@ -256,8 +253,6 @@ namespace RSTGameTranslation
                         await Speak_Item_InternalAsync(finalText, cancellationToken);
                     }
                     
-                    // Không cần đợi thêm thời gian giữa các lần xử lý
-                    // Vòng lặp sẽ tiếp tục ngay lập tức nếu có bản dịch mới trong hàng đợi
                 }
             }
             catch (OperationCanceledException)
@@ -293,7 +288,6 @@ namespace RSTGameTranslation
                 // Start processing if not already doing so
                 if (!_isProcessingSpeech)
                 {
-                    // Hủy token nguồn hiện tại nếu có
                     if (_speechCancellationTokenSource != null)
                     {
                         _speechCancellationTokenSource.Cancel();
@@ -308,8 +302,7 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    // Nếu đang xử lý nhưng có bản dịch mới, hủy bản dịch hiện tại để xử lý bản mới ngay
-                    // Chỉ hủy nếu cấu hình cho phép
+
                     bool interruptCurrentSpeech = false;
                     if (interruptCurrentSpeech && _speechCancellationTokenSource != null)
                     {
@@ -317,10 +310,8 @@ namespace RSTGameTranslation
                         _speechCancellationTokenSource.Dispose();
                         _speechCancellationTokenSource = new CancellationTokenSource();
                         
-                        // Đặt lại cờ xử lý để bắt đầu lại quy trình
                         _isProcessingSpeech = false;
                         
-                        // Bắt đầu xử lý lại với token mới
                         Task.Run(() => ProcessSpeechQueueAsync(_speechCancellationTokenSource.Token));
                     }
                 }
@@ -338,14 +329,13 @@ namespace RSTGameTranslation
                 return string.Empty;
             
             // Replace multiple newlines with a single space to reduce pauses
-            text = System.Text.RegularExpressions.Regex.Replace(text, @"\n+", " ");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\n+", ".");
             
             // Replace multiple spaces with a single space
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
             
-            // Xóa các dấu câu thừa có thể gây ra độ trễ
-            text = System.Text.RegularExpressions.Regex.Replace(text, @"\.{2,}", ".");
-            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([.,;:!?])\s*", "$1 ");
+            // text = System.Text.RegularExpressions.Regex.Replace(text, @"\.{2,}", ".");
+            // text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([.,;:!?])\s*", "$1 ");
             
             return text.Trim();
         }
