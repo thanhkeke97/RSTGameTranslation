@@ -663,42 +663,38 @@ namespace RSTGameTranslation
         }
         
         /// <summary>
-        /// Check if the text content is similar to the previous content
+        /// Determines if two text strings are similar based on multiple similarity metrics
         /// </summary>
-        private bool IsTextSimilar(string s1, string s2, double threshold)
+        /// <param name="s1">First text string to compare</param>
+        /// <param name="s2">Second text string to compare</param>
+        /// <param name="threshold">Similarity threshold (0.0-1.0) to consider texts as similar</param>
+        /// <returns>True if texts are considered similar, false otherwise</returns>
+        private bool IsTextSimilar(string s1, string s2, double threshold = 0.7)
         {
-            // Special case: if both strings are empty, they are considered similar
+            // Handle special cases
             if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return true;
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return false;
             if (s1 == s2) return true;
             
-            // Get the source language from the config manager
-            string sourceLanguage = GetSourceLanguage().ToLowerInvariant();
-            
-            // Calculate the similarity using the selected method
-            double similarity;
-            
-            // Process for Asian languages (Japanese, Chinese, Korean)
-            if (sourceLanguage == "ja" || sourceLanguage == "ch_sim" || sourceLanguage == "ko")
+            // For very short strings, use exact matching with trimming
+            if (s1.Length < 5 || s2.Length < 5)
             {
-
-                similarity = CombinedAsianLanguageSimilarity(s1, s2);
-            }
-            // Process for other languages
-            else
-            {
-                // Combined similarity calculation for other languages
-                double keywordSimilarity = KeywordSimilarity(s1, s2);
-                double diceCoefficient = DiceCoefficient(s1, s2);
-                double wordOverlap = WordOverlapSimilarity(s1, s2);
-                
-                // Get the maximum similarity among the three methods
-                similarity = Math.Max(Math.Max(keywordSimilarity, diceCoefficient), wordOverlap);
+                return s1.Trim().Equals(s2.Trim(), StringComparison.OrdinalIgnoreCase);
             }
             
-            // Console.WriteLine($"Similarity between '{s1}' and '{s2}': {similarity}, threshold: {threshold}");
+            // Calculate similarity using different metrics
+            double keywordSim = KeywordSimilarity(s1, s2);
+            double diceSim = DiceCoefficient(s1, s2);
+            double wordOverlapSim = WordOverlapSimilarity(s1, s2);
             
-            return similarity >= threshold;
+            // Use the maximum similarity score from all methods
+            double maxSimilarity = Math.Max(Math.Max(keywordSim, diceSim), wordOverlapSim);
+            
+            // Debug similarity scores if needed
+            // Console.WriteLine($"Similarity between '{s1}' and '{s2}': Keyword={keywordSim:F2}, Dice={diceSim:F2}, WordOverlap={wordOverlapSim:F2}, Max={maxSimilarity:F2}");
+            
+            // Return true if any similarity metric exceeds the threshold
+            return maxSimilarity >= threshold;
         }
         
         /// <summary>
@@ -781,72 +777,113 @@ namespace RSTGameTranslation
                 : 0;
         }
 
+        /// <summary>
+        /// Calculate the similarity between two strings based on their keywords
+        /// </summary>
         private double KeywordSimilarity(string s1, string s2)
         {
-            // List of popular keywords
-            HashSet<string> stopWords = new HashSet<string>(new[] {
-                "a", "an", "the", "and", "or", "but", "is", "are", "was", "were",
-                "be", "been", "being", "in", "on", "at", "to", "for", "with", "by",
-                "about", "against", "between", "into", "through", "during", "before",
-                "after", "above", "below", "from", "up", "down", "of", "off", "over",
-                "under", "again", "further", "then", "once", "here", "there", "when",
-                "where", "why", "how", "all", "any", "both", "each", "few", "more",
-                "most", "other", "some", "such", "no", "nor", "not", "only", "own",
-                "same", "so", "than", "too", "very", "can", "will", "just", "should",
-                "now", "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
-                "you", "your", "yours", "yourself", "yourselves", "he", "him", "his",
-                "himself", "she", "her", "hers", "herself", "it", "its", "itself",
-                "they", "them", "their", "theirs", "themselves", "what", "which", "who",
-                "whom", "this", "that", "these", "those", "am", "have", "has", "had",
-                "do", "does", "did", "doing", "would", "could", "should", "ought",
-                "i'm", "you're", "he's", "she's", "it's", "we're", "they're", "i've",
-                "you've", "we've", "they've", "i'd", "you'd", "he'd", "she'd", "we'd",
-                "they'd", "i'll", "you'll", "he'll", "she'll", "we'll", "they'll",
-                "isn't", "aren't", "wasn't", "weren't", "hasn't", "haven't", "hadn't",
-                "doesn't", "don't", "didn't", "won't", "wouldn't", "shan't", "shouldn't",
-                "can't", "cannot", "couldn't", "mustn't", "let's", "that's", "who's",
-                "what's", "here's", "there's", "when's", "where's", "why's", "how's"
-            });
-
             // Special case: if both strings are empty, they are considered similar
             if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
             if (s1 == s2) return 1.0;
-
-            // Separate the strings into words
-            string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
-                StringSplitOptions.RemoveEmptyEntries);
-            string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
-                StringSplitOptions.RemoveEmptyEntries);
-
-            // Filter out stop words and create sets of keywords
-            var keywords1 = new HashSet<string>(words1
-                .Select(w => w.ToLowerInvariant())
-                .Where(w => !stopWords.Contains(w)));
-
-            var keywords2 = new HashSet<string>(words2
-                .Select(w => w.ToLowerInvariant())
-                .Where(w => !stopWords.Contains(w)));
-
-            // if both sets are empty, return 0.0
+            
+            // Get stop words for the current language
+            HashSet<string> stopWords = GetStopWordsForCurrentLanguage();
+            
+            // Separate the strings into words and filter out stop words in one pass
+            var keywords1 = new HashSet<string>(
+                s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+                    StringSplitOptions.RemoveEmptyEntries)
+                    .Select(w => w.ToLowerInvariant())
+                    .Where(w => !stopWords.Contains(w))
+            );
+            
+            var keywords2 = new HashSet<string>(
+                s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' }, 
+                    StringSplitOptions.RemoveEmptyEntries)
+                    .Select(w => w.ToLowerInvariant())
+                    .Where(w => !stopWords.Contains(w))
+            );
+            
+            // If either set is empty, use Dice coefficient on the original strings
             if (keywords1.Count == 0 || keywords2.Count == 0)
             {
-                // Using Dice coefficient for strings with no keywords
                 return DiceCoefficient(s1, s2);
             }
+            
+            // Calculate intersection size efficiently using LINQ
+            int commonKeywords = keywords1.Count(keyword => keywords2.Contains(keyword));
+            
+            // Calculate the Dice coefficient: 2*|X∩Y|/(|X|+|Y|)
+            return (2.0 * commonKeywords) / (keywords1.Count + keywords2.Count);
+        }
 
-            // Count the number of common keywords
-            int commonKeywords = 0;
-            foreach (var keyword in keywords1)
+        /// <summary>
+        /// Get stop words for the current language
+        /// </summary>
+        private HashSet<string> GetStopWordsForCurrentLanguage()
+        {
+            // Get the current language code
+            string language = GetSourceLanguage().ToLowerInvariant();
+            
+            // Return appropriate stop words based on language
+            return language switch
             {
-                if (keywords2.Contains(keyword))
-                {
-                    commonKeywords++;
+                "ja" => new HashSet<string> { 
+                    "の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ", "さ", "ある", "いる", 
+                    "も", "する", "から", "な", "こと", "として", "い", "や", "れる", "など", "なっ", "ない", 
+                    "この", "ため", "その", "あっ", "よう", "また", "もの", "という", "あり", "まで", "られ", 
+                    "なる", "へ", "か", "だ", "これ", "によって", "により", "おり", "より", "による", "ず", 
+                    "なり", "られる", "において", "ば", "なかっ", "なく", "しかし", "について", "せ", "だっ", 
+                    "その後", "できる", "それ", "う", "ので", "なお", "のみ", "でき", "き", "つ", "における", 
+                    "および", "いう", "さらに", "でも", "ら", "たり", "その他", "に関する", "たち", "ます", 
+                    "ん", "なら", "に対して", "特に", "せる", "及び", "これら", "とき", "では", "にて", "ほか", 
+                    "ながら", "うち", "そして", "とともに", "ただし", "かつて", "それぞれ", "または", "お", 
+                    "ほど", "ものの", "に対する", "ほとんど", "と共に", "といった", "です", "とも", "ところ", "ここ" 
+                },
+                "ch_sim" => new HashSet<string> { 
+                    "的", "了", "和", "是", "就", "都", "而", "及", "與", "著", "或", "一個", "沒有", 
+                    "我們", "你們", "他們", "她們", "自己", "其中", "之後", "什麼", "一些", "這個", "那個", 
+                    "這些", "那些", "每個", "各自", "的話", "一樣", "不同", "因此", "因為", "所以", "如果", 
+                    "但是", "不過", "只是", "除了", "以及", "然後", "現在", "曾經", "已經", "一直", "將來", 
+                    "一定", "可能", "應該", "需要", "不能", "可以", "不要", "不會", "那麼", "如何", "為何", 
+                    "怎樣", "哪裡", "誰", "什麼", "為什麼", "多少", "幾時", "如何", "怎樣", "哪裡", "從哪裡", "到哪裡" 
+                },
+                "ko" => new HashSet<string> { 
+                    "이", "그", "저", "것", "수", "등", "들", "및", "에서", "그리고", "그러나", "그런데", 
+                    "그래서", "또는", "혹은", "그러므로", "따라서", "하지만", "또한", "에게", "의해", "때문에", 
+                    "을", "를", "이", "가", "에", "에게", "께", "한테", "더러", "에서", "에게서", "한테서", 
+                    "로", "으로", "와", "과", "랑", "이랑", "하고", "처럼", "만큼", "보다", "같이", "도", 
+                    "만", "부터", "까지", "마저", "조차", "커녕", "은", "는", "이", "가", "을", "를", 
+                    "의", "로서", "로써", "서", "에서", "께서" 
+                },
+                "vi" => new HashSet<string> { 
+                    "và", "của", "cho", "trong", "là", "với", "có", "được", "tại", "những", "để", 
+                    "các", "đến", "về", "không", "này", "như", "từ", "một", "người", "ra", "thì", 
+                    "bị", "đã", "sẽ", "đang", "nên", "cần", "vì", "khi", "nếu", "cũng", "nhưng", 
+                    "mà", "còn", "phải", "trên", "dưới", "theo", "do", "vào", "lúc", "sau", "rồi", 
+                    "đó", "nào", "thế", "vậy", "tôi", "bạn", "anh", "chị", "ông", "bà", "họ", 
+                    "chúng", "ta", "mình", "làm", "biết", "đi", "thấy", "muốn", "nói", "nhìn", 
+                    "thích", "cảm", "yêu", "ghét", "sợ", "buồn", "vui", "giận", "mệt", "đói", 
+                    "khát", "ngủ", "dậy", "chạy", "đứng", "ngồi", "nằm" 
+                },
+                _ => new HashSet<string> { 
+                    "a", "an", "the", "and", "or", "but", "is", "are", "was", "were", "be", 
+                    "been", "being", "in", "on", "at", "to", "for", "with", "by", "about", 
+                    "against", "between", "into", "through", "during", "before", "after", 
+                    "above", "below", "from", "up", "down", "of", "off", "over", "under", 
+                    "again", "further", "then", "once", "here", "there", "when", "where", 
+                    "why", "how", "all", "any", "both", "each", "few", "more", "most", 
+                    "other", "some", "such", "no", "nor", "not", "only", "own", "same", 
+                    "so", "than", "too", "very", "can", "will", "just", "should", "now", 
+                    "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", 
+                    "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", 
+                    "she", "her", "hers", "herself", "it", "its", "itself", "they", "them", 
+                    "their", "theirs", "themselves", "what", "which", "who", "whom", "this", 
+                    "that", "these", "those", "am", "have", "has", "had", "do", "does", 
+                    "did", "doing", "would", "could", "should", "ought" 
                 }
-            }
-
-            // Calculate the Dice coefficient
-            return (double)commonKeywords / (keywords1.Count + keywords2.Count - commonKeywords);
+            };
         }
 
         /// <summary>
