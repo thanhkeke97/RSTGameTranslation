@@ -39,7 +39,7 @@ namespace RSTGameTranslation
         
         // Current audio player
         private static IWavePlayer? _currentPlayer = null;
-        private string audioFile;
+        // private string audioFile;
         
         // Current audio file reader
         private static AudioFileReader? _currentAudioFile = null;
@@ -50,7 +50,7 @@ namespace RSTGameTranslation
         // Default speech rate values
         public const int MinSpeechRate = -10;
         public const int MaxSpeechRate = 10;
-        public const int DefaultSpeechRate = 2;
+        // public const int DefaultSpeechRate = 2;
         
         // Path to temp directory
         private static readonly string _tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");

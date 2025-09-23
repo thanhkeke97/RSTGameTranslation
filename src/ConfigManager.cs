@@ -358,7 +358,7 @@ namespace RSTGameTranslation
             _configValues[TARGET_LANGUAGE] = "vi";
             _configValues[ELEVENLABS_API_KEY] = "<your API key here>";
             _configValues[ELEVENLABS_VOICE] = "21m00Tcm4TlvDq8ikWAM";
-            _configValues[TTS_SERVICE] = "Google Cloud TTS";
+            _configValues[TTS_SERVICE] = "Windows TTS";
             _configValues[GOOGLE_TTS_API_KEY] = "<your API key here>";
             _configValues[GOOGLE_TTS_VOICE] = "ja-JP-Neural2-B";
             _configValues[WINDOWS_TTS_VOICE ] = "Microsoft David (en-US, Male)";
