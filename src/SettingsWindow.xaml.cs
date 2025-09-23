@@ -1712,6 +1712,7 @@ namespace RSTGameTranslation
                 // Show/hide Window TTS-specific settings
                 windowTTSVoiceLabel.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 windowTTSVoiceComboBox.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
+                windowsTTSGuide.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 // Load service-specific settings if they're being shown
                 if (isElevenLabsSelected)
                 {
@@ -2121,6 +2122,10 @@ namespace RSTGameTranslation
         private void GoogleTtsApiLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://cloud.google.com/text-to-speech");
+        }
+        private void NaturalVoiceSAPIAdapterLink_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://github.com/gexgd0419/NaturalVoiceSAPIAdapter");
         }
 
         private void OpenUrl(string url)

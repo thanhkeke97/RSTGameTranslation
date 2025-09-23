@@ -901,6 +901,10 @@ namespace RSTGameTranslation
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.RefreshOverlays();
                 MonitorWindow.Instance.HideTranslationStatus();
+                if (ConfigManager.Instance.IsTtsEnabled())
+                {
+                    WindowsTTSService.StopAllTTS();
+                }
             }
             else
             {

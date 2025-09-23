@@ -102,7 +102,66 @@ namespace RSTGameTranslation
             // _speechRate = ConfigManager.Instance.GetWindowsTtsSpeechRate();
             
             // Register for application exit event to clean up
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) => CleanupTempFiles();
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) => CleanupAllTempFiles();
+        }
+
+        // Force cleanup of all temp files, including active ones when application exits
+        private void CleanupAllTempFiles()
+        {
+            try
+            {
+                Console.WriteLine("Application closing - cleaning up all temporary audio files");
+                
+                // Stop current playback
+                StopCurrentPlayback();
+                
+                // Clear the audio queue
+                lock (_audioFileQueue)
+                {
+                    _audioFileQueue.Clear();
+                }
+                
+                // Clear active files list
+                lock (_activeAudioFiles)
+                {
+                    _activeAudioFiles.Clear();
+                }
+                
+                // Delete all files in the temp directory
+                if (Directory.Exists(_tempDir))
+                {
+                    string[] tempFiles = Directory.GetFiles(_tempDir, "tts_*.wav");
+                    
+                    foreach (string file in tempFiles)
+                    {
+                        try
+                        {
+                            // Ensure the file isn't locked
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
+                            
+                            File.Delete(file);
+                            Console.WriteLine($"Deleted temp file on exit: {file}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to delete temp file on exit {file}: {ex.Message}");
+                        }
+                    }
+                    
+                    Console.WriteLine($"Cleaned up {tempFiles.Length} temporary audio files on application exit");
+                }
+                
+                // Clear the tracking list
+                lock (_tempFilesToDelete)
+                {
+                    _tempFilesToDelete.Clear();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during final temp file cleanup: {ex.Message}");
+            }
         }
         
         // Clean up any old temporary audio files
@@ -898,6 +957,132 @@ namespace RSTGameTranslation
             
             // If no SAPI voice found, return the first available voice
             return AvailableVoices.Keys.FirstOrDefault();
+        }
+        
+        // Public method to stop all TTS activities (for use from MainWindow)
+        public static void StopAllTTS()
+        {
+            try
+            {
+                Console.WriteLine("Stopping all TTS activities");
+
+                // Stop current playback
+                if (_instance != null)
+                {
+                    _instance.StopCurrentPlayback();
+                }
+
+                // Clear the audio queue
+                lock (_audioFileQueue)
+                {
+                    Console.WriteLine($"Clearing audio queue due to stop request. {_audioFileQueue.Count} items removed.");
+
+                    // Get all files in the queue for deletion
+                    List<string> filesToDelete = new List<string>(_audioFileQueue);
+
+                    // Remove all files in the queue from active files list
+                    lock (_activeAudioFiles)
+                    {
+                        foreach (string file in _audioFileQueue)
+                        {
+                            _activeAudioFiles.Remove(file);
+                        }
+                    }
+
+                    _audioFileQueue.Clear();
+
+                    // Delete all queued audio files
+                    foreach (string file in filesToDelete)
+                    {
+                        if (File.Exists(file))
+                        {
+                            try
+                            {
+                                // Force garbage collection to release any file handles
+                                GC.Collect();
+                                GC.WaitForPendingFinalizers();
+                                
+                                File.Delete(file);
+                                Console.WriteLine($"Deleted queued audio file: {file}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Failed to delete queued audio file {file}: {ex.Message}");
+                                
+                                // Add to tracking list for future cleanup
+                                lock (_tempFilesToDelete)
+                                {
+                                    if (!_tempFilesToDelete.Contains(file))
+                                    {
+                                        _tempFilesToDelete.Add(file);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Reset processing flag to allow new playback
+                _isProcessingQueue = false;
+
+                // Force immediate cleanup of all temp files
+                Task.Run(() => {
+                    try
+                    {
+                        // Delete all files in the temp directory that match our pattern
+                        if (Directory.Exists(_tempDir))
+                        {
+                            string[] tempFiles = Directory.GetFiles(_tempDir, "tts_*.wav");
+                            
+                            foreach (string file in tempFiles)
+                            {
+                                // Skip files that are still active
+                                bool isActive = false;
+                                lock (_activeAudioFiles)
+                                {
+                                    isActive = _activeAudioFiles.Contains(file);
+                                }
+                                
+                                if (!isActive)
+                                {
+                                    try
+                                    {
+                                        // Ensure the file isn't locked
+                                        GC.Collect();
+                                        GC.WaitForPendingFinalizers();
+                                        
+                                        File.Delete(file);
+                                        Console.WriteLine($"Deleted temp audio file during stop: {file}");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Failed to delete temp file during stop {file}: {ex.Message}");
+                                        
+                                        // Add to tracking list for future cleanup
+                                        lock (_tempFilesToDelete)
+                                        {
+                                            if (!_tempFilesToDelete.Contains(file))
+                                            {
+                                                _tempFilesToDelete.Add(file);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            Console.WriteLine($"Cleaned up temp files during stop: {tempFiles.Length - _activeAudioFiles.Count} files processed");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error during temp file cleanup on stop: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping TTS activities: {ex.Message}");
+            }
         }
         
         // Force cleanup of all temp files

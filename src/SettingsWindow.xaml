@@ -855,13 +855,67 @@
                                 </ComboBox>
 
                                 <!-- Windows TTS Voice - Only visible when Windows TTS is selected -->
-                                <TextBlock x:Name="windowTTSVoiceLabel" Text="Windows TTS Voice:" Grid.Row="3" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,5,10,0"/>
-                                <ComboBox x:Name="windowTTSVoiceComboBox" Grid.Row="3" Grid.Column="1" 
-                                         Margin="0,5" SelectionChanged="WindowTTSVoiceComboBox_SelectionChanged">
+                                <TextBlock x:Name="windowTTSVoiceLabel" Text="Windows TTS Voice:" Grid.Row="2" Grid.Column="0" 
+                                        VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <ComboBox x:Name="windowTTSVoiceComboBox" Grid.Row="2" Grid.Column="1" 
+                                        Margin="0,5" SelectionChanged="WindowTTSVoiceComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Microsoft An (vi-VN, Male)"/>
                                     <ComboBoxItem Content="Microsoft David (en-US, Male)"/>
                                 </ComboBox>
+
+                                <!-- Windows TTS Guide GroupBox -->
+                                <GroupBox x:Name="windowsTTSGuide" Header="Windows TTS Guide" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" Visibility="Collapsed">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBlock Text="Robotic Voices:" Grid.Row="0" Grid.Column="0" 
+                                                VerticalAlignment="Top" Margin="0,5,10,0" FontWeight="Bold"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                                VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap">
+                                            To install robotic language voices, go to Settings > Time &amp; language > Speech > Add voices. Select the language you want, 
+                                            click the Add button then wait for the voice to be added to the system. After that, reset the RstGameTranslation application 
+                                            to display the new voices.
+                                        </TextBlock>
+                                        
+                                        <TextBlock Text="Natural Voices:" Grid.Row="1" Grid.Column="0" 
+                                                VerticalAlignment="Top" Margin="0,10,10,0" FontWeight="Bold"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" 
+                                                VerticalAlignment="Top" Margin="0,10,0,0" TextWrapping="Wrap">
+                                            For higher quality natural voices:
+                                        </TextBlock>
+                                        
+                                        <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap">
+                                            <Run>1. Download and install NaturalVoiceSAPIAdapter from: </Run>
+                                            <Hyperlink Click="NaturalVoiceSAPIAdapterLink_Click">https://github.com/ThePBone/NaturalVoiceSAPIAdapter</Hyperlink>
+                                        </TextBlock>
+                                        
+                                        <TextBlock Grid.Row="3" Grid.Column="1" 
+                                                VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap">
+                                            2. After installation, restart this application.
+                                        </TextBlock>
+                                        
+                                        <TextBlock Grid.Row="4" Grid.Column="1" 
+                                                VerticalAlignment="Top" Margin="0,5,0,10" TextWrapping="Wrap">
+                                            3. Natural voices will appear in the combo box above marked with (SAPI), while robotic voices will be marked with (UWP).
+                                        </TextBlock>
+
+                                        <TextBlock Grid.Row="5" Grid.Column="1" 
+                                                VerticalAlignment="Top" Margin="0,5,0,10" TextWrapping="Wrap">
+                                            4. For voice languages not available in the list, please select the Multilingual voices in the combo box. These voices can speak multiple languages in addition to their main language.
+                                        </TextBlock>
+                                    </Grid>
+                                </GroupBox>
                                 
                                 <!-- Google TTS API Key - Only visible when Google TTS is selected -->
                                 <TextBlock x:Name="googleTtsApiKeyLabel" Text="Google API Key:" Grid.Row="2" Grid.Column="0" 
