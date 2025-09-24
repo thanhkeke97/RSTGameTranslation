@@ -326,21 +326,29 @@ namespace RSTGameTranslation
                     {
                         if (voice.Enabled)
                         {
-                            var info = voice.VoiceInfo;
-                            string displayName = info.Name;
-                            string gender = info.Gender.ToString();
-                            string age = info.Age.ToString();
-                            string culture = info.Culture?.DisplayName ?? "Unknown";
-                            
-                            // Create a descriptive name for the voice
-                            string voiceKey = $"{displayName} ({culture}, {gender}, SAPI)";
-                            
-                            // Add to dictionary - use the name as the ID for System.Speech voices
-                            if (!AvailableVoices.ContainsKey(voiceKey))
+                            try
                             {
-                                AvailableVoices.Add(voiceKey, info.Name);
-                                _voiceApiSource.Add(info.Name, false); // Store by info.Name
-                                Console.WriteLine($"Found SAPI TTS voice: {voiceKey} - {info.Name}");
+                                var info = voice.VoiceInfo;
+                                string displayName = info.Name;
+                                string gender = info.Gender.ToString();
+                                string age = info.Age.ToString();
+                                string culture = info.Culture?.DisplayName ?? "Unknown";
+                                
+                                // Create a descriptive name for the voice
+                                string voiceKey = $"{displayName} ({culture}, {gender}, SAPI)";
+                                
+                                // Add to dictionary - use the name as the ID for System.Speech voices
+                                if (!AvailableVoices.ContainsKey(voiceKey))
+                                {
+                                    AvailableVoices.Add(voiceKey, info.Name);
+                                    _voiceApiSource.Add(info.Name, false); // Store by info.Name
+                                    Console.WriteLine($"Found SAPI TTS voice: {voiceKey} - {info.Name}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log error but continue processing other voices
+                                Console.WriteLine($"Error processing individual System.Speech voice: {ex.Message}");
                             }
                         }
                     }
