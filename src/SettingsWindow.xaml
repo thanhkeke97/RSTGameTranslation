@@ -798,15 +798,23 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- TTS Enabled -->
                                 <TextBlock Text="Enable TTS:" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="ttsEnabledCheckBox" Grid.Row="0" Grid.Column="1" 
-                                         Margin="0,5" IsChecked="True" 
+                                         Margin="0,5"
                                          Checked="TtsEnabledCheckBox_CheckedChanged" 
                                          Unchecked="TtsEnabledCheckBox_CheckedChanged"/>
+                                
+                                <TextBlock Text="Exclude Character Name" Grid.Row="4" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="excludeCharacterNameCheckBox" Grid.Row="4" Grid.Column="1" 
+                                         Margin="0,5"
+                                         Checked="ExcludeCharacterNameCheckBox_CheckedChanged" 
+                                         Unchecked="ExcludeCharacterNameCheckBox_CheckedChanged"/>
                                 
                                 <!-- TTS Service -->
                                 <TextBlock Text="TTS Service:" Grid.Row="1" Grid.Column="0" 

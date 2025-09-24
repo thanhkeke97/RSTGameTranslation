@@ -97,6 +97,7 @@ namespace RSTGameTranslation
         public const string GOOGLE_TTS_API_KEY = "google_tts_api_key";
         public const string GOOGLE_TTS_VOICE = "google_tts_voice";
         public const string WINDOWS_TTS_VOICE = "windows_tts_voice";
+        public const string EXCLUDE_CHARACTER_NAME = "exclude_character_name";
 
         // ChatBox configuration keys
         public const string CHATBOX_FONT_FAMILY = "chatbox_font_family";
@@ -402,6 +403,7 @@ namespace RSTGameTranslation
             _configValues[SEND_DATA_TO_SERVER] = "false";
             _configValues[WINDOWS_OCR_INTEGRATION] = "false";
             _configValues[AUTO_OCR] = "true";
+            _configValues[EXCLUDE_CHARACTER_NAME] = "false";
 
             // Save the default configuration
             SaveConfig();
@@ -1575,6 +1577,20 @@ namespace RSTGameTranslation
             _configValues[TTS_ENABLED] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"TTS enabled: {enabled}");
+        }
+
+        // Get/Set exclude character name
+        public bool IsExcludeCharacterNameEnabled()
+        {
+            string value = GetValue(EXCLUDE_CHARACTER_NAME, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetExcludeCharacterName(bool enabled)
+        {
+            _configValues[EXCLUDE_CHARACTER_NAME] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"exclude character name enabled: {enabled}");
         }
 
         // Get/Set TTS service

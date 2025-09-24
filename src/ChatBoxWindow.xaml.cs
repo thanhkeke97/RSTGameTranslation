@@ -747,9 +747,25 @@ namespace RSTGameTranslation
 
             // Update UI with existing history
             UpdateChatHistory();
-            if (!string.IsNullOrEmpty(translatedText) & ConfigManager.Instance.IsTtsEnabled())
+            
+            if (!string.IsNullOrEmpty(translatedText) && ConfigManager.Instance.IsTtsEnabled())
             {
-                EnqueueSpeechRequest(translatedText);
+                if (ConfigManager.Instance.IsExcludeCharacterNameEnabled())
+                {
+                    string[] text = translatedText.Split(':', 2);
+                    if (text.Length > 1)
+                    {
+                        EnqueueSpeechRequest(text[1]);
+                    }
+                    else
+                    {
+                        EnqueueSpeechRequest(text[0]);
+                    }
+                }
+                else
+                {
+                    EnqueueSpeechRequest(translatedText);
+                }
             }
         }
 

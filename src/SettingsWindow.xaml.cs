@@ -185,13 +185,13 @@ namespace RSTGameTranslation
                 {
                     // Group voices by language
                     var groupedVoices = new Dictionary<string, List<string>>();
-                    
+
                     foreach (string voiceName in availableVoices)
                     {
                         // Extract language information from voice
                         string languageCode = "Other";
-                        
-                        
+
+
                         int startIndex = voiceName.IndexOf('(');
                         if (startIndex > 0)
                         {
@@ -201,7 +201,7 @@ namespace RSTGameTranslation
                                 languageCode = voiceName.Substring(startIndex + 1, endIndex - startIndex - 1).Trim();
                             }
                         }
-                        
+
                         // Add to group
                         if (!groupedVoices.ContainsKey(languageCode))
                         {
@@ -209,10 +209,10 @@ namespace RSTGameTranslation
                         }
                         groupedVoices[languageCode].Add(voiceName);
                     }
-                    
+
                     // Prefer show VN language
                     List<string> languagePriority = new List<string> { "vi-VN", "Vietnamese" };
-                    
+
                     foreach (string priorityLang in languagePriority)
                     {
                         if (groupedVoices.ContainsKey(priorityLang))
@@ -228,7 +228,7 @@ namespace RSTGameTranslation
                             groupedVoices.Remove(priorityLang);
                         }
                     }
-                    
+
                     foreach (var group in groupedVoices)
                     {
                         foreach (string voiceName in group.Value)
@@ -263,9 +263,9 @@ namespace RSTGameTranslation
                         foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
                         {
                             string? itemContent = item.Content?.ToString();
-                            if (itemContent != null && 
-                                (itemContent.Contains("Vietnamese") || 
-                                itemContent.Contains("vi-VN") || 
+                            if (itemContent != null &&
+                                (itemContent.Contains("Vietnamese") ||
+                                itemContent.Contains("vi-VN") ||
                                 itemContent.Contains("An")))
                             {
                                 windowTTSVoiceComboBox.SelectedItem = item;
@@ -280,7 +280,7 @@ namespace RSTGameTranslation
                     if (!foundVoice)
                     {
                         string? defaultVoice = WindowsTTSService.GetDefaultSystemVoice();
-                        
+
                         if (!string.IsNullOrEmpty(defaultVoice))
                         {
                             foreach (ComboBoxItem item in windowTTSVoiceComboBox.Items)
@@ -294,7 +294,7 @@ namespace RSTGameTranslation
                                 }
                             }
                         }
-                        
+
                         // If still no voice selected, select the first one
                         if (!foundVoice && windowTTSVoiceComboBox.Items.Count > 0)
                         {
@@ -769,6 +769,9 @@ namespace RSTGameTranslation
 
             // Set TTS enabled state
             ttsEnabledCheckBox.IsChecked = ConfigManager.Instance.IsTtsEnabled();
+
+            // Set Exclude character name
+            excludeCharacterNameCheckBox.IsChecked = ConfigManager.Instance.IsExcludeCharacterNameEnabled();
 
             // Set TTS service
             string ttsService = ConfigManager.Instance.GetTtsService();
@@ -1694,7 +1697,7 @@ namespace RSTGameTranslation
                 }
 
                 // Init combobox window TTS
-                
+
 
                 // Show/hide ElevenLabs-specific settings
                 elevenLabsApiKeyLabel.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -2269,7 +2272,7 @@ namespace RSTGameTranslation
             }
         }
 
-        
+
         private void WindowTTSVoiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -2280,7 +2283,7 @@ namespace RSTGameTranslation
 
                 if (windowTTSVoiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    string voiceId = selectedItem.Content?.ToString() ?? "Microsoft David (en-US, Male)"; 
+                    string voiceId = selectedItem.Content?.ToString() ?? "Microsoft David (en-US, Male)";
                     ConfigManager.Instance.SetWindowsTtsVoice(voiceId);
                     Console.WriteLine($"Windows TTS voice set to: {selectedItem.Content} (ID: {voiceId})");
                 }
@@ -3225,6 +3228,13 @@ namespace RSTGameTranslation
             bool enabled = AutoOCRCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetAutoOCR(enabled);
             Console.WriteLine($"Auto OCR set to {enabled}");
+        }
+
+        private void ExcludeCharacterNameCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = excludeCharacterNameCheckBox.IsChecked ?? false;
+            ConfigManager.Instance.SetExcludeCharacterName(enabled);
+            Console.WriteLine($"Exclude character name set to {enabled}");
         }
     }
 }
