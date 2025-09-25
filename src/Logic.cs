@@ -437,12 +437,13 @@ namespace RSTGameTranslation
                     string text = textElement.GetString() ?? string.Empty;
                     if (!string.IsNullOrWhiteSpace(text))
                     {
-                        textBuilder.AppendLine(text);
+                        textBuilder.Append(text);
+                        textBuilder.Append(' ');
                     }
                 }
             }
             
-            return textBuilder.ToString();
+            return textBuilder.ToString().Trim();
         }
 
         //! Process the OCR text data, this is before it's been translated
