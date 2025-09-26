@@ -59,7 +59,6 @@
                                     <ComboBoxItem Content="cs"/>
                                     <ComboBoxItem Content="id"/>
                                     <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="ch_tra"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -810,9 +809,10 @@
                                          Unchecked="TtsEnabledCheckBox_CheckedChanged"/>
                                 
                                 <TextBlock Text="Exclude Character Name" Grid.Row="4" Grid.Column="0" 
+                                          ToolTip="The application will automatically exclude character's name in the dialogue. The required format is &lt;character name&gt;: &lt;dialogue&gt;"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="excludeCharacterNameCheckBox" Grid.Row="4" Grid.Column="1" 
-                                         Margin="0,5"
+                                         Margin="0,5" 
                                          Checked="ExcludeCharacterNameCheckBox_CheckedChanged" 
                                          Unchecked="ExcludeCharacterNameCheckBox_CheckedChanged"/>
                                 

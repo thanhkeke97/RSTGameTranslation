@@ -15,6 +15,7 @@ using System.Windows.Shell;
 using System.Net.Http;
 using System.Text.Json;
 using SocketIOClient;
+using Windows.ApplicationModel.VoiceCommands;
 
 
 namespace RSTGameTranslation
@@ -714,6 +715,7 @@ namespace RSTGameTranslation
             // Register the LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
             this.LocationChanged += MainWindow_LocationChanged;
             // ToggleMonitorWindow();
+            CheckAndShowQuickstart();
         }
 
         // The LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
@@ -1076,6 +1078,7 @@ namespace RSTGameTranslation
             }
             else
             {
+                SettingsWindow.Instance.ReloadSetting();
                 // Always use the remembered position if it has been set
                 if (settingsWindowLeft != -1 || settingsWindowTop != -1)
                 {
@@ -1087,7 +1090,7 @@ namespace RSTGameTranslation
                 else
                 {
                     // Position to the center of mainwindow
-                    double mainCenter = this.Left + this.ActualWidth/2;
+                    double mainCenter = this.Left + this.ActualWidth / 2;
                     double mainTop = this.Top;
 
                     SettingsWindow.Instance.Left = mainCenter;
@@ -1941,9 +1944,9 @@ namespace RSTGameTranslation
             {
                 // Disable the button to prevent multiple clicks
                 btnStartOcrServer.IsEnabled = false;
-                
+
                 // Get the OCR server port from the configuration
-                string ocrMethod = GetSelectedOcrMethod();
+                string ocrMethod = ConfigManager.Instance.GetOcrMethod();
                 
 
                 if (ocrMethod == "Windows OCR")
@@ -2028,10 +2031,10 @@ namespace RSTGameTranslation
             {
                 // Disable the button to prevent multiple clicks
                 btnSetupOcrServer.IsEnabled = false;
-                
+
                 // Get current OCR method
                 string ocrMethod = GetSelectedOcrMethod();
-                
+
 
                 if (ocrMethod == "Windows OCR")
                 {
@@ -2039,7 +2042,7 @@ namespace RSTGameTranslation
                     btnSetupOcrServer.IsEnabled = true;
                     return;
                 }
-                
+
                 // Show setup dialog
                 MessageBoxResult result = System.Windows.MessageBox.Show(
                     $"Are you sure you want to install the environment for {ocrMethod}?\n\n" +
@@ -2047,17 +2050,18 @@ namespace RSTGameTranslation
                     "Confirm installation",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
-                    
+
                 if (result == MessageBoxResult.Yes)
                 {
                     // Show status message
                     SetStatus($"Setting up environment for {ocrMethod}...");
-                    
+
                     // Run setup
-                    await Task.Run(() => {
+                    await Task.Run(() =>
+                    {
                         OcrServerManager.Instance.SetupOcrEnvironment(ocrMethod);
                     });
-                    
+
                     SetStatus($"{ocrMethod} environment setup completed");
                 }
             }
@@ -2209,6 +2213,25 @@ namespace RSTGameTranslation
             e.Handled = true;
         }
 
+        private void QuickStartButton_Click(object sender, RoutedEventArgs e)
+        {
+            QuickstartWindow quickstartWindow = new QuickstartWindow();
+            quickstartWindow.Owner = this;
+            quickstartWindow.ShowDialog();
+        }
+        
+        private void CheckAndShowQuickstart()
+        {
+            bool showQuickstart = ConfigManager.Instance.IsNeedShowQuickStart();
+
+            if (showQuickstart)
+            {
+                QuickstartWindow quickstartWindow = new QuickstartWindow();
+                quickstartWindow.Owner = this;
+                quickstartWindow.ShowDialog();
+            }
+        }
+
         private void DiscordButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -2224,7 +2247,7 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error opening Discord link: {ex.Message}");
-                
+
                 // Show error message
                 System.Windows.MessageBox.Show($"Cannot open discord link: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);

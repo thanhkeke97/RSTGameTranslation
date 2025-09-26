@@ -34,6 +34,7 @@ namespace RSTGameTranslation
         public const string ELEVENLABS_API_KEYS = "elevenlabs_api_keys";
         public const string GOOGLE_TTS_API_KEYS = "google_tts_api_keys";
         public const string OPENAI_REALTIME_API_KEYS = "openai_realtime_api_keys";
+        public const string SHOW_QUICK_START = "show_quick_start";
 
         // HotKey manager
         public const string HOTKEY_START_STOP = "hotkey_start_stop";
@@ -404,6 +405,7 @@ namespace RSTGameTranslation
             _configValues[WINDOWS_OCR_INTEGRATION] = "false";
             _configValues[AUTO_OCR] = "true";
             _configValues[EXCLUDE_CHARACTER_NAME] = "false";
+            _configValues[SHOW_QUICK_START] = "true";
 
             // Save the default configuration
             SaveConfig();
@@ -1143,6 +1145,20 @@ namespace RSTGameTranslation
             Console.WriteLine($"Char level enabled: {enabled}");
         }
 
+        // Check if need show quick start
+        public bool IsNeedShowQuickStart()
+        {
+            string value = GetValue(SHOW_QUICK_START, "true");
+            return value.ToLower() == "true";
+        }
+
+        // Set char level
+        public void SetNeedShowQuickStart(bool enabled)
+        {
+            _configValues[SHOW_QUICK_START] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Show quick start: {enabled}");
+        }
 
         // Check if auto translate is enabled
         public bool IsAutoTranslateEnabled()
@@ -1705,7 +1721,7 @@ namespace RSTGameTranslation
             return GetValue(CHATGPT_MODEL, "gpt-3.5-turbo"); // Default to gpt-3.5-turbo
         }
 
-        public void SetChatGptModel(string model)
+        public void SetChatGptModel(string? model)
         {
             if (!string.IsNullOrWhiteSpace(model))
             {
@@ -1724,7 +1740,7 @@ namespace RSTGameTranslation
         }
 
         // Set Gemini model
-        public void SetGeminiModel(string model)
+        public void SetGeminiModel(string? model)
         {
             if (!string.IsNullOrWhiteSpace(model))
             {

@@ -2366,14 +2366,15 @@ namespace RSTGameTranslation
             }
             // return (MainWindow.Instance.sourceLanguageComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
             // Find the MainWindow instance
-            var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
-            // Get the selected ComboBoxItem
-            if (mainWindow!.sourceLanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
-            {
-                // Return the content as string
-                return selectedItem.Content?.ToString()!;
-            }
-            return "en";
+            // var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+            // // Get the selected ComboBoxItem
+            // if (mainWindow!.sourceLanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
+            // {
+            //     // Return the content as string
+            //     return selectedItem.Content?.ToString()!;
+            // }
+            
+            return ConfigManager.Instance.GetSourceLanguage();
         }
 
         // Get target language from MainWindow (for future implementation)
@@ -2384,15 +2385,15 @@ namespace RSTGameTranslation
                 return Application.Current.Dispatcher.Invoke(() => GetTargetLanguage());
             }
             
-            // Find the MainWindow instance
-            var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
-            // Get the selected ComboBoxItem
-            if (mainWindow!.targetLanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
-            {
-                // Return the content as string
-                return selectedItem.Content?.ToString()!;
-            }
-            return "vi";
+            // // Find the MainWindow instance
+            // var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+            // // Get the selected ComboBoxItem
+            // if (mainWindow!.targetLanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
+            // {
+            //     // Return the content as string
+            //     return selectedItem.Content?.ToString()!;
+            // }
+            return ConfigManager.Instance.GetTargetLanguage();
         }
         
         // Get previous context based on configuration settings

@@ -83,6 +83,8 @@ namespace RSTGameTranslation
         {
             _instance = this;
             LoadAvailableScreens();
+            LoadAllProfile();
+            LoadAvailableWindowTTSVoice();
             SettingsWindow_Loaded(null, null);
         }
 

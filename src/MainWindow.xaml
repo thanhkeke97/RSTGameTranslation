@@ -334,6 +334,7 @@
                                         <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         
                                         <!-- Icon -->
@@ -347,6 +348,10 @@
                                                 <Run Text="CLICK HERE FOR DETAIL SETUP GUIDE !!!" FontSize="16" FontWeight="Bold" Foreground="Orange"/>
                                         </Hyperlink>
                                         </TextBlock>
+
+                                        <Button x:Name="quickStart" Content="QUICK START" Grid.Column="2" FontSize="16" FontWeight="Bold" Foreground="Orange" Style="{StaticResource ModernButton}"
+                                        Background="#FF5F5F5F"
+                                        Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                 </Grid>
                                 </Border>
 
