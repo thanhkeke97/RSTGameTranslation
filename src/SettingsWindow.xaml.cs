@@ -2790,22 +2790,25 @@ namespace RSTGameTranslation
                 Directory.CreateDirectory(ConfigManager.Instance._profileFolderPath);
             }
 
+            profileComboBox.Items.Clear();
+            
+            HashSet<string> uniqueNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            
             List<string?> fileNames = Directory.GetFiles(ConfigManager.Instance._profileFolderPath, "*.txt")
-            .Select(Path.GetFileNameWithoutExtension)
-            .Where(name => !string.IsNullOrEmpty(name))
-            .OrderBy(name => name)
-            .ToList();
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .OrderBy(name => name)
+                .ToList();
 
             foreach (string? name in fileNames)
             {
-                if (!string.IsNullOrEmpty(name))
+                if (!string.IsNullOrEmpty(name) && uniqueNames.Add(name))
                 {
                     profileComboBox.Items.Add(name);
                 }
             }
-
-
         }
+
         // Handle Clear Context button click
         private void ClearContextButton_Click(object sender, RoutedEventArgs e)
         {
