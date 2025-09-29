@@ -84,7 +84,6 @@ namespace RSTGameTranslation
                     {
                         LoadTranslationSettings();
                     }
-                    // NextButton.Content = "Finish";
                     break;
                 case 6:
                     CompletePanel.Visibility = Visibility.Visible;
@@ -103,6 +102,7 @@ namespace RSTGameTranslation
             Step2Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
             Step3Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
             Step4Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
+            Step5Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
 
             // Highlight current step
             switch (currentStep)
@@ -117,8 +117,10 @@ namespace RSTGameTranslation
                     Step3Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
                     break;
                 case 4:
-                case 5:
                     Step4Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
+                    break;
+                case 5:
+                    Step5Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
                     break;
             }
         }
@@ -149,20 +151,26 @@ namespace RSTGameTranslation
             List<string> languages = new List<string>
             {
                 "ja",
-                "en", "ch_sim",
+                "en",
+                "ch_sim",
                 "ch_tra",
                 "ko",
                 "vi",
                 "fr",
                 "ru",
-                "de", "es",
+                "de",
+                "es",
                 "it",
                 "hi",
-                "pt", "ar", "nl",
-                "pl", "ro",
+                "pt",
+                "ar",
+                "nl",
+                "pl",
+                "ro",
                 "fa",
                 "cs",
-                "id", "th"
+                "id",
+                "th"
             };
 
             // Sort languages alphabetically
@@ -187,6 +195,12 @@ namespace RSTGameTranslation
                     // Find and select the languages in the comboboxes
                     SourceLanguageComboBox.SelectedItem = languages[0];
                     TargetLanguageComboBox.SelectedItem = languages[1];
+                }
+                else
+                {
+                    // Default language select 
+                    SourceLanguageComboBox.SelectedItem = "en";
+                    TargetLanguageComboBox.SelectedItem = "vi";
                 }
             }
         }

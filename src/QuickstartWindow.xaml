@@ -165,6 +165,67 @@
                     <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray">
                         Note: You can change these settings later in the Settings menu -> Language tab
                     </TextBlock>
+                    <GroupBox Header="Language Mapping" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
+                                    Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
+                                <Run>ja = Japanese</Run>
+                                <LineBreak/>
+                                <Run>en = English</Run>
+                                <LineBreak/>
+                                <Run>ch_sim = Chinese (Simplified)</Run>
+                                <LineBreak/>
+                                <Run>ko = Korean</Run>
+                                <LineBreak/>
+                                <Run>vi = Vietnamese</Run>
+                                <LineBreak/>
+                                <Run>fr = French</Run>
+                                <LineBreak/>
+                                <Run>ru = Russian</Run>
+                                <LineBreak/>
+                                <Run>de = German</Run>
+                                <LineBreak/>
+                                <Run>es = Spanish</Run>
+                                <LineBreak/>
+                                <Run>it = Italian</Run>
+                                <LineBreak/>
+                                <Run>hi = Hindi</Run>
+                            </TextBlock>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
+                                Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
+                                <Run>pt = Portuguese</Run>
+                                <LineBreak/>
+                                <Run>ar = Arabic</Run>
+                                <LineBreak/>
+                                <Run>nl = Dutch</Run>
+                                <LineBreak/>
+                                <Run>pl = Polish</Run>
+                                <LineBreak/>
+                                <Run>ro = Romanian</Run>
+                                <LineBreak/>
+                                <Run>fa = Farsi</Run>
+                                <LineBreak/>
+                                <Run>cs = Czech</Run>
+                                <LineBreak/>
+                                <Run>id = Indonesian</Run>
+                                <LineBreak/>
+                                <Run>th = ThaiLand</Run>
+                                <LineBreak/>
+                                <Run>ch_tra = Traditional Chinese</Run>
+                            </TextBlock>
+                            </Grid>
+                        </GroupBox>
                 </StackPanel>
 
                 <!-- Conda install Panel -->
@@ -200,7 +261,7 @@
 
                     <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
                         For advanced OCR methods (EasyOCR, PaddleOCR, RapidOCR), you'll need to install and start the OCR server. 
-                        This can be done through the SetupOCR button on the main screen after completing this guide.
+                        This can be done through the SetupOCR button on the main screen or button Setup OCR server below after completing this guide.
                     </TextBlock>
                     <Grid Margin="0,0,0,20">
                         <Grid.RowDefinitions>
@@ -404,7 +465,11 @@
                     </TextBlock>
 
                     <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        You've successfully configured the basic settings for RST Game Translation. Here's a summary of your settings:
+                        You've successfully configured the basic settings for RST Game Translation. Your changes will be saved after you click the finish button.
+                    </TextBlock>
+
+                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
+                        Here's a summary of your settings:
                     </TextBlock>
 
                     <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,0,20">
@@ -448,16 +513,16 @@
                                 Click the "Start" button to begin the translation process. The translation is in real time.
                             </TextBlock>
 
-                            <TextBlock TextWrapping="Wrap">
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
                                 <Run FontWeight="Bold" Foreground="#3498db">3. View Translation History</Run>
                                 <LineBreak/>
                                 Click the "Chat Box" button to view your translation history and manage translated text.
                             </TextBlock>
 
                             <TextBlock TextWrapping="Wrap">
-                                <Run FontWeight="Bold" Foreground="#3498db">3. View Translation History</Run>
+                                <Run FontWeight="Bold" Foreground="#3498db">4. View Translation Overlay (works only on Windows 11)</Run>
                                 <LineBreak/>
-                                Click the overlay button to display the translation over the original text position on the screen (works only on Windows 11).
+                                Click the "Overlay" button to display the translation over the original text position on the screen.
                             </TextBlock>
                         </StackPanel>
                     </Border>

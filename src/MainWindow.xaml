@@ -334,22 +334,21 @@
                                         <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         
                                         <!-- Icon -->
-                                        <TextBlock Grid.Column="0" Text="&#xE897;" FontFamily="Segoe MDL2 Assets" 
-                                                FontSize="24" VerticalAlignment="Center" Foreground="#FFFFFFFF"/>
+                                        <!-- <TextBlock Grid.Column="0" Text="&#xE897;" FontFamily="Segoe MDL2 Assets" 
+                                                FontSize="24" VerticalAlignment="Center" Foreground="#FFFFFFFF"/> -->
                                         
-                                        <!-- Link -->
+                                        <!-- Link
                                         <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
                                         <Hyperlink x:Name="tutorialLink" NavigateUri="https://github.com/thanhkeke97/RSTGameTranslation?tab=readme-ov-file#-quick-start" 
                                                 RequestNavigate="TutorialLink_RequestNavigate">
                                                 <Run Text="CLICK HERE FOR DETAIL SETUP GUIDE !!!" FontSize="16" FontWeight="Bold" Foreground="Orange"/>
                                         </Hyperlink>
-                                        </TextBlock>
+                                        </TextBlock> -->
 
-                                        <Button x:Name="quickStart" Content="QUICK START" Grid.Column="2" FontSize="16" FontWeight="Bold" Foreground="Orange" Style="{StaticResource ModernButton}"
+                                        <Button x:Name="quickStart" Content="QUICK START" Grid.Column="1" FontSize="16" FontWeight="Bold" Foreground="Orange" Style="{StaticResource ModernButton}"
                                         Background="#FF5F5F5F"
                                         Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                 </Grid>
@@ -396,7 +395,7 @@
                                 </Border>
                                 
                                 <!-- FAQ Section -->
-                                <Border Grid.Row="3" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
+                                <Border Grid.Row="4" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
                                 <StackPanel>
                                         <TextBlock Text="FREQUENTLY ASKED QUESTIONS" Foreground="#FF00AAFF" FontSize="16" 
                                                 FontWeight="Bold" Margin="0,0,0,10"/>
@@ -464,7 +463,7 @@
                                 </Border>
                                 
                                 <!-- Support Section (keeping existing Discord reference) -->
-                                <Border Grid.Row="4" Background="#44007ACC" CornerRadius="6" Margin="0,0,0,0" Padding="15">
+                                <Border Grid.Row="3" Background="#44007ACC" CornerRadius="6" Margin="0,0,0,0" Padding="15">
                                 <Grid>
                                         <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
