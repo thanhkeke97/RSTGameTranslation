@@ -224,7 +224,7 @@ namespace RSTGameTranslation
             // Set current selection
             switch (ocrMethod.ToLower())
             {
-                case "windowsocr":
+                case "windows ocr":
                     OcrMethodComboBox.SelectedItem = "Windows OCR";
                     break;
                 case "easyocr":
@@ -307,7 +307,7 @@ namespace RSTGameTranslation
             // Set current selection
             switch (translationService.ToLower())
             {
-                case "googletranslate":
+                case "google translate":
                     TranslationServiceComboBox.SelectedItem = "Google Translate";
                     break;
                 case "chatgpt":
