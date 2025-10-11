@@ -107,10 +107,12 @@ namespace RSTGameTranslation
             this.PreviewKeyDown += Application_KeyDown;
 
             Console.WriteLine("MonitorWindow constructor completed");
-
-            // Add SourceInitialized event handler to set window attributes
-            this.SourceInitialized += MonitorWindow_SourceInitialized;
-            Console.WriteLine("Exclude MonitorWindow from capture success");
+            if (ConfigManager.Instance.IsAutoOCREnabled())
+            {
+                // Add SourceInitialized event handler to set window attributes
+                this.SourceInitialized += MonitorWindow_SourceInitialized;
+                Console.WriteLine("Exclude MonitorWindow from capture success");
+            }
         }
         
         // Add a new method to handle SourceInitialized event
