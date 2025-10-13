@@ -222,107 +222,78 @@ namespace RSTGameTranslation
                 {
                     _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
                 }
-                
-                // Use a more robust URL with additional parameters
-                string url = $"https://translate.google.com/m?hl={targetLanguage}&sl={sourceLanguage}&tl={targetLanguage}&ie=UTF-8&prev=_m&q={encodedText}";
-                
+
                 // Log translation attempt (truncate long texts)
                 string logText = normalizedText.Length > 50 
                     ? normalizedText.Substring(0, 50) + "..." 
                     : normalizedText;
                 Console.WriteLine($"Translating with free service: {logText}");
-                
-                // Send the request
+
+                // First attempt with the 'googleapis' endpoint
+                string url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sourceLanguage}&tl={targetLanguage}&dt=t&q={encodedText}";
                 var response = await _httpClient.GetAsync(url);
-                
-                // Check if the request was successful
+
                 if (response.IsSuccessStatusCode)
                 {
-                    string result = "";
                     string jsonResponse = await response.Content.ReadAsStringAsync();
-                    GoogleTranslateResultRegex = new Regex("(?<=(<div(.*)class=\"result-container\"(.*)>))[\\s\\S]*?(?=(<\\/div>))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    var matchResult = GoogleTranslateResultRegex.Match(jsonResponse);
-                    if (matchResult.Success)
+                    try
                     {
-                        result = matchResult.Value.ToString();
-                    }
-                    if (!string.IsNullOrEmpty(result))
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Translated text was empty after processing");
-                        return $"[EMPTY RESULT] {text}";
-                    }
-                }
-                
-                Console.WriteLine($"Google Translate free service error: {response.StatusCode}");
+                        using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+                        StringBuilder translatedText = new StringBuilder();
+                        JsonElement outerArray = doc.RootElement;
 
-                // Try alternative endpoint if the first one fails
-                if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
-                    response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-                {
-                    Console.WriteLine("Trying alternative endpoint...");
-                    url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sourceLanguage}&tl={targetLanguage}&dt=t&q={encodedText}";
-                    response = await _httpClient.GetAsync(url);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string jsonResponse = await response.Content.ReadAsStringAsync();
-                        
-                        try
+                        if (outerArray.GetArrayLength() > 0)
                         {
-                            // The response is a nested JSON array, not a proper JSON object
-                            // Format: [[[translated_text, original_text, ...], ...], ...]
-                            using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                            
-                            // Build the full translated text from all segments
-                            StringBuilder translatedText = new StringBuilder();
-                            
-                            // Navigate through the nested arrays
-                            JsonElement outerArray = doc.RootElement;
-                            if (outerArray.GetArrayLength() > 0)
+                            JsonElement translationArray = outerArray[0];
+                            foreach (JsonElement segment in translationArray.EnumerateArray())
                             {
-                                JsonElement translationArray = outerArray[0];
-                                
-                                // Iterate through each translation segment
-                                foreach (JsonElement segment in translationArray.EnumerateArray())
+                                if (segment.GetArrayLength() > 0 && segment[0].ValueKind == JsonValueKind.String)
                                 {
-                                    if (segment.GetArrayLength() > 0 && segment[0].ValueKind == JsonValueKind.String)
-                                    {
-                                        string segmentText = segment[0].GetString() ?? "";
-                                        translatedText.Append(segmentText);
-                                    }
+                                    translatedText.Append(segment[0].GetString() ?? "");
                                 }
                             }
-                            
-                            string result = translatedText.ToString();
-                            
-                            // Log the result for debugging (truncate long results)
-                            string logResult = result.Length > 50 
-                                ? result.Substring(0, 50) + "..." 
-                                : result;
-                            Console.WriteLine($"Translation result: {logResult}");
-                            
-                            if (!string.IsNullOrEmpty(result))
-                            {
-                                return result;
-                            }
-                            else
-                            {
-                                Console.WriteLine("Translated text was empty after processing");
-                                return $"[EMPTY RESULT] {text}";
-                            }
                         }
-                        catch (JsonException jsonEx)
+                        
+                        string result = translatedText.ToString();
+                        if (!string.IsNullOrEmpty(result))
                         {
-                            Console.WriteLine($"JSON parsing error: {jsonEx.Message}");
-                            Console.WriteLine($"Response content: {jsonResponse}");
-                            return $"[JSON ERROR] {text}";
+                            return result;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Translated text was empty after processing (googleapis)");
+                            // Don't return here, fall through to the alternative
+                        }
+                    }
+                    catch (JsonException jsonEx)
+                    {
+                        Console.WriteLine($"JSON parsing error (googleapis): {jsonEx.Message}");
+                        // Fall through to the alternative method
+                    }
+                }
+
+                // If the first attempt fails or results in empty text, try the alternative endpoint
+                Console.WriteLine("First endpoint failed or returned empty. Trying alternative endpoint...");
+                url = $"https://translate.google.com/m?hl={targetLanguage}&sl={sourceLanguage}&tl={targetLanguage}&ie=UTF-8&prev=_m&q={encodedText}";
+                response = await _httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string htmlResponse = await response.Content.ReadAsStringAsync();
+                    var regex = new Regex("(?<=(<div(.*)class=\"result-container\"(.*)>))[\\s\\S]*?(?=(<\\/div>))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    var matchResult = regex.Match(htmlResponse);
+                    
+                    if (matchResult.Success)
+                    {
+                        string result = matchResult.Value.ToString();
+                        if (!string.IsNullOrEmpty(result))
+                        {
+                            return result;
                         }
                     }
                 }
-                
+
+                Console.WriteLine($"Google Translate free service error (both endpoints failed): {response.StatusCode}");
                 return $"[ERROR] {text}";
             }
             catch (Exception ex)

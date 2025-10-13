@@ -40,10 +40,21 @@ namespace RSTGameTranslation
         
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
+
         // ShowWindow commands
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
+
+        // Constants for disabling the close button
+        private const uint SC_CLOSE = 0xF060;
+        private const uint MF_BYCOMMAND = 0x00000000;
+        private const uint MF_GRAYED = 0x00000001;
         
         private static readonly HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(5) };
 
@@ -372,6 +383,10 @@ namespace RSTGameTranslation
         
         private void ToggleTranslationAreaSelector()
         {
+            if (this.WindowState != WindowState.Minimized)
+            {
+                this.WindowState = WindowState.Minimized;
+            }
             if (isSelectingTranslationArea)
             {
                 // Cancel translation region selection if active
@@ -1397,7 +1412,18 @@ namespace RSTGameTranslation
         private void InitializeConsole()
         {
             AllocConsole();
-            
+
+            // Disable the close button on the console window to prevent closing the app
+            IntPtr consoleHandle = GetConsoleWindow();
+            if (consoleHandle != IntPtr.Zero)
+            {
+                IntPtr hMenu = GetSystemMenu(consoleHandle, false);
+                if (hMenu != IntPtr.Zero)
+                {
+                    EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
+                }
+            }
+
             // Disable console input to prevent the app from freezing
             DisableConsoleInput();
             
