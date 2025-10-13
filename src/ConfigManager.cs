@@ -123,6 +123,7 @@ namespace RSTGameTranslation
         // Constants for overlay settings
         public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
         public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
+        public const string IS_AUTO_SET_OVERLAY_BACKGROUND = "IsAutoSetOverlayBackground";
 
         // Constants for screen selection
         private const string SELECTED_SCREEN_INDEX = "SelectedScreenIndex";
@@ -1539,6 +1540,19 @@ namespace RSTGameTranslation
                 SaveConfig();
                 Console.WriteLine($"Target language set to: {language}");
             }
+        }
+
+        public bool IsAutoSetOverlayBackground()
+        {
+            string value = GetValue(IS_AUTO_SET_OVERLAY_BACKGROUND, "true");
+            return value.ToLower() == "true";
+        }
+
+        public void SetAutoSetOverlayBackground(bool enabled)
+        {
+            _configValues[IS_AUTO_SET_OVERLAY_BACKGROUND] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Auto Set Overlay Background enabled: {enabled}");
         }
 
         public bool IsSendDataToServerEnabled()

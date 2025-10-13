@@ -71,7 +71,7 @@ namespace RSTGameTranslation
         }
 
         // Constants
-        private const string DEFAULT_OUTPUT_PATH = @"webserver\image_to_process.png";
+        public const string DEFAULT_OUTPUT_PATH = @"webserver\image_to_process.png";
         private const double CAPTURE_INTERVAL_SECONDS = 1;
         private const int TITLE_BAR_HEIGHT = 50; // Height of our custom title bar (includes 10px for resize)
         private const int FOOTER_BAR_HEIGHT = 30; // Height of our custom title bar (includes 10px for resize)
@@ -1189,7 +1189,9 @@ namespace RSTGameTranslation
                     stopwatch.Start();
 
                     SetOCRCheckIsWanted(false);
-
+                    //write saving bitmap to log
+                    Console.WriteLine($"Saving bitmap to {outputPath}");
+                    bitmap.Save(outputPath, ImageFormat.Png);
                     // Check if we're using Windows OCR - if so, process in memory without saving
                     if (GetSelectedOcrMethod() == "Windows OCR")
                     {
@@ -1199,16 +1201,10 @@ namespace RSTGameTranslation
                     else if (GetSelectedOcrMethod() != "Windows OCR" & ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
                     {
                         string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                        //write saving bitmap to log
-                        Console.WriteLine($"Saving bitmap to {outputPath}");
-                        bitmap.Save(outputPath, ImageFormat.Png);
                         Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
                     }
                     else
                     {
-                        //write saving bitmap to log
-                        Console.WriteLine($"Saving bitmap to {outputPath}");
-                        bitmap.Save(outputPath, ImageFormat.Png);
                         Logic.Instance.SendImageToServerOCR(outputPath);
                     }
 

@@ -19,6 +19,7 @@ namespace RSTGameTranslation
         private static Logic? _instance;
         private List<TextObject> _textObjects;
         private List<TextObject> _textObjectsOld;
+        private string outputPath = MainWindow.DEFAULT_OUTPUT_PATH;
         private Random _random;
         private Grid? _overlayContainer;
         private int _textIDCounter = 0;
@@ -1229,7 +1230,6 @@ namespace RSTGameTranslation
         // Create a text object at the specified position with confidence info
         private void CreateTextObjectAtPosition(string text, double x, double y, double width, double height, double confidence)
         {
-
             try
             {
                 // Check if we need to run on the UI thread
@@ -1278,45 +1278,93 @@ namespace RSTGameTranslation
                 int fontSize = 18;  // Default
                 if (height > 0)
                 {
-                    double fontSizeRatio = 0.9; 
-                    
+                    double fontSizeRatio = 0.9;
+
 
                     string sourceLanguage = GetSourceLanguage().ToLowerInvariant();
                     if (sourceLanguage == "ja" || sourceLanguage == "ch_sim" || sourceLanguage == "ko")
                     {
-                        
+
                         fontSizeRatio = 0.95;
                     }
                     else if (sourceLanguage == "vi" || sourceLanguage == "th")
                     {
-                        
+
                         fontSizeRatio = 0.85;
                     }
-                    
-                    
+
+
                     fontSize = Math.Max(10, Math.Min(36, (int)(height * fontSizeRatio)));
-                    
-                    
+
+
                     if (width > 0 && text.Length > 0)
                     {
                         double charDensity = text.Length / width;
-                        if (charDensity > 0.5) 
+                        if (charDensity > 0.5)
                         {
                             fontSize = Math.Max(10, (int)(fontSize * 0.9));
                         }
                     }
                 }
+                Color textColor;
+                Color bgColor;
+                if(ConfigManager.Instance.IsAutoSetOverlayBackground())
+                {
+                    // Get dominant of color
+                    System.Drawing.Color dominantColor = System.Drawing.Color.Black;
+
+                    try
+                    {
+                        using (System.Drawing.Image image = System.Drawing.Image.FromFile(outputPath))
+                        {
+                            Bitmap bitmap = new Bitmap(image);
+                            int bitmapX = (int)x;
+                            int bitmapY = (int)y;
+                            int bitmapWidth = Math.Max(1, (int)width);
+                            int bitmapHeight = Math.Max(1, (int)height);
+
+                            if (bitmapWidth > 0 && bitmapHeight > 0)
+                            {
+                                dominantColor = ColorUtils.GetDominantColor(
+                                    bitmap,
+                                    bitmapX, bitmapY, bitmapWidth, bitmapHeight);
+
+                                bgColor = ColorUtils.CreateBackgroundColor(dominantColor);
+
+                                textColor = ColorUtils.GetContrastingTextColor(dominantColor);
+
+                                Console.WriteLine($"Detected dominant color: R={dominantColor.R}, G={dominantColor.G}, B={dominantColor.B}");
+                            }
+                            else
+                            {
+                                textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
+                                bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
+                            }
+                        }
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error detecting dominant color: {ex.Message}");
+                        textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
+                        bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
+                    }
+                }
+                else
+                {
+                    textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
+                    bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
+                }
                 
-                // Create text object with Yellow text on semi-transparent black background
-                SolidColorBrush textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor());
-                SolidColorBrush bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor());
+                SolidColorBrush textBrush = new SolidColorBrush(textColor);
+                SolidColorBrush bgBrush = new SolidColorBrush(bgColor);
                 
                 // Add the text object to the UI
                 TextObject textObject = new TextObject(
                     text,  // Just the text, without confidence
                     x, y, width, height,
-                    textColor,
-                    bgColor,
+                    textBrush,
+                    bgBrush,
                     captureX, captureY  // Store original capture coordinates
                 );
                 textObject.ID = "text_"+GetNextTextID();

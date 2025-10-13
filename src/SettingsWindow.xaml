@@ -422,11 +422,21 @@
                                 <Button x:Name="overlayConfig" Content="Adjust Config" Grid.Row="0" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="20,8,0,10" Padding="5,3" Click="AdjustOverlayConfig_Click"
                                        ToolTip="Adjust overlay background and text colour"/>
-                                <TextBlock Text="Show Icon Signal When Start OCR" Grid.Row="1" Grid.Column="0" 
+                                <!-- Auto Set Overlay Background Color Checkbox-->
+                                <TextBlock Text="Auto Set Overlay Background Color:" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"
+                                          ToolTip="Smart select background color for overlay base on image"/>
+                                <CheckBox x:Name="autoSetOverlayBackgroundColorcheckBox" Grid.Row="1" Grid.Column="1" 
+                                         Margin="20,8,0,0" IsChecked="True" Padding="5,3"
+                                         Checked="AutoSetOverlayBackgroundColorcheckBox_CheckedChanged" 
+                                         Unchecked="AutoSetOverlayBackgroundColorcheckBox_CheckedChanged"/>
+                                
+                                <!-- Show Icon Signal When Start OCR -->
+                                <TextBlock Text="Show Icon Signal When Start OCR" Grid.Row="2" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,8,10,0" 
                                           ToolTip="Show small icon when starting OCR and translate"/>
-                                <CheckBox x:Name="showIconSignalCheckBox" Grid.Row="1" Grid.Column="1" 
-                                         Margin="20,8,0,0" IsChecked="True" 
+                                <CheckBox x:Name="showIconSignalCheckBox" Grid.Row="2" Grid.Column="1" 
+                                         Margin="20,8,0,0" IsChecked="True" Padding="5,3"
                                          Checked="ShowIconSignal_CheckedChanged" 
                                          Unchecked="ShowIconSignal_CheckedChanged"/>
                             </Grid>

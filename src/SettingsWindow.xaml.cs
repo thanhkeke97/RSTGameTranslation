@@ -667,6 +667,9 @@ namespace RSTGameTranslation
             // Set show icon signal
             showIconSignalCheckBox.IsChecked = ConfigManager.Instance.IsShowIconSignalEnabled();
 
+            // Set auto set overlay background color
+            autoSetOverlayBackgroundColorcheckBox.IsChecked = ConfigManager.Instance.IsAutoSetOverlayBackground();
+
             // Set auto OCR
             AutoOCRCheckBox.IsChecked = ConfigManager.Instance.IsAutoOCREnabled();
 
@@ -3240,6 +3243,13 @@ namespace RSTGameTranslation
             bool enabled = excludeCharacterNameCheckBox.IsChecked ?? false;
             ConfigManager.Instance.SetExcludeCharacterName(enabled);
             Console.WriteLine($"Exclude character name set to {enabled}");
+        }
+
+        private void AutoSetOverlayBackgroundColorcheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = autoSetOverlayBackgroundColorcheckBox.IsChecked ?? true;
+            ConfigManager.Instance.SetAutoSetOverlayBackground(enabled);
+            Console.WriteLine($"Auto set overlay background color set to {enabled}");
         }
     }
 }
