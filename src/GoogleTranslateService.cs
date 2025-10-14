@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace RSTGameTranslation
 {
@@ -19,6 +20,7 @@ namespace RSTGameTranslation
         private readonly bool _useCloudApi;
         private readonly bool _autoMapLanguages;
         public static Regex GoogleTranslateResultRegex { get; set; }
+        private const string TEXT_SEPARATOR = "|||RST_SEPARATOR|||";
 
         public GoogleTranslateService()
         {
@@ -77,6 +79,9 @@ namespace RSTGameTranslation
                 
                 if (root.TryGetProperty("text_blocks", out JsonElement textBlocks))
                 {
+                    List<(string id, string text)> blocks = new List<(string id, string text)>();
+                    StringBuilder combinedText = new StringBuilder();
+                    
                     foreach (JsonElement block in textBlocks.EnumerateArray())
                     {
                         string originalText = "";
@@ -92,43 +97,93 @@ namespace RSTGameTranslation
                             blockId = id.GetString() ?? "";
                         }
                         
-                        // Ignore empty blocks
                         if (string.IsNullOrWhiteSpace(originalText))
                         {
                             continue;
                         }
                         
-                        // Perform translation
-                        string translatedText;
-                        if (_useCloudApi)
-                        {
-                            translatedText = await TranslateWithCloudApiAsync(originalText, sourceLanguage, targetLanguage);
-                        }
-                        else
-                        {
-                            translatedText = await TranslateWithFreeServiceAsync(originalText, sourceLanguage, targetLanguage);
-                        }
+                        blocks.Add((blockId, originalText));
                         
-                        // Write the translated text to the output JSON
-                        outputJson.WriteStartObject();
-                        outputJson.WriteString("id", blockId);
-                        outputJson.WriteString("original_text", originalText);
-                        outputJson.WriteString("translated_text", translatedText);
+                        if (combinedText.Length > 0)
+                        {
+                            combinedText.Append(TEXT_SEPARATOR);
+                        }
+                        combinedText.Append(originalText);
+                    }
+                    
+                    if (blocks.Count == 0)
+                    {
+                        outputJson.WriteEndArray();
                         outputJson.WriteEndObject();
+                        outputJson.Flush();
+                        return Encoding.UTF8.GetString(memoryStream.ToArray());
+                    }
+                    
+                    string combinedTranslatedText;
+                    if (_useCloudApi)
+                    {
+                        combinedTranslatedText = await TranslateWithCloudApiAsync(combinedText.ToString(), sourceLanguage, targetLanguage);
+                    }
+                    else
+                    {
+                        combinedTranslatedText = await TranslateWithFreeServiceAsync(combinedText.ToString(), sourceLanguage, targetLanguage);
+                    }
+                    
+                    string[] translatedParts = combinedTranslatedText.Split(TEXT_SEPARATOR);
+                    
+                    if (translatedParts.Length != blocks.Count)
+                    {
+                        Console.WriteLine($"Warning: Number of translated parts ({translatedParts.Length}) does not match number of original blocks ({blocks.Count})");
                         
-                        // Log for debugging
-                        Console.WriteLine($"Google translated: '{originalText}' -> '{translatedText}'");
+                        for (int i = 0; i < blocks.Count; i++)
+                        {
+                            var (blockId, originalText) = blocks[i];
+                            string translatedText;
+                            
+                            if (_useCloudApi)
+                            {
+                                translatedText = await TranslateWithCloudApiAsync(originalText, sourceLanguage, targetLanguage);
+                            }
+                            else
+                            {
+                                translatedText = await TranslateWithFreeServiceAsync(originalText, sourceLanguage, targetLanguage);
+                            }
+                            
+                            outputJson.WriteStartObject();
+                            outputJson.WriteString("id", blockId);
+                            outputJson.WriteString("original_text", originalText);
+                            outputJson.WriteString("translated_text", translatedText);
+                            outputJson.WriteEndObject();
+                            
+                            Console.WriteLine($"Google translated (individual): '{originalText}' -> '{translatedText}'");
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < blocks.Count; i++)
+                        {
+                            var (blockId, originalText) = blocks[i];
+                            string translatedText = translatedParts[i].Trim();
+                            
+                            
+                            outputJson.WriteStartObject();
+                            outputJson.WriteString("id", blockId);
+                            outputJson.WriteString("original_text", originalText);
+                            outputJson.WriteString("translated_text", translatedText);
+                            outputJson.WriteEndObject();
+                            
+                            
+                            Console.WriteLine($"Google translated (batch): '{originalText}' -> '{translatedText}'");
+                        }
                     }
                 }
                 
                 outputJson.WriteEndArray();
                 outputJson.WriteEndObject();
                 
-                // Transfer the JSON to a string and return it
                 outputJson.Flush();
                 string result = Encoding.UTF8.GetString(memoryStream.ToArray());
                 
-                // Log
                 Console.WriteLine($"Google Translate final JSON result: {result.Substring(0, Math.Min(100, result.Length))}...");
                 
                 return result;
@@ -257,6 +312,9 @@ namespace RSTGameTranslation
                         string result = translatedText.ToString();
                         if (!string.IsNullOrEmpty(result))
                         {
+                            result = result.Replace(" " + TEXT_SEPARATOR + " ", TEXT_SEPARATOR)
+                                          .Replace(" " + TEXT_SEPARATOR, TEXT_SEPARATOR)
+                                          .Replace(TEXT_SEPARATOR + " ", TEXT_SEPARATOR);
                             return result;
                         }
                         else
@@ -288,6 +346,9 @@ namespace RSTGameTranslation
                         string result = matchResult.Value.ToString();
                         if (!string.IsNullOrEmpty(result))
                         {
+                            result = result.Replace(" " + TEXT_SEPARATOR + " ", TEXT_SEPARATOR)
+                                          .Replace(" " + TEXT_SEPARATOR, TEXT_SEPARATOR)
+                                          .Replace(TEXT_SEPARATOR + " ", TEXT_SEPARATOR);
                             return result;
                         }
                     }
