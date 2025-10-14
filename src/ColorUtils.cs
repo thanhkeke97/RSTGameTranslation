@@ -49,7 +49,7 @@ namespace RSTGameTranslation
                     // Quantize the color to reduce the number of unique colors
                     int quantizedColor = QuantizeColor(pixelColor);
                     
-                    if (colorCounts.TryGetValue(quantizedColor, out ColorCount count))
+                    if (colorCounts.TryGetValue(quantizedColor, out ColorCount? count))
                     {
                         count.Count++;
                     }
