@@ -107,7 +107,7 @@ namespace RSTGameTranslation
             this.PreviewKeyDown += Application_KeyDown;
 
             Console.WriteLine("MonitorWindow constructor completed");
-            if (ConfigManager.Instance.IsAutoOCREnabled())
+            if (ConfigManager.Instance.IsAutoOCREnabled() && MainWindow.Instance.Windows_Version == "Windows 11")
             {
                 // Add SourceInitialized event handler to set window attributes
                 this.SourceInitialized += MonitorWindow_SourceInitialized;
@@ -793,7 +793,7 @@ namespace RSTGameTranslation
                 translationStatusLabel.Text = $"Waiting for {service}... {elapsed.Minutes:D1}:{elapsed.Seconds:D2}";
             });
         }
-        
+
         // Show the translation status
         public void ShowTranslationStatus(bool bSettling)
         {
@@ -813,13 +813,13 @@ namespace RSTGameTranslation
                     }
                 });
 
-                    return;
+                return;
             }
 
 
             _translationStartTime = DateTime.Now;
             string service = ConfigManager.Instance.GetCurrentTranslationService();
-            
+
             Dispatcher.Invoke(() =>
             {
                 translationStatusLabel.Text = $"Waiting for {service}... 0:00";
@@ -831,18 +831,30 @@ namespace RSTGameTranslation
                 {
                     translationStatusBorder.Visibility = Visibility.Collapsed;
                 }
-                
+
                 // Start the timer if not already running
                 if (_translationStatusTimer == null)
                 {
                     InitializeTranslationStatusTimer();
                 }
-                
+
                 if (!_translationStatusTimer!.IsEnabled)
                 {
                     _translationStatusTimer.Start();
                 }
             });
+        }
+
+        public void HideOverlay()
+        {
+            if (imageScrollViewer != null)
+            imageScrollViewer.Opacity = 0.0;
+        }
+        
+        public void ShowOverlay()
+        {
+            if (imageScrollViewer != null)
+            imageScrollViewer.Opacity = 1.0;
         }
         
         // Hide the translation status

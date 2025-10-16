@@ -50,6 +50,7 @@ namespace RSTGameTranslation
         // ShowWindow commands
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
+        public string Windows_Version = "Windows 10";
 
         // Constants for disabling the close button
         private const uint SC_CLOSE = 0xF060;
@@ -201,12 +202,12 @@ namespace RSTGameTranslation
         // Methods for syncing UI controls with MonitorWindow
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
-        
-        
+
+
         public void SetOcrMethod(string method)
         {
             Console.WriteLine($"MainWindow.SetOcrMethod called with method: {method} (isInitializing: {_isInitializing})");
-            
+
             // Only update the MainWindow's internal state during initialization
             // Don't update other windows or save to config
             if (_isInitializing)
@@ -232,7 +233,7 @@ namespace RSTGameTranslation
                 }
                 return;
             }
-            
+
             // Only process if actually changing the method
             if (selectedOcrMethod != method)
             {
@@ -295,6 +296,19 @@ namespace RSTGameTranslation
             }
         }
         
+        public void GetVersionWindows()
+        {
+            var version = Environment.OSVersion.Version;
+            if (version.Build >= 22000)
+            {
+                Windows_Version = "Windows 11";
+            }
+            else
+            {
+                Windows_Version = "Windows 10";
+            }
+        }
+        
         public void SetAutoTranslateEnabled(bool enabled)
         {
             if (isAutoTranslateEnabled != enabled)
@@ -325,6 +339,7 @@ namespace RSTGameTranslation
 
             _this = this;
             InitializeComponent();
+            GetVersionWindows();
 
             // Initialize console but keep it hidden initially
             InitializeConsole();
@@ -339,7 +354,7 @@ namespace RSTGameTranslation
 
             // Setup timer for continuous capture
             _captureTimer = new DispatcherTimer();
-            _captureTimer.Interval = TimeSpan.FromSeconds(1 / 60.0f);
+            _captureTimer.Interval = TimeSpan.FromSeconds(1);
             _captureTimer.Tick += OnUpdateTick;
             _captureTimer.Start();
 
@@ -876,7 +891,7 @@ namespace RSTGameTranslation
 
         private void OnUpdateTick(object? sender, EventArgs e)
         {
-          
+
             PerformCapture();
         }
 
@@ -1120,11 +1135,20 @@ namespace RSTGameTranslation
         }
 
         //!This is where we decide to process the bitmap we just grabbed or not
-        private void PerformCapture()
+        private async void PerformCapture()
         {
-
             if (helper.Handle == IntPtr.Zero) return;
+            if (Windows_Version == "Windows 10")
+            {
+                // hide overlay before capture
+                if (MonitorWindow.Instance.IsVisible)
+                {
+                    MonitorWindow.Instance.HideOverlay();
 
+                    // Wait for UI update
+                    await Task.Delay(45); 
+                }
+            }
             // Update the capture rectangle to ensure correct dimensions
             UpdateCaptureRect();
 
@@ -1134,81 +1158,84 @@ namespace RSTGameTranslation
             // Create bitmap with window dimensions
             using (Bitmap bitmap = new Bitmap(captureRect.Width, captureRect.Height))
             {
-                // Use direct GDI capture with the overlay hidden
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    // Configure for speed and quality
-                    g.CompositingQuality = CompositingQuality.HighSpeed;
-                    g.SmoothingMode = SmoothingMode.HighSpeed;
-                    g.InterpolationMode = InterpolationMode.Low;
-                    g.PixelOffsetMode = PixelOffsetMode.HighSpeed;
-                   
-                    try
-                    {
-                        g.CopyFromScreen(
-                            captureRect.Left,
-                            captureRect.Top,
-                            0, 0,
-                            bitmap.Size,
-                            CopyPixelOperation.SourceCopy);
-                      
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error during screen capture: {ex.Message}");
-                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                    }
-                      
-                }
-                
-                // Store the current capture coordinates for use with OCR results
-                Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
-
                 try
                 {
+                    // Use direct GDI capture with the overlay hidden
+                    using (Graphics g = Graphics.FromImage(bitmap))
+                    {
+                        // Configure for speed and quality
+                        g.CompositingQuality = CompositingQuality.HighSpeed;
+                        g.SmoothingMode = SmoothingMode.HighSpeed;
+                        g.InterpolationMode = InterpolationMode.Low;
+                        g.PixelOffsetMode = PixelOffsetMode.HighSpeed;
+
+                        try
+                        {
+                            g.CopyFromScreen(
+                                captureRect.Left,
+                                captureRect.Top,
+                                0, 0,
+                                bitmap.Size,
+                                CopyPixelOperation.SourceCopy);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error during screen capture: {ex.Message}");
+                            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                            return; 
+                        }
+                    }
+                    if (Windows_Version == "Windows 10")
+                    {
+                        // Show overlay again
+                        if (MonitorWindow.Instance.IsVisible)
+                        {
+                            MonitorWindow.Instance.ShowOverlay();
+                        }
+                    }
+                    // Store the current capture coordinates for use with OCR results
+                    Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
 
                     // Update Monitor window with the copy (without saving to file)
                     if (MonitorWindow.Instance.IsVisible)
                     {
                         MonitorWindow.Instance.UpdateScreenshotFromBitmap(bitmap);
                     }
-                    if (isStopOCR & !ConfigManager.Instance.IsAutoOCREnabled())
-                    {
-                        return;
-                    }
 
-                    //do we actually want to do OCR right now?  
-                        if (!GetIsStarted()) return;
+                    bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
+                                        (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
 
-                    if (!GetOCRCheckIsWanted())
+                    if (shouldPerformOcr)
                     {
-                        return;
-                    }
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
 
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
+                        SetOCRCheckIsWanted(false);
 
-                    SetOCRCheckIsWanted(false);
-                    //write saving bitmap to log
-                    Console.WriteLine($"Saving bitmap to {outputPath}");
-                    bitmap.Save(outputPath, ImageFormat.Png);
-                    // Check if we're using Windows OCR - if so, process in memory without saving
-                    if (GetSelectedOcrMethod() == "Windows OCR")
-                    {
-                        string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                        Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
-                    }
-                    else if (GetSelectedOcrMethod() != "Windows OCR" & ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
-                    {
-                        string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                        Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
-                    }
-                    else
-                    {
-                        Logic.Instance.SendImageToServerOCR(outputPath);
-                    }
+                        // Save bitmap to png file
+                        Console.WriteLine($"Saving bitmap to {outputPath}");
+                        bitmap.Save(outputPath, ImageFormat.Png);
 
-                    stopwatch.Stop();
+                        // handle OCR
+                        string ocrMethod = GetSelectedOcrMethod();
+                        if (ocrMethod == "Windows OCR")
+                        {
+                            string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                            Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
+                        }
+                        else if (ocrMethod != "Windows OCR" && ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
+                        {
+                            string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                            Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
+                        }
+                        else
+                        {
+                            Logic.Instance.SendImageToServerOCR(outputPath);
+                        }
+
+                        stopwatch.Stop();
+                        Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1218,7 +1245,6 @@ namespace RSTGameTranslation
                     Thread.Sleep(100);
                 }
             }
-
         }
         
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
