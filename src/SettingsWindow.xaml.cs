@@ -1393,7 +1393,21 @@ namespace RSTGameTranslation
 
                     if (success)
                     {
-                        Console.WriteLine($"Prompt saved for {selectedService}");
+                        statusPrompt.Visibility = Visibility.Visible;
+                        statusPrompt.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Green);
+                        // Auto close status after 1.5 second
+                        var timer = new System.Windows.Threading.DispatcherTimer
+                        {
+                            Interval = TimeSpan.FromSeconds(1.5)
+                        };
+
+                        timer.Tick += (s, e) =>
+                        {
+                            statusPrompt.Visibility = Visibility.Collapsed;
+                            timer.Stop();
+                        };
+
+                        timer.Start();
                     }
                 }
             }
