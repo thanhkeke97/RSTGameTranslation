@@ -325,7 +325,7 @@ namespace RSTGameTranslation
 
             // Setup timer for continuous capture
             _captureTimer = new DispatcherTimer();
-            _captureTimer.Interval = TimeSpan.FromSeconds(1);
+            _captureTimer.Interval = TimeSpan.FromSeconds(0.9);
             _captureTimer.Tick += OnUpdateTick;
             _captureTimer.Start();
 
