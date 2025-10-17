@@ -371,7 +371,7 @@ namespace RSTGameTranslation
             }
             else
             {
-                GeminiModelComboBox.SelectedItem = "gemini-2.0-flash-lite";
+                GeminiModelComboBox.SelectedItem = "gemini-2.5-flash-lite";
             }
 
             // Set selected Gemini model

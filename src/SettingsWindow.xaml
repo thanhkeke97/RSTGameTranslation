@@ -576,6 +576,8 @@
                                         <ComboBoxItem Content="gemma-3-12b-it"/>
                                         <ComboBoxItem Content="gemini-2.5-flash"/>
                                         <ComboBoxItem Content="gemini-2.5-flash-lite"/>
+                                        <ComboBoxItem Content="gemini-flash-lite-latest"/>
+                                        <ComboBoxItem Content="gemini-flash-latest"/>
                                     </ComboBox>
                                     <Button x:Name="viewGeminiModelsButton" Content="View Models" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewGeminiModelsButton_Click"
