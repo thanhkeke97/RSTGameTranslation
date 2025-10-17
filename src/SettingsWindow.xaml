@@ -574,6 +574,7 @@
                                         <ComboBoxItem Content="gemini-2.0-flash"/>
                                         <ComboBoxItem Content="gemini-2.0-flash-lite"/>
                                         <ComboBoxItem Content="gemma-3-12b-it"/>
+                                        <ComboBoxItem Content="gemma-3-27b-it"/>
                                         <ComboBoxItem Content="gemini-2.5-flash"/>
                                         <ComboBoxItem Content="gemini-2.5-flash-lite"/>
                                         <ComboBoxItem Content="gemini-flash-lite-latest"/>
