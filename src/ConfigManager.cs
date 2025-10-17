@@ -76,6 +76,10 @@ namespace RSTGameTranslation
         public const string MIN_CONTEXT_SIZE = "min_context_size";
         public const string GAME_INFO = "game_info";
 
+        // Force update
+        public const string FORCE_UPDATE_PROMPT = "force_update_prompt";
+
+
         // OCR configuration keys
         public const string MIN_TEXT_FRAGMENT_SIZE = "min_text_fragment_size";
         public const string BLOCK_DETECTION_SCALE = "block_detection_scale";
@@ -143,6 +147,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
+                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
@@ -158,6 +163,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
+                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
@@ -173,6 +179,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
+                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
@@ -188,6 +195,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
+                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated.\n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
@@ -407,6 +415,7 @@ namespace RSTGameTranslation
             _configValues[AUTO_OCR] = "true";
             _configValues[EXCLUDE_CHARACTER_NAME] = "false";
             _configValues[SHOW_QUICK_START] = "true";
+            _configValues[FORCE_UPDATE_PROMPT] = "0";
 
             // Save the default configuration
             SaveConfig();
@@ -1457,6 +1466,27 @@ namespace RSTGameTranslation
                 _configValues[MIN_TEXT_FRAGMENT_SIZE] = value.ToString();
                 SaveConfig();
                 Console.WriteLine($"Minimum text fragment size set to: {value}");
+            }
+        }
+
+        // Get/Set force update prompt
+        public int GetForceUpdatePrompt()
+        {
+            string value = GetValue(FORCE_UPDATE_PROMPT, "0"); // Default: 0
+            if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int forceupdateprompt) && forceupdateprompt >= 0)
+            {
+                return forceupdateprompt;
+            }
+            return 0;
+        }
+        
+        public void SetForceUpdatePrompt(int value)
+        {
+            if (value >= 0)
+            {
+                _configValues[FORCE_UPDATE_PROMPT] = value.ToString(CultureInfo.InvariantCulture);
+                SaveConfig();
+                Console.WriteLine($"Force update prompt set to: {value}");
             }
         }
 

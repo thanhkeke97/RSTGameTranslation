@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Collections.Generic;
 
 namespace RSTGameTranslation
 {
@@ -20,7 +19,6 @@ namespace RSTGameTranslation
         private readonly bool _useCloudApi;
         private readonly bool _autoMapLanguages;
         public static Regex GoogleTranslateResultRegex { get; set; }
-        private const string TEXT_SEPARATOR = "|||RST_SEPARATOR|||";
 
         public GoogleTranslateService()
         {
@@ -79,9 +77,6 @@ namespace RSTGameTranslation
                 
                 if (root.TryGetProperty("text_blocks", out JsonElement textBlocks))
                 {
-                    List<(string id, string text)> blocks = new List<(string id, string text)>();
-                    StringBuilder combinedText = new StringBuilder();
-                    
                     foreach (JsonElement block in textBlocks.EnumerateArray())
                     {
                         string originalText = "";
@@ -97,93 +92,43 @@ namespace RSTGameTranslation
                             blockId = id.GetString() ?? "";
                         }
                         
+                        // Ignore empty blocks
                         if (string.IsNullOrWhiteSpace(originalText))
                         {
                             continue;
                         }
                         
-                        blocks.Add((blockId, originalText));
-                        
-                        if (combinedText.Length > 0)
+                        // Perform translation
+                        string translatedText;
+                        if (_useCloudApi)
                         {
-                            combinedText.Append(TEXT_SEPARATOR);
+                            translatedText = await TranslateWithCloudApiAsync(originalText, sourceLanguage, targetLanguage);
                         }
-                        combinedText.Append(originalText);
-                    }
-                    
-                    if (blocks.Count == 0)
-                    {
-                        outputJson.WriteEndArray();
+                        else
+                        {
+                            translatedText = await TranslateWithFreeServiceAsync(originalText, sourceLanguage, targetLanguage);
+                        }
+                        
+                        // Write the translated text to the output JSON
+                        outputJson.WriteStartObject();
+                        outputJson.WriteString("id", blockId);
+                        outputJson.WriteString("original_text", originalText);
+                        outputJson.WriteString("translated_text", translatedText);
                         outputJson.WriteEndObject();
-                        outputJson.Flush();
-                        return Encoding.UTF8.GetString(memoryStream.ToArray());
-                    }
-                    
-                    string combinedTranslatedText;
-                    if (_useCloudApi)
-                    {
-                        combinedTranslatedText = await TranslateWithCloudApiAsync(combinedText.ToString(), sourceLanguage, targetLanguage);
-                    }
-                    else
-                    {
-                        combinedTranslatedText = await TranslateWithFreeServiceAsync(combinedText.ToString(), sourceLanguage, targetLanguage);
-                    }
-                    
-                    string[] translatedParts = combinedTranslatedText.Split(TEXT_SEPARATOR);
-                    
-                    if (translatedParts.Length != blocks.Count)
-                    {
-                        Console.WriteLine($"Warning: Number of translated parts ({translatedParts.Length}) does not match number of original blocks ({blocks.Count})");
                         
-                        for (int i = 0; i < blocks.Count; i++)
-                        {
-                            var (blockId, originalText) = blocks[i];
-                            string translatedText;
-                            
-                            if (_useCloudApi)
-                            {
-                                translatedText = await TranslateWithCloudApiAsync(originalText, sourceLanguage, targetLanguage);
-                            }
-                            else
-                            {
-                                translatedText = await TranslateWithFreeServiceAsync(originalText, sourceLanguage, targetLanguage);
-                            }
-                            
-                            outputJson.WriteStartObject();
-                            outputJson.WriteString("id", blockId);
-                            outputJson.WriteString("original_text", originalText);
-                            outputJson.WriteString("translated_text", translatedText);
-                            outputJson.WriteEndObject();
-                            
-                            Console.WriteLine($"Google translated (individual): '{originalText}' -> '{translatedText}'");
-                        }
-                    }
-                    else
-                    {
-                        for (int i = 0; i < blocks.Count; i++)
-                        {
-                            var (blockId, originalText) = blocks[i];
-                            string translatedText = translatedParts[i].Trim();
-                            
-                            
-                            outputJson.WriteStartObject();
-                            outputJson.WriteString("id", blockId);
-                            outputJson.WriteString("original_text", originalText);
-                            outputJson.WriteString("translated_text", translatedText);
-                            outputJson.WriteEndObject();
-                            
-                            
-                            Console.WriteLine($"Google translated (batch): '{originalText}' -> '{translatedText}'");
-                        }
+                        // Log for debugging
+                        Console.WriteLine($"Google translated: '{originalText}' -> '{translatedText}'");
                     }
                 }
                 
                 outputJson.WriteEndArray();
                 outputJson.WriteEndObject();
                 
+                // Transfer the JSON to a string and return it
                 outputJson.Flush();
                 string result = Encoding.UTF8.GetString(memoryStream.ToArray());
                 
+                // Log
                 Console.WriteLine($"Google Translate final JSON result: {result.Substring(0, Math.Min(100, result.Length))}...");
                 
                 return result;
@@ -277,84 +222,100 @@ namespace RSTGameTranslation
                 {
                     _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
                 }
-
+                
                 // Log translation attempt (truncate long texts)
                 string logText = normalizedText.Length > 50 
                     ? normalizedText.Substring(0, 50) + "..." 
                     : normalizedText;
                 Console.WriteLine($"Translating with free service: {logText}");
-
-                // First attempt with the 'googleapis' endpoint
+                
+                // First try with the translate.googleapis.com endpoint (now as primary)
                 string url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sourceLanguage}&tl={targetLanguage}&dt=t&q={encodedText}";
                 var response = await _httpClient.GetAsync(url);
-
+                
                 if (response.IsSuccessStatusCode)
                 {
                     string jsonResponse = await response.Content.ReadAsStringAsync();
+                    
                     try
                     {
+                        // The response is a nested JSON array, not a proper JSON object
+                        // Format: [[[translated_text, original_text, ...], ...], ...]
                         using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+                        
+                        // Build the full translated text from all segments
                         StringBuilder translatedText = new StringBuilder();
+                        
+                        // Navigate through the nested arrays
                         JsonElement outerArray = doc.RootElement;
-
                         if (outerArray.GetArrayLength() > 0)
                         {
                             JsonElement translationArray = outerArray[0];
+                            
+                            // Iterate through each translation segment
                             foreach (JsonElement segment in translationArray.EnumerateArray())
                             {
                                 if (segment.GetArrayLength() > 0 && segment[0].ValueKind == JsonValueKind.String)
                                 {
-                                    translatedText.Append(segment[0].GetString() ?? "");
+                                    string segmentText = segment[0].GetString() ?? "";
+                                    translatedText.Append(segmentText);
                                 }
                             }
                         }
                         
                         string result = translatedText.ToString();
+                        
+                        // Log the result for debugging (truncate long results)
+                        string logResult = result.Length > 50 
+                            ? result.Substring(0, 50) + "..." 
+                            : result;
+                        Console.WriteLine($"Translation result: {logResult}");
+                        
                         if (!string.IsNullOrEmpty(result))
                         {
-                            result = result.Replace(" " + TEXT_SEPARATOR + " ", TEXT_SEPARATOR)
-                                          .Replace(" " + TEXT_SEPARATOR, TEXT_SEPARATOR)
-                                          .Replace(TEXT_SEPARATOR + " ", TEXT_SEPARATOR);
                             return result;
                         }
                         else
                         {
-                            Console.WriteLine("Translated text was empty after processing (googleapis)");
-                            // Don't return here, fall through to the alternative
+                            Console.WriteLine("Translated text was empty after processing");
+                            // Fall through to alternative endpoint
                         }
                     }
                     catch (JsonException jsonEx)
                     {
-                        Console.WriteLine($"JSON parsing error (googleapis): {jsonEx.Message}");
-                        // Fall through to the alternative method
+                        Console.WriteLine($"JSON parsing error: {jsonEx.Message}");
+                        Console.WriteLine($"Response content: {jsonResponse}");
+                        // Fall through to alternative endpoint
                     }
                 }
-
-                // If the first attempt fails or results in empty text, try the alternative endpoint
-                Console.WriteLine("First endpoint failed or returned empty. Trying alternative endpoint...");
+                
+                // Try alternative endpoint if the first one fails
+                Console.WriteLine("Trying alternative endpoint...");
                 url = $"https://translate.google.com/m?hl={targetLanguage}&sl={sourceLanguage}&tl={targetLanguage}&ie=UTF-8&prev=_m&q={encodedText}";
                 response = await _httpClient.GetAsync(url);
-
+                
                 if (response.IsSuccessStatusCode)
                 {
                     string htmlResponse = await response.Content.ReadAsStringAsync();
-                    var regex = new Regex("(?<=(<div(.*)class=\"result-container\"(.*)>))[\\s\\S]*?(?=(<\\/div>))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    var matchResult = regex.Match(htmlResponse);
+                    GoogleTranslateResultRegex = new Regex("(?<=(<div(.*)class=\"result-container\"(.*)>))[\\s\\S]*?(?=(<\\/div>))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    var matchResult = GoogleTranslateResultRegex.Match(htmlResponse);
                     
                     if (matchResult.Success)
                     {
                         string result = matchResult.Value.ToString();
                         if (!string.IsNullOrEmpty(result))
                         {
-                            result = result.Replace(" " + TEXT_SEPARATOR + " ", TEXT_SEPARATOR)
-                                          .Replace(" " + TEXT_SEPARATOR, TEXT_SEPARATOR)
-                                          .Replace(TEXT_SEPARATOR + " ", TEXT_SEPARATOR);
                             return result;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Translated text was empty after processing");
+                            return $"[EMPTY RESULT] {text}";
                         }
                     }
                 }
-
-                Console.WriteLine($"Google Translate free service error (both endpoints failed): {response.StatusCode}");
+                
+                Console.WriteLine($"Google Translate free service error: {response.StatusCode}");
                 return $"[ERROR] {text}";
             }
             catch (Exception ex)

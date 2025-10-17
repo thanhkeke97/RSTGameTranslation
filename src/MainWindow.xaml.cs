@@ -94,6 +94,9 @@ namespace RSTGameTranslation
         public List<Rect> savedTranslationAreas = new List<Rect>();
         public int currentAreaIndex = 0;
 
+        // Force update prompt
+        private int isForceUpdatePrompt = 1; //increase to force update prompt
+
 
         // Store previous capture position to calculate offset
         private int previousCaptureX;
@@ -260,38 +263,6 @@ namespace RSTGameTranslation
                     OcrServerManager.Instance.StopOcrServer();
                     SetStatus($"Please click StartServer button to reconnect server");
 
-
-                    // // Ensure we're connected when switching to new OCR
-                    // if (!SocketManager.Instance.IsConnected)
-                    // {
-                    //     Console.WriteLine($"Socket not connected when switching to {method}");
-                    //     _ = Task.Run(async () =>
-                    //     {
-                    //         try
-                    //         {
-                    //             bool reconnected = await SocketManager.Instance.TryReconnectAsync();
-
-                    //             if (!reconnected || !SocketManager.Instance.IsConnected)
-                    //             {
-                    //                 // Only show an error message if explicitly requested by user action
-                    //                 Console.WriteLine("Failed to connect to socket server - EasyOCR will not be available");
-                    //             }
-
-
-                    //         }
-                    //         catch (Exception ex)
-                    //         {
-                    //             Console.WriteLine($"Error reconnecting: {ex.Message}");
-
-                    //             // Show an error message
-                    //             System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                    //             {
-                    //                 System.Windows.MessageBox.Show($"Socket connection error: {ex.Message}",
-                    //                     "Connection Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                    //             });
-                    //         }
-                    //     });
-                    // }
                 }
             }
         }
@@ -360,6 +331,59 @@ namespace RSTGameTranslation
 
             // Initial update of capture rectangle and setup after window is loaded
             this.Loaded += MainWindow_Loaded;
+            if(isForceUpdatePrompt > ConfigManager.Instance.GetForceUpdatePrompt())
+            {
+                // Gemini
+                string gemini_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Gemini");
+                if (!string.IsNullOrWhiteSpace(gemini_prompt))
+                {
+                    // Save to config
+                    bool success = ConfigManager.Instance.SaveServicePrompt("Gemini", gemini_prompt);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Prompt saved for Gemini");
+                    }
+                }
+                // ChatGPT
+                string chatgpt_prompt = ConfigManager.Instance.GetDefaultServicePrompt("ChatGPT");
+                if (!string.IsNullOrWhiteSpace(chatgpt_prompt))
+                {
+                    // Save to config
+                    bool success = ConfigManager.Instance.SaveServicePrompt("ChatGPT", chatgpt_prompt);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Prompt saved for ChatGPT");
+                    }
+                }
+                // MistralAI
+                string mistral_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Mistral");
+                if (!string.IsNullOrWhiteSpace(mistral_prompt))
+                {
+                    // Save to config
+                    bool success = ConfigManager.Instance.SaveServicePrompt("Mistral", mistral_prompt);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Prompt saved for Mistral");
+                    }
+                }
+                // Ollama
+                string ollama_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Ollama");
+                if (!string.IsNullOrWhiteSpace(ollama_prompt))
+                {
+                    // Save to config
+                    bool success = ConfigManager.Instance.SaveServicePrompt("Ollama", ollama_prompt);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Prompt saved for Ollama");
+                    }
+                }
+                ConfigManager.Instance.SetForceUpdatePrompt(isForceUpdatePrompt);
+
+            }
 
             // Create socket status text block
             CreateSocketStatusIndicator();
@@ -707,21 +731,6 @@ namespace RSTGameTranslation
 
             // Subscribe to translation events
             Logic.Instance.TranslationCompleted += Logic_TranslationCompleted;
-
-            // Make sure monitor window is shown on startup to the right of the main window
-            // if (!MonitorWindow.Instance.IsVisible)
-            // {
-            //     // Position to the right of the main window, only for initial startup
-            //     PositionMonitorWindowToTheRight();
-            //     MonitorWindow.Instance.Show();
-
-            //     // Consider this the initial position for the monitor window toggle
-            //     monitorWindowLeft = MonitorWindow.Instance.Left;
-            //     monitorWindowTop = MonitorWindow.Instance.Top;
-
-            //     // Update monitor button color to red since the monitor is now active
-            //     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-            // }
 
             // Test configuration loading
             TestConfigLoading();

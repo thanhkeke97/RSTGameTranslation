@@ -291,131 +291,174 @@ namespace RSTGameTranslation
         }
         
 
-        // Process received text JSON data for google translate
-        private void ProcessGoogleTranslateJson(JsonElement translatedRoot)
+        // Process Google Translate JSON response
+        private void ProcessGoogleTranslateJson(JsonElement rootElement)
         {
             try
             {
-                Console.WriteLine("Processing Google Translate JSON response");
+                Console.WriteLine("Processing Google Translate response");
                 
-                // Get current target language
-                string targetLanguage = ConfigManager.Instance.GetTargetLanguage().ToLower();
-                
-                // Define RTL (Right-to-Left) languages
-                HashSet<string> rtlLanguages = new HashSet<string> { 
-                    "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu" 
-                };
-                
-                // Check if target language is RTL
-                bool isRtlLanguage = rtlLanguages.Contains(targetLanguage);
-                
-                if (isRtlLanguage)
+                if (rootElement.TryGetProperty("translations", out JsonElement translationsArray) && 
+                    translationsArray.ValueKind == JsonValueKind.Array)
                 {
-                    Console.WriteLine($"Detected RTL language: {targetLanguage}");
-                }
-                
-                // Check if the JSON contains the "translations" array
-                if (translatedRoot.TryGetProperty("translations", out JsonElement translationsElement) &&
-                    translationsElement.ValueKind == JsonValueKind.Array)
-                {
-                    Console.WriteLine($"Found {translationsElement.GetArrayLength()} translations in Google Translate JSON");
+                    // Get current target language
+                    string targetLanguage = ConfigManager.Instance.GetTargetLanguage().ToLower();
                     
-                    // Loop through each translation in the array
-                    for (int i = 0; i < translationsElement.GetArrayLength(); i++)
+                    // Define RTL (Right-to-Left) languages
+                    HashSet<string> rtlLanguages = new HashSet<string> { 
+                        "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu" 
+                    };
+                    
+                    // Check if target language is RTL
+                    bool isRtlLanguage = rtlLanguages.Contains(targetLanguage);
+                    
+                    // Process each translation
+                    for (int i = 0; i < translationsArray.GetArrayLength(); i++)
                     {
-                        var translation = translationsElement[i];
+                        var translation = translationsArray[i];
                         
                         if (translation.TryGetProperty("id", out JsonElement idElement) &&
-                            translation.TryGetProperty("original_text", out JsonElement originalTextElement) &&
                             translation.TryGetProperty("translated_text", out JsonElement translatedTextElement))
                         {
                             string id = idElement.GetString() ?? "";
-                            string originalText = originalTextElement.GetString() ?? "";
                             string translatedText = translatedTextElement.GetString() ?? "";
                             
                             if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(translatedText))
                             {
-                                // Apply RTL handling if needed
-                                if (isRtlLanguage)
+                                // Check if this is our combined text block with ID=999
+                                if (id == "999")
                                 {
-                                    // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                    if (!translatedText.StartsWith("\u200F"))
-                                    {
-                                        translatedText = "\u200F" + translatedText;
-                                    }
-                                }
-                                
-                                // Find the matching text object based on the ID
-                                var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
-                                if (matchingTextObj != null)
-                                {
-                                    // Set flow direction based on language
-                                    if (isRtlLanguage)
-                                    {
-                                        matchingTextObj.FlowDirection = System.Windows.FlowDirection.RightToLeft;
-                                    }
-                                    else
-                                    {
-                                        matchingTextObj.FlowDirection = System.Windows.FlowDirection.LeftToRight;
-                                    }
+                                    // Split the translated text using the separator
+                                    string[] translatedParts = translatedText.Split("|||RST_SEPARATOR|||");
                                     
-                                    // Update the text object with the translated text
-                                    matchingTextObj.TextTranslated = translatedText;
-                                    matchingTextObj.UpdateUIElement();
-                                    Console.WriteLine($"Updated text object {id} with Google translation");
-                                }
-                                else if (id.StartsWith("text_"))
-                                {
-                                    // Try to update by index if ID starts with "text_"
-                                    string indexStr = id.Substring(5); // Subtract "text_" prefix
-                                    if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
+                                    // Assign each part to the corresponding text object
+                                    for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
                                     {
-                                        // Set flow direction based on language
+                                        // Apply RTL specific handling if needed
                                         if (isRtlLanguage)
                                         {
-                                            _textObjects[index].FlowDirection = System.Windows.FlowDirection.RightToLeft;
+                                            // Set flow direction for RTL languages
+                                            _textObjects[j].FlowDirection = FlowDirection.RightToLeft;
+                                            
+                                            // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                            if (!translatedParts[j].StartsWith("\u200F"))
+                                            {
+                                                translatedParts[j] = "\u200F" + translatedParts[j];
+                                            }
                                         }
                                         else
                                         {
-                                            _textObjects[index].FlowDirection = System.Windows.FlowDirection.LeftToRight;
+                                            // Ensure LTR for non-RTL languages
+                                            _textObjects[j].FlowDirection = FlowDirection.LeftToRight;
                                         }
                                         
-                                        // Update the text object at the specified index
-                                        _textObjects[index].TextTranslated = translatedText;
-                                        _textObjects[index].UpdateUIElement();
-                                        Console.WriteLine($"Updated text object at index {index} with Google translation");
+                                        // Update the text object with the translated text
+                                        _textObjects[j].TextTranslated = translatedParts[j];
+                                        _textObjects[j].UpdateUIElement();
+                                        Console.WriteLine($"Updated text object at index {j} with translation from Google Translate");
                                     }
-                                    else
-                                    {
-                                        Console.WriteLine($"Could not find text object with ID {id}");
-                                    }
+                                    
+                                    // We've processed the combined text block, so we can break out of the loop
+                                    break;
                                 }
-                                
-                                // Add the translated text to the chat history
-                                if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
+                                else
                                 {
-                                    TranslationCompleted?.Invoke(this, new TranslationEventArgs
+                                    // Handle the old way for backward compatibility
+                                    // Find the matching text object by ID
+                                    var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
+                                    if (matchingTextObj != null)
                                     {
-                                        OriginalText = originalText,
-                                        TranslatedText = translatedText
-                                    });
+                                        // Apply RTL specific handling if needed
+                                        if (isRtlLanguage)
+                                        {
+                                            // Set flow direction for RTL languages
+                                            matchingTextObj.FlowDirection = FlowDirection.RightToLeft;
+                                            
+                                            // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                            if (!translatedText.StartsWith("\u200F"))
+                                            {
+                                                translatedText = "\u200F" + translatedText;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Ensure LTR for non-RTL languages
+                                            matchingTextObj.FlowDirection = FlowDirection.LeftToRight;
+                                        }
+                                        
+                                        // Update the corresponding text object
+                                        matchingTextObj.TextTranslated = translatedText;
+                                        matchingTextObj.UpdateUIElement();
+                                        Console.WriteLine($"Updated text object {id} with translation from Google Translate");
+                                    }
+                                    else if (id.StartsWith("text_"))
+                                    {
+                                        // Try to extract index from ID (text_X format)
+                                        string indexStr = id.Substring(5); // Remove "text_" prefix
+                                        if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
+                                        {
+                                            // Apply RTL specific handling if needed
+                                            if (isRtlLanguage)
+                                            {
+                                                // Set flow direction for RTL languages
+                                                _textObjects[index].FlowDirection = FlowDirection.RightToLeft;
+                                                
+                                                // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                                if (!translatedText.StartsWith("\u200F"))
+                                                {
+                                                    translatedText = "\u200F" + translatedText;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // Ensure LTR for non-RTL languages
+                                                _textObjects[index].FlowDirection = FlowDirection.LeftToRight;
+                                            }
+                                            
+                                            // Update by index if ID matches format
+                                            _textObjects[index].TextTranslated = translatedText;
+                                            _textObjects[index].UpdateUIElement();
+                                            Console.WriteLine($"Updated text object at index {index} with translation from Google Translate");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"Could not find text object with ID {id}");
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                     
-                    // Update the chat history in ChatBoxWindow
-                    if (ChatBoxWindow.Instance != null)
-                    {
-                        ChatBoxWindow.Instance.UpdateChatHistory();
-                    }
+                    // Add translations to chatbox
+                    // Sort text objects by Y coordinate
+                    var sortedTextObjects = _textObjects.OrderBy(t => t.Y).ToList();
                     
-                    // Update the overlays in MonitorWindow
-                    MonitorWindow.Instance.RefreshOverlays();
+                    // Add each translated text to the ChatBox
+                    foreach (var textObject in sortedTextObjects)
+                    {
+                        string originalText = textObject.Text;
+                        string translatedText = textObject.TextTranslated;
+                        
+                        // Only add to chatbox if we have both texts and translation is not empty
+                        if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
+                        {
+                            // Add to TranslationCompleted, this will add it to the chatbox also
+                            TranslationCompleted?.Invoke(this, new TranslationEventArgs
+                            {
+                                OriginalText = originalText,
+                                TranslatedText = translatedText
+                            });
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping empty translation - Original: '{originalText}', Translated: '{translatedText}'");
+                        }
+                    }
                 }
                 else
                 {
-                    Console.WriteLine("No translations array found in Google Translate JSON");
+                    Console.WriteLine("No translations array found in Google Translate response");
                 }
             }
             catch (Exception ex)
@@ -1968,47 +2011,57 @@ namespace RSTGameTranslation
                             
                             if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(translatedText))
                             {
-                                // Find the matching text object by ID
-                                var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
-                                if (matchingTextObj != null)
+                                // Check if this is our combined text block with ID=1
+                                if (id == "999")
                                 {
-                                    // Apply RTL specific handling if needed
-                                    if (isRtlLanguage)
-                                    {
-                                        // Set flow direction for RTL languages
-                                        matchingTextObj.FlowDirection = FlowDirection.RightToLeft;
-                                        
-                                        // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                        // This can help with mixed content
-                                        if (!translatedText.StartsWith("\u200F"))
-                                        {
-                                            translatedText = "\u200F" + translatedText;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Ensure LTR for non-RTL languages
-                                        matchingTextObj.FlowDirection = FlowDirection.LeftToRight;
-                                    }
+                                    // Split the translated text using the separator
+                                    string[] translatedParts = translatedText.Split("|||RST_SEPARATOR|||");
                                     
-                                    // Update the corresponding text object
-                                    matchingTextObj.TextTranslated = translatedText;
-                                    matchingTextObj.UpdateUIElement();
-                                    Console.WriteLine($"Updated text object {id} with translation");
-                                }
-                                else if (id.StartsWith("text_"))
-                                {
-                                    // Try to extract index from ID (text_X format)
-                                    string indexStr = id.Substring(5); // Remove "text_" prefix
-                                    if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
+                                    // Assign each part to the corresponding text object
+                                    for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
                                     {
                                         // Apply RTL specific handling if needed
                                         if (isRtlLanguage)
                                         {
                                             // Set flow direction for RTL languages
-                                            _textObjects[index].FlowDirection = FlowDirection.RightToLeft;
+                                            _textObjects[j].FlowDirection = FlowDirection.RightToLeft;
                                             
                                             // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                            if (!translatedParts[j].StartsWith("\u200F"))
+                                            {
+                                                translatedParts[j] = "\u200F" + translatedParts[j];
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Ensure LTR for non-RTL languages
+                                            _textObjects[j].FlowDirection = FlowDirection.LeftToRight;
+                                        }
+                                        
+                                        // Update the text object with the translated text
+                                        _textObjects[j].TextTranslated = translatedParts[j];
+                                        _textObjects[j].UpdateUIElement();
+                                        Console.WriteLine($"Updated text object at index {j} with translation");
+                                    }
+                                    
+                                    // We've processed the combined text block, so we can break out of the loop
+                                    break;
+                                }
+                                else
+                                {
+                                    // Handle the old way for backward compatibility
+                                    // Find the matching text object by ID
+                                    var matchingTextObj = _textObjects.FirstOrDefault(t => t.ID == id);
+                                    if (matchingTextObj != null)
+                                    {
+                                        // Apply RTL specific handling if needed
+                                        if (isRtlLanguage)
+                                        {
+                                            // Set flow direction for RTL languages
+                                            matchingTextObj.FlowDirection = FlowDirection.RightToLeft;
+                                            
+                                            // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                            // This can help with mixed content
                                             if (!translatedText.StartsWith("\u200F"))
                                             {
                                                 translatedText = "\u200F" + translatedText;
@@ -2017,17 +2070,47 @@ namespace RSTGameTranslation
                                         else
                                         {
                                             // Ensure LTR for non-RTL languages
-                                            _textObjects[index].FlowDirection = FlowDirection.LeftToRight;
+                                            matchingTextObj.FlowDirection = FlowDirection.LeftToRight;
                                         }
                                         
-                                        // Update by index if ID matches format
-                                        _textObjects[index].TextTranslated = translatedText;
-                                        _textObjects[index].UpdateUIElement();
-                                        Console.WriteLine($"Updated text object at index {index} with translation");
+                                        // Update the corresponding text object
+                                        matchingTextObj.TextTranslated = translatedText;
+                                        matchingTextObj.UpdateUIElement();
+                                        Console.WriteLine($"Updated text object {id} with translation");
                                     }
-                                    else
+                                    else if (id.StartsWith("text_"))
                                     {
-                                        Console.WriteLine($"Could not find text object with ID {id}");
+                                        // Try to extract index from ID (text_X format)
+                                        string indexStr = id.Substring(5); // Remove "text_" prefix
+                                        if (int.TryParse(indexStr, out int index) && index >= 0 && index < _textObjects.Count)
+                                        {
+                                            // Apply RTL specific handling if needed
+                                            if (isRtlLanguage)
+                                            {
+                                                // Set flow direction for RTL languages
+                                                _textObjects[index].FlowDirection = FlowDirection.RightToLeft;
+                                                
+                                                // Optionally add Unicode RLM (Right-to-Left Mark) if needed
+                                                if (!translatedText.StartsWith("\u200F"))
+                                                {
+                                                    translatedText = "\u200F" + translatedText;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // Ensure LTR for non-RTL languages
+                                                _textObjects[index].FlowDirection = FlowDirection.LeftToRight;
+                                            }
+                                            
+                                            // Update by index if ID matches format
+                                            _textObjects[index].TextTranslated = translatedText;
+                                            _textObjects[index].UpdateUIElement();
+                                            Console.WriteLine($"Updated text object at index {index} with translation");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"Could not find text object with ID {id}");
+                                        }
                                     }
                                 }
                             }
@@ -2297,7 +2380,7 @@ namespace RSTGameTranslation
                 }
 
                 // Get API key
-                string apiKey = GetGeminiApiKey();
+                // string apiKey = GetGeminiApiKey();
                 // if (string.IsNullOrEmpty(apiKey))
                 // {
                 //     Console.WriteLine("Gemini API key not set, cannot translate");
@@ -2305,24 +2388,18 @@ namespace RSTGameTranslation
                 // }
 
 
-                // Prepare JSON data for translation with rectangle coordinates
-                var textsToTranslate = new List<object>();
-                for (int i = 0; i < _textObjects.Count; i++)
+                // Combine all texts into one string with a separator
+                var combinedText = string.Join("|||RST_SEPARATOR|||", _textObjects.Select(obj => obj.Text));
+                
+                // Create a single text block with ID=1 and the combined text
+                var textsToTranslate = new List<object>
                 {
-                    var textObj = _textObjects[i];
-                    textsToTranslate.Add(new
+                    new
                     {
-                        id = textObj.ID,
-                        text = textObj.Text,
-                        // rect = new
-                        // {
-                        //     x = textObj.X,
-                        //     y = textObj.Y,
-                        //     width = textObj.Width,
-                        //     height = textObj.Height
-                        // }
-                    });
-                }
+                        id = "999",
+                        text = combinedText
+                    }
+                };
 
                 // Get previous context if enabled
                 var previousContext = GetPreviousContext();
