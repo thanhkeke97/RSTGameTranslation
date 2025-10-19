@@ -21,7 +21,7 @@
 - Live automatic translations using EasyOCR, PaddleOCR, RapidOCR and Windows OCR
 - Powerful overlay chat window for visual novels
 - Full-screen translation capability
-- Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, only work win 11)
+- Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, Overlay on Windows 10 will flicker)
 
 🤖 **AI-Powered Translation**
 - Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral
@@ -46,7 +46,6 @@
 ### Prerequisites
 
 - **Windows 10+ and** (Required)
-- **Windows 11 for display translated text overlaid on the original text feature** (Optional)
 - **NVIDIA GPU** (Recommended for best performance, Optional)
 - Game in **windowed/borderless mode** (Required)
 
