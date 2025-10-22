@@ -95,13 +95,6 @@ namespace RSTGameTranslation
         [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
         public static partial long CreateOcrPipeline(string modelPath, string key, long ctx, out long pipeline);
 
-        [LibraryImport("oneocr.dll")]
-        [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-        public static partial long DestroyOcrPipeline(long pipeline);
-
-        [LibraryImport("oneocr.dll")]
-        [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-        public static partial long DestroyOcrProcessOptions(long opt);
     }
 
     public class OneOCRManager
@@ -133,27 +126,6 @@ namespace RSTGameTranslation
             _pipelineInitialized = false;
         }
 
-        ~OneOCRManager()
-        {
-            CleanupResources();
-        }
-
-        private void CleanupResources()
-        {
-            if (_pipelineInitialized)
-            {
-                try
-                {
-                    NativeMethods.DestroyOcrPipeline(_pipeline);
-                    NativeMethods.DestroyOcrProcessOptions(_processOptions);
-                    _pipelineInitialized = false;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error cleaning up OCR resources: {ex.Message}");
-                }
-            }
-        }
 
         public async ValueTask InitializeAsync()
         {
@@ -178,16 +150,13 @@ namespace RSTGameTranslation
             }
         }
 
-        // Khởi tạo pipeline và process options một lần để tái sử dụng
         private void InitializePipeline()
         {
             try
             {
-                // Model key và path
                 string key = "kj)TGtrK>f]b[Piow.gU+nC@s\"\"\"\"\"\"4";
                 string modelPath = "oneocr.onemodel";
 
-                // Tạo OCR pipeline
                 long res = NativeMethods.CreateOcrPipeline(modelPath, key, Context, out _pipeline);
                 if (res != 0)
                 {
@@ -195,7 +164,6 @@ namespace RSTGameTranslation
                     return;
                 }
 
-                // Thiết lập process options
                 res = NativeMethods.CreateOcrProcessOptions(out _processOptions);
                 if (res != 0)
                 {
@@ -251,7 +219,6 @@ namespace RSTGameTranslation
                 }
             }
 
-            // Sử dụng pipeline và process options đã được khởi tạo trước đó
             long res = NativeMethods.RunOcrPipeline(_pipeline, ref img, _processOptions, out long instance);
             if (res != 0)
             {
