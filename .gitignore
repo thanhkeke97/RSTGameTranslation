@@ -408,6 +408,7 @@ app/webserver/Miniconda3
 app/webserver/*.exe
 !app/webserver/
 !app/tessdata/
+!app/OneOcr
 #but keep a few things...
 !app/webserver/*.bat
 !app/webserver/*.py
