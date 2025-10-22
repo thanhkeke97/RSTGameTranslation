@@ -6,6 +6,10 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text.Json;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Threading.Tasks;
+using System.Linq;
 
 using Application = System.Windows.Application;
 
@@ -90,20 +94,25 @@ namespace RSTGameTranslation
         [LibraryImport("oneocr.dll", StringMarshalling = StringMarshalling.Utf8)]
         [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
         public static partial long CreateOcrPipeline(string modelPath, string key, long ctx, out long pipeline);
+
+        [LibraryImport("oneocr.dll")]
+        [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+        public static partial long DestroyOcrPipeline(long pipeline);
+
+        [LibraryImport("oneocr.dll")]
+        [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+        public static partial long DestroyOcrProcessOptions(long opt);
     }
 
     public class OneOCRManager
     {
-        private const string OneOcrDll = "oneocr.dll";
-        public const string OneOcrModel = "oneocr.onemodel";
-        private const string OnnxRuntimeDll = "onnxruntime.dll";
-        private string OneOcrPath { get; } = AppDomain.CurrentDomain.BaseDirectory;
-
         private static OneOCRManager? _instance;
-        public bool IsAvailable { get; private set; } = false;
         private long Context { get; set; }
         private bool _initialized;
-        public string? _currentLanguageCode = null;
+        
+        private long _pipeline;
+        private long _processOptions;
+        private bool _pipelineInitialized;
 
         // Singleton instance
         public static OneOCRManager Instance
@@ -118,6 +127,34 @@ namespace RSTGameTranslation
             }
         }
 
+        // Constructor
+        public OneOCRManager()
+        {
+            _pipelineInitialized = false;
+        }
+
+        ~OneOCRManager()
+        {
+            CleanupResources();
+        }
+
+        private void CleanupResources()
+        {
+            if (_pipelineInitialized)
+            {
+                try
+                {
+                    NativeMethods.DestroyOcrPipeline(_pipeline);
+                    NativeMethods.DestroyOcrProcessOptions(_processOptions);
+                    _pipelineInitialized = false;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error cleaning up OCR resources: {ex.Message}");
+                }
+            }
+        }
+
         public async ValueTask InitializeAsync()
         {
             if (_initialized)
@@ -125,8 +162,61 @@ namespace RSTGameTranslation
                 return;
             }
 
+            // Khởi tạo Context nếu cần
+            long res = NativeMethods.CreateOcrInitOptions(out long ctx);
+            if (res == 0)
+            {
+                Context = ctx;
+                res = NativeMethods.OcrInitOptionsSetUseModelDelayLoad(ctx, 1);
+                if (res == 0)
+                {
+                    _initialized = true;
+                    
+                    // Khởi tạo pipeline và process options để tái sử dụng
+                    InitializePipeline();
+                }
+            }
+        }
 
-            _initialized = true;
+        // Khởi tạo pipeline và process options một lần để tái sử dụng
+        private void InitializePipeline()
+        {
+            try
+            {
+                // Model key và path
+                string key = "kj)TGtrK>f]b[Piow.gU+nC@s\"\"\"\"\"\"4";
+                string modelPath = "oneocr.onemodel";
+
+                // Tạo OCR pipeline
+                long res = NativeMethods.CreateOcrPipeline(modelPath, key, Context, out _pipeline);
+                if (res != 0)
+                {
+                    Console.Error.WriteLine("Failed to create OCR pipeline. Error code: " + res);
+                    return;
+                }
+
+                // Thiết lập process options
+                res = NativeMethods.CreateOcrProcessOptions(out _processOptions);
+                if (res != 0)
+                {
+                    Console.Error.WriteLine("Failed to create OCR process options.");
+                    return;
+                }
+
+                res = NativeMethods.OcrProcessOptionsSetMaxRecognitionLineCount(_processOptions, 1000);
+                if (res != 0)
+                {
+                    Console.Error.WriteLine("Failed to set max recognition line count.");
+                    return;
+                }
+
+                _pipelineInitialized = true;
+                Console.WriteLine("OCR pipeline initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error initializing OCR pipeline: {ex.Message}");
+            }
         }
 
         private string PtrToStringUTF8(IntPtr ptr)
@@ -151,36 +241,18 @@ namespace RSTGameTranslation
 
         private Line[] RunOcr(Img img)
         {
-            // Model key and path
-            string key = "kj)TGtrK>f]b[Piow.gU+nC@s\"\"\"\"\"\"4";
-            string modelPath = "oneocr.onemodel";
-
-            var ctx = Context;
-
-            // Create OCR pipeline
-            long res = NativeMethods.CreateOcrPipeline(modelPath, key, ctx, out long pipeline);
-            if (res != 0)
+            if (!_pipelineInitialized)
             {
-                Console.Error.WriteLine("Failed to create OCR pipeline. Error code: " + res);
-                return null;
+                InitializePipeline();
+                if (!_pipelineInitialized)
+                {
+                    Console.Error.WriteLine("Failed to initialize OCR pipeline");
+                    return null;
+                }
             }
 
-            // Set process options
-            res = NativeMethods.CreateOcrProcessOptions(out long opt);
-            if (res != 0)
-            {
-                Console.Error.WriteLine("Failed to create OCR process options.");
-                return null;
-            }
-
-            res = NativeMethods.OcrProcessOptionsSetMaxRecognitionLineCount(opt, 1000);
-            if (res != 0)
-            {
-                Console.Error.WriteLine("Failed to set max recognition line count.");
-                return null;
-            }
-            // Run OCR pipeline
-            res = NativeMethods.RunOcrPipeline(pipeline, ref img, opt, out long instance);
+            // Sử dụng pipeline và process options đã được khởi tạo trước đó
+            long res = NativeMethods.RunOcrPipeline(_pipeline, ref img, _processOptions, out long instance);
             if (res != 0)
             {
                 Console.Error.WriteLine("Failed to run OCR pipeline. Error code: " + res);
@@ -340,7 +412,6 @@ namespace RSTGameTranslation
                     // Execute OCR processing
                     Line[] result = RunOcr(formattedImage);
                     imgRgba.UnlockBits(bitmapData);
-
                     return result != null ? result.ToList() : new List<Line>();
                 }
             }
