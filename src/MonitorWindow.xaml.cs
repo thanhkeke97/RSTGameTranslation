@@ -169,7 +169,7 @@ namespace RSTGameTranslation
             Logic.Instance.ClearAllTextObjects();
             
             // Update the UI and connection state based on the selected OCR method
-            if (ocrMethod == "Windows OCR")
+            if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
             {
                 // Using Windows OCR, no need for socket connection
                 _ = Task.Run(() => 

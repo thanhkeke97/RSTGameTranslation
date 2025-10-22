@@ -222,6 +222,10 @@ namespace RSTGameTranslation
                 {
                     SetStatus($"Using {method} (built-in)");
                 }
+                else if (method == "OneOCR")
+                {
+                    SetStatus($"Using {method} (built-in)");
+                }
                 else if (method == "EasyOCR")
                 {
                     SetStatus("Please start EasyOCR server");
@@ -921,7 +925,7 @@ namespace RSTGameTranslation
             String method = ConfigManager.Instance.GetOcrMethod();
             bool isReady = false;
             
-            if (method == "Windows OCR")
+            if (method == "Windows OCR" || method == "OneOCR")
             {
                 // Windows OCR always ready because it don't need server
                 isReady = true;
@@ -1237,6 +1241,11 @@ namespace RSTGameTranslation
                             string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
                             Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
                         }
+                        else if (ocrMethod == "OneOCR")
+                        {
+                            string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                            Logic.Instance.ProcessWithOneOCR(bitmap, sourceLanguage);
+                        }
                         else
                         {
                             Logic.Instance.SendImageToServerOCR(outputPath);
@@ -1342,7 +1351,7 @@ namespace RSTGameTranslation
                     OcrServerManager.Instance.StopOcrServer();
                     SocketManager.Instance.Disconnect();
                     // Update the UI and connection state based on the selected OCR method
-                    if (ocrMethod == "Windows OCR")
+                    if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                     {
                         // Using Windows OCR, no need for socket connection
                         SetStatus($"Using {ocrMethod} (built-in)");
@@ -2006,7 +2015,7 @@ namespace RSTGameTranslation
                 string ocrMethod = ConfigManager.Instance.GetOcrMethod();
                 
 
-                if (ocrMethod == "Windows OCR")
+                if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                 {
                     System.Windows.MessageBox.Show($"{ocrMethod} doesn't require starting a server.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
                     btnStartOcrServer.IsEnabled = true;

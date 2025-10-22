@@ -130,17 +130,17 @@ namespace RSTGameTranslation
                 // Load force cursor visible setting
                 // Force cursor visibility is now handled by MouseManager
                 
-                // Only connect to socket server if using EasyOCR or PaddleOCR
+                // Only connect to socket server if using EasyOCR or PaddleOCR or RapidOCR
                 if (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "RapidOCR")
                 {
                     await ConnectToSocketServerAsync();
                 }
                 else
                 {
-                    Console.WriteLine("Using Windows OCR - socket connection not needed");
+                    Console.WriteLine($"Using {MainWindow.Instance.GetSelectedOcrMethod()} - socket connection not needed");
                     
                     // Update status message in the UI
-                    MainWindow.Instance.SetStatus("Using Windows OCR (built-in)");
+                    MainWindow.Instance.SetStatus($"Using {MainWindow.Instance.GetSelectedOcrMethod()} (built-in)");
                 }
             }
             catch (Exception ex)
@@ -197,8 +197,8 @@ namespace RSTGameTranslation
         // Reconnect timer tick event
         private async void ReconnectTimer_Tick(object? sender, EventArgs e)
         {
-            // Only try to reconnect if we're using EasyOCR or PaddleOCR
-            if (MainWindow.Instance.GetSelectedOcrMethod() != "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() != "PaddleOCR")
+            // Only try to reconnect if we're using EasyOCR or PaddleOCR or RapidOCR
+            if (MainWindow.Instance.GetSelectedOcrMethod() != "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() != "PaddleOCR" || MainWindow.Instance.GetSelectedOcrMethod() != "RapidOCR")
             {
                 _reconnectTimer.Stop();
                 _reconnectAttempts = 0;
@@ -256,7 +256,7 @@ namespace RSTGameTranslation
         private void OnSocketConnectionChanged(object? sender, bool isConnected)
         {
             // If not connected and we're using EasyOCR or PaddleOCR, start the reconnect timer
-            if (!isConnected && (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR"))
+            if (!isConnected && (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "RapidOCR"))
             {
                 Console.WriteLine("Connection status changed to disconnected. Starting reconnect timer.");
                 SocketManager.Instance._isConnected = false;
@@ -1650,20 +1650,20 @@ namespace RSTGameTranslation
             
             return result;
         }
-       
+
         // Process bitmap directly with Windows OCR (no file saving)
         public async void ProcessWithWindowsOCR(System.Drawing.Bitmap bitmap, string sourceLanguage)
         {
             try
             {
                 //Console.WriteLine("Starting Windows OCR processing directly from bitmap...");
-                
+
                 try
                 {
                     // Get the text lines from Windows OCR directly from the bitmap
                     var textLines = await WindowsOCRManager.Instance.GetOcrLinesFromBitmapAsync(bitmap, sourceLanguage);
-                   // Console.WriteLine($"Windows OCR found {textLines.Count} text lines");
-                    
+                    // Console.WriteLine($"Windows OCR found {textLines.Count} text lines");
+
                     // Process the OCR results with language code
                     await WindowsOCRManager.Instance.ProcessWindowsOcrResults(textLines, sourceLanguage);
                 }
@@ -1676,6 +1676,52 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error processing bitmap with Windows OCR: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
+            finally
+            {
+                // Make sure bitmap is properly disposed
+                try
+                {
+                    // Dispose bitmap - System.Drawing.Bitmap doesn't have a Disposed property,
+                    // so we'll just dispose it if it's not null
+                    if (bitmap != null)
+                    {
+                        bitmap.Dispose();
+                    }
+                }
+                catch
+                {
+                    // Ignore disposal errors
+                }
+
+                MainWindow.Instance.SetOCRCheckIsWanted(true);
+
+            }
+        }
+        
+        // Process bitmap directly with Windows OCR (no file saving)
+        public async void ProcessWithOneOCR(System.Drawing.Bitmap bitmap, string sourceLanguage)
+        {
+            try
+            {
+                
+                try
+                {
+                    var textLines = await OneOCRManager.Instance.GetOcrLinesFromBitmapAsync(bitmap);
+                    
+                    // Process the OCR results with language code
+                    await OneOCRManager.Instance.ProcessOneOcrResults(textLines, sourceLanguage);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"One OCR error: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing bitmap with One OCR: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
             finally
@@ -1767,10 +1813,10 @@ namespace RSTGameTranslation
                 // Check if we're using Windows OCR or EasyOCR or PaddleOCR
                 string ocrMethod = MainWindow.Instance.GetSelectedOcrMethod();
 
-                if (ocrMethod == "Windows OCR")
+                if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                 {
                     // Windows OCR doesn't require socket connection
-                    Console.WriteLine("Using Windows OCR (built-in)");
+                    Console.WriteLine($"Using {ocrMethod} (built-in)");
                     // ProcessScreenshot will handle the Windows OCR logic
                 }
                 else

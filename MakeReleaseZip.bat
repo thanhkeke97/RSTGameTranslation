@@ -30,6 +30,7 @@ copy app\webserver\RapidOCR\*.bat tempbuild\webserver\RapidOCR
 copy app\webserver\RapidOCR\*.py tempbuild\webserver\RapidOCR
 copy app\translation_server\*.py tempbuild\translation_server
 copy app\translation_server\*.bat tempbuild\translation_server
+copy app\OneOcr\* tempbuild
 copy app\translation_server\templates\*.html tempbuild\translation_server\templates
 copy app\webserver\*.bat tempbuild\webserver
 

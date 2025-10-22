@@ -220,6 +220,7 @@ namespace RSTGameTranslation
             OcrMethodComboBox.Items.Add("EasyOCR");
             OcrMethodComboBox.Items.Add("PaddleOCR");
             OcrMethodComboBox.Items.Add("RapidOCR");
+            OcrMethodComboBox.Items.Add("OneOCR");
 
             // Set current selection
             switch (ocrMethod.ToLower())
@@ -229,6 +230,9 @@ namespace RSTGameTranslation
                     break;
                 case "easyocr":
                     OcrMethodComboBox.SelectedItem = "EasyOCR";
+                    break;
+                case "oneocr":
+                    OcrMethodComboBox.SelectedItem = "OneOCR";
                     break;
                 case "paddleocr":
                     OcrMethodComboBox.SelectedItem = "PaddleOCR";
@@ -249,13 +253,13 @@ namespace RSTGameTranslation
             if (button != null)
             {
                 string? ocrMethod = OcrMethodComboBox.SelectedItem.ToString();
-                setupOCR.Content = $"Setup OCR Server for {ocrMethod}";
+                setupOCR.Content = "Setup OCR Server";
                 if (string.IsNullOrEmpty(ocrMethod))
                 {
                     ocrMethod = "Windows OCR";
                 }
 
-                if (ocrMethod == "Windows OCR")
+                if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                 {
                     System.Windows.MessageBox.Show($"{ocrMethod} doesn't require installing a environment.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -589,6 +593,9 @@ namespace RSTGameTranslation
                     break;
                 case "paddleocr":
                     OcrMethodSummaryText.Text = "PaddleOCR";
+                    break;
+                case "oneocr":
+                    OcrMethodSummaryText.Text = "OneOCR";
                     break;
                 case "rapidocr":
                     OcrMethodSummaryText.Text = "RapidOCR";

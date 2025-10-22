@@ -363,7 +363,7 @@ namespace RSTGameTranslation
             _configValues[TRANSLATION_SERVICE] = "Google Translate";
             _configValues[OLLAMA_URL] = "http://localhost";
             _configValues[OLLAMA_PORT] = "11434";
-            _configValues[OCR_METHOD] = "Windows OCR";
+            _configValues[OCR_METHOD] = "OneOCR";
             _configValues[OLLAMA_MODEL] = "gemma3:12b";
             _configValues[SOURCE_LANGUAGE] = "en";
             _configValues[TARGET_LANGUAGE] = "vi";
@@ -390,7 +390,7 @@ namespace RSTGameTranslation
             _configValues[MIN_LETTER_CONFIDENCE] = "0.1";
             _configValues[MIN_LINE_CONFIDENCE] = "0.1";
             _configValues[AUTO_TRANSLATE_ENABLED] = "true";
-            _configValues[CHAR_LEVEL] = "true";
+            _configValues[CHAR_LEVEL] = "false";
             _configValues[IGNORE_PHRASES] = "";
             _configValues[TEXTSIMILAR_THRESHOLD] = "0.75";
             _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
@@ -904,7 +904,7 @@ namespace RSTGameTranslation
         public void SetOcrMethod(string method)
         {
             Console.WriteLine($"ConfigManager.SetOcrMethod called with method: {method}");
-            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR" || method == "RapidOCR")
+            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR" || method == "RapidOCR" || method == "OneOCR")
             {
                 _configValues[OCR_METHOD] = method;
                 SaveConfig();
@@ -912,7 +912,7 @@ namespace RSTGameTranslation
             }
             else
             {
-                Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR' or 'PaddleOCR' or 'RapidOCR'");
+                Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR' or 'PaddleOCR' or 'RapidOCR' or 'OneOCR'");
             }
         }
 
@@ -1143,7 +1143,7 @@ namespace RSTGameTranslation
         // Check if char level is enabled
         public bool IsCharLevelEnabled()
         {
-            string value = GetValue(CHAR_LEVEL, "true");
+            string value = GetValue(CHAR_LEVEL, "false");
             return value.ToLower() == "true";
         }
 

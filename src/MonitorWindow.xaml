@@ -40,6 +40,7 @@
                 <ComboBoxItem Content="Windows OCR"/>
                 <ComboBoxItem Content="PaddleOCR"/>
                 <ComboBoxItem Content="RapidOCR"/>
+                <ComboBoxItem Content="OneOCR"/>
             </ComboBox>
             
             <CheckBox x:Name="autoTranslateCheckBox" IsChecked="True" Visibility="Collapsed"/>

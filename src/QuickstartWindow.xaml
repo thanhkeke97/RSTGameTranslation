@@ -297,6 +297,21 @@
                                 </StackPanel>
                             </Expander>
 
+                            <!-- OneOCR -->
+                            <Expander Header="OneOCR (Recommended for beginners)" IsExpanded="True" Margin="0,0,0,10" Foreground="White">
+                                <StackPanel Margin="10,5,0,0">
+                                    <TextBlock TextWrapping="Wrap" Foreground="White">
+                                        <Run FontWeight="Bold">Pros:</Run> Built-in, no additional setup required, works well for most Language. Better Windows OCR
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
+                                        <Run FontWeight="Bold">Cons:</Run> May be less accurate for some Asian languages.
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
+                                        <Run FontWeight="Bold">Recommendation:</Run> Best choice for beginners or if you don't have a dedicated GPU
+                                    </TextBlock>
+                                </StackPanel>
+                            </Expander>
+
                             <!-- RapidOCR -->
                             <Expander Header="RapidOCR" Margin="0,0,0,10" Foreground="White">
                                 <StackPanel Margin="10,5,0,0">
