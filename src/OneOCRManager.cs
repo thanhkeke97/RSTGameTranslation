@@ -134,7 +134,6 @@ namespace RSTGameTranslation
                 return;
             }
 
-            // Khởi tạo Context nếu cần
             long res = NativeMethods.CreateOcrInitOptions(out long ctx);
             if (res == 0)
             {
@@ -144,7 +143,6 @@ namespace RSTGameTranslation
                 {
                     _initialized = true;
                     
-                    // Khởi tạo pipeline và process options để tái sử dụng
                     InitializePipeline();
                 }
             }
