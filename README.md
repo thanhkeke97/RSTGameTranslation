@@ -18,7 +18,7 @@
 ## ✨ Features
 
 🔥 **Real-time Translation**
-- Live automatic translations using EasyOCR, PaddleOCR, RapidOCR and Windows OCR
+- Live automatic translations using EasyOCR, PaddleOCR, RapidOCR, OneOCR and Windows OCR
 - Powerful overlay chat window for visual novels
 - Full-screen translation capability
 - Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, Overlay on Windows 10 will flicker)
@@ -67,12 +67,12 @@
 - Go to **Settings** → **Translation** tab: Select your preferred translation service
 
 #### 2. Server Setup (One-time)
-- Click **SetupOCR** button (Skip if using Windows OCR)
+- Click **SetupOCR** button (Skip if using Windows OCR, OneOCR)
 - Wait 5-15 minutes for setup completion
 - Look for "environment setup completed" message
 
 #### 3. Start Translating
-- Click **StartOCR** and wait for connection confirmation (Skip if using Windows OCR)
+- Click **StartOCR** and wait for connection confirmation (Skip if using Windows OCR, OneOCR)
 - Select translate area (ALT+Q or Click on SelectArea button)
 - Click Start button (ALT+G) to begin translation
 - View results in ChatBox or Monitor window
@@ -117,8 +117,8 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 ### Recommended Setup
 - **OCR**: PaddleOCR (Better for Asian languages, lower resource usage)
 - **LLM**: Gemini Flash 2 Lite (Fast and accurate)
-- **NVIDIA**: PaddleOCR, RapidOCR or EasyOCR
-- **AMD, INTEL**: RapidOCR or Windows OCR
+- **NVIDIA**: PaddleOCR, RapidOCR, OneOCR or EasyOCR
+- **AMD, INTEL**: RapidOCR, OneOCR or Windows OCR
 
 ### Alternative Options
 - **Ollama**: 100% local translation (RTX 4090: ~5s per translation)

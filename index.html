@@ -242,7 +242,7 @@
             "price": "0",
             "priceCurrency": "USD"
         },
-        "softwareVersion": "2.7",
+        "softwareVersion": "2.8",
         "author": {
             "@type": "Person",
             "name": "thanhkeke97"
@@ -262,7 +262,7 @@
             </div>
             <h1>🎮 RSTGameTranslation</h1>
             <p>Realtime Screen Translation for Games and Applications</p>
-            <div class="version-badge">Version 2.7</div>
+            <div class="version-badge">Version 2.8</div>
         </div>
     </header>
 
@@ -284,7 +284,7 @@
             <div class="feature-grid">
                 <div class="feature-card">
                     <h3>🔥 Real-time Translation</h3>
-                    <p>Use locally running EasyOCR, RapidOCR, PaddleOCR or Windows OCR for automatic real-time translation. Supports chat windows for visual novels and full-screen translation.</p>
+                    <p>Use locally running EasyOCR, RapidOCR, PaddleOCR, OneOCR or Windows OCR for automatic real-time translation. Supports chat windows for visual novels and full-screen translation.</p>
                 </div>
                 <div class="feature-card">
                     <h3>🤖 Advanced AI Translation</h3>
@@ -317,7 +317,7 @@
                     <li><strong>Recommended Hardware:</strong> NVIDIA GPU for best performance.</li>
                     <li><strong>Conda Installation:</strong> Add conda to the PATH environment variable and install conda with the "Just me" option.</li>
                     <li><strong>CPU Performance:</strong> Without an NVIDIA GPU, you'll use 30-50% CPU capacity (if choosing EasyOCR or PaddleOCR).</li>
-                    <li><strong>OCR Choice:</strong> RapidOCR, WindowsOCR (recommended for AMD and Intel GPUs), EasyOCR, RapidOCR and PaddleOCR for NVIDIA GPUs.</li>
+                    <li><strong>OCR Choice:</strong> RapidOCR, OneOCR, WindowsOCR (recommended for AMD and Intel GPUs), EasyOCR, RapidOCR and PaddleOCR for NVIDIA GPUs.</li>
                     <li><strong>Translation Area:</strong> The smaller the translation area, the faster the translation speed.</li>
                     <li><strong>Privacy:</strong> The software only checks GitHub for version updates. Cloud services (Gemini, ChatGPT) will see the content being translated. Ollama keeps everything local.</li>
                 </ul>
@@ -453,12 +453,12 @@
             <ul>
                 <li><strong>OCR:</strong> PaddleOCR (Better for Asian languages, uses fewer resources)</li>
                 <li><strong>LLM:</strong> Gemini Flash 2 Lite (Fast and accurate)</li>
-                <li><strong>For AMD, Intel users:</strong> Consider using RapidOCR if you don't want to lose CPU performance</li>
+                <li><strong>For AMD, Intel users:</strong> Consider using RapidOCR, OneOCR if you don't want to lose CPU performance</li>
             </ul>
             
             <h3>Alternative Options</h3>
             <ul>
-                <li><strong>Windows OCR:</strong> Lightweight but less accurate for games</li>
+                <li><strong>OneOCR:</strong> Best OCR for non GPU user</li>
                 <li><strong>Ollama:</strong> 100% local translation (RTX 4090: ~5 seconds/translation)</li>
                 <li><strong>ChatGPT:</strong> GPT-4.1 Nano for premium results</li>
             </ul>
