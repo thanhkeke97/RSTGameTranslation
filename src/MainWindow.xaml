@@ -122,7 +122,7 @@
                                     <ComboBoxItem Content="cs"/>
                                     <ComboBoxItem Content="id"/>
                                     <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="ch_tra"/>
+                                    <ComboBoxItem Content="hr"/>
                                 </ComboBox>
                                 <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
                                           WindowChrome.IsHitTestVisibleInChrome="True"
@@ -148,7 +148,7 @@
                                     <ComboBoxItem Content="cs"/>
                                     <ComboBoxItem Content="id"/>
                                     <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="ch_tra"/>
+                                    <ComboBoxItem Content="hr"/>
                                 </ComboBox>
                                 
                                 <!-- Monitor Toggle Button -->

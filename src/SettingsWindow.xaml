@@ -59,6 +59,7 @@
                                     <ComboBoxItem Content="cs"/>
                                     <ComboBoxItem Content="id"/>
                                     <ComboBoxItem Content="th"/>
+                                    <ComboBoxItem Content="hr"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -94,7 +95,7 @@
                                     <ComboBoxItem Content="cs"/>
                                     <ComboBoxItem Content="id"/>
                                     <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="ch_tra"/>
+                                    <ComboBoxItem Content="hr"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -166,6 +167,8 @@
                                 <Run>th = ThaiLand</Run>
                                 <LineBreak/>
                                 <Run>ch_tra = Traditional Chinese</Run>
+                                <LineBreak/>
+                                <Run>hr = Croatian</Run>
                             </TextBlock>
                             </Grid>
                         </GroupBox>

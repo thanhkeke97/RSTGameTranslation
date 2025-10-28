@@ -44,7 +44,8 @@ def initialize_ocr_engine(lang='en'):
         'cs': 'cs',
         'id': 'id',
         'th': 'th',
-        'ch_tra': 'ch_cht'
+        'ch_tra': 'ch_cht',
+        'hr': 'hr'
     }
 
     # Use mapped language or default to input if not in map

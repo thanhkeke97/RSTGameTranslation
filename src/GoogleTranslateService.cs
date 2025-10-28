@@ -355,6 +355,7 @@ namespace RSTGameTranslation
                 "Indonesian" or "id" => "id",
                 "Thai" or "th" or "Thailand" => "th",
                 "Traditional Chinese" or "ch_tra" => "zh-TW",
+                "Croatian" or "hr" => "hr",
                 _ => language
             };
         }
