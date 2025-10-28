@@ -11,9 +11,7 @@
         ResizeMode="NoResize"
         AllowsTransparency="True"
         BorderThickness="0"
-        BorderBrush="Red"
-        Background="Transparent"
-        IsHitTestVisible="false"
+        Background="Transparent"  
         Icon="/media/AppIcon.ico">
     <Grid>
         <Grid.RowDefinitions>
@@ -55,14 +53,15 @@
         
         <!-- ScrollViewer for zooming and scrolling -->
         <ScrollViewer Grid.Row="1" x:Name="imageScrollViewer"
-                      HorizontalScrollBarVisibility="Hidden" 
-                      VerticalScrollBarVisibility="Hidden"
-                      Background="Transparent">
+              HorizontalScrollBarVisibility="Hidden" 
+              VerticalScrollBarVisibility="Hidden"
+              Background="{x:Null}">
             <Grid x:Name="imageContainer" Background="Transparent">
                 <Image x:Name="captureImage" Stretch="None" Visibility="Collapsed"
-                       RenderOptions.BitmapScalingMode="NearestNeighbor"
-                       HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Canvas x:Name="textOverlayCanvas"/>
+                    Width="0" Height="0"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Canvas x:Name="textOverlayCanvas" Panel.ZIndex="1"/>
             </Grid>
         </ScrollViewer>
         

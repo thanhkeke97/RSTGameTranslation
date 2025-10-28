@@ -1212,7 +1212,7 @@ namespace RSTGameTranslation
                     // Update Monitor window with the copy (without saving to file)
                     if (MonitorWindow.Instance.IsVisible)
                     {
-                        MonitorWindow.Instance.UpdateScreenshotFromBitmap(bitmap);
+                        MonitorWindow.Instance.UpdateScreenshotFromBitmap();
                     }
 
                     bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
@@ -1604,7 +1604,7 @@ namespace RSTGameTranslation
                         bitmap.Save(outputPath, ImageFormat.Png);
 
                         Console.WriteLine("Updating MonitorWindow with fresh capture");
-                        MonitorWindow.Instance.UpdateScreenshotFromBitmap(bitmap);
+                        MonitorWindow.Instance.UpdateScreenshotFromBitmap();
                     }
 
                     // Refresh overlays

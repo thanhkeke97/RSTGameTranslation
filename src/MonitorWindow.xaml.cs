@@ -271,12 +271,8 @@ namespace RSTGameTranslation
             // Make sure keyboard shortcuts work from this window too
             PreviewKeyDown -= Application_KeyDown;
             PreviewKeyDown += Application_KeyDown;
-            
-            // Try to load the last screenshot if available
-            if (!string.IsNullOrEmpty(lastImagePath) && File.Exists(lastImagePath))
-            {
-                UpdateScreenshot(lastImagePath);
-            }
+
+            UpdateScreenshotFromBitmap();
 
             // Initialize controls from MainWindow
             if (MainWindow.Instance != null)
@@ -375,38 +371,15 @@ namespace RSTGameTranslation
         }
         
         // Update the monitor with a bitmap directly (no file saving required)
-        public void UpdateScreenshotFromBitmap(System.Drawing.Bitmap bitmap)
+        public void UpdateScreenshotFromBitmap()
         {
             if (!Dispatcher.CheckAccess())
             {
-                // Convert to BitmapSource on the calling thread to avoid UI thread bottleneck
-                BitmapSource bitmapSource;
                 try
                 {
-                    // Create a BitmapSource directly from the Bitmap handle - much faster than memory stream
-                    IntPtr hBitmap = bitmap.GetHbitmap();
-                    try
-                    {
-                        bitmapSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                            hBitmap,
-                            IntPtr.Zero,
-                            Int32Rect.Empty,
-                            BitmapSizeOptions.FromEmptyOptions());
-                        
-                        // Freeze for cross-thread use
-                        bitmapSource.Freeze();
-                    }
-                    finally
-                    {
-                        // Always delete the HBitmap to prevent memory leaks
-                        DeleteObject(hBitmap);
-                    }
-                    
-                    // Use BeginInvoke with high priority for UI update
                     Dispatcher.BeginInvoke(new Action(() => {
                         try
                         {
-                            captureImage.Source = bitmapSource;
                             
                             // Show window if needed
                             if (!IsVisible)
@@ -433,24 +406,6 @@ namespace RSTGameTranslation
             // Direct UI thread path
             try
             {
-                // Convert bitmap to BitmapSource - faster than BitmapImage
-                IntPtr hBitmap = bitmap.GetHbitmap();
-                try
-                {
-                    BitmapSource bitmapSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                        hBitmap,
-                        IntPtr.Zero,
-                        Int32Rect.Empty,
-                        BitmapSizeOptions.FromEmptyOptions());
-                    
-                    // Set the image source
-                    captureImage.Source = bitmapSource;
-                }
-                finally
-                {
-                    // Always delete the HBitmap to prevent memory leaks
-                    DeleteObject(hBitmap);
-                }
                 
                 // Show the window if not visible
                 if (!IsVisible)
@@ -468,146 +423,23 @@ namespace RSTGameTranslation
             }
         }
         
-        // P/Invoke call needed for proper HBitmap cleanup
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
-        
-        // Update the monitor with a new screenshot from file
-        public void UpdateScreenshot(string imagePath)
-        {
-            if (!File.Exists(imagePath)) 
-            {
-                UpdateStatus($"File not found: {imagePath}");
-                return;
-            }
-            
-            try
-            {
-                lastImagePath = imagePath;
-                Console.WriteLine($"ImagePath: {lastImagePath}");
-                
-                // Get the absolute file path (fully qualified)
-                string fullPath = Path.GetFullPath(imagePath);
-                
-                // Make a copy of the file to avoid access conflicts
-                string tempCopyPath = Path.Combine(Path.GetTempPath(), 
-                                                 $"monitor_copy_{Guid.NewGuid()}.png");
-                
-                // Copy the file to a temporary location
-                try
-                {
-                    File.Copy(fullPath, tempCopyPath, true);
-                }
-                catch (IOException ex)
-                {
-                    Console.WriteLine($"Error copying image file: {ex.Message}");
-                    // Continue with the original file if copy fails
-                    tempCopyPath = fullPath;
-                }
-                
-                // Load the image using a FileStream to avoid URI issues
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                
-                // Use a FileStream instead of UriSource
-                try
-                {
-                    using (FileStream stream = new FileStream(tempCopyPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        bitmap.StreamSource = stream;
-                        bitmap.EndInit();
-                        bitmap.Freeze(); // Make it thread-safe and more efficient
-                    }
-                    
-                    // Ensure we're on the UI thread when updating the image source
-                    if (!Dispatcher.CheckAccess())
-                    {
-                        Dispatcher.Invoke(() => { captureImage.Source = bitmap; });
-                    }
-                    else
-                    {
-                        captureImage.Source = bitmap;
-                    }
-                    
-                    // Clean up temp file if it's not the original
-                    if (tempCopyPath != fullPath && File.Exists(tempCopyPath))
-                    {
-                        try
-                        {
-                            File.Delete(tempCopyPath);
-                        }
-                        catch
-                        {
-                            // Ignore deletion errors - temp files will be cleaned up by the OS eventually
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error loading image: {ex.Message}");
-                    UpdateStatus($"Error loading image: {ex.Message}");
-                }
-                
-                
-                // Clear existing overlay elements
-                // textOverlayCanvas.Children.Clear();
-
-                // Ensure UI updates happen on the UI thread
-                if (!Dispatcher.CheckAccess())
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        // Show the window if not visible
-                        if (!IsVisible)
-                        {
-                            Show();
-                            Console.WriteLine("Monitor window shown during screenshot update");
-                        }
-
-                        // Make sure scroll bars appear when needed
-                        UpdateScrollViewerSettings();
-                    });
-                }
-                else
-                {
-                    // Show the window if not visible
-                    if (!IsVisible)
-                    {
-                        Show();
-                        Console.WriteLine("Monitor window shown during screenshot update");
-                    }
-
-                    // Make sure scroll bars appear when needed
-                    UpdateScrollViewerSettings();
-                }
-                
-                //UpdateStatus($"Screenshot updated: {Path.GetFileName(imagePath)}");
-                //Console.WriteLine($"Monitor window updated with screenshot: {Path.GetFileName(imagePath)}");
-            }
-            catch (Exception ex)
-            {
-                UpdateStatus($"Error: {ex.Message}");
-                Console.WriteLine($"Error updating monitor: {ex.Message}");
-            }
-        }
         
         // Ensure scroll bars appear when needed
         private void UpdateScrollViewerSettings()
         {
             if (captureImage.Source != null)
             {
-                // Make sure the image and canvas are sized correctly
                 if (captureImage.Source is BitmapSource bitmapSource)
                 {
-                    // Set the canvas size to match the image
-                    textOverlayCanvas.Width = bitmapSource.PixelWidth;
-                    textOverlayCanvas.Height = bitmapSource.PixelHeight;
+                    double width = bitmapSource.PixelWidth;
+                    double height = bitmapSource.PixelHeight;
                     
-                    // This ensures the scrollbars will appear when the image is larger
-                    // than the available space in the ScrollViewer
-                    imageContainer.Width = bitmapSource.PixelWidth;
-                    imageContainer.Height = bitmapSource.PixelHeight;
+                    textOverlayCanvas.Width = width;
+                    textOverlayCanvas.Height = height;
+                    imageContainer.Width = width;
+                    imageContainer.Height = height;
+                    
+                    captureImage.Visibility = Visibility.Collapsed;
                 }
             }
         }
