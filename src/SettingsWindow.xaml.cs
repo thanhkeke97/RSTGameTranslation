@@ -91,6 +91,9 @@ namespace RSTGameTranslation
         // Show message for multi selection are
         private bool isNeedShowMessage = false;
 
+        // Show message for Auto OCR
+        private bool isNeedShowWarningAutoOCR = false;
+
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
 
@@ -3250,6 +3253,18 @@ namespace RSTGameTranslation
             bool enabled = AutoOCRCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetAutoOCR(enabled);
             Console.WriteLine($"Auto OCR set to {enabled}");
+            if (isNeedShowWarningAutoOCR && !enabled)
+            {
+                // Show notification
+                MessageBox.Show(
+                    "If you disable this feature, the application will not automatically translate text. " +
+                    "To trigger translation of the selected area, click the Start button (default ALT+G). " +
+                    "To clear the overlay and get a new translation, click the Stop button (default ALT+G) ",
+                    "Auto OCR Disabled",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            isNeedShowWarningAutoOCR = enabled;
         }
 
         private void ExcludeCharacterNameCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
