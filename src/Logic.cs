@@ -2400,6 +2400,14 @@ namespace RSTGameTranslation
                 "pt" => "portuguese",
                 "ar" => "arabic",
                 "nl" => "dutch",
+                "hr" => "Croatian",
+                "pl" => "Polish",
+                "ro" => "Romanian",
+                "fa" => "Farsi",
+                "cs" => "Czech",
+                "id" => "Indonesian",
+                "th" => "ThaiLand",
+                "ch_tra" => "Traditional Chinese",
                 _ => language
             };
         }

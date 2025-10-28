@@ -18,7 +18,7 @@ namespace RSTGameTranslation
         private readonly string _apiKey;
         private readonly bool _useCloudApi;
         private readonly bool _autoMapLanguages;
-        public static Regex GoogleTranslateResultRegex { get; set; }
+        public static Regex? GoogleTranslateResultRegex { get; set; }
 
         public GoogleTranslateService()
         {
