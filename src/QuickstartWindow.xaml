@@ -447,6 +447,18 @@
                         </TextBlock>
                     </StackPanel>
 
+                    <!-- LM Studio Model -->
+                    <StackPanel x:Name="LMStudioModelPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                        <TextBlock Text="LM Studio Model:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBox x:Name="LMStudioModelTextBox" Width="300" HorizontalAlignment="Left" TextChanged="LMStudioModelTextBox_TextChanged"/>
+
+                        <Button Content="Download LMStudio" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://lmstudio.ai/download"/>
+
+                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
+                            Note: LM Studio runs locally on your PC and doesn't require internet access, but needs good hardware.
+                        </TextBlock>
+                    </StackPanel>
+
                     <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,10,0,20">
                         <StackPanel>
                             <TextBlock FontWeight="Bold" FontSize="16" Foreground="#3498db" Margin="0,0,0,10">Translation Service Recommendations:</TextBlock>
@@ -461,6 +473,9 @@
                             </TextBlock>
                             <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
                                 <Run FontWeight="Bold">For offline use:</Run> Ollama (requires local installation)
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
+                                <Run FontWeight="Bold">For offline use:</Run> LM Studio (requires local installation)
                             </TextBlock>
                             <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
                                 <Run FontWeight="Bold">For balance of quality/cost:</Run> Gemini, Mistral (free tier available)

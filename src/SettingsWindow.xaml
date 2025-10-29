@@ -537,6 +537,7 @@
                                     <ComboBoxItem Content="ChatGPT"/>
                                     <ComboBoxItem Content="Mistral"/>
                                     <ComboBoxItem Content="Google Translate"/>
+                                    <ComboBoxItem Content="LM Studio"/>
                                 </ComboBox>
                                 
                                 <!-- Gemini API Key - Only visible when Gemini is selected -->
@@ -677,6 +678,48 @@
                                         <Button x:Name="viewModelsButton" Content="View Models" 
                                                Margin="0,0,0,0" Padding="5,0" Click="ViewModelsButton_Click"
                                                ToolTip="Open Ollama models gallery in browser"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- LM Studio URL - Only visible when LM Studio is selected -->
+                                <TextBlock x:Name="lmstudioUrlLabel" Text="LM Studio URL:" Grid.Row="1" Grid.Column="0" 
+                                          VerticalAlignment="Top" Margin="0,8,10,0" Visibility="Collapsed"/>
+                                <Grid Grid.Row="1" Grid.Column="1" Visibility="Collapsed" x:Name="lmstudioUrlGrid" Margin="0,5,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBox x:Name="lmstudioUrlTextBox" Grid.Row="0"
+                                            VerticalAlignment="Top" Margin="0,0,0,2"
+                                            TextChanged="LMStudioUrlTextBox_TextChanged"/>
+                                    <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                                        <Run>Download LM Studio from </Run>
+                                        <Hyperlink Click="LMStudioDownloadLink_Click">https://lmstudio.ai/download</Hyperlink>
+                                    </TextBlock>
+                                </Grid>
+                                
+                                <!-- LM Studio Port - Only visible when LM Studio is selected -->
+                                <TextBlock x:Name="lmstudioPortLabel" Text="LM Studio Port:" Grid.Row="2" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"/>
+                                <TextBox x:Name="lmstudioPortTextBox" Grid.Row="2" Grid.Column="1" 
+                                        Margin="0,5" Visibility="Collapsed"
+                                        TextChanged="LMStudioPortTextBox_TextChanged"/>
+                                
+                                <!-- LM Studio Model - Only visible when LM Studio is selected -->
+                                <TextBlock x:Name="lmstudioModelLabel" Text="LM Studio Model:" Grid.Row="3" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"
+                                          ToolTip="The model to use for translation (e.g: google/gemma-3-12b)"/>
+                                <Grid Grid.Row="3" Grid.Column="1" Margin="0,5" Visibility="Collapsed" x:Name="lmstudioModelGrid">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="lmstudioModelTextBox" Grid.Column="0"
+                                             TextChanged="LMStudioModelTextBox_TextChanged"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button x:Name="viewModelLMStudiosButton" Content="View Models" 
+                                               Margin="0,0,0,0" Padding="5,0" Click="ViewModelsButtonLMStudio_Click"
+                                               ToolTip="Open LM Studio models gallery in browser"/>
                                     </StackPanel>
                                 </Grid>
                                 

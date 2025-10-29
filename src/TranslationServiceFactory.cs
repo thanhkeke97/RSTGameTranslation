@@ -19,6 +19,7 @@ namespace RSTGameTranslation
             {
                 "Gemini" => new GeminiTranslationService(),
                 "Ollama" => new OllamaTranslationService(),
+                "LM Studio" => new LMStudioTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
                 "Mistral" => new MistralTranslationService(),
@@ -37,6 +38,7 @@ namespace RSTGameTranslation
             {
                 "Gemini" => new GeminiTranslationService(),
                 "Ollama" => new OllamaTranslationService(),
+                "LM Studio" => new LMStudioTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
                 "Mistral" => new MistralTranslationService(),

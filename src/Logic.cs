@@ -2253,7 +2253,7 @@ namespace RSTGameTranslation
                         }
                     }
                 }
-                else if (currentService == "Gemini" || currentService == "Ollama")
+                else if (currentService == "Gemini" || currentService == "Ollama" || currentService == "LM Studio")
                 {
                     // Gemini and Ollama response structure:
                     // { "candidates": [ { "content": { "parts": [ { "text": "..." } ] } } ] }

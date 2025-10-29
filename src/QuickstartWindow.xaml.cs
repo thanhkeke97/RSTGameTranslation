@@ -307,6 +307,7 @@ namespace RSTGameTranslation
             TranslationServiceComboBox.Items.Add("Gemini");
             TranslationServiceComboBox.Items.Add("Mistral");
             TranslationServiceComboBox.Items.Add("Ollama");
+            TranslationServiceComboBox.Items.Add("LM Studio");
 
             // Set current selection
             switch (translationService.ToLower())
@@ -325,6 +326,9 @@ namespace RSTGameTranslation
                     break;
                 case "ollama":
                     TranslationServiceComboBox.SelectedItem = "Ollama";
+                    break;
+                case "lm studio":
+                    TranslationServiceComboBox.SelectedItem = "LM Studio";
                     break;
                 default:
                     TranslationServiceComboBox.SelectedItem = "Google Translate";
@@ -400,6 +404,17 @@ namespace RSTGameTranslation
                 OllamaModelTextBox.Text = "llama3";
             }
 
+            // Load LM Studio model
+            string lmstudioModel = configManager.GetLMStudioModel();
+            if (!string.IsNullOrEmpty(lmstudioModel))
+            {
+                LMStudioModelTextBox.Text = lmstudioModel;
+            }
+            else
+            {
+                LMStudioModelTextBox.Text = "google/gemma-3-4b";
+            }
+
             // Update visibility of API key fields based on selected service
             UpdateApiKeyFieldsVisibility();
             LoadedTranslationSettings = true;
@@ -423,6 +438,7 @@ namespace RSTGameTranslation
             GeminiApiKeyPanel.Visibility = Visibility.Collapsed;
             MistralApiKeyPanel.Visibility = Visibility.Collapsed;
             OllamaModelPanel.Visibility = Visibility.Collapsed;
+            LMStudioModelPanel.Visibility = Visibility.Collapsed;
 
             // Show the appropriate API key field based on the selected service
             if (TranslationServiceComboBox.SelectedItem != null)
@@ -445,6 +461,9 @@ namespace RSTGameTranslation
                         break;
                     case "Ollama":
                         OllamaModelPanel.Visibility = Visibility.Visible;
+                        break;
+                    case "LM Studio":
+                        LMStudioModelPanel.Visibility = Visibility.Visible;
                         break;
                 }
             }
@@ -544,6 +563,11 @@ namespace RSTGameTranslation
             configManager.SetOllamaModel(OllamaModelTextBox.Text);
         }
 
+        private void LMStudioModelTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            configManager.SetLMStudioModel(LMStudioModelTextBox.Text);
+        }
+
         private void GetApiKey_Click(object sender, RoutedEventArgs e)
         {
             Button? button = sender as Button;
@@ -622,6 +646,9 @@ namespace RSTGameTranslation
                     break;
                 case "ollama":
                     TranslationServiceSummaryText.Text = "Ollama";
+                    break;
+                case "lm studio":
+                    TranslationServiceSummaryText.Text = "LM Studio";
                     break;
                 default:
                     TranslationServiceSummaryText.Text = "Google Translate";

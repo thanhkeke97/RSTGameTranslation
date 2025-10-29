@@ -385,6 +385,19 @@ namespace RSTGameTranslation
                         Console.WriteLine($"Prompt saved for Ollama");
                     }
                 }
+
+                // LM Studio
+                string lmstudio_prompt = ConfigManager.Instance.GetDefaultServicePrompt("LM Studio");
+                if (!string.IsNullOrWhiteSpace(lmstudio_prompt))
+                {
+                    // Save to config
+                    bool success = ConfigManager.Instance.SaveServicePrompt("LM Studio", lmstudio_prompt);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Prompt saved for LM Studio");
+                    }
+                }
                 ConfigManager.Instance.SetForceUpdatePrompt(isForceUpdatePrompt);
 
             }

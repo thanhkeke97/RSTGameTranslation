@@ -759,6 +759,11 @@ namespace RSTGameTranslation
             ollamaPortTextBox.Text = ConfigManager.Instance.GetOllamaPort();
             ollamaModelTextBox.Text = ConfigManager.Instance.GetOllamaModel();
 
+            // Initialize LM Studio settings
+            lmstudioUrlTextBox.Text = ConfigManager.Instance.GetLMStudioUrl();
+            lmstudioPortTextBox.Text = ConfigManager.Instance.GetLMStudioPort();
+            lmstudioModelTextBox.Text = ConfigManager.Instance.GetLMStudioModel();
+
             // Update service-specific settings visibility based on selected service
             UpdateServiceSpecificSettings(currentService);
 
@@ -1437,6 +1442,7 @@ namespace RSTGameTranslation
             try
             {
                 bool isOllamaSelected = selectedService == "Ollama";
+                bool isLMStudioSelected = selectedService == "LM Studio";
                 bool isGeminiSelected = selectedService == "Gemini";
                 bool isChatGptSelected = selectedService == "ChatGPT";
                 bool isMistralSelected = selectedService == "Mistral";
@@ -1446,6 +1452,9 @@ namespace RSTGameTranslation
                 if (ollamaUrlLabel == null || ollamaUrlTextBox == null ||
                     ollamaPortLabel == null || ollamaPortTextBox == null ||
                     ollamaModelLabel == null || ollamaModelGrid == null ||
+                    lmstudioUrlLabel == null || lmstudioUrlTextBox == null ||
+                    lmstudioPortLabel == null || lmstudioPortTextBox == null ||
+                    lmstudioModelLabel == null || lmstudioModelGrid == null ||
                     geminiApiKeyLabel == null || geminiApiKeyPasswordBox == null ||
                     geminiModelLabel == null || geminiModelGrid == null ||
                     mistralApiKeyLabel == null || mistralApiKeyPasswordBox == null ||
@@ -1485,6 +1494,14 @@ namespace RSTGameTranslation
                 ollamaPortTextBox.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
                 ollamaModelLabel.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
                 ollamaModelGrid.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
+
+                // Show/hide LM Studio-specific settings
+                lmstudioUrlLabel.Visibility = isLMStudioSelected ? Visibility.Visible : Visibility.Collapsed;
+                lmstudioUrlGrid.Visibility = isLMStudioSelected ? Visibility.Visible : Visibility.Collapsed;
+                lmstudioPortLabel.Visibility = isLMStudioSelected ? Visibility.Visible : Visibility.Collapsed;
+                lmstudioPortTextBox.Visibility = isLMStudioSelected ? Visibility.Visible : Visibility.Collapsed;
+                lmstudioModelLabel.Visibility = isLMStudioSelected ? Visibility.Visible : Visibility.Collapsed;
+                lmstudioModelGrid.Visibility = isLMStudioSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide ChatGPT-specific settings
                 chatGptApiKeyLabel.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -1585,6 +1602,12 @@ namespace RSTGameTranslation
                     ollamaUrlTextBox.Text = ConfigManager.Instance.GetOllamaUrl();
                     ollamaPortTextBox.Text = ConfigManager.Instance.GetOllamaPort();
                     ollamaModelTextBox.Text = ConfigManager.Instance.GetOllamaModel();
+                }
+                else if (isLMStudioSelected)
+                {
+                    lmstudioUrlTextBox.Text = ConfigManager.Instance.GetLMStudioUrl();
+                    lmstudioPortTextBox.Text = ConfigManager.Instance.GetLMStudioPort();
+                    lmstudioModelTextBox.Text = ConfigManager.Instance.GetLMStudioModel();
                 }
                 else if (isChatGptSelected)
                 {
@@ -1829,6 +1852,16 @@ namespace RSTGameTranslation
             }
         }
 
+        // LM Studio URL changed
+        private void LMStudioUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string url = lmstudioUrlTextBox.Text.Trim();
+            if (!string.IsNullOrEmpty(url))
+            {
+                ConfigManager.Instance.SetLMStudioUrl(url);
+            }
+        }
+
         // Ollama Port changed
         private void OllamaPortTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -1844,6 +1877,25 @@ namespace RSTGameTranslation
                 {
                     // Reset to default if invalid
                     ollamaPortTextBox.Text = "11434";
+                }
+            }
+        }
+
+        // LMStudio Port changed
+        private void LMStudioPortTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string port = lmstudioPortTextBox.Text.Trim();
+            if (!string.IsNullOrEmpty(port))
+            {
+                // Validate that the port is a number
+                if (int.TryParse(port, out _))
+                {
+                    ConfigManager.Instance.SetLMStudioPort(port);
+                }
+                else
+                {
+                    // Reset to default if invalid
+                    lmstudioPortTextBox.Text = "1234";
                 }
             }
         }
@@ -1874,6 +1926,33 @@ namespace RSTGameTranslation
                 Logic.Instance.ClearAllTextObjects();
             }
         }
+        
+        // LM Studio Model changed
+        private void LMStudioModelTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Skip if initializing or if the sender isn't the expected TextBox
+            if (_isInitializing || sender != lmstudioModelTextBox)
+                return;
+
+            string sanitizedModel = lmstudioModelTextBox.Text.Trim();
+
+
+            // Save valid model to config
+            ConfigManager.Instance.SetLMStudioModel(sanitizedModel);
+            Console.WriteLine($"LM Studio model set to: {sanitizedModel}");
+
+            // Trigger retranslation if the current service is LM Studio
+            if (ConfigManager.Instance.GetCurrentTranslationService() == "LM Studio")
+            {
+                Console.WriteLine("LM Studio model changed. Triggering retranslation...");
+
+                // Reset the hash to force a retranslation
+                Logic.Instance.ResetHash();
+
+                // Clear any existing text objects to refresh the display
+                Logic.Instance.ClearAllTextObjects();
+            }
+        }
 
         // Model downloader instance
         private readonly OllamaModelDownloader _modelDownloader = new OllamaModelDownloader();
@@ -1887,6 +1966,11 @@ namespace RSTGameTranslation
         private void ViewModelsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ollama.com/search");
+        }
+
+        private void ViewModelsButtonLMStudio_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://lmstudio.ai/models");
         }
 
         private void GeminiApiLink_Click(object sender, RoutedEventArgs e)
@@ -2070,6 +2154,11 @@ namespace RSTGameTranslation
         private void OllamaDownloadLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://ollama.com");
+        }
+
+        private void LMStudioDownloadLink_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://lmstudio.ai/download");
         }
 
         private void ChatGptApiLink_Click(object sender, RoutedEventArgs e)

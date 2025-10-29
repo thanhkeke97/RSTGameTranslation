@@ -19,6 +19,7 @@ namespace RSTGameTranslation
         public readonly string _profileFolderPath;
         private readonly string _geminiConfigFilePath;
         private readonly string _ollamaConfigFilePath;
+        private readonly string _lmstudioConfigFilePath;
         private readonly string _chatgptConfigFilePath;
         private readonly string _mistralConfigFilePath;
         private readonly string _googleTranslateConfigFilePath;
@@ -62,6 +63,9 @@ namespace RSTGameTranslation
         public const string OLLAMA_URL = "ollama_url";
         public const string OLLAMA_PORT = "ollama_port";
         public const string OLLAMA_MODEL = "ollama_model";
+        public const string LM_STUDIO_URL = "lm_studio_url";
+        public const string LM_STUDIO_PORT = "lm_studio_port";
+        public const string LM_STUDIO_MODEL = "lm_studio_model";
         public const string CHATGPT_API_KEY = "chatgpt_api_key";
         public const string CHATGPT_MODEL = "chatgpt_model";
         public const string FORCE_CURSOR_VISIBLE = "force_cursor_visible";
@@ -203,6 +207,22 @@ namespace RSTGameTranslation
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
                     "so they aren't mushed together, but each on their own text line.\n\n" +
                     "Here is the input JSON:";
+        public const string defaultLMStudioPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
+                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
+                    "so please try to infer the context and which parts are menu or dialog.\n" +
+                    "You should:\n" +
+                    "* Output ONLY the resulting JSON data.\n" +
+                    "* IMPORTANT: If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated. \n" +
+                    "* IMPORTANT: Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
+                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
+                    "* Each element in the text_blocks array must include its id.\n" +
+                    "* No extra text, explanations, or formatting should be included.\n" +
+                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
+                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
+                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
+                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
+                    "so they aren't mushed together, but each on their own text line.\n\n" +
+                    "Here is the input JSON:";
 
         // Singleton instance
         public static ConfigManager Instance
@@ -228,6 +248,7 @@ namespace RSTGameTranslation
             _profileFolderPath = Path.Combine(appDirectory, "Profiles");
             _geminiConfigFilePath = Path.Combine(appDirectory, "gemini_config.txt");
             _ollamaConfigFilePath = Path.Combine(appDirectory, "ollama_config.txt");
+            _lmstudioConfigFilePath = Path.Combine(appDirectory, "lmstudio_config.txt");
             _chatgptConfigFilePath = Path.Combine(appDirectory, "chatgpt_config.txt");
             _mistralConfigFilePath = Path.Combine(appDirectory, "mistral_config.txt");
             _googleTranslateConfigFilePath = Path.Combine(appDirectory, "google_translate_config.txt");
@@ -236,6 +257,7 @@ namespace RSTGameTranslation
             Console.WriteLine($"Profile folder path: {_profileFolderPath}");
             Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
             Console.WriteLine($"Ollama config file path: {_ollamaConfigFilePath}");
+            Console.WriteLine($"LMStudio config file path: {_lmstudioConfigFilePath}");
             Console.WriteLine($"ChatGPT config file path: {_chatgptConfigFilePath}");
             Console.WriteLine($"Mistral config file path: {_mistralConfigFilePath}");
             Console.WriteLine($"Google Translate config file path: {_googleTranslateConfigFilePath}");
@@ -363,8 +385,11 @@ namespace RSTGameTranslation
             _configValues[TRANSLATION_SERVICE] = "Google Translate";
             _configValues[OLLAMA_URL] = "http://localhost";
             _configValues[OLLAMA_PORT] = "11434";
+            _configValues[LM_STUDIO_URL] = "http://localhost";
+            _configValues[LM_STUDIO_PORT] = "1234";
             _configValues[OCR_METHOD] = "OneOCR";
             _configValues[OLLAMA_MODEL] = "gemma3:12b";
+            _configValues[LM_STUDIO_MODEL] = "google/gemma-3-4b";
             _configValues[SOURCE_LANGUAGE] = "en";
             _configValues[TARGET_LANGUAGE] = "vi";
             _configValues[ELEVENLABS_API_KEY] = "<your API key here>";
@@ -819,6 +844,12 @@ namespace RSTGameTranslation
             return GetValue(OLLAMA_URL, "http://localhost");
         }
 
+        // Get/Set LM Studio URL
+        public string GetLMStudioUrl()
+        {
+            return GetValue(LM_STUDIO_URL, "http://localhost");
+        }
+
         public void SetOllamaUrl(string url)
         {
             _configValues[OLLAMA_URL] = url;
@@ -868,6 +899,55 @@ namespace RSTGameTranslation
             return $"{url}:{port}/api/generate";
         }
 
+        public void SetLMStudioUrl(string url)
+        {
+            _configValues[LM_STUDIO_URL] = url;
+            SaveConfig();
+        }
+
+        // Get/Set LMStudio Port
+        public string GetLMStudioPort()
+        {
+            return GetValue(LM_STUDIO_PORT, "1234");
+        }
+
+        public void SetLMStudioPort(string port)
+        {
+            _configValues[LM_STUDIO_PORT] = port;
+            SaveConfig();
+        }
+
+        // Get/Set LM Studio Model
+        public string GetLMStudioModel()
+        {
+            return GetValue(LM_STUDIO_MODEL, "google/gemma-3-4b"); // Default to google/gemma-3-4b
+        }
+
+        public void SetLMStudioModel(string model)
+        {
+            if (!string.IsNullOrWhiteSpace(model))
+            {
+                _configValues[LM_STUDIO_MODEL] = model;
+                SaveConfig();
+                Console.WriteLine($"LM Studio model set to: {model}");
+            }
+        }
+
+        // Get the full Ollama API endpoint
+        public string GetLMStudioApiEndpoint()
+        {
+            string url = GetLMStudioUrl();
+            string port = GetLMStudioPort();
+
+            // Ensure URL doesn't end with a slash
+            if (url.EndsWith("/"))
+            {
+                url = url.Substring(0, url.Length - 1);
+            }
+
+            return $"{url}:{port}/v1/chat/completions";
+        }
+
         // Get current translation service
         public string GetCurrentTranslationService()
         {
@@ -877,7 +957,7 @@ namespace RSTGameTranslation
         // Set current translation service
         public void SetTranslationService(string service)
         {
-            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral")
+            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio"  )
             {
                 _currentTranslationService = service;
                 _configValues[TRANSLATION_SERVICE] = service;
@@ -934,6 +1014,10 @@ namespace RSTGameTranslation
             {
                 return defaultOllamaPrompt;
             }
+            else if (service == "LM Studio")
+            {
+                return defaultLMStudioPrompt;
+            }
             else
             {
                 return "";
@@ -968,6 +1052,13 @@ namespace RSTGameTranslation
                     string ollamaContent = $"<llm_prompt_multi_start>\n{defaultOllamaPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_ollamaConfigFilePath, ollamaContent);
                     Console.WriteLine("Created default Ollama config file");
+                }
+
+                if (!File.Exists(_lmstudioConfigFilePath))
+                {
+                    string lmstudioContent = $"<llm_prompt_multi_start>\n{defaultLMStudioPrompt}\n<llm_prompt_multi_end>";
+                    File.WriteAllText(_lmstudioConfigFilePath, lmstudioContent);
+                    Console.WriteLine("Created default LM Studio config file");
                 }
 
                 // Check and create ChatGPT config file
@@ -1010,6 +1101,9 @@ namespace RSTGameTranslation
                     break;
                 case "Ollama":
                     filePath = _ollamaConfigFilePath;
+                    break;
+                case "LM Studio":
+                    filePath = _lmstudioConfigFilePath;
                     break;
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
@@ -1066,6 +1160,9 @@ namespace RSTGameTranslation
                     break;
                 case "Ollama":
                     filePath = _ollamaConfigFilePath;
+                    break;
+                case "LM Studio":
+                    filePath = _lmstudioConfigFilePath;
                     break;
                 case "ChatGPT":
                     filePath = _chatgptConfigFilePath;
