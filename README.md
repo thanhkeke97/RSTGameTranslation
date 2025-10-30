@@ -24,7 +24,7 @@
 - Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, Overlay on Windows 10 will flicker)
 
 🤖 **AI-Powered Translation**
-- Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral
+- Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral, LM Studio
 - Google Translate integration
 - Context-aware translations for better accuracy
 
@@ -35,7 +35,7 @@
 
 🔊 **Additional Features**
 - Text-to-speech functionality
-- 100% local translation option with Ollama
+- 100% local translation option with Ollama or LM Studio
 
 ---
 
@@ -122,6 +122,7 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 
 ### Alternative Options
 - **Ollama**: 100% local translation (RTX 4090: ~5s per translation)
+- **LM Studio**: Local translation with customizable models
 - **ChatGPT**: GPT-4.1 Nano for premium results
 
 ### Performance Tips
@@ -139,13 +140,13 @@ RSTGameTranslation automatically checks for updates on startup. When available:
 
 ### Python Server Development
 - Use **VSCode** for development/debugging
-- Built on EasyOCR and PaddleOCR foundations
+- Built on EasyOCR, RapidOCR and PaddleOCR foundations
 
 ---
 
 ## ⚠️ Important Notes
 
-> **Privacy**: Only checks GitHub for version updates. Cloud translation services (Gemini, ChatGPT) will see translated content. Ollama keeps everything local.
+> **Privacy**: Only checks GitHub for version updates. Cloud translation services (Gemini, ChatGPT) will see translated content. Ollama and LM Studio keep everything local.
 
 > **Performance**: CPU-only mode will use 30-50% CPU power. Dedicated NVIDIA GPU strongly recommended.
 

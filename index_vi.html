@@ -12,8 +12,8 @@
     
     <!-- SEO Meta Tags -->
     <title>RSTGameTranslation - Phần mềm dịch màn hình game thời gian thực</title>
-    <meta name="description" content="RSTGameTranslation là công cụ dịch màn hình game thời gian thực sử dụng AI tiên tiến, hỗ trợ nhiều ngôn ngữ, chạy được cả offline và online với Gemini, ChatGPT, Ollama." />
-    <meta name="keywords" content="dịch game, dịch màn hình thời gian thực, RSTGameTranslation, OCR game, AI dịch game, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama" />
+    <meta name="description" content="RSTGameTranslation là công cụ dịch màn hình game thời gian thực sử dụng AI tiên tiến, hỗ trợ nhiều ngôn ngữ, chạy được cả offline và online với Gemini, ChatGPT, Ollama, LM Studio." />
+    <meta name="keywords" content="dịch game, dịch màn hình thời gian thực, RSTGameTranslation, OCR game, AI dịch game, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama, LM Studio" />
     <meta name="author" content="thanhkeke97 (Thành Phạm)" />
     <link rel="canonical" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
     
@@ -242,7 +242,7 @@
             "price": "0",
             "priceCurrency": "VND"
         },
-        "softwareVersion": "2.8",
+        "softwareVersion": "2.9",
         "author": {
             "@type": "Person",
             "name": "thanhkeke97"
@@ -262,7 +262,7 @@
             </div>
             <h1>🎮 RSTGameTranslation</h1>
             <p>Realtime Screen Translation cho Game và Ứng dụng</p>
-            <div class="version-badge">Phiên bản 2.8</div>
+            <div class="version-badge">Phiên bản 2.9</div>
         </div>
     </header>
 
@@ -288,7 +288,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>🤖 Dịch bằng AI tiên tiến</h3>
-                    <p>Hỗ trợ nhiều LLM: Gemini, ChatGPT, Ollama, Mistral và Google Translate. Dịch thuật nhận biết ngữ cảnh cho độ chính xác cao hơn.</p>
+                    <p>Hỗ trợ nhiều LLM: Gemini, ChatGPT, Ollama, Mistral, LM Studio và Google Translate. Dịch thuật nhận biết ngữ cảnh cho độ chính xác cao hơn.</p>
                 </div>
                 <div class="feature-card">
                     <h3>🎯 Nhận dạng thông minh</h3>
@@ -296,7 +296,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>🔊 Tính năng bổ sung</h3>
-                    <p>Chức năng text-to-speech và khả năng dịch 100% cục bộ với Ollama.</p>
+                    <p>Chức năng text-to-speech và khả năng dịch 100% cục bộ với Ollama hoặc LM Studio.</p>
                 </div>
                 <div class="feature-card">
                     <h3>📝 Dịch đè text gốc</h3>
@@ -319,7 +319,7 @@
                     <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU NVIDIA, bạn sẽ mất 30-50% công suất CPU (nếu chọn EasyOCR hoặc PaddleOCR).</li>
                     <li><strong>Lựa chọn OCR:</strong> RapidOCR, OneOCR, WindowsOCR (khuyến nghị cho vga AMD và intel), RapidOCR, EasyOCR và PaddleOCR cho NVIDIA</li>
                     <li><strong>Vùng dịch:</strong> Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh.</li>
-                    <li><strong>Quyền riêng tư:</strong> Phần mềm chỉ kiểm tra GitHub để cập nhật phiên bản. Dịch vụ đám mây (Gemini, ChatGPT) sẽ thấy nội dung được dịch. Ollama giữ mọi thứ cục bộ.</li>
+                    <li><strong>Quyền riêng tư:</strong> Phần mềm chỉ kiểm tra GitHub để cập nhật phiên bản. Dịch vụ đám mây (Gemini, ChatGPT) sẽ thấy nội dung được dịch. Ollama và LM Studio giữ mọi thứ cục bộ.</li>
                 </ul>
             </div>
         </section>
@@ -460,6 +460,7 @@
             <ul>
                 <li><strong>OneOCR:</strong> OCR tích hợp tốt nhất phù hợp cho mọi GPU</li>
                 <li><strong>Ollama:</strong> Dịch 100% cục bộ (RTX 4090: ~5 giây/bản dịch)</li>
+                <li><strong>LM Studio:</strong> Dịch cục bộ với các mô hình tùy chỉnh</li>
                 <li><strong>ChatGPT:</strong> GPT-4.1 Nano cho kết quả cao cấp</li>
             </ul>
             
@@ -473,7 +474,7 @@
             
             <p>Mặc dù cá nhân tôi khuyên dùng Gemini Flash 2 lite và PaddleOCR (tốt hơn cho ngôn ngữ châu Á và sử dụng ít tài nguyên hơn), có nhiều tùy chọn khác nhau cho bạn. Bạn có thể sử dụng OCR tích hợp của Windows thay vì máy chủ python, điều này không hoạt động tốt cho tiếng Nhật nhưng có thể ổn cho các ngôn ngữ khác.</p>
             
-            <p>Đối với Ollama, hãy cài đặt nó và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu)</p>
+            <p>Đối với Ollama hoặc LM Studio, hãy cài đặt chúng và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu)</p>
             
             <p>Tất cả OCR được thực hiện ở cấp độ ký tự. Sau đó có một chức năng "Block detection" kết hợp các ký tự lại với nhau để tạo thành từ và đoạn văn. Bạn có thể chỉnh sửa "Block Power" để làm cho nó có khả năng kết hợp các thứ lại với nhau hoặc tách chúng ra.</p>
         </section>
@@ -488,7 +489,7 @@
                 <p>Có, nhưng hiệu suất sẽ kém hơn nhiều vì phải sử dụng CPU (30-50% công suất). Bạn có thể thử dùng Windows OCR cho hiệu suất nhẹ hơn.</p>
                 
                 <h3>Tôi có thể dùng RSTGameTranslation mà không cần kết nối internet không?</h3>
-                <p>Có, bạn có thể sử dụng Ollama để chạy 100% offline. Bạn sẽ cần tải mô hình LLM về máy trước.</p>
+                <p>Có, bạn có thể sử dụng Ollama hoặc LM Studio để chạy 100% offline. Bạn sẽ cần tải mô hình LLM về máy trước.</p>
                 
                 <h3>Làm thế nào để có API key của Gemini?</h3>
                 <p>Bạn có thể đăng ký API key Gemini miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Sau khi đăng nhập, bạn có thể tạo API key trong phần cài đặt.</p>

@@ -12,8 +12,8 @@
     
     <!-- SEO Meta Tags -->
     <title>RSTGameTranslation - Real-time Game Screen Translation Software</title>
-    <meta name="description" content="RSTGameTranslation is a real-time game screen translation tool using advanced AI, supporting multiple languages, working both offline and online with Gemini, ChatGPT, Ollama." />
-    <meta name="keywords" content="game translation, real-time screen translation, RSTGameTranslation, game OCR, AI game translation, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama" />
+    <meta name="description" content="RSTGameTranslation is a real-time game screen translation tool using advanced AI, supporting multiple languages, working both offline and online with Gemini, ChatGPT, Ollama, LM Studio." />
+    <meta name="keywords" content="game translation, real-time screen translation, RSTGameTranslation, game OCR, AI game translation, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama, LM Studio" />
     <meta name="author" content="thanhkeke97 (Thanh Pham)" />
     <link rel="canonical" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
     
@@ -242,7 +242,7 @@
             "price": "0",
             "priceCurrency": "USD"
         },
-        "softwareVersion": "2.8",
+        "softwareVersion": "2.9",
         "author": {
             "@type": "Person",
             "name": "thanhkeke97"
@@ -262,7 +262,7 @@
             </div>
             <h1>🎮 RSTGameTranslation</h1>
             <p>Realtime Screen Translation for Games and Applications</p>
-            <div class="version-badge">Version 2.8</div>
+            <div class="version-badge">Version 2.9</div>
         </div>
     </header>
 
@@ -288,7 +288,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>🤖 Advanced AI Translation</h3>
-                    <p>Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral, and Google Translate. Context-aware translation for higher accuracy.</p>
+                    <p>Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral, LM Studio, and Google Translate. Context-aware translation for higher accuracy.</p>
                 </div>
                 <div class="feature-card">
                     <h3>🎯 Smart Recognition</h3>
@@ -296,7 +296,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>🔊 Additional Features</h3>
-                    <p>Text-to-speech functionality and ability to translate 100% locally with Ollama.</p>
+                    <p>Text-to-speech functionality and ability to translate 100% locally with Ollama or LM Studio.</p>
                 </div>
                 <div class="feature-card">
                     <h3>📝 Text Overlay Translation</h3>
@@ -319,7 +319,7 @@
                     <li><strong>CPU Performance:</strong> Without an NVIDIA GPU, you'll use 30-50% CPU capacity (if choosing EasyOCR or PaddleOCR).</li>
                     <li><strong>OCR Choice:</strong> RapidOCR, OneOCR, WindowsOCR (recommended for AMD and Intel GPUs), EasyOCR, RapidOCR and PaddleOCR for NVIDIA GPUs.</li>
                     <li><strong>Translation Area:</strong> The smaller the translation area, the faster the translation speed.</li>
-                    <li><strong>Privacy:</strong> The software only checks GitHub for version updates. Cloud services (Gemini, ChatGPT) will see the content being translated. Ollama keeps everything local.</li>
+                    <li><strong>Privacy:</strong> The software only checks GitHub for version updates. Cloud services (Gemini, ChatGPT) will see the content being translated. Ollama and LM Studio keep everything local.</li>
                 </ul>
             </div>
         </section>
@@ -460,6 +460,7 @@
             <ul>
                 <li><strong>OneOCR:</strong> Best OCR for non GPU user</li>
                 <li><strong>Ollama:</strong> 100% local translation (RTX 4090: ~5 seconds/translation)</li>
+                <li><strong>LM Studio:</strong> Local translation with customizable models</li>
                 <li><strong>ChatGPT:</strong> GPT-4.1 Nano for premium results</li>
             </ul>
             
@@ -473,7 +474,7 @@
             
             <p>While I personally recommend Gemini Flash 2 lite and PaddleOCR (better for Asian languages and uses fewer resources), there are various options available to you. You can use Windows' built-in OCR instead of the python server, which doesn't work as well for Japanese but might be fine for other languages.</p>
             
-            <p>For Ollama, install it and set up a model like gemma3:12b. On an RTX 4090, it takes about 5 seconds to return a translation. (installation has instructions and buttons to start)</p>
+            <p>For Ollama or LM Studio, install them and set up models like gemma3:12b. On an RTX 4090, it takes about 5 seconds to return a translation. (installation has instructions and buttons to start)</p>
             
             <p>All OCR is done at the character level. Then there's a "Block detection" function that combines characters together to form words and paragraphs. You can adjust the "Block Power" to make it more likely to combine things together or separate them.</p>
         </section>
@@ -488,7 +489,7 @@
                 <p>Yes, but performance will be much lower as it will use CPU (30-50% capacity). You can try using Windows OCR for lighter performance.</p>
                 
                 <h3>Can I use RSTGameTranslation without an internet connection?</h3>
-                <p>Yes, you can use Ollama to run 100% offline. You'll need to download the LLM model to your machine first.</p>
+                <p>Yes, you can use Ollama or LM Studio to run 100% offline. You'll need to download the LLM models to your machine first.</p>
                 
                 <h3>How do I get a Gemini API key?</h3>
                 <p>You can sign up for a free Gemini API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>. After logging in, you can create an API key in the settings section.</p>
