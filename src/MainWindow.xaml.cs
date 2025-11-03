@@ -2552,13 +2552,11 @@ namespace RSTGameTranslation
                 capturedWindowTitle = windowTitle;
                 isCapturingWindow = true;
                 
-                // Cập nhật UI
                 selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
                 selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
                 
                 Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
                 
-                // Thông báo cho người dùng
                 System.Windows.MessageBox.Show(
                     $"Now capturing window: {capturedWindowTitle}",
                     "Window Selected",
