@@ -11,6 +11,7 @@
         ResizeMode="NoResize"
         AllowsTransparency="True"
         BorderThickness="0"
+        BorderBrush="Red"
         Background="Transparent"  
         Icon="/media/AppIcon.ico">
     <Grid>
