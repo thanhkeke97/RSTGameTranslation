@@ -1,0 +1,29 @@
+<Window x:Class="RSTGameTranslation.WindowSelectorPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Select Window to Capture" Height="400" Width="500"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Text="Select a window to capture:" FontWeight="Bold" Margin="0,0,0,5"/>
+        
+        <ListView Grid.Row="1" Name="windowListView" Margin="0,5" MouseDoubleClick="windowListView_MouseDoubleClick">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Window Title" Width="450"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+            <Button Name="refreshButton" Content="Refresh" Width="80" Margin="0,0,5,0" Click="RefreshButton_Click"/>
+            <Button Name="selectButton" Content="Select" Width="80" Margin="0,0,5,0" Click="SelectButton_Click"/>
+            <Button Name="cancelButton" Content="Cancel" Width="80" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

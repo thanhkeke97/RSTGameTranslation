@@ -61,14 +61,12 @@ namespace RSTGameTranslation
 
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
+        private struct RECT
         {
             public int Left;
             public int Top;
             public int Right;
             public int Bottom;
-            public int Width { get { return Right - Left; } }
-            public int Height { get { return Bottom - Top; } }
         }
 
         // Constants
@@ -101,6 +99,11 @@ namespace RSTGameTranslation
         // Store previous capture position to calculate offset
         private int previousCaptureX;
         private int previousCaptureY;
+
+        private bool isCapturingWindow = false;
+        private IntPtr capturedWindowHandle = IntPtr.Zero;
+        private string capturedWindowTitle = string.Empty;
+        // private System.Windows.Controls.Button? selectWindowButton;
         
         // Auto translation
         private bool isAutoTranslateEnabled = true;
@@ -1115,7 +1118,7 @@ namespace RSTGameTranslation
         // Remember the settings window position
         private double settingsWindowLeft = -1;
         private double settingsWindowTop = -1;
-        
+
         // Show/hide the settings window
         private void ToggleSettingsWindow()
         {
@@ -1125,9 +1128,9 @@ namespace RSTGameTranslation
                 // Store current position before hiding
                 settingsWindowLeft = SettingsWindow.Instance.Left;
                 settingsWindowTop = SettingsWindow.Instance.Top;
-                
+
                 Console.WriteLine($"Saving settings position: {settingsWindowLeft}, {settingsWindowTop}");
-                
+
                 SettingsWindow.Instance.Hide();
                 Console.WriteLine("Settings window hidden");
                 settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
@@ -1153,17 +1156,357 @@ namespace RSTGameTranslation
                     SettingsWindow.Instance.Top = mainTop;
                     Console.WriteLine("No saved position, positioning settings window to the right");
                 }
-                
+
                 SettingsWindow.Instance.Show();
                 Console.WriteLine($"Settings window shown at position {SettingsWindow.Instance.Left}, {SettingsWindow.Instance.Top}");
                 settingsButton.Background = new SolidColorBrush(Color.FromRgb(176, 125, 69)); // Orange
+            }
+        }
+        
+        // Thêm các khai báo P/Invoke cho chức năng capture cửa sổ
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetWindowDC(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("gdi32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool BitBlt(IntPtr hdcDest, int nXDest, int nYDest, int nWidth, int nHeight, IntPtr hdcSrc, int nXSrc, int nYSrc, uint dwRop);
+
+        // Hằng số cho BitBlt
+        private const uint SRCCOPY = 0x00CC0020;
+        private const uint CAPTUREBLT = 0x40000000;
+
+        private Bitmap CaptureWindow(IntPtr handle)
+        {
+            try
+            {
+                // Lấy kích thước cửa sổ
+                RECT rect;
+                GetWindowRect(handle, out rect);
+                int windowWidth = rect.Right - rect.Left;
+                int windowHeight = rect.Bottom - rect.Top;
+
+                if (windowWidth <= 0 || windowHeight <= 0)
+                {
+                    Console.WriteLine($"Invalid window dimensions: {windowWidth}x{windowHeight}");
+                    throw new ArgumentException("Invalid window dimensions");
+                }
+
+                // Xác định vùng cần capture
+                int captureX = 0;
+                int captureY = 0;
+                int captureWidth = windowWidth;
+                int captureHeight = windowHeight;
+
+                // Nếu đã chọn vùng dịch (từ savedTranslationAreas), sử dụng vùng đó
+                if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                {
+                    // Lấy vùng dịch hiện tại
+                    var selectedArea = savedTranslationAreas[currentAreaIndex];
+                    
+                    // Tính toán vị trí tương đối trong cửa sổ
+                    captureX = (int) selectedArea.X - rect.Left;
+                    captureY = (int) selectedArea.Y - rect.Top;
+                    captureWidth = (int) selectedArea.Width;
+                    captureHeight = (int) selectedArea.Height;
+                    
+                    // Đảm bảo vùng chọn nằm trong cửa sổ
+                    if (captureX < 0) captureX = 0;
+                    if (captureY < 0) captureY = 0;
+                    if (captureX + captureWidth > windowWidth) captureWidth = windowWidth - captureX;
+                    if (captureY + captureHeight > windowHeight) captureHeight = windowHeight - captureY;
+                    
+                    Console.WriteLine($"Capturing region in window: X={captureX}, Y={captureY}, Width={captureWidth}, Height={captureHeight}");
+                    
+                    // Cập nhật vị trí capture cho Logic
+                    Logic.Instance.SetCurrentCapturePosition(rect.Left + captureX, rect.Top + captureY);
+                }
+                else
+                {
+                    Console.WriteLine($"Capturing entire window: Width={windowWidth}, Height={windowHeight}");
+                    
+                    // Cập nhật vị trí capture cho Logic
+                    Logic.Instance.SetCurrentCapturePosition(rect.Left, rect.Top);
+                }
+
+                // Capture toàn bộ cửa sổ trước
+                Bitmap fullWindowBmp = new Bitmap(windowWidth, windowHeight);
+                using (Graphics g = Graphics.FromImage(fullWindowBmp))
+                {
+                    g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+                    
+                    // Sử dụng PrintWindow để capture cửa sổ (bao gồm cả nội dung DirectX/OpenGL)
+                    IntPtr hdc = g.GetHdc();
+                    try
+                    {
+                        // PW_RENDERFULLCONTENT = 0x00000002 - Capture cả nội dung DirectX
+                        bool success = PrintWindow(handle, hdc, 0x00000002);
+                        if (!success)
+                        {
+                            int error = Marshal.GetLastWin32Error();
+                            Console.WriteLine($"PrintWindow failed with error code: {error}");
+                            
+                            // Nếu PrintWindow thất bại, thử phương pháp khác
+                            g.ReleaseHdc(hdc);
+                            return FallbackCaptureWindow(handle);
+                        }
+                    }
+                    finally
+                    {
+                        g.ReleaseHdc(hdc);
+                    }
+                }
+
+                // Kiểm tra xem bitmap có rỗng không
+                if (IsBitmapEmpty(fullWindowBmp))
+                {
+                    Console.WriteLine("PrintWindow produced empty bitmap, trying fallback method...");
+                    return FallbackCaptureWindow(handle);
+                }
+
+                // Nếu đang capture một vùng cụ thể, cắt bitmap
+                if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                {
+                    try
+                    {
+                        // Tạo bitmap mới cho vùng đã chọn
+                        Bitmap regionBmp = new Bitmap(captureWidth, captureHeight);
+                        using (Graphics g = Graphics.FromImage(regionBmp))
+                        {
+                            // Cấu hình chất lượng
+                            g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+                            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+                            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+                            
+                            // Vẽ phần được chọn từ bitmap gốc
+                            g.DrawImage(fullWindowBmp, 
+                                        new Rectangle(0, 0, captureWidth, captureHeight),
+                                        new Rectangle(captureX, captureY, captureWidth, captureHeight), 
+                                        GraphicsUnit.Pixel);
+                        }
+                        
+                        // Giải phóng bitmap gốc
+                        fullWindowBmp.Dispose();
+                        
+                        return regionBmp;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error cropping window region: {ex.Message}");
+                        // Nếu có lỗi khi cắt vùng, trả về toàn bộ cửa sổ
+                        return fullWindowBmp;
+                    }
+                }
+                
+                // Nếu không có vùng được chọn, trả về toàn bộ cửa sổ
+                return fullWindowBmp;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in CaptureWindow: {ex.Message}");
+                // Sử dụng phương pháp dự phòng
+                return FallbackCaptureWindow(handle);
+            }
+        }
+
+        // Kiểm tra xem bitmap có rỗng không (hoàn toàn đen)
+        private bool IsBitmapEmpty(Bitmap bmp)
+        {
+            try
+            {
+                // Lấy mẫu một số điểm ngẫu nhiên để kiểm tra
+                int sampleSize = 20;
+                Random rand = new Random();
+                
+                for (int i = 0; i < sampleSize; i++)
+                {
+                    int x = rand.Next(bmp.Width);
+                    int y = rand.Next(bmp.Height);
+                    
+                    System.Drawing.Color pixel = bmp.GetPixel(x, y);
+                    // Nếu có bất kỳ pixel nào không phải màu đen, bitmap không rỗng
+                    if (pixel.R > 5 || pixel.G > 5 || pixel.B > 5)
+                        return false;
+                }
+                
+                // Nếu tất cả các điểm đều gần như đen, có thể bitmap rỗng
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Thêm khai báo cho PrintWindow
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool PrintWindow(IntPtr hwnd, IntPtr hdcBlt, uint nFlags);
+
+        // Phương pháp dự phòng khi các phương pháp khác không hoạt động
+        private Bitmap FallbackCaptureWindow(IntPtr handle)
+        {
+            try
+            {
+                // Lấy kích thước cửa sổ
+                RECT rect;
+                GetWindowRect(handle, out rect);
+                int width = rect.Right - rect.Left;
+                int height = rect.Bottom - rect.Top;
+
+                // Tạo bitmap để lưu kết quả
+                Bitmap bmp = new Bitmap(width, height);
+
+                // Sử dụng phương pháp CopyFromScreen
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+
+                    g.CopyFromScreen(rect.Left, rect.Top, 0, 0, bmp.Size, CopyPixelOperation.SourceCopy);
+                }
+
+                return bmp;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in FallbackCaptureWindow: {ex.Message}");
+                
+                // Nếu tất cả phương pháp đều thất bại, trả về bitmap trống
+                return new Bitmap(1, 1);
             }
         }
 
         //!This is where we decide to process the bitmap we just grabbed or not
         private async void PerformCapture()
         {
-            if (helper.Handle == IntPtr.Zero) return;
+            if (isCapturingWindow && capturedWindowHandle != IntPtr.Zero)
+            {
+                try
+                {
+                    // Kiểm tra xem cửa sổ còn tồn tại không
+                    if (IsWindow(capturedWindowHandle) && IsWindowVisible(capturedWindowHandle))
+                    {
+                        // Lấy kích thước và vị trí cửa sổ
+                        RECT windowRect;
+                        GetWindowRect(capturedWindowHandle, out windowRect);
+                        
+                        // Cập nhật vị trí capture cho Logic
+                        if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                        {
+                            var selectedArea = savedTranslationAreas[currentAreaIndex];
+                            // Không cần cập nhật vị trí ở đây vì đã được cập nhật trong CaptureWindow
+                        }
+                        else
+                        {
+                            Logic.Instance.SetCurrentCapturePosition(windowRect.Left, windowRect.Top);
+                        }
+                        
+                        // Capture trực tiếp từ cửa sổ
+                        using (Bitmap bitmap = CaptureWindow(capturedWindowHandle))
+                        {
+                            // Lưu bitmap nếu cần
+                            bitmap.Save(outputPath, ImageFormat.Png);
+                            
+                            // Update Monitor window với bitmap mới
+                            if (MonitorWindow.Instance.IsVisible)
+                            {
+                                MonitorWindow.Instance.UpdateScreenshotFromBitmap();
+                            }
+                            
+                            // Xử lý OCR nếu cần
+                            bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
+                                                (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
+
+                            if (shouldPerformOcr)
+                            {
+                                Stopwatch stopwatch = new Stopwatch();
+                                stopwatch.Start();
+
+                                SetOCRCheckIsWanted(false);
+                                
+                                // Xử lý OCR như bình thường
+                                string ocrMethod = GetSelectedOcrMethod();
+                                if (ocrMethod == "Windows OCR")
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
+                                }
+                                else if (ocrMethod != "Windows OCR" && ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
+                                }
+                                else if (ocrMethod == "OneOCR")
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithOneOCR(bitmap, sourceLanguage);
+                                }
+                                else
+                                {
+                                    Logic.Instance.SendImageToServerOCR(outputPath);
+                                }
+
+                                stopwatch.Stop();
+                                Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
+                            }
+                        }
+                        
+                        return; // Đã xử lý xong, không cần thực hiện phần còn lại
+                    }
+                    else
+                    {
+                        // Cửa sổ không còn tồn tại hoặc không hiển thị, quay lại chế độ capture bình thường
+                        isCapturingWindow = false;
+                        capturedWindowHandle = IntPtr.Zero;
+                        capturedWindowTitle = string.Empty;
+                        
+                        Dispatcher.Invoke(() => {
+                            selectWindowButton.Content = "Select Window";
+                            selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+                            
+                            System.Windows.MessageBox.Show(
+                                "The selected window is no longer available. Reverting to normal capture mode.",
+                                "Window Lost",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                        });
+                        
+                        Console.WriteLine("Captured window no longer exists, reverting to normal capture mode");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error capturing window: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    
+                    // Quay lại chế độ capture bình thường nếu có lỗi
+                    isCapturingWindow = false;
+                    capturedWindowHandle = IntPtr.Zero;
+                    capturedWindowTitle = string.Empty;
+                    
+                    Dispatcher.Invoke(() => {
+                        selectWindowButton.Content = "Select Window";
+                        selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+                    });
+                }
+            }
             if (Windows_Version == "Windows 10")
             {
                 // hide overlay before capture
@@ -2221,6 +2564,54 @@ namespace RSTGameTranslation
             {
                 string ocrMethod = GetSelectedOcrMethod();
                 SetStatus($"Successfully connected to {ocrMethod} server");
+            }
+        }
+
+        private void SelectWindowButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (isCapturingWindow)
+            {
+                // Hủy chế độ capture cửa sổ
+                isCapturingWindow = false;
+                capturedWindowHandle = IntPtr.Zero;
+                capturedWindowTitle = string.Empty;
+                selectWindowButton.Content = "Select Window";
+                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+
+                // Cập nhật lại capture rect
+                UpdateCaptureRect();
+
+                Console.WriteLine("Window capture mode disabled");
+            }
+            else
+            {
+                // Hiển thị popup để chọn cửa sổ
+                WindowSelectorPopup popup = new WindowSelectorPopup();
+                popup.WindowSelected += OnWindowSelected;
+                popup.ShowDialog();
+            }
+        }
+        
+        private void OnWindowSelected(IntPtr windowHandle, string windowTitle)
+        {
+            if (windowHandle != IntPtr.Zero)
+            {
+                capturedWindowHandle = windowHandle;
+                capturedWindowTitle = windowTitle;
+                isCapturingWindow = true;
+                
+                // Cập nhật UI
+                selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
+                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+                
+                Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
+                
+                // Thông báo cho người dùng
+                System.Windows.MessageBox.Show(
+                    $"Now capturing window: {capturedWindowTitle}",
+                    "Window Selected",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
 

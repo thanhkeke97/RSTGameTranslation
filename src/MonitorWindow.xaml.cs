@@ -107,12 +107,12 @@ namespace RSTGameTranslation
             this.PreviewKeyDown += Application_KeyDown;
 
             Console.WriteLine("MonitorWindow constructor completed");
-            if (ConfigManager.Instance.IsAutoOCREnabled() && MainWindow.Instance.Windows_Version == "Windows 11")
-            {
-                // Add SourceInitialized event handler to set window attributes
-                this.SourceInitialized += MonitorWindow_SourceInitialized;
-                Console.WriteLine("Exclude MonitorWindow from capture success");
-            }
+            // if (ConfigManager.Instance.IsAutoOCREnabled() && MainWindow.Instance.Windows_Version == "Windows 11")
+            // {
+            //     // Add SourceInitialized event handler to set window attributes
+            //     this.SourceInitialized += MonitorWindow_SourceInitialized;
+            //     Console.WriteLine("Exclude MonitorWindow from capture success");
+            // }
         }
         
         // Add a new method to handle SourceInitialized event
