@@ -21,7 +21,7 @@
 - Live automatic translations using EasyOCR, PaddleOCR, RapidOCR, OneOCR and Windows OCR
 - Powerful overlay chat window for visual novels
 - Full-screen translation capability
-- Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F, Overlay on Windows 10 will flicker)
+- Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F)
 
 🤖 **AI-Powered Translation**
 - Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral, LM Studio
