@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
         Title="Game Translation Tool" 
-        Height="600" Width="1200"
+        Height="600" Width="1250"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
