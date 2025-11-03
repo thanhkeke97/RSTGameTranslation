@@ -15,38 +15,34 @@ namespace RSTGameTranslation
 {
     public partial class WindowSelectorPopup : Window
     {
-        // Delegate để trả về cửa sổ đã chọn
         public delegate void WindowSelectedHandler(IntPtr windowHandle, string windowTitle);
         public event WindowSelectedHandler WindowSelected;
 
-        // Danh sách các cửa sổ
         private List<WindowInfo> windows = new List<WindowInfo>();
 
         public WindowSelectorPopup()
         {
             InitializeComponent();
 
-            // Thiết lập window properties
             this.Title = "Select Window to Capture";
             this.Width = 500;
             this.Height = 400;
             this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             this.ResizeMode = ResizeMode.CanResize;
             
-            // Tải danh sách cửa sổ
             LoadWindowList();
         }
 
         private void LoadWindowList()
         {
-            // Xóa danh sách cũ
+          
             windows.Clear();
             windowListView.Items.Clear();
 
-            // Lấy danh sách cửa sổ
+           
             EnumWindows(EnumWindowsProcCallback, IntPtr.Zero);
 
-            // Hiển thị danh sách
+         
             foreach (var window in windows)
             {
                 var item = new System.Windows.Controls.ListViewItem
@@ -55,7 +51,7 @@ namespace RSTGameTranslation
                     Tag = window
                 };
 
-                // Thêm icon nếu có
+              
                 if (window.Icon != null)
                 {
                     var stackPanel = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
@@ -80,7 +76,7 @@ namespace RSTGameTranslation
 
         private bool EnumWindowsProcCallback(IntPtr hWnd, IntPtr lParam)
         {
-            // Kiểm tra nếu cửa sổ hiển thị và có tiêu đề
+            
             if (!IsWindowVisible(hWnd))
                 return true;
 
@@ -91,14 +87,14 @@ namespace RSTGameTranslation
             StringBuilder title = new StringBuilder(length + 1);
             GetWindowText(hWnd, title, title.Capacity);
 
-            // Bỏ qua cửa sổ không có tiêu đề hoặc là cửa sổ hiện tại
+           
             if (string.IsNullOrEmpty(title.ToString()) || hWnd == new WindowInteropHelper(this).Handle)
                 return true;
 
-            // Lấy icon của cửa sổ
+           
             ImageSource icon = ExtractIcon(hWnd);
 
-            // Thêm vào danh sách
+            
             windows.Add(new WindowInfo
             {
                 Handle = hWnd,
@@ -113,16 +109,16 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Lấy process ID từ window handle
+                
                 GetWindowThreadProcessId(hwnd, out uint processId);
                 
                 if (processId == 0)
                     return null;
 
-                // Sử dụng phương pháp thay thế để lấy icon
+               
                 try
                 {
-                    // Lấy icon trực tiếp từ window handle
+                   
                     IntPtr hIcon = SendMessage(hwnd, WM_GETICON, ICON_SMALL2, 0);
                     if (hIcon == IntPtr.Zero)
                         hIcon = SendMessage(hwnd, WM_GETICON, ICON_SMALL, 0);
@@ -135,7 +131,7 @@ namespace RSTGameTranslation
 
                     if (hIcon != IntPtr.Zero)
                     {
-                        // Chuyển đổi icon handle thành ImageSource
+                        
                         return Imaging.CreateBitmapSourceFromHIcon(
                             hIcon,
                             Int32Rect.Empty,
@@ -144,7 +140,7 @@ namespace RSTGameTranslation
                 }
                 catch
                 {
-                    // Bỏ qua lỗi và trả về null
+                    
                 }
 
                 return null;
@@ -155,7 +151,7 @@ namespace RSTGameTranslation
             }
         }
 
-        // Thêm các hằng số và P/Invoke cần thiết
+       
         private const int WM_GETICON = 0x007F;
         private const int ICON_SMALL = 0;
         private const int ICON_BIG = 1;
@@ -191,7 +187,7 @@ namespace RSTGameTranslation
                 var item = (System.Windows.Controls.ListViewItem)windowListView.SelectedItem;
                 var window = (WindowInfo)item.Tag;
 
-                // Kiểm tra xem cửa sổ còn tồn tại không
+                
                 if (IsWindow(window.Handle))
                 {
                     WindowSelected?.Invoke(window.Handle, window.Title);
@@ -211,7 +207,7 @@ namespace RSTGameTranslation
             this.Close();
         }
 
-        // Lớp lưu trữ thông tin cửa sổ
+    
         private class WindowInfo
         {
             public IntPtr Handle { get; set; }
