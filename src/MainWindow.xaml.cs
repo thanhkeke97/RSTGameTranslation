@@ -61,14 +61,12 @@ namespace RSTGameTranslation
 
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
+        private struct RECT
         {
             public int Left;
             public int Top;
             public int Right;
             public int Bottom;
-            public int Width { get { return Right - Left; } }
-            public int Height { get { return Bottom - Top; } }
         }
 
         // Constants
@@ -101,6 +99,11 @@ namespace RSTGameTranslation
         // Store previous capture position to calculate offset
         private int previousCaptureX;
         private int previousCaptureY;
+
+        public bool isCapturingWindow = false;
+        private IntPtr capturedWindowHandle = IntPtr.Zero;
+        private string capturedWindowTitle = string.Empty;
+        // private System.Windows.Controls.Button? selectWindowButton;
         
         // Auto translation
         private bool isAutoTranslateEnabled = true;
@@ -1115,7 +1118,7 @@ namespace RSTGameTranslation
         // Remember the settings window position
         private double settingsWindowLeft = -1;
         private double settingsWindowTop = -1;
-        
+
         // Show/hide the settings window
         private void ToggleSettingsWindow()
         {
@@ -1125,9 +1128,9 @@ namespace RSTGameTranslation
                 // Store current position before hiding
                 settingsWindowLeft = SettingsWindow.Instance.Left;
                 settingsWindowTop = SettingsWindow.Instance.Top;
-                
+
                 Console.WriteLine($"Saving settings position: {settingsWindowLeft}, {settingsWindowTop}");
-                
+
                 SettingsWindow.Instance.Hide();
                 Console.WriteLine("Settings window hidden");
                 settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
@@ -1153,28 +1156,314 @@ namespace RSTGameTranslation
                     SettingsWindow.Instance.Top = mainTop;
                     Console.WriteLine("No saved position, positioning settings window to the right");
                 }
-                
+
                 SettingsWindow.Instance.Show();
                 Console.WriteLine($"Settings window shown at position {SettingsWindow.Instance.Left}, {SettingsWindow.Instance.Top}");
                 settingsButton.Background = new SolidColorBrush(Color.FromRgb(176, 125, 69)); // Orange
+            }
+        }
+        
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+
+        private Bitmap CaptureWindow(IntPtr handle)
+        {
+            try
+            {
+                RECT rect;
+                GetWindowRect(handle, out rect);
+                int windowWidth = rect.Right - rect.Left;
+                int windowHeight = rect.Bottom - rect.Top;
+
+                if (windowWidth <= 0 || windowHeight <= 0)
+                {
+                    Console.WriteLine($"Invalid window dimensions: {windowWidth}x{windowHeight}");
+                    throw new ArgumentException("Invalid window dimensions");
+                }
+
+                int captureX = 0;
+                int captureY = 0;
+                int captureWidth = windowWidth;
+                int captureHeight = windowHeight;
+
+                if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                {
+                    var selectedArea = savedTranslationAreas[currentAreaIndex];
+                    
+                    captureX = (int) selectedArea.X - rect.Left;
+                    captureY = (int) selectedArea.Y - rect.Top;
+                    captureWidth = (int) selectedArea.Width;
+                    captureHeight = (int) selectedArea.Height;
+                    
+
+                    if (captureX < 0) captureX = 0;
+                    if (captureY < 0) captureY = 0;
+                    if (captureX + captureWidth > windowWidth) captureWidth = windowWidth - captureX;
+                    if (captureY + captureHeight > windowHeight) captureHeight = windowHeight - captureY;
+                    
+                    Console.WriteLine($"Capturing region in window: X={captureX}, Y={captureY}, Width={captureWidth}, Height={captureHeight}");
+                    
+                    Logic.Instance.SetCurrentCapturePosition(rect.Left + captureX, rect.Top + captureY);
+                }
+                else
+                {
+                    Console.WriteLine($"Capturing entire window: Width={windowWidth}, Height={windowHeight}");
+                    
+                    Logic.Instance.SetCurrentCapturePosition(rect.Left, rect.Top);
+                }
+
+
+                Bitmap fullWindowBmp = new Bitmap(windowWidth, windowHeight);
+                using (Graphics g = Graphics.FromImage(fullWindowBmp))
+                {
+                    g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+                    
+                    IntPtr hdc = g.GetHdc();
+                    try
+                    {
+                
+                        bool success = PrintWindow(handle, hdc, 0x00000002);
+                        if (!success)
+                        {
+                            int error = Marshal.GetLastWin32Error();
+                            Console.WriteLine($"PrintWindow failed with error code: {error}");
+                            
+                            g.ReleaseHdc(hdc);
+                            return FallbackCaptureWindow(handle);
+                        }
+                    }
+                    finally
+                    {
+                        g.ReleaseHdc(hdc);
+                    }
+                }
+
+                if (IsBitmapEmpty(fullWindowBmp))
+                {
+                    Console.WriteLine("PrintWindow produced empty bitmap, trying fallback method...");
+                    return FallbackCaptureWindow(handle);
+                }
+
+                if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                {
+                    try
+                    {
+                        Bitmap regionBmp = new Bitmap(captureWidth, captureHeight);
+                        using (Graphics g = Graphics.FromImage(regionBmp))
+                        {
+                            g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+                            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+                            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+                            
+                            g.DrawImage(fullWindowBmp, 
+                                        new Rectangle(0, 0, captureWidth, captureHeight),
+                                        new Rectangle(captureX, captureY, captureWidth, captureHeight), 
+                                        GraphicsUnit.Pixel);
+                        }
+                        
+                        fullWindowBmp.Dispose();
+                        
+                        return regionBmp;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error cropping window region: {ex.Message}");
+                        return fullWindowBmp;
+                    }
+                }
+                
+                return fullWindowBmp;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in CaptureWindow: {ex.Message}");
+                return FallbackCaptureWindow(handle);
+            }
+        }
+
+        private bool IsBitmapEmpty(Bitmap bmp)
+        {
+            try
+            {
+                int sampleSize = 20;
+                Random rand = new Random();
+                
+                for (int i = 0; i < sampleSize; i++)
+                {
+                    int x = rand.Next(bmp.Width);
+                    int y = rand.Next(bmp.Height);
+                    
+                    System.Drawing.Color pixel = bmp.GetPixel(x, y);
+                    if (pixel.R > 5 || pixel.G > 5 || pixel.B > 5)
+                        return false;
+                }
+                
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool PrintWindow(IntPtr hwnd, IntPtr hdcBlt, uint nFlags);
+
+        private Bitmap FallbackCaptureWindow(IntPtr handle)
+        {
+            try
+            {
+                // Get window size
+                RECT rect;
+                GetWindowRect(handle, out rect);
+                int width = rect.Right - rect.Left;
+                int height = rect.Bottom - rect.Top;
+
+                Bitmap bmp = new Bitmap(width, height);
+
+                // using CopyFromScreen
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+
+                    g.CopyFromScreen(rect.Left, rect.Top, 0, 0, bmp.Size, CopyPixelOperation.SourceCopy);
+                }
+
+                return bmp;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in FallbackCaptureWindow: {ex.Message}");
+                
+                return new Bitmap(1, 1);
             }
         }
 
         //!This is where we decide to process the bitmap we just grabbed or not
         private async void PerformCapture()
         {
-            if (helper.Handle == IntPtr.Zero) return;
-            if (Windows_Version == "Windows 10")
+            if (isCapturingWindow && capturedWindowHandle != IntPtr.Zero)
             {
-                // hide overlay before capture
-                if (MonitorWindow.Instance.IsVisible)
+                try
                 {
-                    MonitorWindow.Instance.HideOverlay();
+                    if (IsWindow(capturedWindowHandle) && IsWindowVisible(capturedWindowHandle))
+                    {
+                        RECT windowRect;
+                        GetWindowRect(capturedWindowHandle, out windowRect);
+                        
+                        if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                        {
+                            var selectedArea = savedTranslationAreas[currentAreaIndex];
+                        }
+                        else
+                        {
+                            Logic.Instance.SetCurrentCapturePosition(windowRect.Left, windowRect.Top);
+                        }
+                        
+                       
+                        using (Bitmap bitmap = CaptureWindow(capturedWindowHandle))
+                        {
+                        
+                            bitmap.Save(outputPath, ImageFormat.Png);
+                            
+                           
+                            if (MonitorWindow.Instance.IsVisible)
+                            {
+                                MonitorWindow.Instance.UpdateScreenshotFromBitmap();
+                            }
+                            
+                            
+                            bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
+                                                (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
 
-                    // Wait for UI update
-                    await Task.Delay(45); 
+                            if (shouldPerformOcr)
+                            {
+                                Stopwatch stopwatch = new Stopwatch();
+                                stopwatch.Start();
+
+                                SetOCRCheckIsWanted(false);
+                                
+                                
+                                string ocrMethod = GetSelectedOcrMethod();
+                                if (ocrMethod == "Windows OCR")
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
+                                }
+                                else if (ocrMethod != "Windows OCR" && ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
+                                }
+                                else if (ocrMethod == "OneOCR")
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithOneOCR(bitmap, sourceLanguage);
+                                }
+                                else
+                                {
+                                    Logic.Instance.SendImageToServerOCR(outputPath);
+                                }
+
+                                stopwatch.Stop();
+                                Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
+                            }
+                        }
+                        
+                        return;
+                    }
+                    else
+                    {
+                        
+                        isCapturingWindow = false;
+                        capturedWindowHandle = IntPtr.Zero;
+                        capturedWindowTitle = string.Empty;
+                        
+                        Dispatcher.Invoke(() => {
+                            selectWindowButton.Content = "Select Window";
+                            selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+                            
+                            System.Windows.MessageBox.Show(
+                                "The selected window is no longer available. Reverting to normal capture mode.",
+                                "Window Lost",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                        });
+                        
+                        Console.WriteLine("Captured window no longer exists, reverting to normal capture mode");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error capturing window: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    
+                    
+                    isCapturingWindow = false;
+                    capturedWindowHandle = IntPtr.Zero;
+                    capturedWindowTitle = string.Empty;
+                    
+                    Dispatcher.Invoke(() => {
+                        selectWindowButton.Content = "Select Window";
+                        selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+                    });
                 }
             }
+
             // Update the capture rectangle to ensure correct dimensions
             UpdateCaptureRect();
 
@@ -1211,14 +1500,14 @@ namespace RSTGameTranslation
                             return; 
                         }
                     }
-                    if (Windows_Version == "Windows 10")
-                    {
-                        // Show overlay again
-                        if (MonitorWindow.Instance.IsVisible)
-                        {
-                            MonitorWindow.Instance.ShowOverlay();
-                        }
-                    }
+                    // if (Windows_Version == "Windows 10")
+                    // {
+                    //     // Show overlay again
+                    //     if (MonitorWindow.Instance.IsVisible)
+                    //     {
+                    //         MonitorWindow.Instance.ShowOverlay();
+                    //     }
+                    // }
                     // Store the current capture coordinates for use with OCR results
                     Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
 
@@ -1412,8 +1701,18 @@ namespace RSTGameTranslation
         // Toggle the monitor window
         private void MonitorButton_Click(object sender, RoutedEventArgs e)
         {
-
-            ToggleMonitorWindow();   
+            if (Windows_Version == "Windows 10" && !isCapturingWindow)
+            {
+                System.Windows.MessageBox.Show(
+                $"Windows 10 requires selecting a window before enabling overlay (Click the Select window button)",
+                "Information",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            }
+            else
+            {
+                ToggleMonitorWindow(); 
+            }              
         }
         
         // Handler for the Log button click
@@ -2221,6 +2520,50 @@ namespace RSTGameTranslation
             {
                 string ocrMethod = GetSelectedOcrMethod();
                 SetStatus($"Successfully connected to {ocrMethod} server");
+            }
+        }
+
+        private void SelectWindowButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (isCapturingWindow)
+            {
+                isCapturingWindow = false;
+                capturedWindowHandle = IntPtr.Zero;
+                capturedWindowTitle = string.Empty;
+                selectWindowButton.Content = "Select Window";
+                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+                UpdateCaptureRect();
+
+                Console.WriteLine("Window capture mode disabled");
+            }
+            else
+            {
+                WindowSelectorPopup popup = new WindowSelectorPopup();
+                popup.WindowSelected += OnWindowSelected;
+                popup.ShowDialog();
+            }
+        }
+        
+        private void OnWindowSelected(IntPtr windowHandle, string windowTitle)
+        {
+            if (windowHandle != IntPtr.Zero)
+            {
+                capturedWindowHandle = windowHandle;
+                capturedWindowTitle = windowTitle;
+                isCapturingWindow = true;
+                
+                // Cập nhật UI
+                selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
+                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+                
+                Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
+                
+                // Thông báo cho người dùng
+                System.Windows.MessageBox.Show(
+                    $"Now capturing window: {capturedWindowTitle}",
+                    "Window Selected",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
 

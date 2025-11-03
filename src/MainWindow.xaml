@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
         Title="Game Translation Tool" 
-        Height="600" Width="1200"
+        Height="600" Width="1250"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -201,6 +201,12 @@
                                 <Button x:Name="btnStopOcrServer" Content="StopOCR" Style="{StaticResource ModernButton}"
                                         Background="#DC3545"
                                         Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- Select Window Button -->
+                                <Button x:Name="selectWindowButton" Content="Select Window" 
+                                        Style="{StaticResource ModernButton}"
+                                        Click="SelectWindowButton_Click" 
+                                        Background="#456BA0" WindowChrome.IsHitTestVisibleInChrome="True"/>
                             </StackPanel>
                         </ScrollViewer>
                         
