@@ -8,7 +8,7 @@ rmdir tempbuild /S /Q
 rmdir app\win-x64\publish /S /Q
 
 dotnet clean RST.sln --configuration Release
-dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=false --self-contained true
+dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
 
 
 mkdir tempbuild
