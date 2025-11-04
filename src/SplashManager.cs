@@ -173,7 +173,7 @@ namespace RSTGameTranslation
 
                 if (versionInfo.LatestVersion > CurrentVersion)
                 {
-                    string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString()) 
+                    string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString("F1")) 
                     ?? $"New version {versionInfo.LatestVersion.ToString("F1")} is available. Would you like to download it now?";
                     
                     

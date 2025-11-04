@@ -717,7 +717,7 @@ namespace RSTGameTranslation
             UpdateCaptureRect();
 
             // Update app version on setup screen
-            AppVersion.Text = "Version " + SplashManager.CurrentVersion;
+            AppVersion.Text = "Version " + SplashManager.CurrentVersion.ToString("F1");
 
             // Add socket status to the header
             if (FooterBorder != null && FooterBorder.Child is Grid footerGrid)
