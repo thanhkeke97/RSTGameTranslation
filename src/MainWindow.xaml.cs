@@ -409,7 +409,7 @@ namespace RSTGameTranslation
             CreateSocketStatusIndicator();
 
             // Get reference to the already initialized ChatBoxWindow
-            chatBoxWindow = ChatBoxWindow.Instance;
+            // chatBoxWindow = ChatBoxWindow.Instance;
 
             // Register application-wide keyboard shortcut handler
             this.PreviewKeyDown += Application_KeyDown;
@@ -1977,23 +1977,30 @@ namespace RSTGameTranslation
             
             // ChatBoxWindow.Instance is always available, but may not be visible
             // Make sure our chatBoxWindow reference is up to date
-            chatBoxWindow = ChatBoxWindow.Instance;
-            
+            // chatBoxWindow = ChatBoxWindow.Instance;
+
             if (isChatBoxVisible && chatBoxWindow != null)
             {
                 // Hide ChatBox
                 chatBoxWindow.Hide();
                 isChatBoxVisible = false;
                 chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
-                
+
                 // Don't set chatBoxWindow to null here - we're just hiding it, not closing it
+            }
+            else if (!isChatBoxVisible && chatBoxWindow != null)
+            {
+                // Show ChatBox
+                chatBoxWindow.Show();
+                isChatBoxVisible = true;
+                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
             }
             else
             {
                 // Show selector to allow user to position ChatBox
                 ChatBoxSelectorWindow selectorWindow = ChatBoxSelectorWindow.GetInstance();
                 selectorWindow.SelectionComplete += ChatBoxSelector_SelectionComplete;
-                selectorWindow.Closed += (s, e) => 
+                selectorWindow.Closed += (s, e) =>
                 {
                     isSelectingChatBoxArea = false;
                     // Only set button to blue if the ChatBox isn't visible (was cancelled)
@@ -2003,7 +2010,7 @@ namespace RSTGameTranslation
                     }
                 };
                 selectorWindow.Show();
-                
+
                 // Set button to red while selector is active
                 isSelectingChatBoxArea = true;
                 chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red

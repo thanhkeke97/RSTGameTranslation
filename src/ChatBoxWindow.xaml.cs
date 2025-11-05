@@ -811,7 +811,7 @@ namespace RSTGameTranslation
                 return;
             }
 
-            if (translationStatusPanel != null)
+            if (translationStatusPanel != null && _areBordersVisible)
             {
                 // Show the translation status panel
                 translationStatusPanel.Visibility = Visibility.Visible;
@@ -958,6 +958,45 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error clearing translation history: {ex.Message}");
+            }
+        }
+
+        // Thêm biến để theo dõi trạng thái hiển thị của các border
+        private bool _areBordersVisible = true;
+
+        // Thêm phương thức xử lý sự kiện click cho nút toggle
+        private void ToggleBordersButton_Click(object sender, RoutedEventArgs e)
+        {
+            _areBordersVisible = !_areBordersVisible;
+            
+            if (_areBordersVisible)
+            {
+                // Show border
+                headerBar.Visibility = Visibility.Visible;
+                
+                
+                if (translationStatusPanel.Tag != null && translationStatusPanel.Tag.ToString() == "Active")
+                {
+                    translationStatusPanel.Visibility = Visibility.Visible;
+                }
+                
+                // Adjust scrollview margin
+                chatScrollViewer.Margin = new Thickness(0, 28, 0, 30);
+                
+                // Update icon
+                toggleBordersIcon.Data = Geometry.Parse("M 4,2 L 12,2 L 12,6 L 4,6 Z M 4,10 L 12,10 L 12,14 L 4,14 Z");
+            }
+            else
+            {
+                // Hide border
+                headerBar.Visibility = Visibility.Collapsed;
+                translationStatusPanel.Visibility = Visibility.Collapsed;
+                
+                // Adjust scrollview margin
+                chatScrollViewer.Margin = new Thickness(0, 0, 0, 0);
+                
+                // Update icon
+                toggleBordersIcon.Data = Geometry.Parse("M 2,4 L 14,4 L 14,6 L 2,6 Z M 2,10 L 14,10 L 14,12 L 2,12 Z");
             }
         }
 

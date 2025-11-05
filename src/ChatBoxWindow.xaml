@@ -76,6 +76,35 @@
             </Setter>
         </Style>
         
+        <!-- Style for toggle borders button -->
+        <Style x:Key="ToggleBordersButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#80404040"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#A0606060"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#A0303030"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
         <!-- Style scroll bar -->
         <Style x:Key="CustomScrollBarThumbStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Template">
@@ -254,6 +283,23 @@
                 </StackPanel>
             </Grid>
         </Border>
+        
+        <!-- Toggle borders button -->
+        <Button x:Name="toggleBordersButton" 
+                Style="{StaticResource ToggleBordersButtonStyle}"
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Top"
+                Margin="0,30,10,0"
+                Panel.ZIndex="3"
+                Click="ToggleBordersButton_Click"
+                ToolTip="Hide/Show status bar and borders">
+            <Path x:Name="toggleBordersIcon"
+                  Data="M 4,2 L 12,2 L 12,6 L 4,6 Z M 4,10 L 12,10 L 12,14 L 4,14 Z"
+                  Fill="White"
+                  Width="16"
+                  Height="16"
+                  Stretch="Uniform"/>
+        </Button>
         
         <!-- Resize grip indicator - improved with Path instead of Rectangle -->
         <Path x:Name="resizeGrip" 
