@@ -34,6 +34,6 @@ echo Verifying installations...
 python -c "from rapidocr import RapidOCR; print('RapidOCR imported successfully')"
 
 echo ===== Setup Complete =====
-echo If the above looks looks like the test worked, you can now close this window and click "StartServer" to start the server.
+echo If the above looks looks like the test worked, you can now close this window and click "StartOCR" to start the server.
 pause
 

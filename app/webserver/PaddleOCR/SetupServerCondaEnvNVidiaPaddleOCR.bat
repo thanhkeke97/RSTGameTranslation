@@ -36,6 +36,6 @@ python -c "from paddleocr import PaddleOCR; print('PaddleOCR imported successful
 python -c "import cv2; print('OpenCV Version:', cv2.__version__)"
 
 echo ===== Setup Complete =====
-echo If the above looks looks like the test worked, you can now close this window and click "StartServer" to start the server.
+echo If the above looks looks like the test worked, you can now close this window and click "StartOCR" to start the server.
 pause
 

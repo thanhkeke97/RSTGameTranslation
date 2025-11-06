@@ -43,5 +43,5 @@ python -c "import torch; print('PyTorch Version:', torch.__version__); print('CU
 python -c "import easyocr; print('EasyOCR imported successfully')"
 
 echo ===== Setup Complete =====
-echo If the above looks looks like the test worked, you can now close this window and click "StartServer" to start the server.
+echo If the above looks looks like the test worked, you can now close this window and click "StartOCR" to start the server.
 pause

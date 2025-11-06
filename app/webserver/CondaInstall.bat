@@ -30,5 +30,5 @@ del miniconda.exe
 echo.
 echo ========================================
 echo Install success on directory: %INSTALL_PATH%
-echo Now you can close this windows, restart application then click SetupServer button
+echo Now you can close this windows, restart application then click SetupOCR button
 pause
