@@ -528,7 +528,7 @@ namespace RSTGameTranslation
             
             Console.WriteLine($"The translation area has been selected: X={currentRect.X}, Y={currentRect.Y}, Width={currentRect.Width}, Height={currentRect.Height}");
             Console.WriteLine($"Total saved areas: {savedTranslationAreas.Count}, Current index: {currentAreaIndex + 1}");
-            
+
             // Update capture for new selection area
             UpdateCustomCaptureRect();
             

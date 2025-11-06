@@ -80,21 +80,21 @@ namespace RSTGameTranslation
             this.Loaded += MonitorWindow_Loaded;
 
             // Add size changed handler to update scrollbars
-            this.SizeChanged += MonitorWindow_SizeChanged;
+            // this.SizeChanged += MonitorWindow_SizeChanged;
 
-            // Manually connect events (to ensure we have control over when they're attached)
-            ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
-            autoTranslateCheckBox.Checked += AutoTranslateCheckBox_CheckedChanged;
-            autoTranslateCheckBox.Unchecked += AutoTranslateCheckBox_CheckedChanged;
+            // // Manually connect events (to ensure we have control over when they're attached)
+            // ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
+            // autoTranslateCheckBox.Checked += AutoTranslateCheckBox_CheckedChanged;
+            // autoTranslateCheckBox.Unchecked += AutoTranslateCheckBox_CheckedChanged;
 
-            // Add event handlers for the zoom TextBox
-            zoomTextBox.TextChanged += ZoomTextBox_TextChanged;
-            zoomTextBox.LostFocus += ZoomTextBox_LostFocus;
+            // // Add event handlers for the zoom TextBox
+            // zoomTextBox.TextChanged += ZoomTextBox_TextChanged;
+            // zoomTextBox.LostFocus += ZoomTextBox_LostFocus;
 
-            // Add KeyDown event handlers for TextBoxes to handle Enter key
-            zoomTextBox.KeyDown += TextBox_KeyDown;
+            // // Add KeyDown event handlers for TextBoxes to handle Enter key
+            // zoomTextBox.KeyDown += TextBox_KeyDown;
 
-            SocketManager.Instance.ConnectionChanged += OnSocketConnectionChanged;
+            // SocketManager.Instance.ConnectionChanged += OnSocketConnectionChanged;
 
 
             // Set default size if not already set
@@ -269,90 +269,90 @@ namespace RSTGameTranslation
             _isInitializing = true;
             
             // Make sure keyboard shortcuts work from this window too
-            PreviewKeyDown -= Application_KeyDown;
-            PreviewKeyDown += Application_KeyDown;
+            // PreviewKeyDown -= Application_KeyDown;
+            // PreviewKeyDown += Application_KeyDown;
 
             UpdateScreenshotFromBitmap();
 
-            // Initialize controls from MainWindow
-            if (MainWindow.Instance != null)
-            {
-                // Get OCR method from config
-                string ocrMethod = ConfigManager.Instance.GetOcrMethod();
-                Console.WriteLine($"MonitorWindow_Loaded: Loading OCR method from config: '{ocrMethod}'");
+            // // Initialize controls from MainWindow
+            // if (MainWindow.Instance != null)
+            // {
+            //     // Get OCR method from config
+            //     string ocrMethod = ConfigManager.Instance.GetOcrMethod();
+            //     Console.WriteLine($"MonitorWindow_Loaded: Loading OCR method from config: '{ocrMethod}'");
 
-                // Temporarily remove the event handler to prevent triggering
-                // a new connection while initializing
-                ocrMethodComboBox.SelectionChanged -= OcrMethodComboBox_SelectionChanged;
+            //     // Temporarily remove the event handler to prevent triggering
+            //     // a new connection while initializing
+            //     ocrMethodComboBox.SelectionChanged -= OcrMethodComboBox_SelectionChanged;
 
-                // Find the matching ComboBoxItem
-                bool foundMatch = false;
-                foreach (ComboBoxItem comboItem in ocrMethodComboBox.Items)
-                {
-                    string itemText = comboItem.Content.ToString() ?? "";
-                    Console.WriteLine($"Comparing OCR method: '{itemText}' with config value: '{ocrMethod}'");
+            //     // Find the matching ComboBoxItem
+            //     bool foundMatch = false;
+            //     foreach (ComboBoxItem comboItem in ocrMethodComboBox.Items)
+            //     {
+            //         string itemText = comboItem.Content.ToString() ?? "";
+            //         Console.WriteLine($"Comparing OCR method: '{itemText}' with config value: '{ocrMethod}'");
 
-                    if (string.Equals(itemText, ocrMethod, StringComparison.OrdinalIgnoreCase))
-                    {
-                        Console.WriteLine($"Found matching OCR method: '{itemText}'");
-                        ocrMethodComboBox.SelectedItem = comboItem;
-                        foundMatch = true;
-                        break;
-                    }
-                }
+            //         if (string.Equals(itemText, ocrMethod, StringComparison.OrdinalIgnoreCase))
+            //         {
+            //             Console.WriteLine($"Found matching OCR method: '{itemText}'");
+            //             ocrMethodComboBox.SelectedItem = comboItem;
+            //             foundMatch = true;
+            //             break;
+            //         }
+            //     }
 
-                if (!foundMatch)
-                {
-                    Console.WriteLine($"WARNING: Could not find OCR method '{ocrMethod}' in ComboBox. Available items:");
-                    foreach (ComboBoxItem listItem in ocrMethodComboBox.Items)
-                    {
-                        Console.WriteLine($"  - '{listItem.Content}'");
-                    }
-                }
+            //     if (!foundMatch)
+            //     {
+            //         Console.WriteLine($"WARNING: Could not find OCR method '{ocrMethod}' in ComboBox. Available items:");
+            //         foreach (ComboBoxItem listItem in ocrMethodComboBox.Items)
+            //         {
+            //             Console.WriteLine($"  - '{listItem.Content}'");
+            //         }
+            //     }
 
-                // Log what we actually set
-                if (ocrMethodComboBox.SelectedItem is ComboBoxItem selectedItem)
-                {
-                    Console.WriteLine($"OCR ComboBox is now set to: '{selectedItem.Content}'");
-                }
+            //     // Log what we actually set
+            //     if (ocrMethodComboBox.SelectedItem is ComboBoxItem selectedItem)
+            //     {
+            //         Console.WriteLine($"OCR ComboBox is now set to: '{selectedItem.Content}'");
+            //     }
 
-                // Re-attach the event handler
-                ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
+            //     // Re-attach the event handler
+            //     ocrMethodComboBox.SelectionChanged += OcrMethodComboBox_SelectionChanged;
 
-                // Make sure MainWindow has the same OCR method
-                if (ocrMethodComboBox.SelectedItem is ComboBoxItem selectedComboItem)
-                {
-                    string selectedOcrMethod = selectedComboItem.Content.ToString() ?? "";
-                    MainWindow.Instance.SetOcrMethod(selectedOcrMethod);
-                }
+            //     // Make sure MainWindow has the same OCR method
+            //     if (ocrMethodComboBox.SelectedItem is ComboBoxItem selectedComboItem)
+            //     {
+            //         string selectedOcrMethod = selectedComboItem.Content.ToString() ?? "";
+            //         MainWindow.Instance.SetOcrMethod(selectedOcrMethod);
+            //     }
 
-                // Get auto-translate state from MainWindow
-                bool isTranslateEnabled = MainWindow.Instance.GetTranslateEnabled();
+            //     // Get auto-translate state from MainWindow
+            //     bool isTranslateEnabled = MainWindow.Instance.GetTranslateEnabled();
 
-                // Initialization complete, now we can save settings changes
-                _isInitializing = false;
-                Console.WriteLine("MonitorWindow initialization complete. Settings changes will now be saved.");
+            //     // Initialization complete, now we can save settings changes
+            //     _isInitializing = false;
+            //     Console.WriteLine("MonitorWindow initialization complete. Settings changes will now be saved.");
 
-                // Force the OCR method to match the config again
-                // This ensures the config value is preserved and not overwritten
-                string configOcrMethod = ConfigManager.Instance.GetOcrMethod();
-                Console.WriteLine($"Ensuring config OCR method is preserved: {configOcrMethod}");
+            //     // Force the OCR method to match the config again
+            //     // This ensures the config value is preserved and not overwritten
+            //     string configOcrMethod = ConfigManager.Instance.GetOcrMethod();
+            //     Console.WriteLine($"Ensuring config OCR method is preserved: {configOcrMethod}");
 
-                // Now that initialization is complete, save the OCR method from config
-                ConfigManager.Instance.SetOcrMethod(configOcrMethod);
+            //     // Now that initialization is complete, save the OCR method from config
+            //     ConfigManager.Instance.SetOcrMethod(configOcrMethod);
 
-                // Temporarily remove event handler
-                autoTranslateCheckBox.Checked -= AutoTranslateCheckBox_CheckedChanged;
-                autoTranslateCheckBox.Unchecked -= AutoTranslateCheckBox_CheckedChanged;
+            //     // Temporarily remove event handler
+            //     autoTranslateCheckBox.Checked -= AutoTranslateCheckBox_CheckedChanged;
+            //     autoTranslateCheckBox.Unchecked -= AutoTranslateCheckBox_CheckedChanged;
 
-                autoTranslateCheckBox.IsChecked = isTranslateEnabled;
+            //     autoTranslateCheckBox.IsChecked = isTranslateEnabled;
 
-                // Re-attach event handlers
-                autoTranslateCheckBox.Checked += AutoTranslateCheckBox_CheckedChanged;
-                autoTranslateCheckBox.Unchecked += AutoTranslateCheckBox_CheckedChanged;
+            //     // Re-attach event handlers
+            //     autoTranslateCheckBox.Checked += AutoTranslateCheckBox_CheckedChanged;
+            //     autoTranslateCheckBox.Unchecked += AutoTranslateCheckBox_CheckedChanged;
 
-                GetDpiScale();
-            }
+            GetDpiScale();
+            // }
             
             Console.WriteLine("MonitorWindow initialization complete");
         }
