@@ -1356,6 +1356,8 @@ namespace RSTGameTranslation
         //!This is where we decide to process the bitmap we just grabbed or not
         private async void PerformCapture()
         {
+            // Update the capture rectangle to ensure correct dimensions
+            UpdateCaptureRect();
             if (isCapturingWindow && capturedWindowHandle != IntPtr.Zero)
             {
                 try
@@ -1464,8 +1466,6 @@ namespace RSTGameTranslation
                 }
             }
 
-            // Update the capture rectangle to ensure correct dimensions
-            UpdateCaptureRect();
 
             //if capture rect is less than 1 pixel, don't capture
             if (captureRect.Width < 1 || captureRect.Height < 1) return;
@@ -1572,22 +1572,22 @@ namespace RSTGameTranslation
             this.WindowState = WindowState.Minimized;
         }
         
-        private void AutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            // Convert sender to CheckBox
-            if (sender is System.Windows.Controls.CheckBox checkBox)
-            {
-                isAutoTranslateEnabled = checkBox.IsChecked ?? false;
-                Console.WriteLine($"Auto-translate {(isAutoTranslateEnabled ? "enabled" : "disabled")}");
-                //Clear textobjects
-                Logic.Instance.ClearAllTextObjects();
-                Logic.Instance.ResetHash();
-                //force OCR to run again
-                SetOCRCheckIsWanted(true);
+        // private void AutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        // {
+        //     // Convert sender to CheckBox
+        //     if (sender is System.Windows.Controls.CheckBox checkBox)
+        //     {
+        //         isAutoTranslateEnabled = checkBox.IsChecked ?? false;
+        //         Console.WriteLine($"Auto-translate {(isAutoTranslateEnabled ? "enabled" : "disabled")}");
+        //         //Clear textobjects
+        //         Logic.Instance.ClearAllTextObjects();
+        //         Logic.Instance.ResetHash();
+        //         //force OCR to run again
+        //         SetOCRCheckIsWanted(true);
 
-                MonitorWindow.Instance.RefreshOverlays();
-            }
-        }
+        //         MonitorWindow.Instance.RefreshOverlays();
+        //     }
+        // }
         
    
         // Reset OCR hash when language selection changes
@@ -1852,11 +1852,6 @@ namespace RSTGameTranslation
             }
         }
         
-        // Position the monitor window to the right of the main window
-        private void PositionMonitorWindowToTheRight()
-        {
-            UpdateMonitorWindowPosition();
-        }
         
         // Remember the monitor window position
         private double monitorWindowLeft = -1;
@@ -1866,9 +1861,6 @@ namespace RSTGameTranslation
         {
             if (MonitorWindow.Instance.IsVisible)
             {
-                // Store current position before hiding
-                monitorWindowLeft = MonitorWindow.Instance.Left;
-                monitorWindowTop = MonitorWindow.Instance.Top;
 
                 Console.WriteLine($"Saving monitor position: {monitorWindowLeft}, {monitorWindowTop}");
 
@@ -1876,6 +1868,12 @@ namespace RSTGameTranslation
                 Console.WriteLine("Monitor window hidden from MainWindow toggle");
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
             }
+            // else 
+            // {
+            //     MonitorWindow.Instance.Show();
+            //     Console.WriteLine("Monitor window shown from MainWindow toggle");
+            //     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+            // }
             else
             {
                 try
@@ -1896,29 +1894,29 @@ namespace RSTGameTranslation
                     // }
 
                     // Perform a new capture immediately
-                    using (Bitmap bitmap = new Bitmap(captureRect.Width, captureRect.Height))
-                    {
-                        using (Graphics g = Graphics.FromImage(bitmap))
-                        {
-                            g.CompositingQuality = CompositingQuality.HighSpeed;
-                            g.SmoothingMode = SmoothingMode.HighSpeed;
-                            g.InterpolationMode = InterpolationMode.Low;
-                            g.PixelOffsetMode = PixelOffsetMode.HighSpeed;
+                    // using (Bitmap bitmap = new Bitmap(captureRect.Width, captureRect.Height))
+                    // {
+                    //     using (Graphics g = Graphics.FromImage(bitmap))
+                    //     {
+                    //         g.CompositingQuality = CompositingQuality.HighSpeed;
+                    //         g.SmoothingMode = SmoothingMode.HighSpeed;
+                    //         g.InterpolationMode = InterpolationMode.Low;
+                    //         g.PixelOffsetMode = PixelOffsetMode.HighSpeed;
 
-                            g.CopyFromScreen(
-                                captureRect.Left,
-                                captureRect.Top,
-                                0, 0,
-                                bitmap.Size,
-                                CopyPixelOperation.SourceCopy);
-                        }
+                    //         g.CopyFromScreen(
+                    //             captureRect.Left,
+                    //             captureRect.Top,
+                    //             0, 0,
+                    //             bitmap.Size,
+                    //             CopyPixelOperation.SourceCopy);
+                    //     }
 
-                        bitmap.Save(outputPath, ImageFormat.Png);
+                    //     bitmap.Save(outputPath, ImageFormat.Png);
 
-                        Console.WriteLine("Updating MonitorWindow with fresh capture");
-                        MonitorWindow.Instance.UpdateScreenshotFromBitmap();
-                    }
-
+                    //     Console.WriteLine("Updating MonitorWindow with fresh capture");
+                    //     MonitorWindow.Instance.UpdateScreenshotFromBitmap();
+                    // }
+                    MonitorWindow.Instance.UpdateScreenshotFromBitmap();
                     // Refresh overlays
                     MonitorWindow.Instance.RefreshOverlays();
 

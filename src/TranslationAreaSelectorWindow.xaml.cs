@@ -24,12 +24,12 @@ namespace RSTGameTranslation
         // Event to notify when selection is complete
         public event EventHandler<Rect>? SelectionComplete;
 
-        private static TranslationAreaSelectorWindow? _currentInstance;
+        public static TranslationAreaSelectorWindow? _currentInstance;
         
         // Store the selected screen and its DPI scaling
         private Forms.Screen _selectedScreen;
-        private double _dpiScaleX = 1.0;
-        private double _dpiScaleY = 1.0;
+        public double _dpiScaleX = 1.0;
+        public double _dpiScaleY = 1.0;
         
         // Win32 API for DPI awareness
         [DllImport("user32.dll")]
@@ -166,17 +166,17 @@ namespace RSTGameTranslation
                         hwnd,
                         HWND_TOPMOST,
                         bounds.Left / (int)_dpiScaleX,
-                        bounds.Top / (int)_dpiScaleX,
+                        bounds.Top / (int)_dpiScaleY,
                         bounds.Width / (int)_dpiScaleX,
-                        bounds.Height / (int)_dpiScaleX,
+                        bounds.Height / (int)_dpiScaleY,
                         SWP_SHOWWINDOW | SWP_NOACTIVATE
                     );
                     
                     // Also set WPF properties for consistency
                     this.Left = bounds.Left / _dpiScaleX;
-                    this.Top = bounds.Top / _dpiScaleX;
+                    this.Top = bounds.Top / _dpiScaleY;
                     this.Width = bounds.Width / _dpiScaleX;
-                    this.Height = bounds.Height / _dpiScaleX;
+                    this.Height = bounds.Height / _dpiScaleY;
                     
                     Console.WriteLine($"Set selection window to cover screen {selectedScreenIndex}: " +
                         $"({bounds.Left}, {bounds.Top}, {bounds.Width}, {bounds.Height})");
@@ -462,6 +462,8 @@ namespace RSTGameTranslation
                     screenWidth, 
                     screenHeight
                 );
+                
+                DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY);
                 
                 // Notify listeners
                 SelectionComplete?.Invoke(this, selectionRect);

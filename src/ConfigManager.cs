@@ -1270,8 +1270,8 @@ namespace RSTGameTranslation
         // Check if auto translate is enabled
         public bool IsAutoTranslateEnabled()
         {
-            string value = GetValue(AUTO_TRANSLATE_ENABLED, "true");
-            return value.ToLower() == "true";
+            // string value = GetValue(AUTO_TRANSLATE_ENABLED, "true");
+            return true;
         }
 
         // Set auto translate enabled

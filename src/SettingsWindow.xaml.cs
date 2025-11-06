@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Documents;
 using System.Windows.Navigation;
@@ -319,7 +320,7 @@ namespace RSTGameTranslation
             }
         }
 
-        // Load list of available screens
+        // Load list of available screens with display name and resolution
         private void LoadAvailableScreens()
         {
             try
@@ -339,21 +340,27 @@ namespace RSTGameTranslation
                     int width = screen.Bounds.Width;
                     int height = screen.Bounds.Height;
 
-                    // Create display name
-                    string displayName = $"{width} x {height}";
+                    // Get friendly display name
+                    string displayName = GetFriendlyScreenName(screen.DeviceName);
+                    
+                    // Create display info
+                    string screenInfo = $"{displayName} ({width} x {height})";
                     if (screen.Primary)
                     {
-                        displayName += " (Primary)";
+                        screenInfo += " (Primary)";
                     }
 
                     // Create combo box item
                     ComboBoxItem item = new ComboBoxItem
                     {
-                        Content = displayName,
+                        Content = screenInfo,
                         Tag = i  // Store screen index as Tag
                     };
 
+
                     screenComboBox.Items.Add(item);
+                    
+                    Console.WriteLine($"Screen {i}: {displayName}, {width}x{height}, Primary: {screen.Primary}");
                 }
 
                 // Select the primary screen by default
@@ -379,6 +386,137 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error loading available screens: {ex.Message}");
             }
+        }
+        // Get friendly name for a screen device
+        private string GetFriendlyScreenName(string deviceName)
+        {
+            try
+            {
+                // Extract the device name from the full path (e.g., \\.\DISPLAY1)
+                string shortDeviceName = deviceName.Substring(deviceName.LastIndexOf('\\') + 1);
+                
+                // Try multiple methods to get the friendly name
+                
+                // Method 1: Using EnumDisplayDevices with the device name
+                DISPLAY_DEVICE displayDevice = new DISPLAY_DEVICE();
+                displayDevice.cb = Marshal.SizeOf(displayDevice);
+                
+                if (EnumDisplayDevices(deviceName, 0, ref displayDevice, 0))
+                {
+                    if (!string.IsNullOrEmpty(displayDevice.DeviceString))
+                    {
+                        return $"{shortDeviceName} - {displayDevice.DeviceString}";
+                    }
+                }
+                
+                uint deviceIndex = 0;
+                DISPLAY_DEVICE device = new DISPLAY_DEVICE();
+                device.cb = Marshal.SizeOf(device);
+                
+                while (EnumDisplayDevices(null, deviceIndex, ref device, 0))
+                {
+                    if (device.DeviceName.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!string.IsNullOrEmpty(device.DeviceString))
+                        {
+                            return $"{shortDeviceName} - {device.DeviceString}";
+                        }
+                        break;
+                    }
+                    
+                    // Try to get monitor info for this adapter
+                    DISPLAY_DEVICE monitor = new DISPLAY_DEVICE();
+                    monitor.cb = Marshal.SizeOf(monitor);
+                    uint monitorIndex = 0;
+                    
+                    while (EnumDisplayDevices(device.DeviceName, monitorIndex, ref monitor, 0))
+                    {
+                        if (monitor.DeviceName.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (!string.IsNullOrEmpty(monitor.DeviceString))
+                            {
+                                return $"{shortDeviceName} - {monitor.DeviceString}";
+                            }
+                            break;
+                        }
+                        monitorIndex++;
+                        monitor.cb = Marshal.SizeOf(monitor);
+                    }
+                    
+                    deviceIndex++;
+                    device.cb = Marshal.SizeOf(device);
+                }
+                
+              
+                try
+                {
+                    using (var searcher = new System.Management.ManagementObjectSearcher("SELECT * FROM Win32_DesktopMonitor"))
+                    {
+                        foreach (var monitor in searcher.Get())
+                        {
+                            string monitorName = monitor["Name"]?.ToString() ?? "";
+                            string monitorDeviceId = monitor["DeviceID"]?.ToString() ?? "";
+                            string monitorDescription = monitor["Description"]?.ToString() ?? "";
+                            
+                            if (!string.IsNullOrEmpty(monitorName) && monitorName != "Default Monitor")
+                            {
+                                return $"{shortDeviceName} - {monitorName}";
+                            }
+                            else if (!string.IsNullOrEmpty(monitorDescription) && monitorDescription != "Default Monitor")
+                            {
+                                return $"{shortDeviceName} - {monitorDescription}";
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error getting monitor name via WMI: {ex.Message}");
+                }
+                
+                // Fallback to just the device name if we couldn't get the friendly name
+                return shortDeviceName;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting friendly screen name: {ex.Message}");
+                return deviceName;
+            }
+        }
+
+        // P/Invoke declarations for getting display device information
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern bool EnumDisplayDevices(string? lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private struct DISPLAY_DEVICE
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public int cb;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string DeviceName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceString;
+            [MarshalAs(UnmanagedType.U4)]
+            public DisplayDeviceStateFlags StateFlags;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceID;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceKey;
+        }
+
+        [Flags]
+        private enum DisplayDeviceStateFlags : int
+        {
+            AttachedToDesktop = 0x1,
+            MultiDriver = 0x2,
+            PrimaryDevice = 0x4,
+            MirroringDriver = 0x8,
+            VGACompatible = 0x16,
+            Removable = 0x20,
+            ModesPruned = 0x8000000,
+            Remote = 0x4000000,
+            Disconnect = 0x2000000
         }
 
         // Select screen - placeholder for now

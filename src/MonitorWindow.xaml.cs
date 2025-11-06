@@ -446,19 +446,17 @@ namespace RSTGameTranslation
 
         public void GetDpiScale()
         {
-            
-            PresentationSource source = PresentationSource.FromVisual(this);
-            if (source != null)
-            {
-                dpiScale = source.CompositionTarget.TransformToDevice.M11;
-                Console.WriteLine($"------------------------------------------- {dpiScale}");
-            }
+
+            DpiHelper.GetCurrentScreenDpi(out double scaleX, out double scaleY);
+            dpiScale = scaleX; 
+
+            Console.WriteLine($"MonitorWindow: Got DPI scale from DpiHelper: {dpiScale:F2}x");
+
         }
         
         // Handle TextObject added event
         public void CreateMonitorOverlayFromTextObject(object? sender, TextObject textObject)
         {
-
             try
             {
                 // Check for null references
@@ -474,20 +472,16 @@ namespace RSTGameTranslation
                 {
                     // Reset margin to zero - we'll position with Canvas instead
                     textObject.Border.Margin = new Thickness(0);
-                    double adjustedX = textObject.X / dpiScale;
-                    double adjustedY = textObject.Y / dpiScale;
-
+                    
+                    // TextObject.X và TextObject.Y đã là tọa độ vật lý (đã được điều chỉnh theo DPI)
+                    System.Windows.Point logicalPoint = DpiHelper.PhysicalToLogical(new System.Windows.Point(textObject.X, textObject.Y));
+                    
                     // Position the element on the canvas using Canvas.SetLeft/Top
-                    Canvas.SetLeft(textObject.Border, adjustedX);
-                    Canvas.SetTop(textObject.Border, adjustedY);
+                    Canvas.SetLeft(textObject.Border, logicalPoint.X);
+                    Canvas.SetTop(textObject.Border, logicalPoint.Y);
 
                     // Add to canvas
                     textOverlayCanvas.Children.Add(textObject.Border);
-
-                    // Add additional status update when text is copied
-                    // textObject.Border.MouseLeftButtonDown += (s, e) => {
-                    //     UpdateStatus("Text copied to clipboard");
-                    // };
                     textObject.Border.IsHitTestVisible = false;
                 }
                 else

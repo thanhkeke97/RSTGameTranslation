@@ -224,9 +224,9 @@
                                          Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/>
                                          
                                 <!-- Auto Translate -->
-                                <TextBlock Text="Auto Translate:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="Auto Translate:" Grid.Row="2" Grid.Column="0" Visibility="Collapsed"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="2" Grid.Column="1" 
+                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="2" Grid.Column="1" Visibility="Collapsed"
                                          Margin="0,5" IsChecked="True" 
                                          Checked="AutoTranslateCheckBox_CheckedChanged" 
                                          Unchecked="AutoTranslateCheckBox_CheckedChanged"/>
@@ -287,9 +287,9 @@
                                 </ComboBox>
 
                                 <!-- Auto OCR -->
-                                <TextBlock Text="Auto OCR:" Grid.Row="10" Grid.Column="0" 
+                                <TextBlock Text="Auto OCR:" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="AutoOCRCheckBox" Grid.Row="10" Grid.Column="1" 
+                                <CheckBox x:Name="AutoOCRCheckBox" Grid.Row="2" Grid.Column="1" 
                                          Checked="AutoOCRCheckBox_CheckedChanged" 
                                          Unchecked="AutoOCRCheckBox_CheckedChanged"
                                          ToolTip="Auto OCR realtime, turn off this feature the program will not auto translate"/>
