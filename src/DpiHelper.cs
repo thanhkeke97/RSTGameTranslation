@@ -23,7 +23,7 @@ namespace RSTGameTranslation
         private static double _cachedDpiScaleY = -1;
         
         
-        public static void GetDpiForScreen(Screen screen, out double scaleX, out double scaleY)
+        public static void GetDpiForScreen(Screen? screen, out double scaleX, out double scaleY)
         {
             try
             {

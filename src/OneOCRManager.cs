@@ -185,7 +185,7 @@ namespace RSTGameTranslation
             }
         }
 
-        private string PtrToStringUTF8(IntPtr ptr)
+        private string? PtrToStringUTF8(IntPtr ptr)
         {
             if (ptr == IntPtr.Zero)
                 return null;
@@ -205,7 +205,7 @@ namespace RSTGameTranslation
             return Encoding.UTF8.GetString(buffer);
         }
 
-        private Line[] RunOcr(Img img)
+        private Line[]? RunOcr(Img img)
         {
             if (!_pipelineInitialized)
             {
@@ -249,7 +249,7 @@ namespace RSTGameTranslation
                     continue;
                 }
 
-                string lineContent = PtrToStringUTF8(lineContentPtr);
+                string? lineContent = PtrToStringUTF8(lineContentPtr);
 
                 // Get the pointer to the bounding box
                 res = NativeMethods.GetOcrLineBoundingBox(line, out IntPtr boundingBoxPtr);
@@ -292,7 +292,7 @@ namespace RSTGameTranslation
                             continue;
                         }
 
-                        string wordContent = PtrToStringUTF8(wordContentPtr);
+                        string? wordContent = PtrToStringUTF8(wordContentPtr);
 
                         // Get the pointer to the bounding box
                         res = NativeMethods.GetOcrWordBoundingBox(word, out IntPtr wordBoundingBoxPtr);
@@ -375,7 +375,7 @@ namespace RSTGameTranslation
                     };
 
                     // Execute OCR processing
-                    Line[] result = RunOcr(formattedImage);
+                    Line[]? result = RunOcr(formattedImage);
                     imgRgba.UnlockBits(bitmapData);
                     return result != null ? result.ToList() : new List<Line>();
                 }
@@ -635,7 +635,7 @@ namespace RSTGameTranslation
 
         public class Word
         {
-            public string Text { get; set; }
+            public string? Text { get; set; }
             public float X1 { get; set; }
             public float Y1 { get; set; }
             public float X2 { get; set; }
@@ -648,7 +648,7 @@ namespace RSTGameTranslation
 
         public class Line
         {
-            public string Text { get; set; }
+            public string? Text { get; set; }
             public float X1 { get; set; }
             public float Y1 { get; set; }
             public float X2 { get; set; }
@@ -658,7 +658,7 @@ namespace RSTGameTranslation
             public float X4 { get; set; }
             public float Y4 { get; set; }
 
-            public Word[] Words { get; set; }
+            public Word[]? Words { get; set; }
 
             public override string ToString()
             {

@@ -410,7 +410,7 @@
                                         <Expander Header="How do I setup the OCR server?" Margin="0,0,0,5" 
                                                 Background="#22FFFFFF" Foreground="White" BorderThickness="0">
                                         <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                First click the "SetupServer" button to install all necessary OCR components. 
+                                                First click the "SetupOCR" button to install all necessary OCR components. 
                                                 Once installation is complete, click "StartServer" to initialize the OCR engine. 
                                                 The setup process requires an internet connection to download required models.
                                         </TextBlock>
@@ -460,9 +460,8 @@
                                         <Expander Header="How do I use the monitor (overlay) feature?" Margin="0,0,0,5" 
                                                 Background="#22FFFFFF" Foreground="White" BorderThickness="0">
                                         <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                Click the "Monitor" button (ALT+F) to enable the overlay feature. This feature will place translated text on  
-                                                top of the original text on your screen. This feature requires you to meet 2 conditions: Windows 11 or higher 
-                                                and screen resolution set to 100%
+                                                Click the "Overlay" button (ALT+F) to enable the overlay feature. This feature will place translated text on  
+                                                top of the original text on your screen.
                                         </TextBlock>
                                         </Expander>
                                 </StackPanel>
