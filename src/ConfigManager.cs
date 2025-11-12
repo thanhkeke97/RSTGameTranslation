@@ -125,6 +125,7 @@ namespace RSTGameTranslation
         public const string AUDIO_PROCESSING_PROVIDER = "audio_processing_provider";
         public const string OPENAI_REALTIME_API_KEY = "openai_realtime_api_key";
         public const string AUDIO_SERVICE_AUTO_TRANSLATE = "audio_service_auto_translate";
+        public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
 
         public const string TEXTSIMILAR_THRESHOLD = "textsimilar_threshold";
 
@@ -441,6 +442,7 @@ namespace RSTGameTranslation
             _configValues[EXCLUDE_CHARACTER_NAME] = "false";
             _configValues[SHOW_QUICK_START] = "true";
             _configValues[FORCE_UPDATE_PROMPT] = "0";
+            _configValues[AUTO_CLEAR_CHAT_HISTORY] = "true";
 
             // Save the default configuration
             SaveConfig();
@@ -1748,6 +1750,20 @@ namespace RSTGameTranslation
             _configValues[EXCLUDE_CHARACTER_NAME] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"exclude character name enabled: {enabled}");
+        }
+
+        // Get/Set auto clear chatbox history
+        public bool IsAutoClearChatboxHistoryEnabled()
+        {
+            string value = GetValue(AUTO_CLEAR_CHAT_HISTORY, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetAutoClearChatboxHistory(bool enabled)
+        {
+            _configValues[AUTO_CLEAR_CHAT_HISTORY] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Auto clear chatbox history enabled: {enabled}");
         }
 
         // Get/Set TTS service

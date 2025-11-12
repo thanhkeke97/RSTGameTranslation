@@ -98,6 +98,14 @@
                                        VerticalAlignment="Center" 
                                        Margin="10,0,0,0"/>
                         </DockPanel>
+
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Auto Clear History" VerticalAlignment="Center" Width="120" />
+                            <CheckBox x:Name="autoClearChatboxHistoryCheckBox" Grid.Row="3" Grid.Column="1" 
+                                         Margin="0,5" 
+                                         Checked="autoClearChatboxHistoryCheckBox_CheckedChanged" 
+                                         Unchecked="autoClearChatboxHistoryCheckBox_CheckedChanged"/>
+                        </DockPanel>
                     </StackPanel>
                 </GroupBox>
 

@@ -22,6 +22,7 @@ namespace RSTGameTranslation
         private double _originalWindowOpacity;
         private string _originalFontFamily = "Segoe UI";  // Initialize with default value
         private double _originalFontSize;
+        private bool _autoClearChatboxHistory = false;
         private Color _originalTextColor;
         private Color _translatedTextColor;
         
@@ -31,6 +32,7 @@ namespace RSTGameTranslation
         private double _currentWindowOpacity;
         private string _currentFontFamily = "Segoe UI";  // Initialize with default value
         private double _currentFontSize;
+        private bool _currentAutoClearChatboxHistory = false;
         private Color _currentOriginalTextColor;
         private Color _currentTranslatedTextColor;
         
@@ -42,6 +44,7 @@ namespace RSTGameTranslation
         private readonly double DEFAULT_FONT_SIZE = 14;
         private readonly Color DEFAULT_ORIGINAL_TEXT_COLOR = Colors.LightGoldenrodYellow;
         private readonly Color DEFAULT_TRANSLATED_TEXT_COLOR = Colors.White;
+        private readonly bool DEFAULT_AUTO_CLEAR_CHATBOX_HISTORY = false;
 
         public ChatBoxOptionsWindow()
         {
@@ -86,6 +89,8 @@ namespace RSTGameTranslation
                 _originalFontSize = ConfigManager.Instance.GetChatBoxFontSize();
                 _originalTextColor = ConfigManager.Instance.GetOriginalTextColor();
                 _translatedTextColor = ConfigManager.Instance.GetTranslatedTextColor();
+                _autoClearChatboxHistory = ConfigManager.Instance.IsAutoClearChatboxHistoryEnabled();
+                autoClearChatboxHistoryCheckBox.IsChecked = _autoClearChatboxHistory;
                 
                 // Set current values to match original values
                 _currentBackgroundColor = _originalBackgroundColor;
@@ -95,6 +100,7 @@ namespace RSTGameTranslation
                 _currentFontSize = _originalFontSize;
                 _currentOriginalTextColor = _originalTextColor;
                 _currentTranslatedTextColor = _translatedTextColor;
+                _currentAutoClearChatboxHistory = _autoClearChatboxHistory;
             }
             catch (Exception ex)
             {
@@ -307,6 +313,7 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_WINDOW_OPACITY, _currentWindowOpacity.ToString());
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_FAMILY, _currentFontFamily);
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, _currentFontSize.ToString());
+                ConfigManager.Instance.SetValue(ConfigManager.AUTO_CLEAR_CHAT_HISTORY, _currentAutoClearChatboxHistory.ToString());
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_ORIGINAL_TEXT_COLOR, ColorToHexString(_currentOriginalTextColor));
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_TRANSLATED_TEXT_COLOR, ColorToHexString(_currentTranslatedTextColor));
                 
@@ -349,6 +356,7 @@ namespace RSTGameTranslation
                 _currentFontSize = DEFAULT_FONT_SIZE;
                 _currentOriginalTextColor = DEFAULT_ORIGINAL_TEXT_COLOR;
                 _currentTranslatedTextColor = DEFAULT_TRANSLATED_TEXT_COLOR;
+                _currentAutoClearChatboxHistory = DEFAULT_AUTO_CLEAR_CHATBOX_HISTORY;
                 
                 // Update UI with default values
                 UpdateUIFromSettings();
@@ -361,24 +369,24 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error setting defaults: {ex.Message}");
             }
         }
-        
+
         private void CreateFlashAnimation(System.Windows.Controls.Button button)
         {
             try
             {
                 // Get the current background brush
                 SolidColorBrush? currentBrush = button.Background as SolidColorBrush;
-                
+
                 if (currentBrush != null)
                 {
                     // Need to freeze the original brush to animate its clone
                     currentBrush = currentBrush.Clone();
                     Color originalColor = currentBrush.Color;
-                    
+
                     // Create a new brush for animation
                     SolidColorBrush animBrush = new SolidColorBrush(originalColor);
                     button.Background = animBrush;
-                    
+
                     // Create color animation for the brush's Color property
                     var animation = new ColorAnimation
                     {
@@ -388,7 +396,7 @@ namespace RSTGameTranslation
                         AutoReverse = true,
                         FillBehavior = FillBehavior.Stop // Stop the animation when complete
                     };
-                    
+
                     // Apply the animation to the brush's Color property
                     animBrush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
                 }
@@ -397,6 +405,12 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error creating flash animation: {ex.Message}");
             }
+        }
+
+        private void autoClearChatboxHistoryCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = autoClearChatboxHistoryCheckBox.IsChecked ?? false;
+            _currentAutoClearChatboxHistory = enabled;
         }
     }
 }

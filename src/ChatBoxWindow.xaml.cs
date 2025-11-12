@@ -961,10 +961,9 @@ namespace RSTGameTranslation
             }
         }
 
-        // Thêm biến để theo dõi trạng thái hiển thị của các border
         private bool _areBordersVisible = true;
 
-        // Thêm phương thức xử lý sự kiện click cho nút toggle
+
         private void ToggleBordersButton_Click(object sender, RoutedEventArgs e)
         {
             _areBordersVisible = !_areBordersVisible;
@@ -1080,10 +1079,22 @@ namespace RSTGameTranslation
                 // Create a paragraph for each entry to display
                 foreach (var entry in displayHistory)
                 {
+
                     // Skip entries with source text smaller than minimum size
                     if (!string.IsNullOrEmpty(entry.OriginalText) && entry.OriginalText.Length < minChatBoxTextSize)
                     {
                         continue;
+                    }
+                    if(ConfigManager.Instance.IsAutoClearChatboxHistoryEnabled())
+                    {
+                        DateTime TimeNow = DateTime.Now;
+                        DateTime TimeLastEntry = entry.Timestamp;
+                        TimeSpan TimeDiff = TimeNow.Subtract(TimeLastEntry);
+                        if (TimeDiff.TotalSeconds > 1)
+                        {
+                            chatHistoryText.Document.Blocks.Clear();
+                            continue;
+                        }
                     }
 
                     // Create a new paragraph for this entry
