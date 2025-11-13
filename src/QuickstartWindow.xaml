@@ -201,6 +201,8 @@
                                 <Run>it = Italian</Run>
                                 <LineBreak/>
                                 <Run>hi = Hindi</Run>
+                                <LineBreak/>
+                                <Run>tr = Turkish</Run>
                             </TextBlock>
                             <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
                                 Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">

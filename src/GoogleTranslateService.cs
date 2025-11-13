@@ -348,14 +348,13 @@ namespace RSTGameTranslation
                 "polish" or "pl" => "pl",
                 "arabic" or "ar" => "ar",
                 "dutch" or "nl" => "nl",
-                "Romanian" or "ro" => "ro",
-                "Polish" or "pl" => "pl",
-                "Persian" or "Farsi" or "fa" => "fa",
-                "Czech" or "cs" => "cs",
-                "Indonesian" or "id" => "id",
-                "Thai" or "th" or "Thailand" => "th",
-                "Traditional Chinese" or "ch_tra" => "zh-TW",
-                "Croatian" or "hr" => "hr",
+                "romanian" or "ro" => "ro",
+                "persian" or "farsi" or "fa" => "fa",
+                "czech" or "cs" => "cs",
+                "thai" or "th" or "thailand" => "th",
+                "traditional chinese" or "ch_tra" => "zh-TW",
+                "croatian" or "hr" => "hr",
+                "turkish" or "tr" => "tr",
                 _ => language
             };
         }

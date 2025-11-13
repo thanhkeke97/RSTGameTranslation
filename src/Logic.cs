@@ -2407,6 +2407,7 @@ namespace RSTGameTranslation
                 "cs" => "Czech",
                 "id" => "Indonesian",
                 "th" => "ThaiLand",
+                "tr" => "Turkish",
                 "ch_tra" => "Traditional Chinese",
                 _ => language
             };

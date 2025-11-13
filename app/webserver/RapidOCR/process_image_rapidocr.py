@@ -47,6 +47,7 @@ def initialize_ocr_engine(lang='en'):
         'id': 'LATIN',
         'th': 'LATIN',
         'hr': 'LATIN',
+        'tr': 'LATIN',
         'ch_tra': 'CH'
     }
 
