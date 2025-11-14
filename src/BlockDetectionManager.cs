@@ -142,7 +142,12 @@ namespace RSTGameTranslation
                 // PHASE 4: Group lines into paragraphs
                 var paragraphs = GroupLinesIntoParagraphs(lines, blockPower);
                 //Console.WriteLine($"Grouped lines into {paragraphs.Count} paragraphs");
-                
+                // PHASE 5: Apply manga-specific processing if manga mode is enabled
+                if (ConfigManager.Instance.IsMangaModeEnabled())
+                {
+                    paragraphs = ProcessMangaSpecificBlocks(paragraphs, blockPower);
+                    Console.WriteLine($"After manga processing: {paragraphs.Count} paragraphs");
+                }
                 // Create JSON output
                 return CreateJsonOutput(paragraphs, nonCharacters);
             }
@@ -775,6 +780,304 @@ namespace RSTGameTranslation
             }
         }
         
+        #region Manga-specific Block Detection
+
+        /// <summary>
+        /// Detect and process special text blocks for manga
+        /// </summary>
+        private List<TextElement> ProcessMangaSpecificBlocks(List<TextElement> paragraphs, double blockPower)
+        {
+            // Skip if there aren't enough paragraphs to process
+            if (paragraphs.Count <= 1)
+                return paragraphs;
+                
+            // Check if manga mode is enabled
+            bool isMangaMode = ConfigManager.Instance.IsMangaModeEnabled();
+            if (!isMangaMode)
+                return paragraphs;
+            
+            Console.WriteLine("Applying manga-specific block detection");
+            
+            // Detect main reading direction (left-to-right or right-to-left)
+            bool isRightToLeft = DetectReadingDirection(paragraphs);
+            
+            // Adjust thresholds based on manga characteristics
+            double mangaVerticalThreshold = _config.BaseLineVerticalGap * blockPower * 0.7; // Reduce vertical threshold
+            double mangaHorizontalThreshold = _config.BaseWordHorizontalGap * blockPower * 1.5; // Increase horizontal threshold
+            
+            // Sort paragraphs by position according to reading direction
+            var sortedParagraphs = isRightToLeft 
+                ? paragraphs.OrderBy(p => p.Bounds.Y).ThenByDescending(p => p.Bounds.X).ToList()
+                : paragraphs.OrderBy(p => p.Bounds.Y).ThenBy(p => p.Bounds.X).ToList();
+            
+            // Find and group paragraphs belonging to the same speech bubble
+            var speechBubbles = DetectSpeechBubbles(sortedParagraphs, mangaVerticalThreshold, mangaHorizontalThreshold);
+            
+            // If speech bubbles were detected, use them
+            if (speechBubbles.Count > 0)
+            {
+                var mergedParagraphs = new List<TextElement>();
+                
+                // Process each speech bubble
+                foreach (var bubble in speechBubbles)
+                {
+                    if (bubble.Count == 1)
+                    {
+                        // If there's only one paragraph, add it directly
+                        mergedParagraphs.Add(bubble[0]);
+                    }
+                    else
+                    {
+                        // Group multiple paragraphs into one
+                        var mergedBubble = MergeParagraphs(bubble, isRightToLeft);
+                        mergedParagraphs.Add(mergedBubble);
+                    }
+                }
+                
+                return mergedParagraphs;
+            }
+            
+            return paragraphs;
+        }
+
+        /// <summary>
+        /// Detect reading direction based on text block positions
+        /// </summary>
+        private bool DetectReadingDirection(List<TextElement> paragraphs)
+        {
+            // Count paragraphs on right and left sides
+            int rightSideCount = 0;
+            int leftSideCount = 0;
+            
+            // Calculate horizontal midpoint
+            double totalWidth = paragraphs.Max(p => p.Bounds.X + p.Bounds.Width) - 
+                            paragraphs.Min(p => p.Bounds.X);
+            double centerX = paragraphs.Min(p => p.Bounds.X) + (totalWidth / 2);
+            
+            foreach (var para in paragraphs)
+            {
+                double paraCenter = para.Bounds.X + (para.Bounds.Width / 2);
+                if (paraCenter > centerX)
+                    rightSideCount++;
+                else
+                    leftSideCount++;
+            }
+            
+            // If there are more paragraphs on the right side, it might be right-to-left manga
+            return rightSideCount > leftSideCount;
+        }
+
+        /// <summary>
+        /// Detect speech bubbles based on relative positions of paragraphs
+        /// </summary>
+        private List<List<TextElement>> DetectSpeechBubbles(List<TextElement> paragraphs, 
+                                                        double verticalThreshold, 
+                                                        double horizontalThreshold)
+        {
+            var bubbles = new List<List<TextElement>>();
+            var processed = new HashSet<TextElement>();
+            
+            // Sort paragraphs by Y position to process from top to bottom
+            var sortedParagraphs = paragraphs.OrderBy(p => p.Bounds.Y).ToList();
+            
+            // Calculate average distance between paragraphs
+            double avgHeight = paragraphs.Average(p => p.Bounds.Height);
+            
+            // Adjust distance thresholds - use lower thresholds to avoid excessive grouping
+            double safeVerticalThreshold = Math.Min(verticalThreshold, avgHeight * 0.6);
+            double safeHorizontalThreshold = horizontalThreshold * 0.8;
+            
+            Console.WriteLine($"Speech bubble detection thresholds: V={safeVerticalThreshold:F1}, H={safeHorizontalThreshold:F1}");
+            
+            foreach (var para in sortedParagraphs)
+            {
+                if (processed.Contains(para))
+                    continue;
+                    
+                var bubble = new List<TextElement> { para };
+                processed.Add(para);
+                
+                // Find the closest paragraphs
+                foreach (var other in sortedParagraphs)
+                {
+                    if (processed.Contains(other) || other == para)
+                        continue;
+                        
+                    // Calculate distance between paragraph centers
+                    double centerY1 = para.Bounds.Y + (para.Bounds.Height / 2);
+                    double centerX1 = para.Bounds.X + (para.Bounds.Width / 2);
+                    
+                    double centerY2 = other.Bounds.Y + (other.Bounds.Height / 2);
+                    double centerX2 = other.Bounds.X + (other.Bounds.Width / 2);
+                    
+                    double verticalDistance = Math.Abs(centerY2 - centerY1);
+                    double horizontalDistance = Math.Abs(centerX2 - centerX1);
+                    
+                    // Check for horizontal overlap
+                    bool overlapsX = (para.Bounds.X < other.Bounds.X + other.Bounds.Width) &&
+                                    (para.Bounds.X + para.Bounds.Width > other.Bounds.X);
+                                    
+                    // Check for horizontal alignment
+                    bool alignedHorizontally = Math.Abs(para.Bounds.X - other.Bounds.X) < safeHorizontalThreshold * 0.3 ||
+                                            Math.Abs((para.Bounds.X + para.Bounds.Width) - 
+                                                    (other.Bounds.X + other.Bounds.Width)) < safeHorizontalThreshold * 0.3;
+                    
+                    // Only group paragraphs that are very close to each other
+                    bool shouldGroup = false;
+                    
+                    // Condition 1: If horizontally overlapping and very close vertically
+                    if (overlapsX && verticalDistance < safeVerticalThreshold)
+                    {
+                        shouldGroup = true;
+                    }
+                    // Condition 2: If well-aligned horizontally and close vertically
+                    else if (alignedHorizontally && verticalDistance < safeVerticalThreshold * 1.2)
+                    {
+                        shouldGroup = true;
+                    }
+                    // Condition 3: If very close in both dimensions
+                    else if (verticalDistance < safeVerticalThreshold * 0.8 && 
+                            horizontalDistance < safeHorizontalThreshold * 0.8)
+                    {
+                        shouldGroup = true;
+                    }
+                    
+                    // Apply absolute distance limit to avoid grouping paragraphs that are too far apart
+                    double absoluteMaxDistance = Math.Max(para.Bounds.Height * 1.5, avgHeight * 2);
+                    if (verticalDistance > absoluteMaxDistance)
+                    {
+                        shouldGroup = false;
+                    }
+                    
+                    if (shouldGroup)
+                    {
+                        bubble.Add(other);
+                        processed.Add(other);
+                        Console.WriteLine($"Grouped paragraph: \"{other.Text.Substring(0, Math.Min(20, other.Text.Length))}...\"");
+                    }
+                }
+                
+                // Add speech bubble to the list
+                bubbles.Add(bubble);
+            }
+            
+            // Check results to ensure no speech bubbles are too large
+            var validatedBubbles = ValidateSpeechBubbles(bubbles, paragraphs);
+            
+            return validatedBubbles;
+        }
+
+        /// <summary>
+        /// Validate speech bubbles to avoid creating oversized blocks
+        /// </summary>
+        private List<List<TextElement>> ValidateSpeechBubbles(List<List<TextElement>> bubbles, List<TextElement> originalParagraphs)
+        {
+            var result = new List<List<TextElement>>();
+            
+            // Calculate average page size
+            double pageWidth = originalParagraphs.Max(p => p.Bounds.X + p.Bounds.Width) - 
+                            originalParagraphs.Min(p => p.Bounds.X);
+            double pageHeight = originalParagraphs.Max(p => p.Bounds.Y + p.Bounds.Height) - 
+                            originalParagraphs.Min(p => p.Bounds.Y);
+            
+            // Maximum size limits for a speech bubble
+            double maxBubbleWidth = pageWidth * 0.4;  // Maximum 40% of page width
+            double maxBubbleHeight = pageHeight * 0.3; // Maximum 30% of page height
+            
+            foreach (var bubble in bubbles)
+            {
+                // If only 1 paragraph, keep as is
+                if (bubble.Count <= 1)
+                {
+                    result.Add(bubble);
+                    continue;
+                }
+                
+                // Calculate speech bubble size
+                double minX = bubble.Min(p => p.Bounds.X);
+                double minY = bubble.Min(p => p.Bounds.Y);
+                double maxX = bubble.Max(p => p.Bounds.X + p.Bounds.Width);
+                double maxY = bubble.Max(p => p.Bounds.Y + p.Bounds.Height);
+                
+                double bubbleWidth = maxX - minX;
+                double bubbleHeight = maxY - minY;
+                
+                // Check if the speech bubble is too large
+                if (bubbleWidth > maxBubbleWidth || bubbleHeight > maxBubbleHeight)
+                {
+                    Console.WriteLine($"Breaking up large speech bubble: {bubbleWidth:F0}x{bubbleHeight:F0} exceeds limits");
+                    
+                    // Break up oversized speech bubbles
+                    foreach (var para in bubble)
+                    {
+                        result.Add(new List<TextElement> { para });
+                    }
+                }
+                else
+                {
+                    // Speech bubble has reasonable size
+                    result.Add(bubble);
+                }
+            }
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Merge multiple paragraphs into a single paragraph
+        /// </summary>
+        private TextElement MergeParagraphs(List<TextElement> paragraphs, bool isRightToLeft)
+        {
+            // Sort by reading position
+            var sortedParagraphs = isRightToLeft
+                ? paragraphs.OrderBy(p => p.Bounds.Y).ThenByDescending(p => p.Bounds.X).ToList()
+                : paragraphs.OrderBy(p => p.Bounds.Y).ThenBy(p => p.Bounds.X).ToList();
+            
+            // Create new paragraph from sorted paragraphs
+            var merged = new TextElement
+            {
+                ElementType = ElementType.Paragraph,
+                Children = new List<TextElement>(),
+                Text = ""
+            };
+            
+            // Calculate new bounds
+            double minX = double.MaxValue;
+            double minY = double.MaxValue;
+            double maxX = double.MinValue;
+            double maxY = double.MinValue;
+            
+            // Combine text and calculate average confidence
+            double totalConfidence = 0;
+            
+            foreach (var para in sortedParagraphs)
+            {
+                // Update bounds
+                minX = Math.Min(minX, para.Bounds.X);
+                minY = Math.Min(minY, para.Bounds.Y);
+                maxX = Math.Max(maxX, para.Bounds.X + para.Bounds.Width);
+                maxY = Math.Max(maxY, para.Bounds.Y + para.Bounds.Height);
+                
+                // Add text
+                if (!string.IsNullOrEmpty(merged.Text))
+                    merged.Text += "\n";
+                merged.Text += para.Text;
+                
+                // Add to children list
+                merged.Children.AddRange(para.Children);
+                
+                // Update confidence
+                totalConfidence += para.Confidence;
+            }
+            
+            // Update bounds and confidence
+            merged.Bounds = new Rect(minX, minY, maxX - minX, maxY - minY);
+            merged.Confidence = totalConfidence / sortedParagraphs.Count;
+            
+            return merged;
+        }
+
+        #endregion
         #endregion
         
         #region Helper Classes

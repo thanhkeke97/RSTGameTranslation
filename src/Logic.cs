@@ -2445,16 +2445,32 @@ namespace RSTGameTranslation
 
                 // Combine all texts into one string with a separator
                 var combinedText = string.Join("|||RST_SEPARATOR|||", _textObjects.Select(obj => obj.Text));
-                
-                // Create a single text block with ID=1 and the combined text
-                var textsToTranslate = new List<object>
+                var textsToTranslate = new List<object>();
+                if(!ConfigManager.Instance.IsMangaModeEnabled())
                 {
-                    new
+                    // Create a single text block with ID=999 and the combined text
+                    textsToTranslate = new List<object>
                     {
-                        id = "999",
-                        text = combinedText
+                        new
+                        {
+                            id = "999",
+                            text = combinedText
+                        }
+                    };
+                }
+                else
+                {
+                    // textsToTranslate = new List<object>();
+                    for (int i = 0; i < _textObjects.Count; i++)
+                    {
+                        var textObj = _textObjects[i];
+                        textsToTranslate.Add(new
+                        {
+                            id = textObj.ID,
+                            text = textObj.Text
+                        });
                     }
-                };
+                }
 
                 // Get previous context if enabled
                 var previousContext = GetPreviousContext();

@@ -97,6 +97,7 @@ namespace RSTGameTranslation
         public const string IGNORE_PHRASES = "ignore_phrases";
         public const string WINDOWS_OCR_INTEGRATION = "windows_ocr_integration";
         public const string AUTO_OCR = "auto_ocr";
+        public const string MANGA_MODE = "manga_mode";
 
         // Text-to-Speech configuration keys
         public const string TTS_ENABLED = "tts_enabled";
@@ -154,7 +155,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
-                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
+                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
@@ -170,7 +171,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
-                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
+                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
@@ -186,7 +187,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
-                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
+                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
@@ -202,7 +203,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
-                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
+                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
@@ -218,7 +219,7 @@ namespace RSTGameTranslation
                     "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
                     "* Each element in the text_blocks array must include its id.\n" +
                     "* No extra text, explanations, or formatting should be included.\n" +
-                    "* |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
+                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
                     "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
                     "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
                     "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
@@ -443,6 +444,7 @@ namespace RSTGameTranslation
             _configValues[SHOW_QUICK_START] = "true";
             _configValues[FORCE_UPDATE_PROMPT] = "0";
             _configValues[AUTO_CLEAR_CHAT_HISTORY] = "true";
+            _configValues[MANGA_MODE] = "false";
 
             // Save the default configuration
             SaveConfig();
@@ -1764,6 +1766,20 @@ namespace RSTGameTranslation
             _configValues[AUTO_CLEAR_CHAT_HISTORY] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Auto clear chatbox history enabled: {enabled}");
+        }
+
+        // Get/Set manga mode
+        public bool IsMangaModeEnabled()
+        {
+            string value = GetValue(MANGA_MODE, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetMangaMode(bool enabled)
+        {
+            _configValues[MANGA_MODE] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Manga mode enabled: {enabled}");
         }
 
         // Get/Set TTS service

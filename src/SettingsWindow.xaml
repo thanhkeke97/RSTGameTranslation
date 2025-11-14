@@ -297,6 +297,14 @@
                                          Checked="AutoOCRCheckBox_CheckedChanged" 
                                          Unchecked="AutoOCRCheckBox_CheckedChanged"
                                          ToolTip="Auto OCR realtime, turn off this feature the program will not auto translate"/>
+                                
+                                <!-- Manga Mode -->
+                                <TextBlock Text="Manga Mode:" Grid.Row="10" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="MangaModeCheckBox" Grid.Row="10" Grid.Column="1" 
+                                         Checked="MangaModeCheckBox_CheckedChanged" 
+                                         Unchecked="MangaModeCheckBox_CheckedChanged"
+                                         ToolTip="This mode helps translate and display manga more accurately (currently only supports manga with horizontal text), but it will reduce translation speed."/>
                             </Grid>
                         </GroupBox>
                         

@@ -102,7 +102,7 @@
                         <DockPanel Margin="0,5">
                             <TextBlock Text="Auto Clear History" VerticalAlignment="Center" Width="120" />
                             <CheckBox x:Name="autoClearChatboxHistoryCheckBox" Grid.Row="3" Grid.Column="1" 
-                                         Margin="0,5" 
+                                         Margin="0,5" ToolTip="Auto Clear Chatbox History When Received New Translated Text"
                                          Checked="autoClearChatboxHistoryCheckBox_CheckedChanged" 
                                          Unchecked="autoClearChatboxHistoryCheckBox_CheckedChanged"/>
                         </DockPanel>

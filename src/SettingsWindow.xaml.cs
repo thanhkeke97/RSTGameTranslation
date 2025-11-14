@@ -94,6 +94,8 @@ namespace RSTGameTranslation
 
         // Show message for Auto OCR
         private bool isNeedShowWarningAutoOCR = false;
+        // Show message for Manga Mode
+        private bool isNeedShowWarningMangaMode = false;
 
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
@@ -813,6 +815,10 @@ namespace RSTGameTranslation
 
             // Set auto OCR
             AutoOCRCheckBox.IsChecked = ConfigManager.Instance.IsAutoOCREnabled();
+
+            // Set manga mode
+            MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
+            isNeedShowWarningMangaMode = true;
 
             // Set WindowsOCR integration
             windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
@@ -3506,6 +3512,27 @@ namespace RSTGameTranslation
             bool enabled = autoSetOverlayBackgroundColorcheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetAutoSetOverlayBackground(enabled);
             Console.WriteLine($"Auto set overlay background color set to {enabled}");
+        }
+
+        private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = MangaModeCheckBox.IsChecked ?? true;
+            ConfigManager.Instance.SetMangaMode(enabled);
+            Console.WriteLine($"Manga mode set to {enabled}");
+            if (isNeedShowWarningMangaMode && enabled)
+            {
+                // Show notification
+                MessageBox.Show(
+                "If you enable this feature, translation speed will be slower but will provide more accurate overlay display for manga.",
+                "Manga Mode Enabled",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+                isNeedShowWarningMangaMode = false;
+            } 
+            else 
+            {
+                isNeedShowWarningMangaMode = true;
+            }
         }
     }
 }
