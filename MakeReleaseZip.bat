@@ -1,5 +1,5 @@
 SET APP_NAME=RSTGameTranslation
-SET APP_VERSION=3.1
+SET APP_VERSION=3.2
 SET FNAME=%APP_NAME%_v%APP_VERSION%.zip
 node update-version.js
 
