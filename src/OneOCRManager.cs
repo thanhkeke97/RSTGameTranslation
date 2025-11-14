@@ -127,11 +127,11 @@ namespace RSTGameTranslation
         }
 
 
-        public async ValueTask InitializeAsync()
+        public ValueTask InitializeAsync()
         {
             if (_initialized)
             {
-                return;
+                return ValueTask.CompletedTask;
             }
 
             long res = NativeMethods.CreateOcrInitOptions(out long ctx);
@@ -146,6 +146,8 @@ namespace RSTGameTranslation
                     InitializePipeline();
                 }
             }
+            
+            return ValueTask.CompletedTask;
         }
 
         private void InitializePipeline()

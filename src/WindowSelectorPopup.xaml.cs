@@ -16,7 +16,7 @@ namespace RSTGameTranslation
     public partial class WindowSelectorPopup : Window
     {
         public delegate void WindowSelectedHandler(IntPtr windowHandle, string windowTitle);
-        public event WindowSelectedHandler WindowSelected;
+        public event WindowSelectedHandler? WindowSelected;
 
         private List<WindowInfo> windows = new List<WindowInfo>();
 
@@ -92,7 +92,7 @@ namespace RSTGameTranslation
                 return true;
 
            
-            ImageSource icon = ExtractIcon(hWnd);
+            ImageSource? icon = ExtractIcon(hWnd);
 
             
             windows.Add(new WindowInfo
@@ -105,7 +105,7 @@ namespace RSTGameTranslation
             return true;
         }
 
-        private ImageSource ExtractIcon(IntPtr hwnd)
+        private ImageSource? ExtractIcon(IntPtr hwnd)
         {
             try
             {
@@ -182,12 +182,8 @@ namespace RSTGameTranslation
 
         private void SelectWindow()
         {
-            if (windowListView.SelectedItem != null)
+            if (windowListView.SelectedItem is System.Windows.Controls.ListViewItem item && item.Tag is WindowInfo window)
             {
-                var item = (System.Windows.Controls.ListViewItem)windowListView.SelectedItem;
-                var window = (WindowInfo)item.Tag;
-
-                
                 if (IsWindow(window.Handle))
                 {
                     WindowSelected?.Invoke(window.Handle, window.Title);
@@ -211,8 +207,8 @@ namespace RSTGameTranslation
         private class WindowInfo
         {
             public IntPtr Handle { get; set; }
-            public string Title { get; set; }
-            public ImageSource Icon { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public ImageSource? Icon { get; set; }
         }
 
         // P/Invoke

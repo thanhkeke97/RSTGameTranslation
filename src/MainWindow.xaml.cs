@@ -332,7 +332,7 @@ namespace RSTGameTranslation
 
             // Setup timer for continuous capture
             _captureTimer = new DispatcherTimer();
-            _captureTimer.Interval = TimeSpan.FromSeconds(0.5);
+            _captureTimer.Interval = TimeSpan.FromSeconds(0.25);
             _captureTimer.Tick += OnUpdateTick;
             _captureTimer.Start();
 
@@ -1354,7 +1354,7 @@ namespace RSTGameTranslation
         }
 
         //!This is where we decide to process the bitmap we just grabbed or not
-        private async void PerformCapture()
+        private void PerformCapture()
         {
             // Update the capture rectangle to ensure correct dimensions
             UpdateCaptureRect();

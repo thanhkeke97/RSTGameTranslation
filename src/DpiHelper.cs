@@ -27,6 +27,13 @@ namespace RSTGameTranslation
         {
             try
             {
+                if (screen == null)
+                {
+                    scaleX = 1.0;
+                    scaleY = 1.0;
+                    return;
+                }
+                
                 System.Drawing.Point point = new System.Drawing.Point(
                     screen.Bounds.Left + screen.Bounds.Width / 2,
                     screen.Bounds.Top + screen.Bounds.Height / 2

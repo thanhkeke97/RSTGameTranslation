@@ -187,10 +187,10 @@ namespace RSTGameTranslation
 
         private void CommonPair_Click(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
-            if (button != null && button.Tag != null)
+            if (sender is Button button && button.Tag != null)
             {
-                string[] languages = button.Tag.ToString().Split(',');
+                string tagString = button.Tag.ToString() ?? string.Empty;
+                string[] languages = tagString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (languages.Length == 2)
                 {
                     // Find and select the languages in the comboboxes

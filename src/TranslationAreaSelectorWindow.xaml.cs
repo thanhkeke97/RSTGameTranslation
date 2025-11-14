@@ -27,9 +27,33 @@ namespace RSTGameTranslation
         public static TranslationAreaSelectorWindow? _currentInstance;
         
         // Store the selected screen and its DPI scaling
-        private Forms.Screen _selectedScreen;
+        private Forms.Screen? _selectedScreen = Forms.Screen.PrimaryScreen;
         public double _dpiScaleX = 1.0;
         public double _dpiScaleY = 1.0;
+        
+        private Forms.Screen GetActiveScreen()
+        {
+            if (_selectedScreen != null)
+            {
+                return _selectedScreen;
+            }
+            
+            var primary = Forms.Screen.PrimaryScreen;
+            if (primary != null)
+            {
+                _selectedScreen = primary;
+                return primary;
+            }
+            
+            var screens = Forms.Screen.AllScreens;
+            if (screens.Length > 0)
+            {
+                _selectedScreen = screens[0];
+                return screens[0];
+            }
+            
+            throw new InvalidOperationException("No monitors detected.");
+        }
         
         // Win32 API for DPI awareness
         [DllImport("user32.dll")]
@@ -85,10 +109,17 @@ namespace RSTGameTranslation
         }
         
         // Get DPI scaling for a screen
-        private void GetDpiScaling(Forms.Screen screen)
+        private void GetDpiScaling(Forms.Screen? screen)
         {
             try
             {
+                if (screen == null)
+                {
+                    _dpiScaleX = 1.0;
+                    _dpiScaleY = 1.0;
+                    return;
+                }
+                
                 // Get the monitor handle from screen
                 System.Drawing.Point point = new System.Drawing.Point(
                     screen.Bounds.Left + screen.Bounds.Width / 2,
@@ -161,7 +192,8 @@ namespace RSTGameTranslation
                     }
                     
                     // Set window position using Windows API
-                    var bounds = _selectedScreen.Bounds;
+                    var activeScreen = GetActiveScreen();
+                    var bounds = activeScreen.Bounds;
                     SetWindowPos(
                         hwnd,
                         HWND_TOPMOST,
@@ -437,16 +469,17 @@ namespace RSTGameTranslation
                 {
                     // Adjust for DPI scaling
                     // The offset from screen origin needs to be scaled
-                    double offsetX = screenX - _selectedScreen.Bounds.Left;
-                    double offsetY = screenY - _selectedScreen.Bounds.Top;
+                    var activeScreen = GetActiveScreen();
+                    double offsetX = screenX - activeScreen.Bounds.Left;
+                    double offsetY = screenY - activeScreen.Bounds.Top;
                     
                     // Scale the offset
                     double scaledOffsetX = offsetX * _dpiScaleX;
                     double scaledOffsetY = offsetY * _dpiScaleY;
                     
                     // Calculate the new screen coordinates
-                    screenX = _selectedScreen.Bounds.Left + scaledOffsetX;
-                    screenY = _selectedScreen.Bounds.Top + scaledOffsetY;
+                    screenX = activeScreen.Bounds.Left + scaledOffsetX;
+                    screenY = activeScreen.Bounds.Top + scaledOffsetY;
                     
                     // Scale the width and height
                     screenWidth = (int)(screenWidth * _dpiScaleX);
@@ -489,14 +522,15 @@ namespace RSTGameTranslation
                     if (_dpiScaleX != 1.0 || _dpiScaleY != 1.0)
                     {
                         // Adjust for DPI scaling
-                        double offsetX = screenPoint.X - _selectedScreen.Bounds.Left;
-                        double offsetY = screenPoint.Y - _selectedScreen.Bounds.Top;
+                        var activeScreen = GetActiveScreen();
+                        double offsetX = screenPoint.X - activeScreen.Bounds.Left;
+                        double offsetY = screenPoint.Y - activeScreen.Bounds.Top;
                         
                         double scaledOffsetX = offsetX * _dpiScaleX;
                         double scaledOffsetY = offsetY * _dpiScaleY;
                         
-                        double adjustedX = _selectedScreen.Bounds.Left + scaledOffsetX;
-                        double adjustedY = _selectedScreen.Bounds.Top + scaledOffsetY;
+                        double adjustedX = activeScreen.Bounds.Left + scaledOffsetX;
+                        double adjustedY = activeScreen.Bounds.Top + scaledOffsetY;
                         
                         screenWidth = screenWidth * _dpiScaleX;
                         screenHeight = screenHeight * _dpiScaleY;
@@ -534,8 +568,8 @@ namespace RSTGameTranslation
                     
                     // Last resort: use the raw coordinates without any adjustment
                     Rect selectionRect = new Rect(
-                        _selectedScreen.Bounds.Left + left,
-                        _selectedScreen.Bounds.Top + top,
+                        GetActiveScreen().Bounds.Left + left,
+                        GetActiveScreen().Bounds.Top + top,
                         width,
                         height
                     );

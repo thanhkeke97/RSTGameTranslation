@@ -785,6 +785,10 @@ namespace RSTGameTranslation
         /// <summary>
         /// Detect and process special text blocks for manga
         /// </summary>
+        private const int MAX_PARAGRAPHS_PER_BUBBLE = 5;
+        private const double MAX_BUBBLE_WIDTH_RATIO = 0.4;
+        private const double MAX_BUBBLE_HEIGHT_RATIO = 0.35;
+        
         private List<TextElement> ProcessMangaSpecificBlocks(List<TextElement> paragraphs, double blockPower)
         {
             // Skip if there aren't enough paragraphs to process
@@ -799,11 +803,15 @@ namespace RSTGameTranslation
             Console.WriteLine("Applying manga-specific block detection");
             
             // Detect main reading direction (left-to-right or right-to-left)
-            bool isRightToLeft = DetectReadingDirection(paragraphs);
+            var readingDirection = DetectReadingDirection(paragraphs, out double directionConfidence);
+            bool isRightToLeft = readingDirection == MangaReadingDirection.RightToLeft;
             
             // Adjust thresholds based on manga characteristics
-            double mangaVerticalThreshold = _config.BaseLineVerticalGap * blockPower * 0.7; // Reduce vertical threshold
-            double mangaHorizontalThreshold = _config.BaseWordHorizontalGap * blockPower * 1.5; // Increase horizontal threshold
+            double medianHeight = paragraphs.Select(p => p.Bounds.Height).OrderBy(h => h).ElementAt(paragraphs.Count / 2);
+            double medianWidth = paragraphs.Select(p => p.Bounds.Width).OrderBy(w => w).ElementAt(paragraphs.Count / 2);
+            
+            double mangaVerticalThreshold = Math.Min(_config.BaseLineVerticalGap * blockPower, medianHeight * 0.9);
+            double mangaHorizontalThreshold = Math.Max(_config.BaseWordHorizontalGap * blockPower, medianWidth * 1.1);
             
             // Sort paragraphs by position according to reading direction
             var sortedParagraphs = isRightToLeft 
@@ -811,7 +819,8 @@ namespace RSTGameTranslation
                 : paragraphs.OrderBy(p => p.Bounds.Y).ThenBy(p => p.Bounds.X).ToList();
             
             // Find and group paragraphs belonging to the same speech bubble
-            var speechBubbles = DetectSpeechBubbles(sortedParagraphs, mangaVerticalThreshold, mangaHorizontalThreshold);
+            var speechBubbles = DetectSpeechBubbles(sortedParagraphs, mangaVerticalThreshold, mangaHorizontalThreshold, medianHeight, medianWidth);
+            Console.WriteLine($"Manga detection: direction={(isRightToLeft ? "RTL" : "LTR")}, confidence={directionConfidence:F2}, paragraphs={paragraphs.Count}, bubbles={speechBubbles.Count}");
             
             // If speech bubbles were detected, use them
             if (speechBubbles.Count > 0)
@@ -843,7 +852,13 @@ namespace RSTGameTranslation
         /// <summary>
         /// Detect reading direction based on text block positions
         /// </summary>
-        private bool DetectReadingDirection(List<TextElement> paragraphs)
+        private enum MangaReadingDirection
+        {
+            LeftToRight,
+            RightToLeft
+        }
+        
+        private MangaReadingDirection DetectReadingDirection(List<TextElement> paragraphs, out double confidence)
         {
             // Count paragraphs on right and left sides
             int rightSideCount = 0;
@@ -854,17 +869,42 @@ namespace RSTGameTranslation
                             paragraphs.Min(p => p.Bounds.X);
             double centerX = paragraphs.Min(p => p.Bounds.X) + (totalWidth / 2);
             
+            double weightedSum = 0;
+            double totalWeight = 0;
+            
             foreach (var para in paragraphs)
             {
                 double paraCenter = para.Bounds.X + (para.Bounds.Width / 2);
+                double weight = Math.Max(para.Bounds.Width * para.Bounds.Height, 1);
+                totalWeight += weight;
+                
                 if (paraCenter > centerX)
+                {
                     rightSideCount++;
+                    weightedSum += weight;
+                }
                 else
+                {
                     leftSideCount++;
+                }
+            }
+            
+            if (totalWeight == 0)
+            {
+                confidence = 0;
+                return MangaReadingDirection.LeftToRight;
+            }
+            
+            double rightRatio = weightedSum / totalWeight;
+            confidence = Math.Abs(rightRatio - 0.5) * 2; // normalize 0..1
+            
+            if (confidence < 0.15)
+            {
+                return MangaReadingDirection.LeftToRight;
             }
             
             // If there are more paragraphs on the right side, it might be right-to-left manga
-            return rightSideCount > leftSideCount;
+            return rightSideCount > leftSideCount ? MangaReadingDirection.RightToLeft : MangaReadingDirection.LeftToRight;
         }
 
         /// <summary>
@@ -872,7 +912,9 @@ namespace RSTGameTranslation
         /// </summary>
         private List<List<TextElement>> DetectSpeechBubbles(List<TextElement> paragraphs, 
                                                         double verticalThreshold, 
-                                                        double horizontalThreshold)
+                                                        double horizontalThreshold,
+                                                        double medianHeight,
+                                                        double medianWidth)
         {
             var bubbles = new List<List<TextElement>>();
             var processed = new HashSet<TextElement>();
@@ -885,7 +927,9 @@ namespace RSTGameTranslation
             
             // Adjust distance thresholds - use lower thresholds to avoid excessive grouping
             double safeVerticalThreshold = Math.Min(verticalThreshold, avgHeight * 0.6);
-            double safeHorizontalThreshold = horizontalThreshold * 0.8;
+            safeVerticalThreshold = Math.Max(safeVerticalThreshold, medianHeight * 0.6);
+            
+            double safeHorizontalThreshold = Math.Max(horizontalThreshold * 0.6, medianWidth * 1.0);
             
             Console.WriteLine($"Speech bubble detection thresholds: V={safeVerticalThreshold:F1}, H={safeHorizontalThreshold:F1}");
             
@@ -902,6 +946,13 @@ namespace RSTGameTranslation
                 {
                     if (processed.Contains(other) || other == para)
                         continue;
+                    
+                    double deltaY = Math.Abs(other.Bounds.Y - para.Bounds.Y);
+                    if (deltaY > safeVerticalThreshold * 2 && other.Bounds.Y > para.Bounds.Y)
+                    {
+                        // Remaining paragraphs are too far vertically since list is sorted
+                        break;
+                    }
                         
                     // Calculate distance between paragraph centers
                     double centerY1 = para.Bounds.Y + (para.Bounds.Height / 2);
@@ -943,7 +994,7 @@ namespace RSTGameTranslation
                     }
                     
                     // Apply absolute distance limit to avoid grouping paragraphs that are too far apart
-                    double absoluteMaxDistance = Math.Max(para.Bounds.Height * 1.5, avgHeight * 2);
+                    double absoluteMaxDistance = Math.Max(para.Bounds.Height * 1.3, Math.Max(avgHeight, medianHeight) * 2);
                     if (verticalDistance > absoluteMaxDistance)
                     {
                         shouldGroup = false;
@@ -981,8 +1032,8 @@ namespace RSTGameTranslation
                             originalParagraphs.Min(p => p.Bounds.Y);
             
             // Maximum size limits for a speech bubble
-            double maxBubbleWidth = pageWidth * 0.4;  // Maximum 40% of page width
-            double maxBubbleHeight = pageHeight * 0.3; // Maximum 30% of page height
+            double maxBubbleWidth = pageWidth * MAX_BUBBLE_WIDTH_RATIO;  // Maximum 40% of page width
+            double maxBubbleHeight = pageHeight * MAX_BUBBLE_HEIGHT_RATIO; // Maximum 35% of page height
             
             foreach (var bubble in bubbles)
             {
@@ -1003,9 +1054,13 @@ namespace RSTGameTranslation
                 double bubbleHeight = maxY - minY;
                 
                 // Check if the speech bubble is too large
-                if (bubbleWidth > maxBubbleWidth || bubbleHeight > maxBubbleHeight)
+                if (bubbleWidth > maxBubbleWidth || bubbleHeight > maxBubbleHeight || bubble.Count > MAX_PARAGRAPHS_PER_BUBBLE)
                 {
                     Console.WriteLine($"Breaking up large speech bubble: {bubbleWidth:F0}x{bubbleHeight:F0} exceeds limits");
+                    if (bubble.Count > MAX_PARAGRAPHS_PER_BUBBLE)
+                    {
+                        Console.WriteLine($"Bubble exceeded paragraph limit ({bubble.Count}/{MAX_PARAGRAPHS_PER_BUBBLE})");
+                    }
                     
                     // Break up oversized speech bubbles
                     foreach (var para in bubble)
@@ -1060,8 +1115,10 @@ namespace RSTGameTranslation
                 
                 // Add text
                 if (!string.IsNullOrEmpty(merged.Text))
-                    merged.Text += "\n";
-                merged.Text += para.Text;
+                {
+                    merged.Text += isRightToLeft ? "\n" : " ";
+                }
+                merged.Text += para.Text.Trim();
                 
                 // Add to children list
                 merged.Children.AddRange(para.Children);
@@ -1216,13 +1273,15 @@ namespace RSTGameTranslation
         /// Set the global scale for all block detection parameters
         /// </summary>
         /// <param name="scale">Scale factor (1.0 is default, higher values for larger text/images)</param>
+        private const double DEFAULT_BLOCK_SCALE = 1.0;
+        
         public void SetBlockDetectionScale(double scale)
         {
             if (scale <= 0)
             {
-                Console.WriteLine($"Invalid block detection scale: {scale}. Must be positive. Using default.");
-                _scaleModToApplyToAllBlockDetectionParameters = 0.1f;
-                ConfigManager.Instance.SetBlockDetectionScale(0.1f);
+                Console.WriteLine($"Invalid block detection scale: {scale}. Must be positive. Reverting to default ({DEFAULT_BLOCK_SCALE}).");
+                _scaleModToApplyToAllBlockDetectionParameters = DEFAULT_BLOCK_SCALE;
+                ConfigManager.Instance.SetBlockDetectionScale(DEFAULT_BLOCK_SCALE);
             }
             else
             {
@@ -1336,6 +1395,7 @@ namespace RSTGameTranslation
                     {
                         Console.WriteLine($"Auto-adjusting block detection scale to {scaleFactor:F2} (avg text height: {avgHeight:F1}px)");
                         _scaleModToApplyToAllBlockDetectionParameters = scaleFactor;
+                        ConfigManager.Instance.SetBlockDetectionScale(scaleFactor);
                     }
                 }
             }
@@ -1470,16 +1530,118 @@ namespace RSTGameTranslation
                 }
             }
             
-            // Create an empty JsonElement to return (dummy implementation)
+            // Combine line groups into aggregated blocks
+            var aggregatedBlocks = new List<TextBlockInfo>();
+            string sourceLang = ConfigManager.Instance.GetSourceLanguage();
+            bool isEastAsianLang = sourceLang == "ja" ||
+                                   sourceLang == "ch_sim" ||
+                                   sourceLang == "ch_tra" ||
+                                   sourceLang == "ko";
+
+            foreach (var lineGroup in groupedByLine)
+            {
+                var orderedBlocks = lineGroup.OrderBy(b => b.X).ToList();
+                if (orderedBlocks.Count == 0)
+                {
+                    continue;
+                }
+
+                var cleanedTexts = orderedBlocks
+                    .Select(b => b.Text?.Trim())
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .ToList();
+
+                if (cleanedTexts.Count == 0)
+                {
+                    continue;
+                }
+
+                string combinedText = isEastAsianLang
+                    ? string.Concat(cleanedTexts)
+                    : string.Join(" ", cleanedTexts);
+
+                combinedText = combinedText.Trim();
+
+                if (combinedText.Length < minTextFragmentSize)
+                {
+                    continue;
+                }
+
+                double minX = orderedBlocks.Min(b => b.X);
+                double minY = orderedBlocks.Min(b => b.Y);
+                double maxX = orderedBlocks.Max(b => b.X + b.Width);
+                double maxY = orderedBlocks.Max(b => b.Y + b.Height);
+
+                var aggregated = new TextBlockInfo
+                {
+                    Text = combinedText,
+                    Confidence = orderedBlocks.Average(b => b.Confidence),
+                    X = minX,
+                    Y = minY,
+                    Width = maxX - minX,
+                    Height = maxY - minY,
+                    OriginalBlocks = orderedBlocks
+                };
+
+                aggregatedBlocks.Add(aggregated);
+            }
+
+            if (aggregatedBlocks.Count == 0)
+            {
+                // Nothing aggregated; return original results
+                return resultsElement;
+            }
+
             using (var stream = new MemoryStream())
             {
                 using (var writer = new Utf8JsonWriter(stream))
                 {
                     writer.WriteStartArray();
+
+                    foreach (var block in aggregatedBlocks)
+                    {
+                        writer.WriteStartObject();
+                        writer.WriteString("text", block.Text);
+                        writer.WriteNumber("confidence", block.Confidence);
+
+                        writer.WriteStartArray("rect");
+
+                        // Top-left
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(block.X);
+                        writer.WriteNumberValue(block.Y);
+                        writer.WriteEndArray();
+
+                        // Top-right
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(block.X + block.Width);
+                        writer.WriteNumberValue(block.Y);
+                        writer.WriteEndArray();
+
+                        // Bottom-right
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(block.X + block.Width);
+                        writer.WriteNumberValue(block.Y + block.Height);
+                        writer.WriteEndArray();
+
+                        // Bottom-left
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(block.X);
+                        writer.WriteNumberValue(block.Y + block.Height);
+                        writer.WriteEndArray();
+
+                        writer.WriteEndArray(); // rect
+
+                        writer.WriteNumber("block_count", block.OriginalBlocks?.Count ?? 1);
+                        writer.WriteString("element_type", "block");
+
+                        writer.WriteEndObject();
+                    }
+
                     writer.WriteEndArray();
                     writer.Flush();
                 }
-                
+
                 stream.Position = 0;
                 using (JsonDocument doc = JsonDocument.Parse(stream))
                 {
