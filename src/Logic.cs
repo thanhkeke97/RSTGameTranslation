@@ -334,6 +334,17 @@ namespace RSTGameTranslation
                                     // Assign each part to the corresponding text object
                                     for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
                                     {
+                                        // Clean up the translated text - remove any remaining separators that might have been part of the translation
+                                        // Use regex to handle all variations of the separator with different spacing
+                                        string cleanTranslatedText = System.Text.RegularExpressions.Regex.Replace(
+                                            translatedParts[j], 
+                                            @"\|{3}\s*RST_SEPARATOR\s*\|{3}", 
+                                            ""
+                                        );
+                                        // Also clean up any potential fragments
+                                        cleanTranslatedText = cleanTranslatedText.Replace("RST_SEPARATOR", "");
+                                        cleanTranslatedText = cleanTranslatedText.Replace("|||", "");
+                                        
                                         // Apply RTL specific handling if needed
                                         if (isRtlLanguage)
                                         {
@@ -341,9 +352,9 @@ namespace RSTGameTranslation
                                             _textObjects[j].FlowDirection = FlowDirection.RightToLeft;
                                             
                                             // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                            if (!translatedParts[j].StartsWith("\u200F"))
+                                            if (!cleanTranslatedText.StartsWith("\u200F"))
                                             {
-                                                translatedParts[j] = "\u200F" + translatedParts[j];
+                                                cleanTranslatedText = "\u200F" + cleanTranslatedText;
                                             }
                                         }
                                         else
@@ -352,8 +363,8 @@ namespace RSTGameTranslation
                                             _textObjects[j].FlowDirection = FlowDirection.LeftToRight;
                                         }
                                         
-                                        // Update the text object with the translated text
-                                        _textObjects[j].TextTranslated = translatedParts[j];
+                                        // Update the text object with the cleaned translated text
+                                        _textObjects[j].TextTranslated = cleanTranslatedText;
                                         _textObjects[j].UpdateUIElement();
                                         Console.WriteLine($"Updated text object at index {j} with translation from Google Translate");
                                     }
@@ -2066,6 +2077,17 @@ namespace RSTGameTranslation
                                     // Assign each part to the corresponding text object
                                     for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
                                     {
+                                        // Clean up the translated text - remove any remaining separators that might have been part of the translation
+                                        // Use regex to handle all variations of the separator with different spacing
+                                        string cleanTranslatedText = System.Text.RegularExpressions.Regex.Replace(
+                                            translatedParts[j], 
+                                            @"\|{3}\s*RST_SEPARATOR\s*\|{3}", 
+                                            ""
+                                        );
+                                        // Also clean up any potential fragments
+                                        cleanTranslatedText = cleanTranslatedText.Replace("RST_SEPARATOR", "");
+                                        cleanTranslatedText = cleanTranslatedText.Replace("|||", "");
+                                        
                                         // Apply RTL specific handling if needed
                                         if (isRtlLanguage)
                                         {
@@ -2073,9 +2095,9 @@ namespace RSTGameTranslation
                                             _textObjects[j].FlowDirection = FlowDirection.RightToLeft;
                                             
                                             // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                            if (!translatedParts[j].StartsWith("\u200F"))
+                                            if (!cleanTranslatedText.StartsWith("\u200F"))
                                             {
-                                                translatedParts[j] = "\u200F" + translatedParts[j];
+                                                cleanTranslatedText = "\u200F" + cleanTranslatedText;
                                             }
                                         }
                                         else
@@ -2084,10 +2106,10 @@ namespace RSTGameTranslation
                                             _textObjects[j].FlowDirection = FlowDirection.LeftToRight;
                                         }
                                         
-                                        // Update the text object with the translated text
-                                        _textObjects[j].TextTranslated = translatedParts[j];
+                                        // Update the text object with the cleaned translated text
+                                        _textObjects[j].TextTranslated = cleanTranslatedText;
                                         _textObjects[j].UpdateUIElement();
-                                        Console.WriteLine($"Updated text object at index {j} with translation");
+                                        Console.WriteLine($"Updated text object at index {j} with translation from Google Translate");
                                     }
                                     
                                     // We've processed the combined text block, so we can break out of the loop

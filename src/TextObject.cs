@@ -239,7 +239,7 @@ namespace RSTGameTranslation
                 }
                 
                 // Binary search for the best font size
-                double minSize = 10 * scaleFactor;
+                double minSize = 9 * scaleFactor;
                 double maxSize = 68 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
                 int maxIterations = 8; // Reduced from 10 to 8 iterations for performance
