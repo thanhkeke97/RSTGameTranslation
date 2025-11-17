@@ -312,7 +312,7 @@ namespace RSTGameTranslation
                     setupProcess.WaitForExit();
 
                     Console.WriteLine($"The conda installation process has been completed");
-                    App.RestartApplication();
+                    App.ShutdownApplication();
                     return setupProcess.ExitCode == 0;
                 }
             }

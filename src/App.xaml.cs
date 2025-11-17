@@ -83,37 +83,37 @@ public partial class App : Application
     /// <summary>
     /// Restarts the application, ensuring it happens on the UI thread
     /// </summary>
-    public static void RestartApplication()
+    public static void ShutdownApplication()
     {
         // Make sure we're on the UI thread
         if (!Application.Current.Dispatcher.CheckAccess())
         {
             // If not on UI thread, invoke on UI thread
-            Application.Current.Dispatcher.Invoke(RestartApplication);
+            Application.Current.Dispatcher.Invoke(ShutdownApplication);
             return;
         }
         
         try
         {
-            // Get current process path
-            string appPath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+            // // Get current process path
+            // string appPath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
             
-            if (string.IsNullOrEmpty(appPath))
-            {
-                System.Windows.MessageBox.Show("Unable to restart application: Could not determine application path.", 
-                    "Restart Failed", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            // if (string.IsNullOrEmpty(appPath))
+            // {
+            //     System.Windows.MessageBox.Show("Unable to restart application: Could not determine application path.", 
+            //         "Restart Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            //     return;
+            // }
             
-            // Create process start info
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = appPath,
-                UseShellExecute = true
-            };
+            // // Create process start info
+            // ProcessStartInfo startInfo = new ProcessStartInfo
+            // {
+            //     FileName = appPath,
+            //     UseShellExecute = true
+            // };
             
-            // Start new instance
-            Process.Start(startInfo);
+            // // Start new instance
+            // Process.Start(startInfo);
             
             // Schedule application shutdown after a brief delay to ensure new process starts
             Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
@@ -134,7 +134,7 @@ public partial class App : Application
     /// </summary>
     /// <param name="message">Custom message to show in the confirmation dialog</param>
     /// <returns>True if restart was initiated, false if user cancelled</returns>
-    public static bool ConfirmAndRestartApplication(string message = "Application needs to restart to apply changes. Restart now?")
+    public static bool ConfirmAndRestartApplication(string message = "Application needs to restart to apply changes. Shutdown now?")
     {
         // Make sure we're on the UI thread
         if (!Application.Current.Dispatcher.CheckAccess())
@@ -144,15 +144,11 @@ public partial class App : Application
                 new Func<string, bool>(ConfirmAndRestartApplication), message);
         }
         
-        var result = System.Windows.MessageBox.Show(message, "Restart Application", 
-            MessageBoxButton.YesNo, MessageBoxImage.Question);
+        var result = System.Windows.MessageBox.Show(message, "Shutdown Application", 
+            MessageBoxButton.OK, MessageBoxImage.Warning);
             
-        if (result == MessageBoxResult.Yes)
-        {
-            RestartApplication();
-            return true;
-        }
+        ShutdownApplication ();
+        return true;
         
-        return false;
     }
 }
