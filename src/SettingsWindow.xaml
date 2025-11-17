@@ -567,9 +567,8 @@
                                              Tag="Gemini"/>
                                     <Button x:Name="viewGeminiKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="Gemini" Width="70"/>
-                                    <TextBlock x:Name="geminiNote" Text="Press Enter after entering each API key" Grid.Row="1" TextWrapping="Wrap" 
-                                        Margin="0,2,0,5" FontSize="11" HorizontalAlignment="Left" FontWeight="Bold">
-                                    </TextBlock>
+                                    <Button x:Name="SaveGeminiKeysButton" Content="Save Keys" Grid.Row="1" Tag="Gemini"
+                                            HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
                                     <TextBlock x:Name="geminiApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GeminiApiLink_Click">https://ai.google.dev/tutorials/setup</Hyperlink>
@@ -638,9 +637,8 @@
                                              Tag="Mistral"/>
                                     <Button x:Name="viewMistralKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="Mistral" Width="70"/>
-                                    <TextBlock x:Name="mistralNote" Text="Press Enter after entering each API key" Grid.Row="1" TextWrapping="Wrap" 
-                                        Margin="0,2,0,5" FontSize="11" HorizontalAlignment="Left" FontWeight="Bold">
-                                    </TextBlock>
+                                    <Button x:Name="SaveMistralKeysButton" Content="Save Keys" Grid.Row="1" Tag="Mistral"
+                                            HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
                                     <TextBlock x:Name="mistralApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from (need login mistral AI website before click this link) </Run>
                                         <Hyperlink Click="MistralApiLink_Click">https://admin.mistral.ai/organization/api-keys</Hyperlink>
@@ -750,9 +748,8 @@
                                              Tag="ChatGPT"/>
                                     <Button x:Name="viewChatGptKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="ChatGPT" Width="70"/>
-                                    <TextBlock x:Name="chatGptNote" Text="Press Enter after entering each API key" Grid.Row="1" TextWrapping="Wrap" 
-                                        Margin="0,2,0,5" FontSize="11" HorizontalAlignment="Left" FontWeight="Bold">
-                                    </TextBlock>
+                                    <Button x:Name="SaveChatGptKeysButton" Content="Save Keys" Grid.Row="1" Tag="ChatGPT"
+                                            HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
                                     <TextBlock Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="ChatGptApiLink_Click">https://platform.openai.com/api-keys</Hyperlink>

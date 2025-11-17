@@ -593,6 +593,66 @@ namespace RSTGameTranslation
                 }
             }
         }
+
+        private void SaveApiKeysButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get current service type
+                string serviceType = ConfigManager.Instance.GetCurrentTranslationService();
+                
+                // Get the corresponding PasswordBox
+                PasswordBox? passwordBox = null;
+                
+                switch (serviceType)
+                {
+                    case "Gemini":
+                        passwordBox = geminiApiKeyPasswordBox;
+                        break;
+                    case "ChatGPT":
+                        passwordBox = chatGptApiKeyPasswordBox;
+                        break;
+                    case "Mistral":
+                        passwordBox = mistralApiKeyPasswordBox;
+                        break;
+                }
+                
+                if (passwordBox != null)
+                {
+                    string apiKey = passwordBox.Password.Trim();
+                    
+                    if (!string.IsNullOrEmpty(apiKey))
+                    {
+                        // add Api key to list
+                        ConfigManager.Instance.AddApiKey(serviceType, apiKey);
+                        
+                        // Delete content in textbox
+                        passwordBox.Password = "";
+                        
+                        Console.WriteLine($"Added new API key for {serviceType}");
+                        
+                        MessageBox.Show($"API key added for {serviceType}.", "API Key Added",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please enter an API key.", "Empty API Key",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show($"No password field found for service: {serviceType}", "Configuration Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving API key: {ex.Message}");
+                MessageBox.Show($"Error saving API key: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         // Handler for application-level keyboard shortcuts
         private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -1620,7 +1680,7 @@ namespace RSTGameTranslation
                 geminiModelLabel.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
-                geminiNote.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+                SaveGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Mistral-specific settings
                 mistralApiKeyLabel.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -1629,7 +1689,7 @@ namespace RSTGameTranslation
                 mistralModelLabel.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
                 mistralModelGrid.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewMistralKeysButton.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
-                mistralNote.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
+                SaveMistralKeysButton.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Ollama-specific settings
                 ollamaUrlLabel.Visibility = isOllamaSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -1653,7 +1713,7 @@ namespace RSTGameTranslation
                 chatGptModelLabel.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 chatGptModelGrid.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewChatGptKeysButton.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
-                chatGptNote.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
+                SaveChatGptKeysButton.Visibility = isChatGptSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Google Translate-specific settings
                 googleTranslateServiceTypeLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
