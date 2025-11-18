@@ -69,6 +69,17 @@
 
 ---
 
+## 🔄 Cách cập nhật phiên bản
+
+RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi động. Nếu có phiên bản mới, bạn sẽ thấy thông báo hỏi xem bạn có muốn tải xuống không. Để cập nhật:
+
+1. Tải phiên bản mới nhất từ thông báo hoặc từ [Trang Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+2. Đóng RSTGameTranslation nếu đang chạy
+3. Giải nén các tệp mới vào thư mục cài đặt hiện tại
+4. Xong! Các cài đặt và tùy chọn của bạn sẽ được giữ nguyên
+
+---
+
 ## ⌨️ Phím tắt
 
 | Phím | Chức năng | | Phím | Chức năng |

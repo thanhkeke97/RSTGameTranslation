@@ -69,6 +69,17 @@
 
 ---
 
+## 🔄 How to Update
+
+RSTGameTranslation will automatically check for updates when you start it. If there's a new version, you'll see a notification asking if you want to download it. To update:
+
+1. Download the latest version from the notification or from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+2. Close RSTGameTranslation if it's running
+3. Extract the new files to your current installation folder
+4. Done! Your settings and options will be preserved
+
+---
+
 ## ⌨️ Keyboard Shortcuts
 
 | Key | Function | | Key | Function |
