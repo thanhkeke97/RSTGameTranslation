@@ -261,7 +261,7 @@
                 <a href="index.html">English</a>
             </div>
             <h1>🎮 RSTGameTranslation</h1>
-            <p>Realtime Screen Translation cho Game và Ứng dụng</p>
+            <p>Phần mềm Dịch Màn hình Game Thời gian thực</p>
             <div class="version-badge">Phiên bản 3.3</div>
         </div>
     </header>
@@ -317,9 +317,8 @@
                     <li><strong>Phần cứng khuyến nghị:</strong> GPU NVIDIA để có hiệu suất tốt nhất.</li>
                     <li><strong>Cài đặt Conda:</strong> Thêm conda vào biến môi trường PATH và cài đặt conda với tùy chọn "Just me".</li>
                     <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU NVIDIA, bạn sẽ mất 30-50% công suất CPU (nếu chọn EasyOCR hoặc PaddleOCR).</li>
-                    <li><strong>Lựa chọn OCR:</strong> RapidOCR, OneOCR, WindowsOCR (khuyến nghị cho vga AMD và intel), RapidOCR, EasyOCR và PaddleOCR cho NVIDIA</li>
+                    <li><strong>Lựa chọn OCR:</strong> RapidOCR, OneOCR, WindowsOCR (khuyến nghị cho VGA AMD và Intel), RapidOCR, EasyOCR và PaddleOCR cho NVIDIA</li>
                     <li><strong>Vùng dịch:</strong> Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh.</li>
-                    <li><strong>Quyền riêng tư:</strong> Phần mềm chỉ kiểm tra GitHub để cập nhật phiên bản. Dịch vụ đám mây (Gemini, ChatGPT) sẽ thấy nội dung được dịch. Ollama và LM Studio giữ mọi thứ cục bộ.</li>
                 </ul>
             </div>
         </section>
@@ -333,22 +332,29 @@
                     <li>Tải phiên bản mới nhất (file zip) <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" target="_blank" rel="noopener" title="Tải RSTGameTranslation">tại đây</a> và giải nén.</li>
                     <li>Kiểm tra xem bạn đã cài đặt Conda chưa bằng cách mở cửa sổ lệnh (nhấn <code>Win + R</code>, gõ <code>cmd</code>, và nhấn Enter) và gõ "conda". Nếu hiển thị các lệnh conda, bạn đã cài đặt. Nếu báo lỗi, hãy cài đặt Miniconda <a href="https://repo.anaconda.com/miniconda/Miniconda3-py39_25.3.1-1-Windows-x86_64.exe" target="_blank" rel="noopener" title="Tải Miniconda">tại đây</a>.</li>
                     <li>Khi cài đặt conda, chọn "Just me" trong phần cài đặt (không chọn "All users")</li>
-                    <img src="media/just_me.png" alt="Cài đặt conda chọn just me/only me" class="screenshot" width="800" height="450">
                     <li>Đảm bảo thêm conda vào biến môi trường PATH (quan trọng)</li>
-                    <img src="media/add_to_environment.png" alt="Thêm conda vào PATH environment variables" class="screenshot" width="800" height="450">
-                    <li>Lưu ý: Khi chạy các file .exe, bạn có thể nhận được thông báo "Đây là nguy hiểm, đừng chạy nó" vì dự án này là mã nguồn mở và tôi không có bất kỳ chữ ký số nào, vì vậy bạn sẽ phải tin tưởng tôi và nhấp vào "Thông tin khác" và chạy nó. Thông báo này chỉ xuất hiện lần đầu tiên cho mỗi file .exe.</li>
                 </ol>
 
-                <h3>Cách sử dụng:</h3>
+                <h3>Tùy chọn thiết lập:</h3>
+                <h4>🔵 Thiết lập đơn giản (Không cần cài đặt thêm)</h4>
                 <ol>
-                    <li>Chạy RSTGameTranslation/rst.exe để khởi động ứng dụng</li>
-                    <li><strong>Cài đặt:</strong>
+                    <li>Chạy `rst.exe`</li>
+                    <li>Vào <strong>Cài đặt</strong> → <strong>OCR</strong>: Chọn <strong>OneOCR</strong></li>
+                    <li>Vào <strong>Cài đặt</strong> → <strong>Language</strong>: Chọn ngôn ngữ nguồn và đích</li>
+                    <li>Trong tab Language, nếu bạn đang sử dụng Windows OCR hãy bấm vào nút "Check" để kiểm tra cài đặt gói ngôn ngữ trước khi bắt đầu</li>
+                    <li>Vào tab Translation, chọn dịch vụ dịch thuật bạn muốn sử dụng</li>
+                    <li>Bây giờ bạn có thể đóng cửa sổ cài đặt</li>
+                    <li>Nhấn nút <strong>Select Window</strong>: Chọn cửa sổ bạn muốn chụp</li>
+                    <li>Nhấn <strong>Alt+Q</strong> để chọn vùng, sau đó <strong>Alt+F</strong> để bật Overlay</li>
+                    <li>Nhấn <strong>Alt+G</strong> để bắt đầu/dừng dịch</li>
+                </ol>
+
+                <h4>🔴 Thiết lập nâng cao (Cần cài đặt thêm)</h4>
+                <ol>
+                    <li><strong>Cài đặt Conda</strong>
                         <ul>
-                            <li>Vào tab OCR, chọn phương pháp OCR bạn muốn sử dụng</li>
-                            <li>Vào phần cài đặt, tab Language, chọn ngôn ngữ bạn muốn dịch từ và ngôn ngữ muốn dịch sang</li>
-                            <li>Trong tab Language, nếu bạn đang sử dụng Windows OCR hãy bấm vào nút "Check" để kiểm tra cài đặt gói ngôn ngữ trước khi bắt đầu</li>
-                            <li>Vào tab Translation, chọn dịch vụ dịch thuật bạn muốn sử dụng</li>
-                            <li>Bây giờ bạn có thể đóng cửa sổ cài đặt</li>
+                            <li>Vào <strong>Cài đặt</strong> → <strong>OCR</strong>: Nhấn nút Setup Conda (Lưu ý đường dẫn đến thư mục chứa ứng dụng không được có khoảng trắng, nếu không việc cài đặt conda sẽ thất bại)</li>
+                            <li>Đợi cho đến khi cài đặt conda thành công, đóng ứng dụng và mở lại.</li>
                         </ul>
                     </li>
                     <li><strong>Thiết lập máy chủ (Chỉ làm một lần cho mỗi phương pháp OCR):</strong>
@@ -369,14 +375,12 @@
                     <li><strong>Cài đặt LLMS:</strong>
                         <ul>
                             <li>Vào phần cài đặt và thêm khóa API Gemini của bạn. Có thông tin hướng dẫn cách lấy khóa API ở đó.</li>
-                            <li>Bạn có thể nhập nhiều api key (Mỗi api key sau khi nhập cần nhấn Enter để lưu)</li>
+                            <li>Bạn có thể nhập nhiều API key (Mỗi API key sau khi nhập cần nhấn Enter để lưu)</li>
                             <li>Kiểm tra các cài đặt khác; các giá trị mặc định nên ổn. Lưu ý rằng có một chỗ để nhập tên của game, điều này rất quan trọng! LLM biết điều này sẽ giúp nó sửa lỗi và tạo đoạn hội thoại tốt hơn.</li>
                         </ul>
                     </li>
                 </ol>
-                <img src="media/settings_gemini.png" alt="Giao diện cài đặt Gemini API trong RSTGameTranslation" class="screenshot" width="800" height="450">
-                <p><strong>Lưu ý:</strong> Bạn có thể sử dụng source_language và target_language trong prompt, ứng dụng sẽ tự động ánh xạ ngôn ngữ sang mã ngôn ngữ bạn đã chọn trong cài đặt. Ví dụ: nếu bạn chọn source_language=en và target_language=vi trong cài đặt, prompt gửi đến LLM sẽ được chuyển đổi thành "English" và "Vietnamese" trước khi gửi đến LLM tự động.</p>
-                <p>Lần đầu tiên bạn sử dụng EasyOCR, RapidOCR hoặc PaddleOCR với một ngôn ngữ mới, nó phải tải xuống trước! Vì vậy, có thể có vẻ không hoạt động, chỉ cần đợi một hoặc hai phút và khởi động/dừng dịch của ứng dụng, nó sẽ hoạt động.</p>
+                <p><strong>Lưu ý:</strong> Lần đầu tiên bạn sử dụng EasyOCR, RapidOCR hoặc PaddleOCR với một ngôn ngữ mới, nó phải tải xuống trước! Vì vậy, có thể có vẻ không hoạt động, chỉ cần đợi một hoặc hai phút và khởi động/dừng dịch của ứng dụng, nó sẽ hoạt động.</p>
             </div>
         </section>
 
@@ -388,7 +392,6 @@
                 <li>Đóng RSTGameTranslation nếu đang chạy</li>
                 <li>Giải nén các tệp mới vào thư mục cài đặt hiện tại</li>
                 <li>Xong! Các cài đặt và tùy chọn của bạn sẽ được giữ nguyên</li>
-                <li>Quá trình cập nhật đơn giản và an toàn - bạn sẽ không mất bất kỳ cài đặt hoặc tùy chỉnh nào.</li>
             </ul>
         </section>
 
@@ -451,32 +454,19 @@
             <h2>⚙️ Cài đặt nâng cao</h2>
             <h3>Cài đặt khuyến nghị</h3>
             <ul>
-                <li><strong>OCR:</strong> PaddleOCR (Tốt hơn cho ngôn ngữ châu Á, sử dụng ít tài nguyên hơn)</li>
-                <li><strong>LLM:</strong> Gemini Flash 2 Lite (Nhanh và chính xác)</li>
-                <li><strong>Với người dùng AMD, Intel:</strong> Nên sử dụng RapidOCR, OneOCR nếu không muốn mất hiệu năng CPU </li>
+                <li><strong>Cho sử dụng nhanh:</strong> OneOCR hoặc Windows OCR (tích hợp sẵn, không cần thiết lập) với Google Translate</li>
+                <li><strong>Cho chất lượng tốt nhất:</strong> PaddleOCR (tiếng Á Đông) hoặc RapidOCR (tiếng phương Tây) với Gemini Flash lite 2.5</li>
+                <li><strong>Cho quyền riêng tư:</strong> OneOCR với Ollama hoặc LM Studio (100% cục bộ)</li>
+                <li><strong>Với người dùng AMD, Intel:</strong> Nên sử dụng RapidOCR, OneOCR nếu không muốn mất hiệu năng CPU</li>
             </ul>
             
-            <h3>Lựa chọn thay thế</h3>
+            <h3>Mẹo tăng hiệu suất</h3>
             <ul>
-                <li><strong>OneOCR:</strong> OCR tích hợp tốt nhất phù hợp cho mọi GPU</li>
-                <li><strong>Ollama:</strong> Dịch 100% cục bộ (RTX 4090: ~5 giây/bản dịch)</li>
-                <li><strong>LM Studio:</strong> Dịch cục bộ với các mô hình tùy chỉnh</li>
-                <li><strong>ChatGPT:</strong> GPT-4.1 Nano cho kết quả cao cấp</li>
+                <li>Vùng chọn nhỏ hơn = xử lý nhanh hơn</li>
+                <li>Thêm nhiều khóa API để dự phòng</li>
+                <li>Tải ngôn ngữ lần đầu mất 1-2 phút (OCR bên ngoài)</li>
+                <li>Hệ thống sẽ tự chuyển đổi API key khi 1 API key bị giới hạn</li>
             </ul>
-            
-            <h3>Lời khuyên về hiệu suất</h3>
-            <ul>
-                <li>Vùng dịch nhỏ hơn = xử lý nhanh hơn</li>
-                <li>GPU NVIDIA được khuyến nghị cao</li>
-                <li>Tải xuống ngôn ngữ lần đầu có thể mất 1-2 phút</li>
-                <li>Hệ thống sẽ tự chuyển đổi api key khi 1 api key bị giới hạn nên bạn hãy nhập nhiều api key nhất có thể</li>
-            </ul>
-            
-            <p>Mặc dù cá nhân tôi khuyên dùng Gemini Flash 2 lite và PaddleOCR (tốt hơn cho ngôn ngữ châu Á và sử dụng ít tài nguyên hơn), có nhiều tùy chọn khác nhau cho bạn. Bạn có thể sử dụng OCR tích hợp của Windows thay vì máy chủ python, điều này không hoạt động tốt cho tiếng Nhật nhưng có thể ổn cho các ngôn ngữ khác.</p>
-            
-            <p>Đối với Ollama hoặc LM Studio, hãy cài đặt chúng và thiết lập một mô hình như gemma3:12b. Trên RTX 4090, mất khoảng 5 giây để trả về bản dịch. (cài đặt có hướng dẫn và nút để bắt đầu)</p>
-            
-            <p>Tất cả OCR được thực hiện ở cấp độ ký tự. Sau đó có một chức năng "Block detection" kết hợp các ký tự lại với nhau để tạo thành từ và đoạn văn. Bạn có thể chỉnh sửa "Block Power" để làm cho nó có khả năng kết hợp các thứ lại với nhau hoặc tách chúng ra.</p>
         </section>
 
         <section id="faq">
@@ -503,7 +493,6 @@
                 <div style="text-align: center; margin: 20px 0;">
                     <a href="https://discord.gg/FusrDU5tdn" class="btn" target="_blank" rel="noopener" title="Tham gia Discord"><i class="fab fa-discord" aria-hidden="true"></i> Tham gia Discord</a>
                 </div>
-                <p>Nhận trợ giúp từ người dùng khác, chia sẻ trải nghiệm của bạn và cập nhật những phát triển mới nhất!</p>
             </div>
         </section>
 
