@@ -88,7 +88,7 @@
 
 ### For Best Quality
 - **OCR**: PaddleOCR (Asian) or RapidOCR (Western) or EasyOCR
-- **Translation**: Gemini Flash lite 2.5
+- **Translation**: Gemini Flash lite 2.5 (Need API key)
 - **Hardware**: NVIDIA GPU recommended
 
 ### For Privacy
