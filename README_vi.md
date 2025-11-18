@@ -48,11 +48,11 @@
 7. Nhấn **Alt+G** để bắt đầu/dừng dịch
 
 #### 🔴 Thiết lập nâng cao (Cần cài đặt thêm)
-1. **Cài đặt Conda**
+1. **Cài đặt Conda**: (Chỉ cài đặt ở lần đầu tiên ứng dụng được mở trên thiết bị, không cần cài đặt lại)
    - Vào **Cài đặt** → **OCR**: Nhấn nút Setup Conda (Lưu ý đường dẫn đến thư mục chứa ứng dụng không được có khoảng trắng, nếu không việc cài đặt conda sẽ thất bại)
    - Đợi cho đến khi cài đặt conda thành công, đóng ứng dụng và mở lại.
 
-3. **Tùy chọn OCR**:
+3. **Tùy chọn OCR**: (Chỉ cài đặt ở lần đầu tiên OCR được chọn trên thiết bị, không cần cài đặt lại)
    - Tích hợp sẵn: OneOCR, Windows OCR (không cần thiết lập)
    - Bên ngoài: Nhấn **SetupOCR** cho PaddleOCR, RapidOCR, EasyOCR (đợi 5-15 phút)
 
