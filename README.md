@@ -17,158 +17,102 @@
 
 ## ✨ Features
 
-🔥 **Real-time Translation**
-- Live automatic translations using EasyOCR, PaddleOCR, RapidOCR, OneOCR and Windows OCR
-- Powerful overlay chat window for visual novels
-- Full-screen translation capability
-- Can display translated text overlaid on the original text in the selected area (Hotkey Alt+F)
-
-🤖 **AI-Powered Translation**
-- Support for multiple LLMs: Gemini, ChatGPT, Ollama, Mistral, LM Studio
-- Google Translate integration
-- Context-aware translations for better accuracy
-
-🎯 **Smart Recognition**
-- Game-specific translation optimization
-- Previous context consideration
-- Character and location name recognition
-
-🔊 **Additional Features**
-- Text-to-speech functionality
-- 100% local translation option with Ollama or LM Studio
-
----
+- **Real-time Translation** with multiple OCR options (OneOCR, Windows OCR, PaddleOCR, EasyOCR, RapidOCR)
+- **AI-Powered Translation** with Gemini, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
+- **Smart Recognition** with game context awareness and character name detection
+- **Flexible Display** options with overlay and chat window
+- **Text-to-Speech** functionality
 
 ![Preview](media/preview_video.gif)
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
-- **Windows 10+ and** (Required)
-- **NVIDIA GPU** (Recommended for best performance, Optional)
-- Game in **windowed/borderless mode** (Required)
+- Windows 10+ and game in windowed/borderless mode
+- NVIDIA GPU recommended but optional
 
 ### Installation
+1. Download from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases) and extract
 
-1. **Download** the latest version from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases)
-2. **Extract** the zip file to your desired location
-3. **Install Conda** For the Conda installation guide, follow this [link](https://thanhkeke97.github.io/RSTGameTranslation/) (See on Installation and Usage)
+### Setup Options
 
-### Setup Guide
+#### 🔵 Simple Setup (No Installation)
+1. Run `rst.exe`
+2. Go to **Settings** → **OCR**: Select **OneOCR** 
+3. Go to **Settings** → **Language**: Choose languages
+4. Go to **Settings** → **Translation**: Select **Google Translate**
+5. Press button ***Select Window***: Choose window which you want to capture
+6. Press **Alt+Q** to select area, then **Alt+F** to turn on Overlay
+7. Press **Alt+G** to start/stop
 
-<details>
-<summary>📋 Step-by-step Setup</summary>
+#### 🔴 Advanced Setup (Need Installation)
+1. **Conda Install**
+   - Go to **Settings** → **OCR**: Press button Setup Conda (Remember that the path to the folder containing the application must not have spaces; otherwise, the conda installation will fail)
+   - Wait until the conda setup is successful, close the application and reopen it.
 
-#### 1. Initial Configuration
-- Run `RSTGameTranslation/rst.exe`
-- Go to **Settings** → **OCR** tab: Choose OCR method
-- Go to **Settings** → **Language** tab: Choose source and target languages (If you are using Windows OCR, please click the "Check" button to verify the language pack before starting)
-- Go to **Settings** → **Translation** tab: Select your preferred translation service
+3. **OCR Options**:
+   - Built-in: OneOCR, Windows OCR (no setup needed)
+   - External: Click **SetupOCR** for PaddleOCR, RapidOCR, EasyOCR (5-15 min wait)
 
-#### 2. Server Setup (One-time)
-- Click **SetupOCR** button (Skip if using Windows OCR, OneOCR)
-- Wait 5-15 minutes for setup completion
-- Look for "environment setup completed" message
+4. **Translation Services**:
+   - No API needed: Google Translate
+   - API required: Gemini, ChatGPT (add keys in Settings)
+   - Local options: Ollama, LM Studio
 
-#### 3. Start Translating
-- Click **StartOCR** and wait for connection confirmation (Skip if using Windows OCR, OneOCR)
-- Select translate area (ALT+Q or Click on SelectArea button)
-- Click Start button (ALT+G) to begin translation
-- View results in ChatBox or Monitor window
-
-#### 4. LLM Configuration
-- Add your **Gemini API key** in settings (You can enter multiple API keys, press Enter after entering each API key)
-- Configure game name for better context (context tab)
-- Adjust other settings as needed
-
-</details>
+5. **Start translating**:
+   - Click **StartOCR** (if using external OCR) and wait until it starts successfully (You will see a red notification line at the bottom left corner)
+   - Press button ***Select Window***: Choose window which you want to capture
+   - Select area (Alt+Q) then turn on overlay (Alt+F)
+   - Start translate (Alt+G)
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Function | Note |
-|----------|----------|------|
-| `Alt + G` | Start/Stop | Works globally |
-| `Alt + Q` | Select Translation Area | Works globally |
-| `Alt + F` | Show/Hide Monitor Overlay | Works globally |
-| `Alt + C` | Show/Hide ChatBox | Works globally |
-| `Alt + P` | Show/Hide Settings | Works globally |
-| `Alt + L` | Show/Hide Log Console | Works globally |
-| `Alt + B` | Show/Hide Selected Area | Works globally |
-| `Alt + H` | Clear Selected Area | Works globally |
+| Key | Function | | Key | Function |
+|-----|----------|-|-----|----------|
+| `Alt+G` | Start/Stop | | `Alt+F` | Show/Hide Overlay |
+| `Alt+Q` | Select Area | | `Alt+C` | Show/Hide ChatBox |
+| `Alt+P` | Settings | | `Alt+L` | Show/Hide Log |
+| `Alt+B` | Show/Hide Area | | `Alt+H` | Clear Area |
 
 ---
 
-## 🔄 Updates
+## ⚙️ Recommended Setups
 
-RSTGameTranslation automatically checks for updates on startup. When available:
+### For Quick Use
+- **OCR**: OneOCR or Windows OCR (built-in, no setup)
+- **Translation**: Google Translate (no API key needed)
 
-1. Download from notification or [Releases page](https://github.com/thanhkeke97/RSTGameTranslation/releases)
-2. Close the application
-3. Extract new files over existing installation
-4. Restart - your settings are preserved!
+### For Best Quality
+- **OCR**: PaddleOCR (Asian) or RapidOCR (Western) or EasyOCR
+- **Translation**: Gemini Flash lite 2.5
+- **Hardware**: NVIDIA GPU recommended
 
----
-
-## ⚙️ Advanced Configuration
-
-### Recommended Setup
-- **OCR**: PaddleOCR (Better for Asian languages, lower resource usage)
-- **LLM**: Gemini Flash 2 Lite (Fast and accurate)
-- **NVIDIA**: PaddleOCR, RapidOCR, OneOCR or EasyOCR
-- **AMD, INTEL**: RapidOCR, OneOCR or Windows OCR
-
-### Alternative Options
-- **Ollama**: 100% local translation (RTX 4090: ~5s per translation)
-- **LM Studio**: Local translation with customizable models
-- **ChatGPT**: GPT-4.1 Nano for premium results
+### For Privacy
+- **OCR**: OneOCR or Windows OCR
+- **Translation**: Ollama or LM Studio (100% local)
 
 ### Performance Tips
-- Smaller translation areas = faster processing
-- First-time language downloads may take 1-2 minutes
-- The application will automatically change API keys if the previous API is rate-limited, so please enter as many API keys as possible
-- The translation speed depends on the LLM model; if you are using Gemini, you should check the translation speed at [here](https://aistudio.google.com/prompts/new_chat)
----
-
-## 🛠️ For Developers
-
-### Compilation
-- Open solution in **Visual Studio 2022**
-- Click compile (dependencies should auto-download)
-
-### Python Server Development
-- Use **VSCode** for development/debugging
-- Built on EasyOCR, RapidOCR and PaddleOCR foundations
-
----
-
-## ⚠️ Important Notes
-
-> **Privacy**: Only checks GitHub for version updates. Cloud translation services (Gemini, ChatGPT) will see translated content. Ollama and LM Studio keep everything local.
-
-> **Performance**: CPU-only mode will use 30-50% CPU power. Dedicated NVIDIA GPU strongly recommended.
+- Smaller areas = faster processing
+- Add multiple API keys for failover
+- First language download takes 1-2 minutes (external OCR)
 
 ---
 
 ## 💬 Community
 
-Join our Discord community for support, discussions, and updates:
-
-[![Discord](https://img.shields.io/badge/Join%20our-Discord-7289DA.svg)](https://discord.gg/FusrDU5tdn)
-
-Get help from other users, share your experiences, and stay updated on the latest developments!
+Join our [Discord](https://discord.gg/FusrDU5tdn) for support and updates!
 
 ---
 
 ## 📄 License
 
-This project is licensed under BSD-style attribution - see [LICENSE.md](LICENSE.md) for details.
+BSD-style attribution - see [LICENSE.md](LICENSE.md)
 
-**Acknowledgments**: This product includes software developed by Seth A. Robinson - [UGTLive](https://github.com/SethRobinson/UGTLive)
-
----
+**Acknowledgments**: Includes software developed by Seth A. Robinson - [UGTLive](https://github.com/SethRobinson/UGTLive)
 
 <div align="center">
 
