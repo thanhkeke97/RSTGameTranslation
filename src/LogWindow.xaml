@@ -1,0 +1,111 @@
+<Window x:Class="RSTGameTranslation.LogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RSTGameTranslation - Log Viewer"
+        Width="800" Height="600"
+        MinWidth="400" MinHeight="300"
+        Background="#FF1E1E1E"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="True"
+        Topmost="False">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF2D2D30" Padding="10,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" 
+                          Text="Application Log" 
+                          Foreground="White" 
+                          FontSize="14" 
+                          FontWeight="SemiBold"
+                          VerticalAlignment="Center"/>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <CheckBox x:Name="autoScrollCheckBox" 
+                             Content="Auto-scroll" 
+                             Foreground="White" 
+                             IsChecked="True"
+                             VerticalAlignment="Center"
+                             Margin="0,0,15,0"/>
+                    
+                    <Button x:Name="clearButton" 
+                           Content="Clear" 
+                           Padding="10,4" 
+                           Margin="0,0,5,0"
+                           Background="#FF3E3E42" 
+                           Foreground="White" 
+                           BorderThickness="1" 
+                           BorderBrush="#FF555555"
+                           Click="ClearButton_Click"/>
+                    
+                    <Button x:Name="copyAllButton" 
+                           Content="Copy All" 
+                           Padding="10,4"
+                           Background="#FF3E3E42" 
+                           Foreground="White" 
+                           BorderThickness="1" 
+                           BorderBrush="#FF555555"
+                           Click="CopyAllButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Log Content -->
+        <Border Grid.Row="1" 
+                Background="#FF252526" 
+                BorderBrush="#FF3F3F46" 
+                BorderThickness="0,1,0,1">
+            <ScrollViewer x:Name="logScrollViewer" 
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto">
+                <TextBox x:Name="logTextBox"
+                        Background="Transparent"
+                        Foreground="#FFD4D4D4"
+                        FontFamily="Consolas, Courier New"
+                        FontSize="12"
+                        IsReadOnly="True"
+                        TextWrapping="NoWrap"
+                        BorderThickness="0"
+                        Padding="10"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        AcceptsReturn="True"
+                        TextChanged="LogTextBox_TextChanged"/>
+            </ScrollViewer>
+        </Border>
+        
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#FF007ACC" Padding="10,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" 
+                          x:Name="statusText"
+                          Text="Ready - Max 500 lines" 
+                          Foreground="White" 
+                          FontSize="11"/>
+                
+                <TextBlock Grid.Column="1" 
+                          x:Name="lineCountText"
+                          Text="Lines: 0" 
+                          Foreground="White" 
+                          FontSize="11"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

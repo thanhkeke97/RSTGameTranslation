@@ -8,6 +8,7 @@ namespace RSTGameTranslation
     {
         private static LogManager? _instance;
         private readonly string _logDirectory;
+        private readonly object _fileLock = new object(); // Thread-safe file access
         
         // Log file paths
         private readonly string _ocrResponsePath;
@@ -42,105 +43,128 @@ namespace RSTGameTranslation
             Console.WriteLine($"Log files will be saved in: {_logDirectory}");
         }
         
-        // Log OCR response
         public void LogOcrResponse(string jsonData)
         {
-            try
+            // Fire-and-forget to avoid blocking
+            Task.Run(() =>
             {
-                // Attempt to format the JSON for better readability
-                try
+                lock (_fileLock)
                 {
-                    using JsonDocument doc = JsonDocument.Parse(jsonData);
-                    var options = new JsonSerializerOptions 
-                    { 
-                        WriteIndented = true,
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
-                    };
-                    jsonData = JsonSerializer.Serialize(doc.RootElement, options);
+                    try
+                    {
+                        // Attempt to format the JSON for better readability
+                        try
+                        {
+                            using JsonDocument doc = JsonDocument.Parse(jsonData);
+                            var options = new JsonSerializerOptions 
+                            { 
+                                WriteIndented = true,
+                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+                            };
+                            jsonData = JsonSerializer.Serialize(doc.RootElement, options);
+                        }
+                        catch
+                        {
+                            // If formatting fails, use the original JSON
+                        }
+                        
+                        // Write to file
+                        File.WriteAllText(_ocrResponsePath, jsonData);
+                        //Console.WriteLine($"OCR response logged to {_ocrResponsePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        // Use debug output to avoid potential deadlock with Console.WriteLine
+                        System.Diagnostics.Debug.WriteLine($"Error logging OCR response: {ex.Message}");
+                    }
                 }
-                catch
-                {
-                    // If formatting fails, use the original JSON
-                }
-                
-                // Write to file
-                File.WriteAllText(_ocrResponsePath, jsonData);
-                //Console.WriteLine($"OCR response logged to {_ocrResponsePath}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error logging OCR response: {ex.Message}");
-            }
+            });
         }
         
-        // Log LLM request
+        // Log LLM request (thread-safe, non-blocking)
         public void LogLlmRequest(string prompt, string jsonData)
         {
-            try
+            // Fire-and-forget to avoid blocking
+            Task.Run(() =>
             {
-                // Combine prompt and JSON data
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("=== LLM PROMPT ===");
-                sb.AppendLine(prompt);
-                sb.AppendLine();
-                sb.AppendLine("=== INPUT JSON ===");
-                
-                // Attempt to format the JSON for better readability
-                try
+                lock (_fileLock)
                 {
-                    using JsonDocument doc = JsonDocument.Parse(jsonData);
-                    var options = new JsonSerializerOptions 
-                    { 
-                        WriteIndented = true,
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
-                    };
-                    sb.AppendLine(JsonSerializer.Serialize(doc.RootElement, options));
+                    try
+                    {
+                        // Combine prompt and JSON data
+                        StringBuilder sb = new StringBuilder();
+                        sb.AppendLine("=== LLM PROMPT ===");
+                        sb.AppendLine(prompt);
+                        sb.AppendLine();
+                        sb.AppendLine("=== INPUT JSON ===");
+                        
+                        // Attempt to format the JSON for better readability
+                        try
+                        {
+                            using JsonDocument doc = JsonDocument.Parse(jsonData);
+                            var options = new JsonSerializerOptions 
+                            { 
+                                WriteIndented = true,
+                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+                            };
+                            sb.AppendLine(JsonSerializer.Serialize(doc.RootElement, options));
+                        }
+                        catch
+                        {
+                            // If formatting fails, use the original JSON
+                            sb.AppendLine(jsonData);
+                        }
+                        
+                        // Write to file
+                        File.WriteAllText(_llmRequestPath, sb.ToString());
+                        Console.WriteLine($"LLM request logged to {_llmRequestPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        // Use debug output to avoid potential deadlock with Console.WriteLine
+                        System.Diagnostics.Debug.WriteLine($"Error logging LLM request: {ex.Message}");
+                    }
                 }
-                catch
-                {
-                    // If formatting fails, use the original JSON
-                    sb.AppendLine(jsonData);
-                }
-                
-                // Write to file
-                File.WriteAllText(_llmRequestPath, sb.ToString());
-                Console.WriteLine($"LLM request logged to {_llmRequestPath}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error logging LLM request: {ex.Message}");
-            }
+            });
         }
         
-        // Log LLM reply
+        // Log LLM reply (thread-safe, non-blocking)
         public void LogLlmReply(string jsonResponse)
         {
-            try
+            // Fire-and-forget to avoid blocking
+            Task.Run(() =>
             {
-                // Attempt to format the JSON for better readability
-                try
+                lock (_fileLock)
                 {
-                    using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                    var options = new JsonSerializerOptions 
-                    { 
-                        WriteIndented = true,
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
-                    };
-                    jsonResponse = JsonSerializer.Serialize(doc.RootElement, options);
+                    try
+                    {
+                        // Attempt to format the JSON for better readability
+                        try
+                        {
+                            using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+                            var options = new JsonSerializerOptions 
+                            { 
+                                WriteIndented = true,
+                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+                            };
+                            jsonResponse = JsonSerializer.Serialize(doc.RootElement, options);
+                        }
+                        catch
+                        {
+                            // If formatting fails, use the original JSON
+                        }
+                        
+                        // Write to file
+                        File.WriteAllText(_llmReplyPath, jsonResponse);
+                        Console.WriteLine($"LLM reply logged to {_llmReplyPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        // Use debug output to avoid potential deadlock with Console.WriteLine
+                        System.Diagnostics.Debug.WriteLine($"Error logging LLM reply: {ex.Message}");
+                    }
                 }
-                catch
-                {
-                    // If formatting fails, use the original JSON
-                }
-                
-                // Write to file
-                File.WriteAllText(_llmReplyPath, jsonResponse);
-                Console.WriteLine($"LLM reply logged to {_llmReplyPath}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error logging LLM reply: {ex.Message}");
-            }
+            });
         }
     }
 }

@@ -137,7 +137,7 @@ namespace RSTGameTranslation
         private TextBlock? socketStatusText;
         
         // Console visibility management
-        private bool isConsoleVisible = false;
+        // private bool isConsoleVisible = false;
         private IntPtr consoleWindow;
 
         static MainWindow? _this = null;
@@ -1724,39 +1724,19 @@ namespace RSTGameTranslation
         // Toggle console window visibility
         private void ToggleConsoleWindow()
         {
-            if (consoleWindow == IntPtr.Zero)
+            if (LogWindow.Instance.IsVisible)
             {
-                consoleWindow = GetConsoleWindow();
-
-                // If console window handle is still null, the console might not be initialized
-                if (consoleWindow == IntPtr.Zero)
-                {
-                    InitializeConsole();
-                    consoleWindow = GetConsoleWindow();
-                }
-            }
-
-            if (isConsoleVisible)
-            {
-                // Hide console
-                ShowWindow(consoleWindow, SW_HIDE);
-                isConsoleVisible = false;
+                // Hide log window
+                LogWindow.Instance.Hide();
                 logButton.Background = new SolidColorBrush(Color.FromRgb(153, 69, 176)); // Purple
             }
             else
             {
-                // Show console
-                ShowWindow(consoleWindow, SW_SHOW);
-                isConsoleVisible = true;
+                // Show log window
+                // Set MainWindow as owner to ensure Log window appears above it
+                LogWindow.Instance.Owner = this;
+                LogWindow.Instance.Show();
                 logButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 153)); // Pink/Red
-
-                // Write a header message if being shown for the first time
-                Console.WriteLine("\n=== Console Log Visible ===");
-                Console.WriteLine("Application log messages will appear here.");
-                Console.WriteLine("==========================\n");
-
-                // Ensure console input is disabled to prevent freezing
-                DisableConsoleInput();
             }
         }
         
@@ -1852,6 +1832,13 @@ namespace RSTGameTranslation
             }
         }
         
+        // Update log button state (called from LogWindow when it's closed)
+        public void updateLogButtonState(bool isVisible)
+        {
+            logButton.Background = isVisible 
+                ? new SolidColorBrush(Color.FromRgb(176, 69, 153)) // Pink/Red - visible
+                : new SolidColorBrush(Color.FromRgb(153, 69, 176)); // Purple - hidden
+        }
         
         // Remember the monitor window position
         private double monitorWindowLeft = -1;
