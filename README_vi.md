@@ -54,7 +54,7 @@
 
 3. **Tùy chọn OCR**: (Chỉ cài đặt ở lần đầu tiên OCR được chọn trên thiết bị, không cần cài đặt lại)
    - Tích hợp sẵn: OneOCR, Windows OCR (không cần thiết lập)
-   - Bên ngoài: Nhấn **SetupOCR** cho PaddleOCR, RapidOCR, EasyOCR (đợi 5-15 phút)
+   - Bên thứ 3: Nhấn **SetupOCR** cho PaddleOCR, RapidOCR, EasyOCR (đợi 5-15 phút)
 
 4. **Dịch vụ dịch thuật**:
    - Không cần API: Google Translate
@@ -62,7 +62,7 @@
    - Tùy chọn cục bộ: Ollama, LM Studio
 
 5. **Bắt đầu dịch**:
-   - Nhấn **StartOCR** (nếu sử dụng OCR bên ngoài) và đợi cho đến khi khởi động thành công (Bạn sẽ thấy một dòng thông báo màu đỏ ở góc dưới bên trái)
+   - Nhấn **StartOCR** (nếu sử dụng OCR bên thứ 3) và đợi cho đến khi khởi động thành công (Bạn sẽ thấy một dòng thông báo màu đỏ ở góc dưới bên phải)
    - Nhấn nút ***Select Window***: Chọn cửa sổ bạn muốn chụp
    - Chọn vùng (Alt+Q) sau đó bật overlay (Alt+F)
    - Bắt đầu dịch (Alt+G)
