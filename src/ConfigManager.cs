@@ -83,6 +83,9 @@ namespace RSTGameTranslation
         // Force update
         public const string FORCE_UPDATE_PROMPT = "force_update_prompt";
 
+        // Font Settings for Source and Target Languages
+        public const string LANGUAGE_FONT_FAMILY = "language_font_family";
+        public const string LANGUAGE_FONT_OVERRIDE = "language_font_override";
 
         // OCR configuration keys
         public const string MIN_TEXT_FRAGMENT_SIZE = "min_text_fragment_size";
@@ -445,6 +448,8 @@ namespace RSTGameTranslation
             _configValues[FORCE_UPDATE_PROMPT] = "0";
             _configValues[AUTO_CLEAR_CHAT_HISTORY] = "true";
             _configValues[MANGA_MODE] = "false";
+            _configValues[LANGUAGE_FONT_FAMILY] = "Arial";
+            _configValues[LANGUAGE_FONT_OVERRIDE] = "false";
 
             // Save the default configuration
             SaveConfig();
@@ -2004,6 +2009,35 @@ namespace RSTGameTranslation
 
 
             return result;
+        }
+
+        // Get/Set Language Font Family
+        public string GetLanguageFontFamily()
+        {
+            return GetValue(LANGUAGE_FONT_FAMILY, "Arial");
+        }
+
+        public void SetLanguageFontFamily(string fontFamily)
+        {
+            if (!string.IsNullOrWhiteSpace(fontFamily))
+            {
+                _configValues[LANGUAGE_FONT_FAMILY] = fontFamily;
+                SaveConfig();
+                Console.WriteLine($"Language font family set to: {fontFamily}");
+            }
+        }
+
+        // Get/Set Language Font Overide
+        public bool IsLanguageFontOverrideEnabled()
+        {
+            return GetBoolValue(LANGUAGE_FONT_OVERRIDE, false);
+        }
+
+        public void SetLanguageFontOverride(bool enabled)
+        {
+            _configValues[LANGUAGE_FONT_OVERRIDE] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Language font overide set to: {enabled}");
         }
 
         // Save list api key

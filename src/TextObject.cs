@@ -92,21 +92,40 @@ namespace RSTGameTranslation
                 // Use Margin for positioning in the parent container
                 Border.Margin = new Thickness(X, Y, 0, 0);
             }
-
-            // Create the text block with adjusted properties for better horizontal fill
-            TextBlock = new TextBlock()
+            if(ConfigManager.Instance.IsLanguageFontOverrideEnabled())
             {
-                Text = this.Text,
-                Foreground = this.TextColor,
-                FontWeight = FontWeights.Normal,
-                FontSize = 24, // Increased from 18 to 24 for better initial size
-                TextWrapping = TextWrapping.Wrap,
-                TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
-                FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
-                FontFamily = new FontFamily("Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS"),
-                Margin = new Thickness(0), // Increased margin for better text display
-                TextTrimming = TextTrimming.None
-            };
+                TextBlock = new TextBlock()
+                {
+                    Text = this.Text,
+                    Foreground = this.TextColor,
+                    FontWeight = FontWeights.Normal,
+                    FontSize = 24, // Increased from 18 to 24 for better initial size
+                    TextWrapping = TextWrapping.Wrap,
+                    TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
+                    FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
+                    FontFamily = new FontFamily(ConfigManager.Instance.GetLanguageFontFamily()),
+                    Margin = new Thickness(0), // Increased margin for better text display
+                    TextTrimming = TextTrimming.None
+                };
+            }
+            else
+            {
+                // Create the text block with adjusted properties for better horizontal fill
+                TextBlock = new TextBlock()
+                {
+                    Text = this.Text,
+                    Foreground = this.TextColor,
+                    FontWeight = FontWeights.Normal,
+                    FontSize = 24, // Increased from 18 to 24 for better initial size
+                    TextWrapping = TextWrapping.Wrap,
+                    TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
+                    FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
+                    FontFamily = new FontFamily("Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS"),
+                    Margin = new Thickness(0), // Increased margin for better text display
+                    TextTrimming = TextTrimming.None
+                };
+            }
+            
 
             // Set explicit width and height if provided
             if (Width > 0)
@@ -239,7 +258,7 @@ namespace RSTGameTranslation
                 }
                 
                 // Binary search for the best font size
-                double minSize = 9 * scaleFactor;
+                double minSize = 10 * scaleFactor;
                 double maxSize = 68 * scaleFactor; // Increased from 36 to 48 to allow for larger text
                 double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
                 int maxIterations = 8; // Reduced from 10 to 8 iterations for performance

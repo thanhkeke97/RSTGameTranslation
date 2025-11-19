@@ -19,22 +19,31 @@ namespace RSTGameTranslation
         // Store original values for cancel operation
         private Color _originalBackgroundColor;
         private Color _originalTextColor;
+        private string _originalFont;
+        private bool _originalFontOverrideEnabled;
         
         // Store current values for apply operation
         private Color _currentBackgroundColor;
         private Color _currentTextColor;
+        private string _currentFont;
+        private bool _currentFontOverrideEnabled;
         
         // Default values
         private readonly Color DEFAULT_BACKGROUND_COLOR = Color.FromArgb(128, 0, 0, 0); // Dark background
         private readonly Color DEFAULT_TEXT_COLOR = Colors.White;
+        private readonly string DEFAULT_FONT = "Arial";
+        private readonly bool DEFAULT_FONT_OVERRIDE = false;
 
         public OverlayOptionsWindow()
         {
             InitializeComponent();
             
-            
+            // Load font settings
+            LoadFontSettings();
+
             // Load current settings from config
             LoadCurrentSettings();
+
             
             // Update UI with loaded settings
             UpdateUIFromSettings();
@@ -48,10 +57,14 @@ namespace RSTGameTranslation
                 // Get values from config manager
                 _originalBackgroundColor = ConfigManager.Instance.GetOverlayBackgroundColor();
                 _originalTextColor = ConfigManager.Instance.GetOverlayTextColor();
+                _originalFont = ConfigManager.Instance.GetLanguageFontFamily();
+                _originalFontOverrideEnabled = ConfigManager.Instance.IsLanguageFontOverrideEnabled();
 
                 // Set current values to match original values
                 _currentBackgroundColor = _originalBackgroundColor;
                 _currentTextColor = _originalTextColor;
+                _currentFont = _originalFont;
+                _currentFontOverrideEnabled = _originalFontOverrideEnabled;
             }
             catch (Exception ex)
             {
@@ -67,6 +80,8 @@ namespace RSTGameTranslation
             // Set current values to defaults
             _currentBackgroundColor = DEFAULT_BACKGROUND_COLOR;
             _currentTextColor = DEFAULT_TEXT_COLOR;
+            _currentFont = DEFAULT_FONT;
+            _currentFontOverrideEnabled = DEFAULT_FONT_OVERRIDE;
         }
 
         private void UpdateUIFromSettings()
@@ -80,6 +95,12 @@ namespace RSTGameTranslation
                 // Update text color
                 textColorButton.Background = new SolidColorBrush(_currentTextColor);
                 textColorText.Text = ColorToHexString(_currentTextColor);
+
+                // Update font family selection
+                languageFontFamilyComboBox.Text = _currentFont;
+
+                // Update font override checkbox
+                languageFontOverrideCheckBox.IsChecked = _currentFontOverrideEnabled;
                 
             }
             catch (Exception ex)
@@ -160,10 +181,16 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetValue(ConfigManager.OVERLAY_BACKGROUND_COLOR, ColorToHexString(
                     Color.FromArgb(255, _currentBackgroundColor.R, _currentBackgroundColor.G, _currentBackgroundColor.B)));
                 ConfigManager.Instance.SetValue(ConfigManager.OVERLAY_TEXT_COLOR, ColorToHexString(_currentTextColor));
-                
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_FAMILY,languageFontFamilyComboBox.Text);
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_OVERRIDE, 
+                    languageFontOverrideCheckBox.IsChecked == true ? "true" : "false");
                 // Save config to file
                 ConfigManager.Instance.SaveConfig();
-                
+                Logic.Instance.ResetHash();
+                Logic.Instance.ClearAllTextObjects();
+                MainWindow.Instance.SetOCRCheckIsWanted(true);
+                MonitorWindow.Instance.RefreshOverlays();
+
                 // Close the window
                 this.DialogResult = true;
                 this.Close();
@@ -198,6 +225,27 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error setting defaults: {ex.Message}");
+            }
+        }
+
+        private void LoadFontSettings()
+        {
+            try
+            {
+                // Get all font families
+                var fontFamilies = Fonts.SystemFontFamilies.OrderBy(f => f.Source);
+                
+                // Populate language font combo box
+                if (languageFontFamilyComboBox != null)
+                {
+                    languageFontFamilyComboBox.ItemsSource = fontFamilies;
+                    languageFontFamilyComboBox.DisplayMemberPath = "Source";
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error populating font family combo boxes: {ex.Message}");
             }
         }
         

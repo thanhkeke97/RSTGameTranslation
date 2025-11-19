@@ -473,7 +473,6 @@ namespace RSTGameTranslation
                     // Reset margin to zero - we'll position with Canvas instead
                     textObject.Border.Margin = new Thickness(0);
                     
-                    // TextObject.X và TextObject.Y đã là tọa độ vật lý (đã được điều chỉnh theo DPI)
                     System.Windows.Point logicalPoint = DpiHelper.PhysicalToLogical(new System.Windows.Point(textObject.X, textObject.Y));
                     
                     // Position the element on the canvas using Canvas.SetLeft/Top

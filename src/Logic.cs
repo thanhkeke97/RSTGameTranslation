@@ -1443,7 +1443,7 @@ namespace RSTGameTranslation
                 {
                     textObject.UIElement = textObject.CreateUIElement();
                 }
-                    MonitorWindow.Instance.CreateMonitorOverlayFromTextObject(this, textObject);
+                MonitorWindow.Instance.CreateMonitorOverlayFromTextObject(this, textObject);
 
                 // Console.WriteLine($"Added text '{text}' at position ({x}, {y}) with size {width}x{height}");
             }
