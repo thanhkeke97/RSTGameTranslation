@@ -62,7 +62,7 @@
    - Local options: Ollama, LM Studio
 
 5. **Start translating**:
-   - Click **StartOCR** (if using external OCR) and wait until it starts successfully (You will see a red notification line at the bottom left corner)
+   - Click **StartOCR** (if using external OCR) and wait until it starts successfully (You will see a red notification line at the bottom right corner)
    - Press button ***Select Window***: Choose window which you want to capture
    - Select area (Alt+Q) then turn on overlay (Alt+F)
    - Start translate (Alt+G)
