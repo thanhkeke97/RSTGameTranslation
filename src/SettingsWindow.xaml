@@ -218,14 +218,14 @@
                                 </ComboBox>
                                 
                                 <!-- WINDOWS OCR integration -->
-                                <TextBlock Text="Windows OCR integration:" Grid.Row="1" Grid.Column="0" 
+                                <!-- <TextBlock Text="Windows OCR integration:" Grid.Row="1" Grid.Column="0" 
                                           ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="windowsOCRIntegrationCheckBox" Grid.Row="1" Grid.Column="1" 
                                          Margin="0,5"
                                          ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
                                          Checked="WindowsOCRIntegrationCheckBox_CheckedChanged" 
-                                         Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/>
+                                         Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/> -->
                                          
                                 <!-- Auto Translate -->
                                 <TextBlock Text="Auto Translate:" Grid.Row="2" Grid.Column="0" Visibility="Collapsed"
@@ -299,12 +299,12 @@
                                          ToolTip="Auto OCR realtime, turn off this feature the program will not auto translate"/>
                                 
                                 <!-- Manga Mode -->
-                                <TextBlock Text="Manga Mode (Beta):" Grid.Row="10" Grid.Column="0" 
+                                <!-- <TextBlock Text="Manga Mode (Beta):" Grid.Row="10" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="MangaModeCheckBox" Grid.Row="10" Grid.Column="1" 
                                          Checked="MangaModeCheckBox_CheckedChanged" 
                                          Unchecked="MangaModeCheckBox_CheckedChanged"
-                                         ToolTip="This mode helps translate and display manga more accurately (currently only supports manga with horizontal text), but it will reduce translation speed."/>
+                                         ToolTip="This mode helps translate and display manga more accurately (currently only supports manga with horizontal text), but it will reduce translation speed."/> -->
                             </Grid>
                         </GroupBox>
                         

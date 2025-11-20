@@ -1734,8 +1734,9 @@ namespace RSTGameTranslation
         // Get/Set windows OCR integration status
         public bool IsWindowsOCRIntegrationEnabled()
         {
-            string value = GetValue(WINDOWS_OCR_INTEGRATION, "false");
-            return value.ToLower() == "true";
+            // string value = GetValue(WINDOWS_OCR_INTEGRATION, "false");
+            // return value.ToLower() == "true";
+            return false;
         }
         public void SetWindowsOCRIntegration(bool enabled)
         {
@@ -1789,8 +1790,9 @@ namespace RSTGameTranslation
         // Get/Set manga mode
         public bool IsMangaModeEnabled()
         {
-            string value = GetValue(MANGA_MODE, "false");
-            return value.ToLower() == "true";
+            // string value = GetValue(MANGA_MODE, "false");
+            // return value.ToLower() == "true";
+            return false;
         }
 
         public void SetMangaMode(bool enabled)

@@ -95,7 +95,7 @@ namespace RSTGameTranslation
         // Show message for Auto OCR
         private bool isNeedShowWarningAutoOCR = false;
         // Show message for Manga Mode
-        private bool isNeedShowWarningMangaMode = false;
+        // private bool isNeedShowWarningMangaMode = false;
 
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
@@ -877,11 +877,11 @@ namespace RSTGameTranslation
             AutoOCRCheckBox.IsChecked = ConfigManager.Instance.IsAutoOCREnabled();
 
             // Set manga mode
-            MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
-            isNeedShowWarningMangaMode = true;
+            // MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
+            // isNeedShowWarningMangaMode = true;
 
             // Set WindowsOCR integration
-            windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
+            // windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
 
             // Set multi selection area from config
             multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
@@ -3534,12 +3534,12 @@ namespace RSTGameTranslation
             Console.WriteLine($"Settings window: Is send data to server set to {enabled}");
         }
 
-        private void WindowsOCRIntegrationCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            bool enabled = windowsOCRIntegrationCheckBox.IsChecked ?? false;
-            ConfigManager.Instance.SetWindowsOCRIntegration(enabled);
-            Console.WriteLine($"WindowsOCR integration set to {enabled}");
-        }
+        // private void WindowsOCRIntegrationCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        // {
+        //     bool enabled = windowsOCRIntegrationCheckBox.IsChecked ?? false;
+        //     ConfigManager.Instance.SetWindowsOCRIntegration(enabled);
+        //     Console.WriteLine($"WindowsOCR integration set to {enabled}");
+        // }
 
         private void AutoOCRCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
@@ -3574,25 +3574,25 @@ namespace RSTGameTranslation
             Console.WriteLine($"Auto set overlay background color set to {enabled}");
         }
 
-        private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            bool enabled = MangaModeCheckBox.IsChecked ?? true;
-            ConfigManager.Instance.SetMangaMode(enabled);
-            Console.WriteLine($"Manga mode set to {enabled}");
-            if (isNeedShowWarningMangaMode && enabled)
-            {
-                // Show notification
-                MessageBox.Show(
-                "If you enable this feature, translation speed will be slower but will provide more accurate overlay display for manga.",
-                "Manga Mode Enabled",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-                isNeedShowWarningMangaMode = false;
-            } 
-            else 
-            {
-                isNeedShowWarningMangaMode = true;
-            }
-        }
+        // private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        // {
+        //     bool enabled = MangaModeCheckBox.IsChecked ?? true;
+        //     ConfigManager.Instance.SetMangaMode(enabled);
+        //     Console.WriteLine($"Manga mode set to {enabled}");
+        //     if (isNeedShowWarningMangaMode && enabled)
+        //     {
+        //         // Show notification
+        //         MessageBox.Show(
+        //         "If you enable this feature, translation speed will be slower but will provide more accurate overlay display for manga.",
+        //         "Manga Mode Enabled",
+        //         MessageBoxButton.OK,
+        //         MessageBoxImage.Information);
+        //         isNeedShowWarningMangaMode = false;
+        //     } 
+        //     else 
+        //     {
+        //         isNeedShowWarningMangaMode = true;
+        //     }
+        // }
     }
 }
