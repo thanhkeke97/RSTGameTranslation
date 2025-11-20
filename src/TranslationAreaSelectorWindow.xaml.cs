@@ -197,10 +197,10 @@ namespace RSTGameTranslation
                     SetWindowPos(
                         hwnd,
                         HWND_TOPMOST,
-                        bounds.Left / (int)_dpiScaleX,
-                        bounds.Top / (int)_dpiScaleY,
-                        bounds.Width / (int)_dpiScaleX,
-                        bounds.Height / (int)_dpiScaleY,
+                        (int)(bounds.Left / _dpiScaleX),    
+                        (int)(bounds.Top / _dpiScaleY),
+                        (int)(bounds.Width / _dpiScaleX),
+                        (int)(bounds.Height / _dpiScaleY),
                         SWP_SHOWWINDOW | SWP_NOACTIVATE
                     );
                     

@@ -1866,7 +1866,7 @@ namespace RSTGameTranslation
                 try
                 {
                     // Close and reset instance
-                    MonitorWindow.ResetInstance();
+                    MonitorWindow.Instance.Hide();
 
                     Console.WriteLine("Creating new MonitorWindow instance...");
 
