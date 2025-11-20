@@ -201,6 +201,14 @@ namespace RSTGameTranslation
                 {
                     Border.MaxHeight = Height;
                 }
+                if(ConfigManager.Instance.IsLanguageFontOverrideEnabled())
+                {
+                    TextBlock.FontFamily = new FontFamily(ConfigManager.Instance.GetLanguageFontFamily());
+                }
+                else 
+                {
+                    TextBlock.FontFamily = new FontFamily("Arial, Noto Sans SC, ..."); // List font mặc định
+                }
 
                 // Reset font size to default and then adjust if needed
                 TextBlock.FontSize = 24; // Increased from 18 to 24 for better initial size

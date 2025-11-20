@@ -186,9 +186,12 @@ namespace RSTGameTranslation
                     languageFontOverrideCheckBox.IsChecked == true ? "true" : "false");
                 // Save config to file
                 ConfigManager.Instance.SaveConfig();
-                Logic.Instance.ResetHash();
-                Logic.Instance.ClearAllTextObjects();
-                MainWindow.Instance.SetOCRCheckIsWanted(true);
+                var currentTexts = Logic.Instance.GetTextObjects();
+                foreach (var textObj in currentTexts)
+                {
+                    
+                    textObj.UpdateUIElement(); 
+                }
                 MonitorWindow.Instance.RefreshOverlays();
 
                 // Close the window
