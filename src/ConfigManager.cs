@@ -150,85 +150,94 @@ namespace RSTGameTranslation
         public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
 
         // Default prompts
-        public const string defaultGeminiPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* IMPORTANT: If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated. \n" +
-                    "* IMPORTANT: Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
+        public const string defaultGeminiPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
+                    "The input text comes from OCR of a video game screenshot and contains severe errors (merged words, jumbled order, typos).\n\n" +
+                    "### CRITICAL INSTRUCTIONS:\n" +
+                    "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
+                    "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "2. **Translate SECOND (MANDATORY)**: \n" +
+                    "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
+                    "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
+                    "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
+                    "3. **Output Format Rules**:\n" +
+                    "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
+                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **Preserve IDs**: Keep original IDs.\n" +
+                    "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
-        public const string defaultMistralPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* IMPORTANT: If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated. \n" +
-                    "* IMPORTANT: Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
+
+        public const string defaultMistralPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
+                    "The input text comes from OCR of a video game screenshot and contains severe errors (merged words, jumbled order, typos).\n\n" +
+                    "### CRITICAL INSTRUCTIONS:\n" +
+                    "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
+                    "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "2. **Translate SECOND (MANDATORY)**: \n" +
+                    "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
+                    "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
+                    "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
+                    "3. **Output Format Rules**:\n" +
+                    "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
+                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **Preserve IDs**: Keep original IDs.\n" +
+                    "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
-        public const string defaultChatGptPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* IMPORTANT: If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated. \n" +
-                    "* IMPORTANT: Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
+
+        public const string defaultChatGptPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
+                    "The input text comes from OCR of a video game screenshot and contains severe errors (merged words, jumbled order, typos).\n\n" +
+                    "### CRITICAL INSTRUCTIONS:\n" +
+                    "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
+                    "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "2. **Translate SECOND (MANDATORY)**: \n" +
+                    "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
+                    "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
+                    "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
+                    "3. **Output Format Rules**:\n" +
+                    "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
+                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **Preserve IDs**: Keep original IDs.\n" +
+                    "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
-        public const string defaultOllamaPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* IMPORTANT: If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated. \n" +
-                    "* IMPORTANT: Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
+
+        public const string defaultOllamaPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
+                    "The input text comes from OCR of a video game screenshot and contains severe errors (merged words, jumbled order, typos).\n\n" +
+                    "### CRITICAL INSTRUCTIONS:\n" +
+                    "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
+                    "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "2. **Translate SECOND (MANDATORY)**: \n" +
+                    "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
+                    "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
+                    "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
+                    "3. **Output Format Rules**:\n" +
+                    "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
+                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **Preserve IDs**: Keep original IDs.\n" +
+                    "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
-        public const string defaultLMStudioPrompt = "Your task is to translate the source_language text in the following JSON data to target_language " +
-                    "and output a new JSON in a specific format. This is text from OCR of a screenshot from a video game, " +
-                    "so please try to infer the context and which parts are menu or dialog.\n" +
-                    "You should:\n" +
-                    "* Output ONLY the resulting JSON data.\n" +
-                    "* IMPORTANT: If \"previous_context\" data exist in the json, this should not be translated, but used to better understand the context of the text that IS being translated. \n" +
-                    "* IMPORTANT: Don't return the \"previous_context\" or \"game_info\" json parms, that's for input only, not what you output (important).\n" +
-                    "* The output JSON must have the exact same structure as the input JSON, with a text_blocks array.\n" +
-                    "* Each element in the text_blocks array must include its id.\n" +
-                    "* No extra text, explanations, or formatting should be included.\n" +
-                    "* If the sentences contains |||RST_SEPARATOR||| to separate the sentences, you don't need to translate it but the result must still include |||RST_SEPARATOR||| \n" +
-                    "* Example of output for a text block: If text_0 and text_1 were merged, the result would look like: " +
-                    "{ \"id\": \"text_0\", \"text\": \"Translated text of text_0.\"}\n" +
-                    "* If the text looks like multiple options for the player to choose from, add a newline after each one " +
-                    "so they aren't mushed together, but each on their own text line.\n\n" +
+
+        public const string defaultLMStudioPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
+                    "The input text comes from OCR of a video game screenshot and contains severe errors (merged words, jumbled order, typos).\n\n" +
+                    "### CRITICAL INSTRUCTIONS:\n" +
+                    "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
+                    "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "2. **Translate SECOND (MANDATORY)**: \n" +
+                    "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
+                    "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
+                    "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
+                    "3. **Output Format Rules**:\n" +
+                    "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
+                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **Preserve IDs**: Keep original IDs.\n" +
+                    "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
 
         // Singleton instance
@@ -2304,7 +2313,7 @@ namespace RSTGameTranslation
         // Get/set language font size min
         public double GetLanguageFontSizeMin()
         {
-             string value = GetValue(LANGUAGE_FONT_SIZE_MIN, "10"); // Default: 0
+            string value = GetValue(LANGUAGE_FONT_SIZE_MIN, "10"); // Default: 0
             if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double min_font_size) && min_font_size >= 0)
             {
                 return min_font_size;

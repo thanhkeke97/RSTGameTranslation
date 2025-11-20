@@ -275,10 +275,35 @@ namespace RSTGameTranslation
             }).ToList();
             
             // Group characters into lines based on vertical position
-            var lines = charactersWithCenters
-                .GroupBy(c => Math.Round(c.CenterY / verticalGapThreshold))
-                .OrderBy(g => g.Key)
-                .ToList();
+            var sortedChars = charactersWithCenters.OrderBy(c => c.Bounds.Y).ToList();
+
+            var lines = new List<List<TextElement>>();
+            if (sortedChars.Count > 0)
+            {
+                var currentLine = new List<TextElement> { sortedChars[0] };
+                lines.Add(currentLine);
+
+                for (int i = 1; i < sortedChars.Count; i++)
+                {
+                    var currentChar = sortedChars[i];
+                    var lastCharInLine = currentLine.Last(); 
+
+                    double diffY = Math.Abs(currentChar.CenterY - lastCharInLine.CenterY);
+                    
+                    bool isOverlapping = currentChar.Bounds.Y < (lastCharInLine.Bounds.Y + lastCharInLine.Bounds.Height * 0.5);
+
+                    if (diffY < verticalGapThreshold || isOverlapping) 
+                    {
+                        currentLine.Add(currentChar);
+                    }
+                    else
+                    {
+                      
+                        currentLine = new List<TextElement> { currentChar };
+                        lines.Add(currentLine);
+                    }
+                }
+            }
                 
             // Process each line to form words
             var words = new List<TextElement>();
@@ -785,8 +810,8 @@ namespace RSTGameTranslation
         /// <summary>
         /// Detect and process special text blocks for manga
         /// </summary>
-        private const int MAX_PARAGRAPHS_PER_BUBBLE = 5;
-        private const double MAX_BUBBLE_WIDTH_RATIO = 0.4;
+        private const int MAX_PARAGRAPHS_PER_BUBBLE = 10;
+        private const double MAX_BUBBLE_WIDTH_RATIO = 0.8;
         private const double MAX_BUBBLE_HEIGHT_RATIO = 0.35;
         
         private List<TextElement> ProcessMangaSpecificBlocks(List<TextElement> paragraphs, double blockPower)
@@ -1085,7 +1110,7 @@ namespace RSTGameTranslation
         {
             // Sort by reading position
             var sortedParagraphs = isRightToLeft
-                ? paragraphs.OrderBy(p => p.Bounds.Y).ThenByDescending(p => p.Bounds.X).ToList()
+                ? paragraphs.OrderByDescending(p => p.Bounds.X).ThenBy(p => p.Bounds.Y).ToList()
                 : paragraphs.OrderBy(p => p.Bounds.Y).ThenBy(p => p.Bounds.X).ToList();
             
             // Create new paragraph from sorted paragraphs

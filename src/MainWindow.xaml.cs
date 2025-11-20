@@ -93,7 +93,7 @@ namespace RSTGameTranslation
         public int currentAreaIndex = 0;
 
         // Force update prompt
-        private int isForceUpdatePrompt = 2; //increase to force update prompt
+        private int isForceUpdatePrompt = 3; //increase to force update prompt
 
 
         // Store previous capture position to calculate offset

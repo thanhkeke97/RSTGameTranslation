@@ -2468,31 +2468,31 @@ namespace RSTGameTranslation
                 // Combine all texts into one string with a separator
                 var combinedText = string.Join("|||RST_SEPARATOR|||", _textObjects.Select(obj => obj.Text));
                 var textsToTranslate = new List<object>();
-                if(!ConfigManager.Instance.IsMangaModeEnabled())
-                {
+                // if(!ConfigManager.Instance.IsMangaModeEnabled())
+                // {
                     // Create a single text block with ID=999 and the combined text
-                    textsToTranslate = new List<object>
-                    {
-                        new
-                        {
-                            id = "999",
-                            text = combinedText
-                        }
-                    };
-                }
-                else
+                textsToTranslate = new List<object>
                 {
-                    // textsToTranslate = new List<object>();
-                    for (int i = 0; i < _textObjects.Count; i++)
+                    new
                     {
-                        var textObj = _textObjects[i];
-                        textsToTranslate.Add(new
-                        {
-                            id = textObj.ID,
-                            text = textObj.Text
-                        });
+                        id = "999",
+                        text = combinedText
                     }
-                }
+                };
+                // }
+                // else
+                // {
+                //     // textsToTranslate = new List<object>();
+                //     for (int i = 0; i < _textObjects.Count; i++)
+                //     {
+                //         var textObj = _textObjects[i];
+                //         textsToTranslate.Add(new
+                //         {
+                //             id = textObj.ID,
+                //             text = textObj.Text
+                //         });
+                //     }
+                // }
 
                 // Get previous context if enabled
                 var previousContext = GetPreviousContext();
