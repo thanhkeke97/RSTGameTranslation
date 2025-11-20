@@ -86,6 +86,8 @@ namespace RSTGameTranslation
         // Font Settings for Source and Target Languages
         public const string LANGUAGE_FONT_FAMILY = "language_font_family";
         public const string LANGUAGE_FONT_OVERRIDE = "language_font_override";
+        public const string LANGUAGE_FONT_SIZE_MIN = "language_font_size_min";
+        public const string LANGUAGE_FONT_SIZE_MAX = "language_font_size_max";
 
         // OCR configuration keys
         public const string MIN_TEXT_FRAGMENT_SIZE = "min_text_fragment_size";
@@ -305,7 +307,7 @@ namespace RSTGameTranslation
         // Load configuration from file
         private void LoadConfig(string filePath = "Default")
         {
-            if(filePath == "Default")
+            if (filePath == "Default")
             {
                 filePath = _configFilePath;
             }
@@ -402,7 +404,7 @@ namespace RSTGameTranslation
             _configValues[TTS_SERVICE] = "Windows TTS";
             _configValues[GOOGLE_TTS_API_KEY] = "<your API key here>";
             _configValues[GOOGLE_TTS_VOICE] = "ja-JP-Neural2-B";
-            _configValues[WINDOWS_TTS_VOICE ] = "Microsoft David (en-US, Male)";
+            _configValues[WINDOWS_TTS_VOICE] = "Microsoft David (en-US, Male)";
             _configValues[TTS_ENABLED] = "false";
             _configValues[MAX_CONTEXT_PIECES] = "20";
             _configValues[MIN_CONTEXT_SIZE] = "8";
@@ -450,6 +452,8 @@ namespace RSTGameTranslation
             _configValues[MANGA_MODE] = "false";
             _configValues[LANGUAGE_FONT_FAMILY] = "Arial";
             _configValues[LANGUAGE_FONT_OVERRIDE] = "false";
+            _configValues[LANGUAGE_FONT_SIZE_MIN] = "10";
+            _configValues[LANGUAGE_FONT_SIZE_MAX] = "68";
 
             // Save the default configuration
             SaveConfig();
@@ -547,7 +551,7 @@ namespace RSTGameTranslation
         }
 
         // Save configuration to file
-        public void SaveConfig(string filePath="Default")
+        public void SaveConfig(string filePath = "Default")
         {
             try
             {
@@ -966,7 +970,7 @@ namespace RSTGameTranslation
         // Set current translation service
         public void SetTranslationService(string service)
         {
-            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio"  )
+            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio")
             {
                 _currentTranslationService = service;
                 _configValues[TRANSLATION_SERVICE] = service;
@@ -1585,7 +1589,7 @@ namespace RSTGameTranslation
             }
             return 0;
         }
-        
+
         public void SetForceUpdatePrompt(int value)
         {
             if (value >= 0)
@@ -2297,6 +2301,38 @@ namespace RSTGameTranslation
             }
         }
 
+        // Get/set language font size min
+        public double GetLanguageFontSizeMin()
+        {
+             string value = GetValue(LANGUAGE_FONT_SIZE_MIN, "10"); // Default: 0
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double min_font_size) && min_font_size >= 0)
+            {
+                return min_font_size;
+            }
+            return 10;
+        }
+        public void SetLanguageFontSizeMin(double fontSize)
+        {
+            _configValues[LANGUAGE_FONT_SIZE_MIN] = fontSize.ToString();
+            SaveConfig();
+        }
+
+        // Get/set language font size max
+        public double GetLanguageFontSizeMax()
+        {
+            string value = GetValue(LANGUAGE_FONT_SIZE_MAX, "68"); // Default: 68
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double max_font_size) && max_font_size >= 0)
+            {
+                return max_font_size;
+            }
+            return 68;
+        }
+        public void SetLanguageFontSizeMax(double fontSize)
+        {
+            _configValues[LANGUAGE_FONT_SIZE_MAX] = fontSize.ToString();
+            SaveConfig();
+        }
+
         // Update exact match setting for a phrase
         public void UpdateIgnorePhraseExactMatch(string phrase, bool exactMatch)
         {
@@ -2358,7 +2394,7 @@ namespace RSTGameTranslation
             SaveConfig();
             Console.WriteLine($"Audio service auto-translate enabled: {enabled}");
         }
-        
+
         // Save translation areas to config
         public void SaveTranslationAreas(List<Rect> areas, string profileName)
         {
@@ -2395,7 +2431,7 @@ namespace RSTGameTranslation
             }
         }
 
-        
+
         // Get translation areas from config
         public List<Rect> GetTranslationAreas(string filePath)
         {

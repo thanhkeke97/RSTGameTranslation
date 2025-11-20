@@ -65,16 +65,36 @@
                         <DockPanel Margin="0,5">
                             <!-- Language Font Override -->
                             <TextBlock Text="Font Override:"
-                                        VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                       VerticalAlignment="Center" 
+                                       Width="120"/>
                             <CheckBox x:Name="languageFontOverrideCheckBox" 
-                                        Margin="10,0,0,0" />
+                                      Margin="5,0,0,0" />
                         </DockPanel>
                         <DockPanel Margin="0,5">
                             <!-- Language Font Family -->
                             <TextBlock Text="Select Font:" 
-                                        VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                       VerticalAlignment="Center" 
+                                       Width="120"/>
                             <ComboBox x:Name="languageFontFamilyComboBox" 
-                                        Margin="20,0,0,0"/>
+                                      Margin="5,0,0,0"/>
+                        </DockPanel>
+                        <DockPanel Margin="0,5">
+                            <!-- Font Size Min -->
+                            <TextBlock Text="Font Size Min:" 
+                                       VerticalAlignment="Center" 
+                                       Width="120"/>
+                            <TextBox x:Name="languageFontSizeMinTextBox" 
+                                     Text="10" 
+                                     Margin="5,0,0,0"/>
+                        </DockPanel>
+                        <DockPanel Margin="0,5">
+                            <!-- Font Size Max -->
+                            <TextBlock Text="Font Size Max:" 
+                                       VerticalAlignment="Center" 
+                                       Width="120"/>
+                            <TextBox x:Name="languageFontSizeMaxTextBox" 
+                                     Text="68" 
+                                     Margin="5,0,0,0"/>
                         </DockPanel>
                     </StackPanel>
                 </GroupBox>

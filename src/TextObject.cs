@@ -218,6 +218,10 @@ namespace RSTGameTranslation
 
         // Static cache for font size calculations
         private static readonly Dictionary<string, double> _fontSizeCache = new Dictionary<string, double>();
+        public static void ClearCache()
+        {
+            _fontSizeCache.Clear();
+        }
         
         // Adjust font size to fit within the container using binary search
         private void AdjustFontSize(Border border, TextBlock textBlock)
@@ -228,7 +232,7 @@ namespace RSTGameTranslation
                 if (!ConfigManager.Instance.IsAutoSizeTextBlocksEnabled())
                 {
                     // Just set default font size and exit
-                    textBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
+                    textBlock.FontSize = 24; 
                     textBlock.LayoutTransform = Transform.Identity;
                     return;
                 }
@@ -236,40 +240,44 @@ namespace RSTGameTranslation
                 // Exit early if dimensions aren't set or text is empty
                 if (Width <= 0 || Height <= 0 || string.IsNullOrWhiteSpace(textBlock.Text))
                 {
-                    // Reset to defaults and exit
-                    textBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
+                    textBlock.FontSize = 24;
                     textBlock.LayoutTransform = Transform.Identity;
                     return;
                 }
 
-                // // Basic text settings
-                // textBlock.TextWrapping = TextWrapping.Wrap;
-                // textBlock.TextAlignment = TextAlignment.Left;
+                // Create a cache key
+                string cacheKey = $"{textBlock.Text.Length}_{Width}_{Height}_{ConfigManager.Instance.GetLanguageFontSizeMin()}_{ConfigManager.Instance.GetLanguageFontSizeMax()}";
                 
-                // Create a cache key based on text length, width and height
-                // Using length instead of full text to increase cache hits for similar-sized texts
-                string cacheKey = $"{textBlock.Text.Length}_{Width}_{Height}";
-                
-                // Check if we have a cached font size for similar dimensions
+                // Check cache
                 if (_fontSizeCache.TryGetValue(cacheKey, out double cachedFontSize))
                 {
                     textBlock.FontSize = cachedFontSize;
                     textBlock.LayoutTransform = Transform.Identity;
                     return;
                 }
-                double scaleFactor = 1.0;
 
+                double scaleFactor = 1.0;
                 string methodOcr = ConfigManager.Instance.GetOcrMethod();
                 if (methodOcr == "PaddleOCR")
                 {
                     scaleFactor = 1;
                 }
                 
-                // Binary search for the best font size
-                double minSize = 10 * scaleFactor;
-                double maxSize = 68 * scaleFactor; // Increased from 36 to 48 to allow for larger text
-                double currentSize = 24 * scaleFactor; // Increased from 18 to 24 for better initial size
-                int maxIterations = 8; // Reduced from 10 to 8 iterations for performance
+                // Get Min/Max from Config
+                double minSize = ConfigManager.Instance.GetLanguageFontSizeMin() * scaleFactor;
+                double maxSize = ConfigManager.Instance.GetLanguageFontSizeMax() * scaleFactor;
+                
+                // Safety check: ensure min <= max
+                if (minSize > maxSize) 
+                {
+                    double temp = minSize;
+                    minSize = maxSize;
+                    maxSize = temp;
+                }
+
+                double currentSize = Math.Max(minSize, Math.Min(maxSize, 24 * scaleFactor));
+                
+                int maxIterations = 8;
                 double lastDiff = double.MaxValue;
                 bool needsMoreHeight = false;
                 bool fitWidth = true;
@@ -279,26 +287,20 @@ namespace RSTGameTranslation
                     textBlock.FontSize = currentSize;
                     textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
 
-                    // Determine if we need more height for wrapped text
                     double minRequiredHeight = Height;
                     needsMoreHeight = false;
                     
-                    // If text is using most of the width, it's probably wrapping
                     if (textBlock.DesiredSize.Width >= Width * 0.9)
                     {
-                        // Increase minimum required height for wrapped text
                         needsMoreHeight = true;
                     }
 
-                    // Check for height and width differences
                     double heightDiff = Math.Abs(textBlock.DesiredSize.Height - minRequiredHeight);
                     bool isWidthOk = textBlock.DesiredSize.Width <= Width;
                     fitWidth = isWidthOk;
 
-                    // Calculate a combined difference for height and width
                     double currentDiff = heightDiff + (isWidthOk ? 0 : 100);
 
-                    // Early termination if we're close enough
                     if ((heightDiff < 2 && isWidthOk) || Math.Abs(lastDiff - currentDiff) < 0.5)
                     {
                         break;
@@ -306,58 +308,50 @@ namespace RSTGameTranslation
 
                     lastDiff = currentDiff;
 
-                    // If text is too tall or too wide, decrease font size
+                    // Logic điều chỉnh tăng/giảm
                     if (textBlock.DesiredSize.Height > minRequiredHeight * 0.95 || !isWidthOk)
                     {
+                        // Too big
                         maxSize = currentSize;
                         currentSize = (minSize + currentSize) / 2;
                     }
-                    // If text is too short or too narrow, increase font size
                     else if (textBlock.DesiredSize.Height < minRequiredHeight * 0.85 && isWidthOk)
                     {
+                        // Too small
                         minSize = currentSize;
                         currentSize = (currentSize + maxSize) / 2;
                     }
-                    // Good enough fit
                     else
                     {
                         break;
                     }
                 }
 
-                // Adjust border height if text needs more space due to wrapping
+                // Adjust border height logic (giữ nguyên)
                 if (needsMoreHeight && fitWidth)
                 {
-                    // Set border height to accommodate wrapped text
                     double requiredHeight = Math.Max(Height * 2, textBlock.DesiredSize.Height + 10);
                     Border.MaxHeight = requiredHeight;
                     textBlock.VerticalAlignment = VerticalAlignment.Top;
-                    Console.WriteLine($"Increasing border height to {requiredHeight} for wrapped text");
                 }
                 else if (fitWidth)
                 {
-                    // If text fits width but might need slight height adjustment
                     Border.MaxHeight = Math.Max(Height, textBlock.DesiredSize.Height + 5);
                 }
 
-                // Verify final size is within min/max range
+                // Finalize
                 double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
-                Console.WriteLine($"Fontsize change:-------------------- {finalSize}");
                 textBlock.FontSize = finalSize;
                 textBlock.LayoutTransform = Transform.Identity;
                 
-                // Cache the result for future use
-                if (_fontSizeCache.Count > 100) // Limit cache size
-                {
-                    _fontSizeCache.Clear(); // Simple strategy: clear all when too many entries
-                }
+                // Cache result
+                if (_fontSizeCache.Count > 100) _fontSizeCache.Clear();
                 _fontSizeCache[cacheKey] = finalSize;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in AdjustFontSize: {ex.Message}");
-                // Reset to defaults in case of any exception
-                textBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
+                textBlock.FontSize = 24;
                 textBlock.LayoutTransform = Transform.Identity;
             }
         }

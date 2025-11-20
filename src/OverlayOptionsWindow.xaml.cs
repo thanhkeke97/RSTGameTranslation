@@ -21,18 +21,24 @@ namespace RSTGameTranslation
         private Color _originalTextColor;
         private string _originalFont;
         private bool _originalFontOverrideEnabled;
+        private double _originalFontSizeMin;
+        private double _originalFontSizeMax;
         
         // Store current values for apply operation
         private Color _currentBackgroundColor;
         private Color _currentTextColor;
         private string _currentFont;
         private bool _currentFontOverrideEnabled;
+        private double _currentFontSizeMin;
+        private double _currentFontSizeMax;
         
         // Default values
         private readonly Color DEFAULT_BACKGROUND_COLOR = Color.FromArgb(128, 0, 0, 0); // Dark background
         private readonly Color DEFAULT_TEXT_COLOR = Colors.White;
         private readonly string DEFAULT_FONT = "Arial";
         private readonly bool DEFAULT_FONT_OVERRIDE = false;
+        private readonly double DEFAULT_FONT_SIZE_MIN = 10;
+        private readonly double DEFAULT_FONT_SIZE_MAX = 68;
 
         public OverlayOptionsWindow()
         {
@@ -59,12 +65,16 @@ namespace RSTGameTranslation
                 _originalTextColor = ConfigManager.Instance.GetOverlayTextColor();
                 _originalFont = ConfigManager.Instance.GetLanguageFontFamily();
                 _originalFontOverrideEnabled = ConfigManager.Instance.IsLanguageFontOverrideEnabled();
+                _originalFontSizeMin = ConfigManager.Instance.GetLanguageFontSizeMin();
+                _originalFontSizeMax = ConfigManager.Instance.GetLanguageFontSizeMax();
 
                 // Set current values to match original values
                 _currentBackgroundColor = _originalBackgroundColor;
                 _currentTextColor = _originalTextColor;
                 _currentFont = _originalFont;
                 _currentFontOverrideEnabled = _originalFontOverrideEnabled;
+                _currentFontSizeMin = _originalFontSizeMin;
+                _currentFontSizeMax = _originalFontSizeMax;
             }
             catch (Exception ex)
             {
@@ -82,6 +92,8 @@ namespace RSTGameTranslation
             _currentTextColor = DEFAULT_TEXT_COLOR;
             _currentFont = DEFAULT_FONT;
             _currentFontOverrideEnabled = DEFAULT_FONT_OVERRIDE;
+            _currentFontSizeMin = DEFAULT_FONT_SIZE_MIN;
+            _currentFontSizeMax = DEFAULT_FONT_SIZE_MAX;
         }
 
         private void UpdateUIFromSettings()
@@ -101,7 +113,12 @@ namespace RSTGameTranslation
 
                 // Update font override checkbox
                 languageFontOverrideCheckBox.IsChecked = _currentFontOverrideEnabled;
-                
+
+                // Update font size min
+                languageFontSizeMinTextBox.Text = _currentFontSizeMin.ToString();
+
+                // Update font size max
+                languageFontSizeMaxTextBox.Text = _currentFontSizeMax.ToString();
             }
             catch (Exception ex)
             {
@@ -177,19 +194,44 @@ namespace RSTGameTranslation
         {
             try
             {
+                // Validate font sizes
+                if (!double.TryParse(languageFontSizeMinTextBox.Text, out double minSize) ||
+                    !double.TryParse(languageFontSizeMaxTextBox.Text, out double maxSize))
+                {
+                    MessageBox.Show("Font sizes must be valid numbers.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (minSize < 0 || maxSize < 0)
+                {
+                    MessageBox.Show("Font sizes cannot be negative.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (minSize > maxSize)
+                {
+                    MessageBox.Show("Minimum font size cannot be greater than maximum font size.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 // Save settings to config
                 ConfigManager.Instance.SetValue(ConfigManager.OVERLAY_BACKGROUND_COLOR, ColorToHexString(
                     Color.FromArgb(255, _currentBackgroundColor.R, _currentBackgroundColor.G, _currentBackgroundColor.B)));
                 ConfigManager.Instance.SetValue(ConfigManager.OVERLAY_TEXT_COLOR, ColorToHexString(_currentTextColor));
-                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_FAMILY,languageFontFamilyComboBox.Text);
-                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_OVERRIDE, 
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_FAMILY, languageFontFamilyComboBox.Text);
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_OVERRIDE,
                     languageFontOverrideCheckBox.IsChecked == true ? "true" : "false");
+                
+                // Save validated font sizes
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_SIZE_MIN, minSize.ToString());
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_SIZE_MAX, maxSize.ToString());
+
                 // Save config to file
                 ConfigManager.Instance.SaveConfig();
+                TextObject.ClearCache();
                 var currentTexts = Logic.Instance.GetTextObjects();
                 foreach (var textObj in currentTexts)
                 {
-                    
                     textObj.UpdateUIElement(); 
                 }
                 MonitorWindow.Instance.RefreshOverlays();
