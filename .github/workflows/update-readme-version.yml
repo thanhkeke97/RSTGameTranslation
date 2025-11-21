@@ -34,9 +34,16 @@ jobs:
       - name: Update README badge
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          
+          # Update README.md (English)
           sed -i -E \
             "s|\[!\[Version\]\([^)]+\)\]|\[!\[Version\](https://img.shields.io/badge/version-${VERSION}-blue.svg)\]|" \
             README.md
+            
+          # Cập nhật README_vi.md (Tiếng Việt)
+          sed -i -E \
+            "s|\[!\[Phiên bản\]\([^)]+\)\]|\[!\[Phiên bản\](https://img.shields.io/badge/version-${VERSION}-blue.svg)\]|" \
+            README_vi.md
 
       # <--- REWORKED STEP --->
       - name: Commit, rebase & push if changed
@@ -44,8 +51,9 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name  "GitHub Action"
 
-          # Stage only if README actually changed
-          git add README.md
+          # Stage 2 file
+          git add README.md README_vi.md
+          
           if git diff --cached --quiet
           then
             echo "Badge already up-to-date – nothing to commit."
