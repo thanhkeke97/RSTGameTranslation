@@ -537,6 +537,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Translation Service -->
@@ -545,6 +547,7 @@
                                 <ComboBox x:Name="translationServiceComboBox" Grid.Row="0" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="0" SelectionChanged="TranslationServiceComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Gemini"/>
+                                    <ComboBoxItem Content="Groq"/>
                                     <ComboBoxItem Content="Ollama"/>
                                     <ComboBoxItem Content="ChatGPT"/>
                                     <ComboBoxItem Content="Mistral"/>
@@ -574,6 +577,29 @@
                                         <Hyperlink Click="GeminiApiLink_Click">https://ai.google.dev/tutorials/setup</Hyperlink>
                                     </TextBlock>
                                 </Grid>
+
+                                <!-- Groq API Key - Only visible when Groq is selected -->
+                                <TextBlock x:Name="groqApiKeyLabel" Text="Groq API Key:" Grid.Row="1" Grid.Column="0" 
+                                          VerticalAlignment="Top" Margin="0,8,10,0"/>
+                                <Grid Grid.Row="1" Grid.Column="1" Margin="0,5,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <PasswordBox x:Name="groqApiKeyPasswordBox" Grid.Row="0"
+                                             VerticalAlignment="Top" Margin="0,0,0,2" 
+                                             PasswordChanged="GroqApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
+                                             Tag="Groq"/>
+                                    <Button x:Name="viewGroqKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
+                                             Click="ViewApiKeysButton_Click" Tag="Groq" Width="70"/>
+                                    <Button x:Name="SaveGroqKeysButton" Content="Save Keys" Grid.Row="1" Tag="Gemini"
+                                            HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
+                                    <TextBlock x:Name="groqApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
+                                        <Run>Get API key from </Run>
+                                        <Hyperlink Click="GroqApiLink_Click">https://console.groq.com/keys</Hyperlink>
+                                    </TextBlock>
+                                </Grid>
                                 
                                 <!-- Gemini Model - Only visible when Gemini is selected -->
                                 <TextBlock x:Name="geminiModelLabel" Text="Gemini Model:" Grid.Row="2" Grid.Column="0" 
@@ -599,6 +625,32 @@
                                     <Button x:Name="viewGeminiModelsButton" Content="View Models" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewGeminiModelsButton_Click"
                                            ToolTip="Open Gemini models documentation in browser"/>
+                                </Grid>
+
+                                <!-- Groq Model - Only visible when Groq is selected -->
+                                <TextBlock x:Name="groqModelLabel" Text="Groq Model:" Grid.Row="2" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <Grid Grid.Row="2" Grid.Column="1" Margin="0,5" x:Name="groqModelGrid">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="groqModelComboBox" Grid.Column="0"
+                                            SelectionChanged="GroqModelComboBox_SelectionChanged"
+                                            LostFocus="GroqModelComboBox_LostFocus"
+                                            IsEditable="True">
+                                        <ComboBoxItem Content="qwen/qwen3-32b"/>
+                                        <ComboBoxItem Content="openai/gpt-oss-20b"/>
+                                        <ComboBoxItem Content="openai/gpt-oss-120b"/>
+                                        <ComboBoxItem Content="moonshotai/kimi-k2-instruct"/>
+                                        <ComboBoxItem Content="moonshotai/kimi-k2-instruct-0905"/>
+                                        <ComboBoxItem Content="meta-llama/llama-prompt-guard-2-86m"/>
+                                        <ComboBoxItem Content="meta-llama/llama-prompt-guard-2-22m"/>
+                                        <ComboBoxItem Content="meta-llama/llama-guard-4-12b"/>
+                                    </ComboBox>
+                                    <Button x:Name="viewGroqModelsButton" Content="View Models" Grid.Column="1"
+                                           Margin="5,0,0,0" Padding="5,0" Click="ViewGroqModelsButton_Click"
+                                           ToolTip="Open Groq models documentation in browser"/>
                                 </Grid>
                                 
                                 <!-- Mistral Model - Only visible when Mistral is selected -->

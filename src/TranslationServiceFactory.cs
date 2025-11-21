@@ -23,6 +23,7 @@ namespace RSTGameTranslation
                 "ChatGPT" => new ChatGptTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
                 "Mistral" => new MistralTranslationService(),
+                "Groq" => new GroqTranslationService(),
                 _ => new GeminiTranslationService() // Default to Gemini if unknown
             };
         }

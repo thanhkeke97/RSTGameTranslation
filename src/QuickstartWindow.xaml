@@ -428,6 +428,21 @@
                         </TextBlock>
                     </StackPanel>
 
+                    <!-- Groq API Key -->
+                    <StackPanel x:Name="GroqApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                        <TextBlock Text="Groq API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <PasswordBox x:Name="GroqApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GroqApiKeyPasswordBox_PasswordChanged"/>
+
+                        <TextBlock Text="Model:" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <ComboBox x:Name="GroqModelComboBox" Width="300" HorizontalAlignment="Left"/>
+
+                        <Button Content="Get API Key" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.groq.com/keys"/>
+
+                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
+                            Note: Groq provides good translations with a free tier available.
+                        </TextBlock>
+                    </StackPanel>
+
                     <!-- Mistral API Key -->
                     <StackPanel x:Name="MistralApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
                         <TextBlock Text="Mistral API Key:" FontWeight="Bold" Margin="0,0,0,5"/>

@@ -376,6 +376,18 @@ namespace RSTGameTranslation
                         Console.WriteLine($"Prompt saved for Mistral");
                     }
                 }
+                // Groq
+                string groq_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Groq");
+                if (!string.IsNullOrWhiteSpace(groq_prompt))
+                {
+                    // Save to config
+                    bool success = ConfigManager.Instance.SaveServicePrompt("Groq", groq_prompt);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Prompt saved for Groq");
+                    }
+                }
                 // Ollama
                 string ollama_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Ollama");
                 if (!string.IsNullOrWhiteSpace(ollama_prompt))

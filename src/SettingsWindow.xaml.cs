@@ -615,6 +615,9 @@ namespace RSTGameTranslation
                     case "Mistral":
                         passwordBox = mistralApiKeyPasswordBox;
                         break;
+                    case "Groq":
+                        passwordBox = groqApiKeyPasswordBox;
+                        break;
                 }
                 
                 if (passwordBox != null)
@@ -957,6 +960,8 @@ namespace RSTGameTranslation
 
             // Initialize API key for Gemini
             geminiApiKeyPasswordBox.Password = ConfigManager.Instance.GetGeminiApiKey();
+            // Initialize API key for Groq
+            groqApiKeyPasswordBox.Password = ConfigManager.Instance.GetGroqApiKey();
 
             // Initialize Ollama settings
             ollamaUrlTextBox.Text = ConfigManager.Instance.GetOllamaUrl();
@@ -1651,6 +1656,7 @@ namespace RSTGameTranslation
                 bool isChatGptSelected = selectedService == "ChatGPT";
                 bool isMistralSelected = selectedService == "Mistral";
                 bool isGoogleTranslateSelected = selectedService == "Google Translate";
+                bool isGroqSelected = selectedService == "Groq";
 
                 // Make sure the window is fully loaded and controls are initialized
                 if (ollamaUrlLabel == null || ollamaUrlTextBox == null ||
@@ -1661,6 +1667,8 @@ namespace RSTGameTranslation
                     lmstudioModelLabel == null || lmstudioModelGrid == null ||
                     geminiApiKeyLabel == null || geminiApiKeyPasswordBox == null ||
                     geminiModelLabel == null || geminiModelGrid == null ||
+                    groqApiKeyLabel == null || groqApiKeyPasswordBox == null ||
+                    groqModelLabel == null || groqModelGrid == null ||
                     mistralApiKeyLabel == null || mistralApiKeyPasswordBox == null ||
                     mistralModelLabel == null || mistralModelGrid == null ||
                     chatGptApiKeyLabel == null || chatGptApiKeyGrid == null ||
@@ -1681,6 +1689,15 @@ namespace RSTGameTranslation
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 SaveGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+
+                // Show/hide Groq-specific settings
+                groqApiKeyLabel.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
+                groqApiKeyPasswordBox.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
+                groqApiKeyHelpText.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
+                groqModelLabel.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
+                groqModelGrid.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
+                viewGroqKeysButton.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
+                SaveGroqKeysButton.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Mistral-specific settings
                 mistralApiKeyLabel.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -1770,11 +1787,42 @@ namespace RSTGameTranslation
                     // Reattach event handler
                     geminiModelComboBox.SelectionChanged += GeminiModelComboBox_SelectionChanged;
                 }
+                else if (isGroqSelected)
+                {
+                    groqApiKeyPasswordBox.Password = ConfigManager.Instance.GetGroqApiKey();
+
+                    // Set selected Groq model
+                    string groqModel = ConfigManager.Instance.GetGroqModel();
+
+                    // Temporarily remove event handlers to avoid triggering changes
+                    groqModelComboBox.SelectionChanged -= GroqModelComboBox_SelectionChanged;
+
+                    // First try to find exact match in dropdown items
+                    bool found = false;
+                    foreach (ComboBoxItem item in groqModelComboBox.Items)
+                    {
+                        if (string.Equals(item.Content?.ToString(), groqModel, StringComparison.OrdinalIgnoreCase))
+                        {
+                            groqModelComboBox.SelectedItem = item;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    // If not found in dropdown, set as custom text
+                    if (!found)
+                    {
+                        groqModelComboBox.Text = groqModel;
+                    }
+
+                    // Reattach event handler
+                    groqModelComboBox.SelectionChanged += GroqModelComboBox_SelectionChanged;
+                }
                 else if (isMistralSelected)
                 {
                     mistralApiKeyPasswordBox.Password = ConfigManager.Instance.GetMistralApiKey();
 
-                    // Set selected Gemini model
+                    // Set selected Mistral model
                     string mistralModel = ConfigManager.Instance.GetMistralModel();
 
                     // Temporarily remove event handlers to avoid triggering changes
@@ -2033,12 +2081,29 @@ namespace RSTGameTranslation
             }
         }
 
+        // Groq API Key changed
+        private void GroqApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // string apiKey = geminiApiKeyPasswordBox.Password.Trim();
+
+                // // Update the config
+                // ConfigManager.Instance.SetGeminiApiKey(apiKey);
+                Console.WriteLine("Groq API key updated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Groq API key: {ex.Message}");
+            }
+        }
+
         // Mistral API Key changed
         private void MistralApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             try
             {
-                Console.WriteLine("Gemini API key updated");
+                Console.WriteLine("Mistral API key updated");
             }
             catch (Exception ex)
             {
@@ -2182,6 +2247,11 @@ namespace RSTGameTranslation
             OpenUrl("https://ai.google.dev/tutorials/setup");
         }
 
+        private void GroqApiLink_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://console.groq.com/keys");
+        }
+
         private void MistralApiLink_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://docs.mistral.ai/getting-started");
@@ -2230,6 +2300,52 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating Gemini model: {ex.Message}");
+            }
+        }
+
+        private void GroqModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string model;
+
+                // Handle both dropdown selection and manually typed values
+                if (groqModelComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    model = selectedItem.Content?.ToString() ?? "qwen/qwen3-32b";
+                }
+                else
+                {
+                    // For manually entered text
+                    model = groqModelComboBox.Text?.Trim() ?? "qwen/qwen3-32b";
+                }
+
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetGroqModel(model);
+                    Console.WriteLine($"Groq model set to: {model}");
+
+                    // Trigger retranslation if the current service is Groq
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Groq")
+                    {
+                        Console.WriteLine("Groq model changed. Triggering retranslation...");
+
+                        // Reset the hash to force a retranslation
+                        Logic.Instance.ResetHash();
+
+                        // Clear any existing text objects to refresh the display
+                        Logic.Instance.ClearAllTextObjects();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Groq model: {ex.Message}");
             }
         }
 
@@ -2284,6 +2400,11 @@ namespace RSTGameTranslation
             OpenUrl("https://ai.google.dev/gemini-api/docs/models");
         }
 
+        private void ViewGroqModelsButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://console.groq.com/docs/models");
+        }
+
         private void ViewMistralModelsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://docs.mistral.ai/getting-started/models/models_overview/");
@@ -2322,6 +2443,39 @@ namespace RSTGameTranslation
             }
         }
 
+        private void GroqModelComboBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string model = groqModelComboBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetGroqModel(model);
+                    Console.WriteLine($"Groq model set from text input to: {model}");
+
+                    // Trigger retranslation if the current service is Groq
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Groq")
+                    {
+                        // Reset the hash to force a retranslation
+                        Logic.Instance.ResetHash();
+
+                        // Clear any existing text objects to refresh the display
+                        Logic.Instance.ClearAllTextObjects();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Groq model from text input: {ex.Message}");
+            }
+        }
+
         private void MistralModelComboBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -2338,8 +2492,8 @@ namespace RSTGameTranslation
                     ConfigManager.Instance.SetMistralModel(model);
                     Console.WriteLine($"Mistral model set from text input to: {model}");
 
-                    // Trigger retranslation if the current service is Gemini
-                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Gemini")
+                    // Trigger retranslation if the current service is Mistral
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Mistral")
                     {
                         // Reset the hash to force a retranslation
                         Logic.Instance.ResetHash();

@@ -306,6 +306,7 @@ namespace RSTGameTranslation
             TranslationServiceComboBox.Items.Add("Google Translate");
             TranslationServiceComboBox.Items.Add("ChatGPT");
             TranslationServiceComboBox.Items.Add("Gemini");
+            TranslationServiceComboBox.Items.Add("Groq");
             TranslationServiceComboBox.Items.Add("Mistral");
             TranslationServiceComboBox.Items.Add("Ollama");
             TranslationServiceComboBox.Items.Add("LM Studio");
@@ -321,6 +322,9 @@ namespace RSTGameTranslation
                     break;
                 case "gemini":
                     TranslationServiceComboBox.SelectedItem = "Gemini";
+                    break;
+                case "groq":
+                    TranslationServiceComboBox.SelectedItem = "Groq";
                     break;
                 case "mistral":
                     TranslationServiceComboBox.SelectedItem = "Mistral";
@@ -340,6 +344,7 @@ namespace RSTGameTranslation
             GoogleTranslateApiKeyPasswordBox.Password = configManager.GetGoogleTranslateApiKey() ?? "";
             ChatGptApiKeyPasswordBox.Password = configManager.GetChatGptApiKey() ?? "";
             GeminiApiKeyPasswordBox.Password = configManager.GetGeminiApiKey() ?? "";
+            GroqApiKeyPasswordBox.Password = configManager.GetGroqApiKey() ?? "";
             MistralApiKeyPasswordBox.Password = configManager.GetMistralApiKey() ?? "";
 
             // Load ChatGPT models
@@ -354,6 +359,12 @@ namespace RSTGameTranslation
             GeminiModelComboBox.Items.Add("gemma-3-12b-it");
             GeminiModelComboBox.Items.Add("gemini-2.0-flash-lite");
             GeminiModelComboBox.Items.Add("gemini-2.5-flash-lite");
+
+            // Load Groq models
+            GroqModelComboBox.Items.Clear();
+            GroqModelComboBox.Items.Add("openai/gpt-oss-20b");
+            GroqModelComboBox.Items.Add("moonshotai/kimi-k2-instruct-0905");
+            GroqModelComboBox.Items.Add("qwen/qwen3-32b");
 
             // Load Mistral models
             MistralModelComboBox.Items.Clear();
@@ -383,7 +394,18 @@ namespace RSTGameTranslation
                 GeminiModelComboBox.SelectedItem = "gemini-2.5-flash-lite";
             }
 
-            // Set selected Gemini model
+            // Set selected Groq model
+            string groqModel = configManager.GetGroqModel();
+            if (!string.IsNullOrEmpty(groqModel))
+            {
+                GroqModelComboBox.SelectedItem = groqModel;
+            }
+            else
+            {
+                GroqModelComboBox.SelectedItem = "moonshotai/kimi-k2-instruct-0905";
+            }
+
+            // Set selected  Mistral model
             string mistralModel = configManager.GetMistralModel();
             if (!string.IsNullOrEmpty(mistralModel))
             {
@@ -437,6 +459,7 @@ namespace RSTGameTranslation
             GoogleTranslateApiKeyPanel.Visibility = Visibility.Collapsed;
             ChatGptApiKeyPanel.Visibility = Visibility.Collapsed;
             GeminiApiKeyPanel.Visibility = Visibility.Collapsed;
+            GroqApiKeyPanel.Visibility = Visibility.Collapsed;
             MistralApiKeyPanel.Visibility = Visibility.Collapsed;
             OllamaModelPanel.Visibility = Visibility.Collapsed;
             LMStudioModelPanel.Visibility = Visibility.Collapsed;
@@ -456,6 +479,9 @@ namespace RSTGameTranslation
                         break;
                     case "Gemini":
                         GeminiApiKeyPanel.Visibility = Visibility.Visible;
+                        break;
+                    case "Groq":
+                        GroqApiKeyPanel.Visibility = Visibility.Visible;
                         break;
                     case "Mistral":
                         MistralApiKeyPanel.Visibility = Visibility.Visible;
@@ -506,6 +532,33 @@ namespace RSTGameTranslation
         private void GeminiApiKeyPasswordBox_PasswordChanged(object sender, System.Windows.Input.KeyEventArgs e)
         {
             configManager.SetGeminiApiKey(GeminiApiKeyPasswordBox.Password);
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                if (sender is PasswordBox passwordBox)
+                {
+                    string apiKey = passwordBox.Password.Trim();
+                    string? serviceType = TranslationServiceComboBox.SelectedItem.ToString();
+
+                    if (!string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(serviceType))
+                    {
+                        // Add Api key to list
+                        ConfigManager.Instance.AddApiKey(serviceType, apiKey);
+
+                        // Clear textbox content
+                        passwordBox.Password = "";
+
+                        Console.WriteLine($"Added new API key for {serviceType}");
+
+
+                        System.Windows.MessageBox.Show($"API key added for {serviceType}.", "API Key Added",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+        }
+        private void GroqApiKeyPasswordBox_PasswordChanged(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            configManager.SetGroqApiKey(GroqApiKeyPasswordBox.Password);
             if (e.Key == System.Windows.Input.Key.Enter)
             {
                 if (sender is PasswordBox passwordBox)
@@ -642,6 +695,9 @@ namespace RSTGameTranslation
                 case "gemini":
                     TranslationServiceSummaryText.Text = "Gemini";
                     break;
+                case "groq":
+                    TranslationServiceSummaryText.Text = "Groq";
+                    break;
                 case "mistral":
                     TranslationServiceSummaryText.Text = "Mistral";
                     break;
@@ -740,7 +796,11 @@ namespace RSTGameTranslation
             }
             else if (TranslationServiceComboBox.SelectedItem.ToString() == "Gemini")
             {
-                configManager.SetGeminiModel(GeminiModelComboBox.SelectedItem.ToString() ?? "gemini-2.0-flash-lite");
+                configManager.SetGeminiModel(GeminiModelComboBox.SelectedItem.ToString() ?? "gemini-2.5-flash-lite");
+            }
+            else if (TranslationServiceComboBox.SelectedItem.ToString() == "Groq")
+            {
+                configManager.SetGroqModel(GroqModelComboBox.SelectedItem.ToString() ?? "moonshotai/kimi-k2-instruct-0905");
             }
             else if (TranslationServiceComboBox.SelectedItem.ToString() == "Mistral")
             {

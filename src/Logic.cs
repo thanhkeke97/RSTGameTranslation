@@ -2330,7 +2330,7 @@ namespace RSTGameTranslation
                         }
                     }
                 }
-                else if (currentService == "Mistral")
+                else if (currentService == "Mistral" || currentService == "Groq")
                 {
                     // Mistral response structure:
                     // {"id": "...", "object": "chat.completion", "created": ..., "model": "...", 
