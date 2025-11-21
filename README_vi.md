@@ -18,7 +18,7 @@
 ## ✨ Tính năng
 
 - **Dịch thời gian thực** với nhiều tùy chọn OCR (OneOCR, Windows OCR, PaddleOCR, EasyOCR, RapidOCR)
-- **Dịch thuật bằng AI** với Gemini, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
+- **Dịch thuật bằng AI** với Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
 - **Nhận dạng thông minh** với nhận biết ngữ cảnh game và phát hiện tên nhân vật
 - **Hiển thị linh hoạt** với overlay và cửa sổ chat
 - **Chức năng Text-to-Speech** (đọc văn bản)
@@ -58,7 +58,7 @@
 
 4. **Dịch vụ dịch thuật**:
    - Không cần API: Google Translate
-   - Cần API: Gemini, ChatGPT (thêm khóa API trong Cài đặt)
+   - Cần API: Gemini, Groq, Mistral, ChatGPT (thêm khóa API trong Cài đặt)
    - Tùy chọn cục bộ: Ollama, LM Studio
 
 5. **Bắt đầu dịch**:

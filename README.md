@@ -18,7 +18,7 @@
 ## ✨ Features
 
 - **Real-time Translation** with multiple OCR options (OneOCR, Windows OCR, PaddleOCR, EasyOCR, RapidOCR)
-- **AI-Powered Translation** with Gemini, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
+- **AI-Powered Translation** with Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
 - **Smart Recognition** with game context awareness and character name detection
 - **Flexible Display** options with overlay and chat window
 - **Text-to-Speech** functionality
@@ -58,7 +58,7 @@
 
 4. **Translation Services**:
    - No API needed: Google Translate
-   - API required: Gemini, ChatGPT (add keys in Settings)
+   - API required: Gemini, Groq, Mistral, ChatGPT (add keys in Settings)
    - Local options: Ollama, LM Studio
 
 5. **Start translating**:

@@ -493,13 +493,10 @@
                                 <Run FontWeight="Bold">For best quality:</Run> ChatGPT (requires paid API key)
                             </TextBlock>
                             <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
-                                <Run FontWeight="Bold">For offline use:</Run> Ollama (requires local installation)
+                                <Run FontWeight="Bold">For offline use:</Run> Ollama, LM Studio (requires local installation)
                             </TextBlock>
                             <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
-                                <Run FontWeight="Bold">For offline use:</Run> LM Studio (requires local installation)
-                            </TextBlock>
-                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
-                                <Run FontWeight="Bold">For balance of quality/cost:</Run> Gemini, Mistral (free tier available)
+                                <Run FontWeight="Bold">For balance of quality/cost:</Run> Gemini, Groq, Mistral (free tier available)
                             </TextBlock>
                         </StackPanel>
                     </Border>
