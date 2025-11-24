@@ -1180,6 +1180,23 @@ namespace RSTGameTranslation
         // Display OCR results from JSON - processes character-level blocks
         private void DisplayOcrResults(JsonElement root)
         {
+            Bitmap? sourceBitmap = null;
+            if (ConfigManager.Instance.IsAutoSetOverlayBackground())
+            {
+                try 
+                {
+                    byte[] imageBytes = File.ReadAllBytes(outputPath);
+                    using (var ms = new MemoryStream(imageBytes))
+                    {
+                        sourceBitmap = new Bitmap(ms);
+                    }
+                }
+                catch (Exception ex) 
+                {
+                    Console.WriteLine($"Error loading background image: {ex.Message}");
+                }
+            }
+
             try
             {
                 // Check for results array
@@ -1268,7 +1285,7 @@ namespace RSTGameTranslation
                             
                             // Handle dpiscale for multi monitor
                             double dpiScale = MonitorWindow.Instance.dpiScale;
-                            CreateTextObjectAtPosition(text, x, y, width / dpiScale, height / dpiScale, confidence);
+                            CreateTextObjectAtPosition(text, x, y, width / dpiScale, height / dpiScale, confidence, sourceBitmap);
                                 
                         }
                     }
@@ -1279,10 +1296,17 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error displaying OCR results: {ex.Message}");
                 OnFinishedThings(true);
             }
+            finally
+            {
+                if (sourceBitmap != null)
+                {
+                    sourceBitmap.Dispose();
+                }
+            }
         }
         
         // Create a text object at the specified position with confidence info
-        private void CreateTextObjectAtPosition(string text, double x, double y, double width, double height, double confidence)
+        private void CreateTextObjectAtPosition(string text, double x, double y, double width, double height, double confidence, Bitmap? sourceBitmap)
         {
             try
             {
@@ -1291,7 +1315,7 @@ namespace RSTGameTranslation
                 {
                     // Run on UI thread to ensure STA compliance
                     Application.Current.Dispatcher.Invoke(() => 
-                        CreateTextObjectAtPosition(text, x, y, width, height, confidence));
+                        CreateTextObjectAtPosition(text, x, y, width, height, confidence, sourceBitmap));
                     return;
                 }
                 
@@ -1362,52 +1386,41 @@ namespace RSTGameTranslation
                 }
                 Color textColor;
                 Color bgColor;
-                if(ConfigManager.Instance.IsAutoSetOverlayBackground())
+                if (ConfigManager.Instance.IsAutoSetOverlayBackground() && sourceBitmap != null)
                 {
-                    // Get dominant of color
-                    System.Drawing.Color dominantColor = System.Drawing.Color.Black;
-
                     try
                     {
-                        using (System.Drawing.Image image = System.Drawing.Image.FromFile(outputPath))
+                        double dpiScale = MonitorWindow.Instance.dpiScale;
+
+                        int bitmapX = (int)(x * dpiScale);
+                        int bitmapY = (int)(y * dpiScale);
+                        int bitmapWidth = Math.Max(1, (int)(width * dpiScale));
+                        int bitmapHeight = Math.Max(1, (int)(height * dpiScale));
+
+                        if (bitmapWidth > 0 && bitmapHeight > 0)
                         {
-                            Bitmap bitmap = new Bitmap(image);
-                            int bitmapX = (int)x;
-                            int bitmapY = (int)y;
-                            int bitmapWidth = Math.Max(1, (int)width);
-                            int bitmapHeight = Math.Max(1, (int)height);
+                            // using sourceBitmap
+                            System.Drawing.Color dominantColor = ColorUtils.GetDominantColor(
+                                sourceBitmap,
+                                bitmapX, bitmapY, bitmapWidth, bitmapHeight);
 
-                            if (bitmapWidth > 0 && bitmapHeight > 0)
-                            {
-                                dominantColor = ColorUtils.GetDominantColor(
-                                    bitmap,
-                                    bitmapX, bitmapY, bitmapWidth, bitmapHeight);
-
-                                bgColor = ColorUtils.CreateBackgroundColor(dominantColor);
-
-                                textColor = ColorUtils.GetContrastingTextColor(dominantColor);
-
-                                Console.WriteLine($"Detected dominant color: R={dominantColor.R}, G={dominantColor.G}, B={dominantColor.B}");
-                            }
-                            else
-                            {
-                                textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
-                                bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
-                            }
+                            bgColor = ColorUtils.CreateBackgroundColor(dominantColor);
+                            textColor = ColorUtils.GetContrastingTextColor(dominantColor);
                         }
-                        
+                        else 
+                        {
+                            // Fallback if size is invalid
+                            textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
+                            bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error detecting dominant color: {ex.Message}");
+                        Console.WriteLine($"Error getting dominant color: {ex.Message}");
+                        // Fallback to default colors
                         textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
                         bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
                     }
-                }
-                else
-                {
-                    textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
-                    bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
                 }
                 
                 SolidColorBrush textBrush = new SolidColorBrush(textColor);
