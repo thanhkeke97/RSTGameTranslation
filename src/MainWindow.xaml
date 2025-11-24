@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
         Title="Game Translation Tool" 
-        Height="600" Width="1250"
+        Height="700" Width="1350"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -17,67 +17,113 @@
         <WindowChrome ResizeBorderThickness="15" CaptionHeight="10" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
       
-    <Window.Resources>
-        <!-- Button Style -->
+        <Window.Resources>
+        <SolidColorBrush x:Key="WindowBackground" Color="#181818"/>
+        <SolidColorBrush x:Key="CardBackground" Color="#252526"/>
+        <SolidColorBrush x:Key="PrimaryText" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SecondaryText" Color="#AAAAAA"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#3F3F46"/>
+
         <Style x:Key="ModernButton" TargetType="Button">
-            <Setter Property="Background" Value="#FF2D2D30"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#44FFFFFF"/>
-            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Background" Value="#333333"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
             <Setter Property="Margin" Value="4,0"/>
-            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="MinWidth" Value="80"/>
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Height" Value="32"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <Border x:Name="border" 
+                                    Background="{TemplateBinding Background}" 
+                                    CornerRadius="6"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border x:Name="overlay" Background="White" CornerRadius="6" Opacity="0" IsHitTestVisible="False"/>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#FF3E3E42"/>
-                                <Setter Property="BorderBrush" Value="#88FFFFFF"/>
+                                <Setter TargetName="overlay" Property="Opacity" Value="0.1"/>
+                                <Setter Property="Cursor" Value="Hand"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#FF007ACC"/>
-                                <Setter Property="BorderBrush" Value="#AAFFFFFF"/>
+                                <Setter TargetName="overlay" Property="Opacity" Value="0.2"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Direction="270" ShadowDepth="2" BlurRadius="8" Opacity="0.2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Group Border Style -->
+        <Style x:Key="GroupBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#0FFFFFFF"/> 
+            <Setter Property="BorderBrush" Value="#33FFFFFF"/> 
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Margin" Value="0,0,12,0"/> 
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Group Label Style -->
+        <Style x:Key="GroupLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#99FFFFFF"/> 
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
         <!-- Close Button Style -->
         <Style x:Key="CloseButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="MinWidth" Value="30"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#FFE81123"/>
+                    <Setter Property="Background" Value="#E81123"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
     
-    <Grid Background="#CC101010">
-        <!-- Main border for resizing -->
-        <Border Name="MainBorder" BorderThickness="1" BorderBrush="#3FFFFFFF" Background="#CC101010" CornerRadius="6">
+    <Grid Background="Transparent">
+        <Border Name="MainBorder" BorderThickness="1" BorderBrush="#33FFFFFF" Background="#F2121212" CornerRadius="10">
+                <Border.Effect>
+                <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
+                </Border.Effect>
             <Grid>
                 <!-- Top control bar with dedicated resize area -->
-                <Grid Height="60" VerticalAlignment="Top">
+                <Grid Height="85" VerticalAlignment="Top">
                     <!-- Top resize strip - 10px height -->
                     <Border Height="10" VerticalAlignment="Top" Background="Transparent" Cursor="SizeNS"
                            WindowChrome.IsHitTestVisibleInChrome="False"/>
                     
                     <!-- Actual header with content - shifted down by 10px -->
-                    <Border Name="HeaderBorder" Background="#CC1E1E1E" Margin="0,10,0,0" CornerRadius="6,6,0,0"
+                    <Border Name="HeaderBorder" Background="#1E1E1E" Margin="0,10,0,0" CornerRadius="10,10,0,0"
                             MouseLeftButtonDown="Header_MouseLeftButtonDown"
                             WindowChrome.IsHitTestVisibleInChrome="True">
                     <Grid>
@@ -88,127 +134,104 @@
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
                                      Margin="10,0" VerticalAlignment="Center" 
                                      WindowChrome.IsHitTestVisibleInChrome="True">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <Button x:Name="hideButton" Content="Hide" Style="{StaticResource ModernButton}"
-                                        Background="#FF5F5F5F" Visibility="Collapsed"
-                                        Click="HideButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        
-                                <Button x:Name="toggleButton" Content="Start" Style="{StaticResource ModernButton}"
-                                        Background="#FF14B414"
-                                        Click="OnStartButtonToggleClicked" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                
-                                <!-- Hidden Language ComboBoxes (for settings synchronization) -->
-                                <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
-                                          WindowChrome.IsHitTestVisibleInChrome="True"
-                                          SelectionChanged="SourceLanguageComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="ja"/>
-                                    <ComboBoxItem Content="en"/>
-                                    <ComboBoxItem Content="ch_sim"/>
-                                    <ComboBoxItem Content="ch_tra"/>
-                                    <ComboBoxItem Content="ko"/>
-                                    <ComboBoxItem Content="vi"/>
-                                    <ComboBoxItem Content="fr"/>
-                                    <ComboBoxItem Content="ru"/>
-                                    <ComboBoxItem Content="de"/>
-                                    <ComboBoxItem Content="es"/>
-                                    <ComboBoxItem Content="it"/>
-                                    <ComboBoxItem Content="hi"/>
-                                    <ComboBoxItem Content="pt"/>
-                                    <ComboBoxItem Content="ar"/>
-                                    <ComboBoxItem Content="nl"/>
-                                    <ComboBoxItem Content="pl"/>
-                                    <ComboBoxItem Content="ro"/>
-                                    <ComboBoxItem Content="fa"/>
-                                    <ComboBoxItem Content="cs"/>
-                                    <ComboBoxItem Content="id"/>
-                                    <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="hr"/>
-                                    <ComboBoxItem Content="tr"/>
-                                </ComboBox>
-                                <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Margin="0" Visibility="Collapsed"
-                                          WindowChrome.IsHitTestVisibleInChrome="True"
-                                          SelectionChanged="TargetLanguageComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="ja"/>
-                                    <ComboBoxItem Content="en"/>
-                                    <ComboBoxItem Content="ch_sim"/>
-                                    <ComboBoxItem Content="ch_tra"/>
-                                    <ComboBoxItem Content="ko"/>
-                                    <ComboBoxItem Content="vi"/>
-                                    <ComboBoxItem Content="fr"/>
-                                    <ComboBoxItem Content="ru"/>
-                                    <ComboBoxItem Content="de"/>
-                                    <ComboBoxItem Content="es"/>
-                                    <ComboBoxItem Content="it"/>
-                                    <ComboBoxItem Content="hi"/>
-                                    <ComboBoxItem Content="pt"/>
-                                    <ComboBoxItem Content="ar"/>
-                                    <ComboBoxItem Content="nl"/>
-                                    <ComboBoxItem Content="pl"/>
-                                    <ComboBoxItem Content="ro"/>
-                                    <ComboBoxItem Content="fa"/>
-                                    <ComboBoxItem Content="cs"/>
-                                    <ComboBoxItem Content="id"/>
-                                    <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="hr"/>
-                                    <ComboBoxItem Content="tr"/>
-                                </ComboBox>
-                                
-                                <!-- Monitor Toggle Button -->
-                                <Button x:Name="monitorButton" Content="Overlay" Style="{StaticResource ModernButton}"
-                                        Background="#FF4569B0"
-                                        Click="MonitorButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        
-                                <!-- ChatBox Toggle Button -->
-                                <Button x:Name="chatBoxButton" Content="ChatBox" Style="{StaticResource ModernButton}"
-                                        Background="#FF45B069"
-                                        Click="ChatBoxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        
-                                <!-- Listen Toggle Button -->
-                                <Button x:Name="listenButton" Content="Listen" Style="{StaticResource ModernButton}"
-                                        Background="#FF4577B0" Visibility="Collapsed"
-                                        Click="ListenButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        
-                                <!-- Log Console Toggle Button -->
-                                <Button x:Name="logButton" Content="Log" Style="{StaticResource ModernButton}"
-                                        Background="#FF9945B0"
-                                        Click="LogButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        
-                                <!-- Settings Toggle Button -->
-                                <Button x:Name="settingsButton" Content="Settings" Style="{StaticResource ModernButton}"
-                                        Background="#6C757D"
-                                        Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">  
+                                <!-- === GROUP 1: MAIN FUNCTIONS === -->
+                                <Border Style="{StaticResource GroupBorderStyle}">
+                                    <StackPanel Orientation="Vertical">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button x:Name="toggleButton" Content="Start" Style="{StaticResource ModernButton}"
+                                                    Background="#FF14B414" FontWeight="Bold" MinWidth="100"
+                                                    Click="OnStartButtonToggleClicked" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                            
+                                            <!-- hidden controls -->
+                                            <Button x:Name="hideButton" Content="Hide" Visibility="Collapsed" Click="HideButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                            <Button x:Name="listenButton" Content="Listen" Visibility="Collapsed" Click="ListenButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                            <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Visibility="Collapsed" SelectionChanged="SourceLanguageComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="ja"/><ComboBoxItem Content="en"/><ComboBoxItem Content="ch_sim"/><ComboBoxItem Content="ch_tra"/><ComboBoxItem Content="ko"/><ComboBoxItem Content="vi"/><ComboBoxItem Content="fr"/><ComboBoxItem Content="ru"/><ComboBoxItem Content="de"/><ComboBoxItem Content="es"/><ComboBoxItem Content="it"/><ComboBoxItem Content="hi"/><ComboBoxItem Content="pt"/><ComboBoxItem Content="ar"/><ComboBoxItem Content="nl"/><ComboBoxItem Content="pl"/><ComboBoxItem Content="ro"/><ComboBoxItem Content="fa"/><ComboBoxItem Content="cs"/><ComboBoxItem Content="id"/><ComboBoxItem Content="th"/><ComboBoxItem Content="hr"/><ComboBoxItem Content="tr"/>
+                                            </ComboBox>
+                                            <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Visibility="Collapsed" SelectionChanged="TargetLanguageComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="ja"/><ComboBoxItem Content="en"/><ComboBoxItem Content="ch_sim"/><ComboBoxItem Content="ch_tra"/><ComboBoxItem Content="ko"/><ComboBoxItem Content="vi"/><ComboBoxItem Content="fr"/><ComboBoxItem Content="ru"/><ComboBoxItem Content="de"/><ComboBoxItem Content="es"/><ComboBoxItem Content="it"/><ComboBoxItem Content="hi"/><ComboBoxItem Content="pt"/><ComboBoxItem Content="ar"/><ComboBoxItem Content="nl"/><ComboBoxItem Content="pl"/><ComboBoxItem Content="ro"/><ComboBoxItem Content="fa"/><ComboBoxItem Content="cs"/><ComboBoxItem Content="id"/><ComboBoxItem Content="th"/><ComboBoxItem Content="hr"/><ComboBoxItem Content="tr"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <TextBlock Text="Control" Style="{StaticResource GroupLabelStyle}"/>
+                                    </StackPanel>
+                                </Border>
 
-                                <!-- Select Area Button -->
-                                <Button x:Name="selectAreaButton" Content="SelectArea" Style="{StaticResource ModernButton}"
-                                        Background="#FFB07D45"
-                                        Click="SelectAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                <!-- === GROUP 2: ZONE ACTIONS === -->
+                                <Border Style="{StaticResource GroupBorderStyle}">
+                                    <StackPanel Orientation="Vertical">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button x:Name="selectAreaButton" Content="Select Area" Style="{StaticResource ModernButton}"
+                                                    Background="#FFB07D45"
+                                                    Click="SelectAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
-                                <Button x:Name="showAreaButton" Content="ShowArea" Style="{StaticResource ModernButton}"
-                                        Background="#FF9945B0"
-                                        Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                            <Button x:Name="selectWindowButton" Content="Select Window" Style="{StaticResource ModernButton}"
+                                                    Background="#456BA0"
+                                                    Click="SelectWindowButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
-                                <!-- OCR Server Buttons -->
-                                <Button x:Name="btnSetupOcrServer" Content="SetupOCR" Style="{StaticResource ModernButton}"
-                                        Background="#FF4577B0" 
-                                        Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                
-                                <Button x:Name="btnClearSelectionArea" Content="ClearArea" Style="{StaticResource ModernButton}"
-                                        Background="#FF4577B0" 
-                                        Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        
-                                <Button x:Name="btnStartOcrServer" Content="StartOCR" Style="{StaticResource ModernButton}"
-                                        Background="#FF4577B0" 
-                                        Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        
-                                <Button x:Name="btnStopOcrServer" Content="StopOCR" Style="{StaticResource ModernButton}"
-                                        Background="#DC3545"
-                                        Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                            <Button x:Name="btnClearSelectionArea" Content="Clear" Style="{StaticResource ModernButton}"
+                                                    Background="#FF5F5F5F" MinWidth="60"
+                                                    Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
 
-                                <!-- Select Window Button -->
-                                <Button x:Name="selectWindowButton" Content="Select Window" 
-                                        Style="{StaticResource ModernButton}"
-                                        Click="SelectWindowButton_Click" 
-                                        Background="#456BA0" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                            <Button x:Name="showAreaButton" Content="Show" Style="{StaticResource ModernButton}"
+                                                    Background="#FF5F5F5F" MinWidth="60"
+                                                    Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Capture Area" Style="{StaticResource GroupLabelStyle}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- === GROUP 3: DISPLAY MODE === -->
+                                <Border Style="{StaticResource GroupBorderStyle}">
+                                    <StackPanel Orientation="Vertical">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button x:Name="monitorButton" Content="Overlay" Style="{StaticResource ModernButton}"
+                                                    Background="#FF4569B0"
+                                                    Click="MonitorButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                                    
+                                            <Button x:Name="chatBoxButton" Content="ChatBox" Style="{StaticResource ModernButton}"
+                                                    Background="#FF45B069"
+                                                    Click="ChatBoxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Display Results" Style="{StaticResource GroupLabelStyle}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- === GROUP 4: SYSTEM === -->
+                                <Border Style="{StaticResource GroupBorderStyle}">
+                                    <StackPanel Orientation="Vertical">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button x:Name="settingsButton" Content="Settings" Style="{StaticResource ModernButton}"
+                                                    Background="#6C757D"
+                                                    Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                                    
+                                            <Button x:Name="logButton" Content="Log" Style="{StaticResource ModernButton}"
+                                                    Background="#FF9945B0"
+                                                    Click="LogButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        </StackPanel>
+                                        <TextBlock Text="System" Style="{StaticResource GroupLabelStyle}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- === GROUP 5: OCR SERVER === -->
+                                <Border Style="{StaticResource GroupBorderStyle}" Margin="0">
+                                    <StackPanel Orientation="Vertical">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button x:Name="btnSetupOcrServer" Content="Setup OCR" Style="{StaticResource ModernButton}"
+                                                    Background="#FF4577B0"
+                                                    Click="btnSetupOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                                    
+                                            <Button x:Name="btnStartOcrServer" Content="Start OCR" Style="{StaticResource ModernButton}"
+                                                    Background="#FF4577B0" 
+                                                    Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                                    
+                                            <Button x:Name="btnStopOcrServer" Content="Stop OCR" Style="{StaticResource ModernButton}"
+                                                    Background="#DC3545"
+                                                    Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                        </StackPanel>
+                                        <TextBlock Text="OCR Engine" Style="{StaticResource GroupLabelStyle}"/>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </ScrollViewer>
                         
@@ -301,218 +324,225 @@
                 <!-- Main content area -->
                 <Border Background="#22FFFFFF" CornerRadius="6" Margin="10">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="10">
-                        <Grid>
-                                <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/> <!-- Header section -->
+                                                <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/> <!-- Header -->
                                 <RowDefinition Height="Auto"/> <!-- HotKey -->
-                                <RowDefinition Height="Auto"/> <!-- Tutorial link section -->
-                                <RowDefinition Height="Auto"/> <!-- Copyright section -->
-                                <RowDefinition Height="Auto"/> <!-- FAQ section -->
-                                <RowDefinition Height="Auto"/> <!-- Support section -->
-                                </Grid.RowDefinitions>
-                                
-                                <!-- Header Section with Logo and Version -->
-                                <Border Grid.Row="0" Background="#33000000" CornerRadius="6" Margin="0,0,0,15">
+                                <RowDefinition Height="Auto"/> <!-- Dev Info -->
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Header Section -->
+                            <Border Grid.Row="0" Style="{StaticResource CardStyle}">
                                 <Grid Margin="15">
-                                        <Grid.ColumnDefinitions>
+                                    <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        
-                                        <!-- Logo Placeholder -->
-                                        <Border Grid.Column="0" Width="64" Height="64" CornerRadius="8">
-                                                <Image Source="/media/AppIcon.ico" Width="48" Height="48" 
-                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        
-                                        <!-- App Title and Version -->
-                                        <StackPanel Grid.Column="1" Margin="15,0,0,0">
+                                        <ColumnDefinition Width="Auto"/> <!-- Discord -->
+                                        <ColumnDefinition Width="Auto"/> <!-- Quick Start -->
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- Logo -->
+                                    <Border Grid.Column="0" Width="64" Height="64" CornerRadius="8">
+                                        <Image Source="/media/AppIcon.ico" Width="48" Height="48" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    
+                                    <!-- App Title and Version -->
+                                    <StackPanel Grid.Column="1" Margin="15,0,15,0" VerticalAlignment="Center">
                                         <TextBlock Text="RSTGameTranslation" FontSize="28" 
                                                 FontWeight="Bold" Foreground="#FF00AAFF"/>
                                         <TextBlock Name="AppVersion" Text="Version" Foreground="#AAFFFFFF" FontSize="12" Margin="0,5,0,0"/>
                                         <TextBlock Text="Game Translation Made Simple" Foreground="White" 
                                                 FontSize="14" Margin="0,5,0,0" FontStyle="Italic"/>
+                                    </StackPanel>
+
+                                    <!-- Discord Button -->
+                                    <Button x:Name="joinDiscordBtn" Grid.Column="2" 
+                                            Style="{StaticResource ModernButton}"
+                                            Height="40" Margin="10,0,0,0" Background="#5865F2"
+                                            Click="DiscordButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <StackPanel Orientation="Horizontal" Margin="10,0">
+                                            <Path Data="M25.0966 7.24999C23.2967 6.42999 21.3717 5.83749 19.3717 5.49999C19.3392 5.49749 19.3067 5.51249 19.2917 5.54249C19.0517 5.99749 18.7867 6.58499 18.6017 7.04749C16.4568 6.73499 14.3192 6.73499 12.2217 7.04749C12.0367 6.57749 11.7642 5.99749 11.5217 5.54249C11.5067 5.51499 11.4742 5.49999 11.4417 5.49999C9.44174 5.83749 7.51674 6.42999 5.71674 7.24999C5.70424 7.25499 5.69424 7.26499 5.68674 7.27749C2.10174 12.6725 1.10924 17.94 1.60674 23.1475C1.60924 23.17 1.62174 23.1925 1.63924 23.205C4.11674 25.0175 6.51174 26.145 8.86674 26.875C8.89924 26.885 8.93424 26.875 8.95174 26.8475C9.53674 26.0475 10.0617 25.2025 10.5167 24.3125C10.5392 24.27 10.5192 24.22 10.4767 24.205C9.64174 23.8825 8.84674 23.4975 8.08174 23.06C8.03424 23.03 8.03174 22.9575 8.07674 22.9225C8.21174 22.82 8.34674 22.7125 8.47674 22.605C8.49674 22.5875 8.52674 22.585 8.55174 22.5975C13.4017 24.8225 18.6467 24.8225 23.4367 22.5975C23.4617 22.585 23.4917 22.5875 23.5142 22.605C23.6442 22.7125 23.7792 22.82 23.9167 22.9225C23.9617 22.9575 23.9617 23.03 23.9142 23.06C23.1492 23.505 22.3542 23.8825 21.5167 24.2025C21.4742 24.2175 21.4567 24.27 21.4792 24.3125C21.9417 25.2025 22.4667 26.0475 23.0442 26.8475C23.0592 26.875 23.0967 26.885 23.1292 26.875C25.4917 26.145 27.8867 25.0175 30.3642 23.205C30.3842 23.1925 30.3942 23.1725 30.3967 23.15C30.9967 17.115 29.4367 11.8875 25.9167 7.27999C25.9117 7.26499 25.9017 7.25499 25.0966 7.24999ZM11.2142 19.6025C9.73674 19.6025 8.52174 18.2425 8.52174 16.5775C8.52174 14.9125 9.71174 13.5525 11.2142 13.5525C12.7292 13.5525 13.9317 14.9275 13.9142 16.5775C13.9142 18.2425 12.7167 19.6025 11.2142 19.6025ZM19.8142 19.6025C18.3367 19.6025 17.1217 18.2425 17.1217 16.5775C17.1217 14.9125 18.3117 13.5525 19.8142 13.5525C21.3292 13.5525 22.5317 14.9275 22.5142 16.5775C22.5142 18.2425 21.3292 19.6025 19.8142 19.6025Z" 
+                                                  Fill="White" Stretch="Uniform" Width="20" Height="20" Margin="0,0,8,0"/>
+                                            <TextBlock Text="JOIN DISCORD FOR SUPPORT" FontWeight="Bold" FontSize="13" 
+                                                       VerticalAlignment="Center" Foreground="White"/>
                                         </StackPanel>
+                                    </Button>
+
+                                    <!-- Quick Start Button -->
+                                    <Button x:Name="quickStart" Grid.Column="3" 
+                                            Style="{StaticResource ModernButton}"
+                                            Height="40" Margin="10,0,0,0"
+                                            Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                        
+                                        <Button.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#FF9900" Offset="0"/>
+                                                <GradientStop Color="#FF5500" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Button.Background>
+                                        
+                                        <Button.Effect>
+                                            <DropShadowEffect Color="#FF5500" BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
+                                        </Button.Effect>
+                                        <StackPanel Orientation="Horizontal" Margin="10,0">
+                                            <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" 
+                                                       FontSize="16" VerticalAlignment="Center" Margin="0,1,8,0" Foreground="White"/>
+                                            <TextBlock Text="QUICK START" FontWeight="Bold" FontSize="13" 
+                                                       VerticalAlignment="Center" Foreground="White"/>
+                                        </StackPanel>
+                                    </Button>
                                 </Grid>
-                                </Border>
-                                
-                                <!-- Tutorial Link Section (keeping the existing link) -->
-                                <Border Grid.Row="1" Background="#44007ACC" CornerRadius="6" Margin="0,0,0,15" Padding="15">
-                                <Grid>
+                            </Border>
+
+                            <!-- HotKey Section -->
+                            <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                        <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="#FF00AAFF" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock Text="GLOBAL HOTKEYS" Foreground="#FF00AAFF" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="20"/> 
+                                            <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        
-                                        <!-- Icon -->
-                                        <!-- <TextBlock Grid.Column="0" Text="&#xE897;" FontFamily="Segoe MDL2 Assets" 
-                                                FontSize="24" VerticalAlignment="Center" Foreground="#FFFFFFFF"/> -->
-                                        
-                                        <!-- Link
-                                        <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                                        <Hyperlink x:Name="tutorialLink" NavigateUri="https://github.com/thanhkeke97/RSTGameTranslation?tab=readme-ov-file#-quick-start" 
-                                                RequestNavigate="TutorialLink_RequestNavigate">
-                                                <Run Text="CLICK HERE FOR DETAIL SETUP GUIDE !!!" FontSize="16" FontWeight="Bold" Foreground="Orange"/>
-                                        </Hyperlink>
-                                        </TextBlock> -->
 
-                                        <Button x:Name="quickStart" Content="QUICK START" Grid.Column="1" FontSize="16" FontWeight="Bold" Foreground="Orange" Style="{StaticResource ModernButton}"
-                                        Background="#FF5F5F5F"
-                                        Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                </Grid>
-                                </Border>
+                                        <!-- Left Column: Main Features -->
+                                        <StackPanel Grid.Column="0">
+                                            <!-- Start/Stop -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Start / Stop" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyStartStop" Text="ALT + G" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Select Area -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Select Area" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeySelectArea" Text="ALT + Q" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Overlay -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Toggle Overlay" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyOverlay" Text="ALT + F" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- ChatBox -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="ChatBox" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Show Area -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Show Area" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Settings -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Settings" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeySetting" Text="ALT + P" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Log -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="View Log" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                        </StackPanel>
 
-                                <!-- HotKey -->
-                                <Border Grid.Row="2" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
-                                <StackPanel>
-                                        <Expander Header="SHOW ALL GLOBAL HOTKEY" Margin="0,0,0,5" FontSize="16" FontWeight="Bold"
-                                                Foreground="#FF00AAFF" BorderThickness="0">
-                                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Foreground="Orange" 
-                                                        Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12" FontWeight="Bold">
-                                                        <Run x:Name="hotKeyStartStop">Start/Stop: ALT+G</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyOverlay">Overlay: ALT+F</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeySetting">Setting: ALT+P</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyLog">Log: ALT+L</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeySelectArea">Select Area: ALT+Q</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+R</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyClearPreviousArea">Clear Selected Area: ALT+H</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyShowArea">Show Area: ALT+B</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyChatBox">ChatBox: ALT+C</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyArea1">Area 1: ALT+1</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyArea2">Area 2: ALT+2</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyArea3">Area 3: ALT+3</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyArea4">Area 4: ALT+4</Run>
-                                                        <LineBreak/>
-                                                        <Run x:Name="hotKeyArea5">Area 5: ALT+5</Run>
-                                                </TextBlock>
-                                        </Expander>
-                                        
+                                        <!-- Right Column: Secondary Features & Areas -->
+                                        <StackPanel Grid.Column="2">
+                                            <!-- Clear All Areas -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Clear All Areas" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyClearAreas" Text="ALT + R" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Clear Last Area -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Clear Last Area" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            
+                                            <!-- Area 1 -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Quick Area 1" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyArea1" Text="ALT + 1" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Area 2 -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Quick Area 2" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyArea2" Text="ALT + 2" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Area 3 -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Quick Area 3" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyArea3" Text="ALT + 3" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Area 4 -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Quick Area 4" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyArea4" Text="ALT + 4" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Area 5 -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Quick Area 5" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
-                                </Border>
-                                
-                                <!-- FAQ Section -->
-                                <Border Grid.Row="4" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
-                                <StackPanel>
-                                        <TextBlock Text="FREQUENTLY ASKED QUESTIONS" Foreground="#FF00AAFF" FontSize="16" 
-                                                FontWeight="Bold" Margin="0,0,0,10"/>
-                                        
-                                        <!-- FAQ Item 1 -->
-                                        <Expander Header="How do I setup the OCR server?" Margin="0,0,0,5" 
-                                                Background="#22FFFFFF" Foreground="White" BorderThickness="0">
-                                        <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                First click the "SetupOCR" button to install all necessary OCR components. 
-                                                Once installation is complete, click "StartServer" to initialize the OCR engine. 
-                                                The setup process requires an internet connection to download required models.
-                                        </TextBlock>
-                                        </Expander>
-                                        
-                                        <!-- FAQ Item 2 -->
-                                        <Expander Header="How do I select the game area for translation?" Margin="0,0,0,5" 
-                                                Background="#22FFFFFF" Foreground="White" BorderThickness="0">
-                                        <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                Click the "SelectArea" button, then drag your mouse to create a selection rectangle 
-                                                over the area containing the text you want to translate. Once you release the mouse, 
-                                                the area will be set for continuous OCR and translation.
-                                        </TextBlock>
-                                        </Expander>
-                                        
-                                        <!-- FAQ Item 3 -->
-                                        <Expander Header="How do I change the source or target language?" Margin="0,0,0,5" 
-                                                Background="#22FFFFFF" Foreground="White" BorderThickness="0">
-                                        <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                Click the "Settings" button to open the settings panel. From there, you can select your 
-                                                desired source language (the language to translate from) and target language (the language 
-                                                to translate to) from the dropdown menus.
-                                        </TextBlock>
-                                        </Expander>
-                                        
-                                        <!-- FAQ Item 4 -->
-                                        <Expander Header="The translation isn't working/accurate. What can I do?" Margin="0,0,0,5" 
-                                                Background="#22FFFFFF" Foreground="White" BorderThickness="0">
-                                        <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                First, ensure your source language is correctly set. Try adjusting the capture area to ensure 
-                                                it contains clear text without too much background noise. You can also try clicking "Log" to 
-                                                view the OCR results and check if the text is being correctly recognized before translation.
-                                        </TextBlock>
-                                        </Expander>
-                                        
-                                        <!-- FAQ Item 5 -->
-                                        <Expander Header="How do I use the ChatBox feature?" Margin="0,0,0,5" 
-                                                Background="#22FFFFFF" Foreground="White" BorderThickness="0">
-                                        <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                Click the "ChatBox" button to open a dedicated window for translation history. This window 
-                                                displays all recent translations and can be positioned anywhere on your screen. It's particularly 
-                                                useful for game dialogues where you need to see a history of conversations.
-                                        </TextBlock>
+                            </Border>
 
-                                        </Expander>
-                                        <!-- FAQ Item 6 -->
-                                        <Expander Header="How do I use the monitor (overlay) feature?" Margin="0,0,0,5" 
-                                                Background="#22FFFFFF" Foreground="White" BorderThickness="0">
-                                        <TextBlock TextWrapping="Wrap" Margin="10" Foreground="#DDFFFFFF">
-                                                Click the "Overlay" button (ALT+F) to enable the overlay feature. This feature will place translated text on  
-                                                top of the original text on your screen.
-                                        </TextBlock>
-                                        </Expander>
-                                </StackPanel>
-                                </Border>
-                                
-                                <!-- Support Section (keeping existing Discord reference) -->
-                                <Border Grid.Row="3" Background="#44007ACC" CornerRadius="6" Margin="0,0,0,0" Padding="15">
-                                <Grid>
-                                        <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        
-                                        <!-- Discord Icon -->
-                                        <Path Grid.Column="0" Width="32" Height="32" VerticalAlignment="Center"
-                                        Data="M25.0966 7.24999C23.2967 6.42999 21.3717 5.83749 19.3717 5.49999C19.3392 5.49749 19.3067 5.51249 19.2917 5.54249C19.0517 5.99749 18.7867 6.58499 18.6017 7.04749C16.4568 6.73499 14.3192 6.73499 12.2217 7.04749C12.0367 6.57749 11.7642 5.99749 11.5217 5.54249C11.5067 5.51499 11.4742 5.49999 11.4417 5.49999C9.44174 5.83749 7.51674 6.42999 5.71674 7.24999C5.70424 7.25499 5.69424 7.26499 5.68674 7.27749C2.10174 12.6725 1.10924 17.94 1.60674 23.1475C1.60924 23.17 1.62174 23.1925 1.63924 23.205C4.11674 25.0175 6.51174 26.145 8.86674 26.875C8.89924 26.885 8.93424 26.875 8.95174 26.8475C9.53674 26.0475 10.0617 25.2025 10.5167 24.3125C10.5392 24.27 10.5192 24.22 10.4767 24.205C9.64174 23.8825 8.84674 23.4975 8.08174 23.06C8.03424 23.03 8.03174 22.9575 8.07674 22.9225C8.21174 22.82 8.34674 22.7125 8.47674 22.605C8.49674 22.5875 8.52674 22.585 8.55174 22.5975C13.4017 24.8225 18.6467 24.8225 23.4367 22.5975C23.4617 22.585 23.4917 22.5875 23.5142 22.605C23.6442 22.7125 23.7792 22.82 23.9167 22.9225C23.9617 22.9575 23.9617 23.03 23.9142 23.06C23.1492 23.505 22.3542 23.8825 21.5167 24.2025C21.4742 24.2175 21.4567 24.27 21.4792 24.3125C21.9417 25.2025 22.4667 26.0475 23.0442 26.8475C23.0592 26.875 23.0967 26.885 23.1292 26.875C25.4917 26.145 27.8867 25.0175 30.3642 23.205C30.3842 23.1925 30.3942 23.1725 30.3967 23.15C30.9967 17.115 29.4367 11.8875 25.9167 7.27999C25.9117 7.26499 25.9017 7.25499 25.0966 7.24999ZM11.2142 19.6025C9.73674 19.6025 8.52174 18.2425 8.52174 16.5775C8.52174 14.9125 9.71174 13.5525 11.2142 13.5525C12.7292 13.5525 13.9317 14.9275 13.9142 16.5775C13.9142 18.2425 12.7167 19.6025 11.2142 19.6025ZM19.8142 19.6025C18.3367 19.6025 17.1217 18.2425 17.1217 16.5775C17.1217 14.9125 18.3117 13.5525 19.8142 13.5525C21.3292 13.5525 22.5317 14.9275 22.5142 16.5775C22.5142 18.2425 21.3292 19.6025 19.8142 19.6025Z" 
-                                        Fill="#7289DA" Stretch="Uniform"/>
-                                        
-                                        <!-- Support Text -->
-                                        <TextBlock Grid.Column="1" Margin="15,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap">
-                                        <Run Text="Need support? Click the Discord icon on top right to join my Discord server." 
-                                                FontSize="16" FontWeight="Bold" Foreground="#FF00AAFF"/>
-                                        </TextBlock>
-                                </Grid>
-                                </Border>
-
-                                <!-- Copyright & Developer Information Section -->
-                                <Border Grid.Row="5" Background="#33000000" CornerRadius="6" Margin="0,0,0,15" Padding="15">
+                            <!-- Copyright & Developer Information Section -->
+                            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                                 <StackPanel>
-                                        <TextBlock Text="DEVELOPER INFORMATION" Foreground="#FF00AAFF" FontSize="16" 
-                                                FontWeight="Bold" Margin="0,0,0,10"/>
-                                        <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
-                                        <Run Text="Developed by:" FontWeight="Bold"/>
-                                        <Run Text="thanhkeke97"/>
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
-                                        <Run Text="GitHub:" FontWeight="Bold"/>
-                                        <Hyperlink NavigateUri="https://github.com/thanhkeke97" RequestNavigate="TutorialLink_RequestNavigate">
-                                                <Run Text="https://github.com/thanhkeke97"/>
-                                        </Hyperlink>
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
-                                        <Run Text="Copyright © 2023-2025. All rights reserved."/>
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Foreground="#BBFFFFFF" FontStyle="Italic" Margin="0,5,0,0" FontSize="11">
-                                        <Run Text="This application is provided as-is without warranty. Please report any bugs through the GitHub repository or Discord."/>
-                                        </TextBlock>
+                                    <TextBlock Text="DEVELOPER INFORMATION" Foreground="#FF00AAFF" FontSize="16" 
+                                            FontWeight="Bold" Margin="0,0,0,10"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
+                                    <Run Text="Developed by:" FontWeight="Bold"/>
+                                    <Run Text="thanhkeke97"/>
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
+                                    <Run Text="GitHub:" FontWeight="Bold"/>
+                                    <Hyperlink NavigateUri="https://github.com/thanhkeke97" RequestNavigate="TutorialLink_RequestNavigate">
+                                            <Run Text="https://github.com/thanhkeke97"/>
+                                    </Hyperlink>
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
+                                    <Run Text="Copyright © 2023-2025. All rights reserved."/>
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Foreground="#BBFFFFFF" FontStyle="Italic" Margin="0,5,0,0" FontSize="11">
+                                    <Run Text="This application is provided as-is without warranty. Please report any bugs through the GitHub repository or Discord."/>
+                                    </TextBlock>
                                 </StackPanel>
-                                </Border>
+                            </Border>
                         </Grid>
                         </ScrollViewer>
                 </Border>
@@ -525,7 +555,7 @@
                         WindowChrome.IsHitTestVisibleInChrome="False"/>
                 
                 <!-- Actual footer with content - shifted up by 10px -->
-                <Border Name="FooterBorder" Background="#CC1E1E1E" Margin="0,0,0,10" CornerRadius="0,0,6,6"
+                <Border Name="FooterBorder" Background="#1E1E1E" Margin="0,0,0,10" CornerRadius="0,0,10,10"
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">

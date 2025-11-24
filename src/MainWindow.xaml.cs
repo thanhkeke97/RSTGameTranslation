@@ -727,6 +727,7 @@ namespace RSTGameTranslation
         {
             // Update capture rectangle
             UpdateCaptureRect();
+            SettingsWindow.Instance.ListHotKey_TextChanged();
 
             // Update app version on setup screen
             AppVersion.Text = "Version " + SplashManager.CurrentVersion.ToString("F1");

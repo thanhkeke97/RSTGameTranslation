@@ -1140,7 +1140,7 @@ namespace RSTGameTranslation
             return IntPtr.Zero;
         }
 
-        private void ListHotKey_TextChanged()
+        public void ListHotKey_TextChanged()
         {
             // Setting windows
             hotKeyStartStop.Text = "Start/Stop: " + ConfigManager.Instance.GetHotKey("Start/Stop");
@@ -1158,20 +1158,20 @@ namespace RSTGameTranslation
             hotKeyArea4.Text = "Area 4: " + ConfigManager.Instance.GetHotKey("Area 4");
             hotKeyArea5.Text = "Area 5: " + ConfigManager.Instance.GetHotKey("Area 5");
             // Mainwindows
-            MainWindow.Instance.hotKeyStartStop.Text = "Start/Stop: " + ConfigManager.Instance.GetHotKey("Start/Stop");
-            MainWindow.Instance.hotKeyOverlay.Text = "Overlay: " + ConfigManager.Instance.GetHotKey("Overlay");
-            MainWindow.Instance.hotKeySetting.Text = "Setting: " + ConfigManager.Instance.GetHotKey("Setting");
-            MainWindow.Instance.hotKeyLog.Text = "Log: " + ConfigManager.Instance.GetHotKey("Log");
-            MainWindow.Instance.hotKeySelectArea.Text = "Select Area: " + ConfigManager.Instance.GetHotKey("Select Area");
-            MainWindow.Instance.hotKeyClearPreviousArea.Text = "Clear Selected Area: " + ConfigManager.Instance.GetHotKey("Clear Selected Area");
-            MainWindow.Instance.hotKeyClearAreas.Text = "Clear Areas: " + ConfigManager.Instance.GetHotKey("Clear Areas");
-            MainWindow.Instance.hotKeyShowArea.Text = "Show Area: " + ConfigManager.Instance.GetHotKey("Show Area");
-            MainWindow.Instance.hotKeyChatBox.Text = "ChatBox: " + ConfigManager.Instance.GetHotKey("ChatBox");
-            MainWindow.Instance.hotKeyArea1.Text = "Area 1: " + ConfigManager.Instance.GetHotKey("Area 1");
-            MainWindow.Instance.hotKeyArea2.Text = "Area 2: " + ConfigManager.Instance.GetHotKey("Area 2");
-            MainWindow.Instance.hotKeyArea3.Text = "Area 3: " + ConfigManager.Instance.GetHotKey("Area 3");
-            MainWindow.Instance.hotKeyArea4.Text = "Area 4: " + ConfigManager.Instance.GetHotKey("Area 4");
-            MainWindow.Instance.hotKeyArea5.Text = "Area 5: " + ConfigManager.Instance.GetHotKey("Area 5");
+            MainWindow.Instance.hotKeyStartStop.Text = ConfigManager.Instance.GetHotKey("Start/Stop");
+            MainWindow.Instance.hotKeyOverlay.Text = ConfigManager.Instance.GetHotKey("Overlay");
+            MainWindow.Instance.hotKeySetting.Text = ConfigManager.Instance.GetHotKey("Setting");
+            MainWindow.Instance.hotKeyLog.Text = ConfigManager.Instance.GetHotKey("Log");
+            MainWindow.Instance.hotKeySelectArea.Text = ConfigManager.Instance.GetHotKey("Select Area");
+            MainWindow.Instance.hotKeyClearPreviousArea.Text = ConfigManager.Instance.GetHotKey("Clear Selected Area");
+            MainWindow.Instance.hotKeyClearAreas.Text = ConfigManager.Instance.GetHotKey("Clear Areas");
+            MainWindow.Instance.hotKeyShowArea.Text = ConfigManager.Instance.GetHotKey("Show Area");
+            MainWindow.Instance.hotKeyChatBox.Text = ConfigManager.Instance.GetHotKey("ChatBox");
+            MainWindow.Instance.hotKeyArea1.Text = ConfigManager.Instance.GetHotKey("Area 1");
+            MainWindow.Instance.hotKeyArea2.Text = ConfigManager.Instance.GetHotKey("Area 2");
+            MainWindow.Instance.hotKeyArea3.Text = ConfigManager.Instance.GetHotKey("Area 3");
+            MainWindow.Instance.hotKeyArea4.Text = ConfigManager.Instance.GetHotKey("Area 4");
+            MainWindow.Instance.hotKeyArea5.Text = ConfigManager.Instance.GetHotKey("Area 5");
         }
 
         private void HotKeyFunctionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
