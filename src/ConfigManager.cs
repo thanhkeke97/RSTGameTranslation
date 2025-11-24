@@ -185,7 +185,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -203,7 +203,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -221,7 +221,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -239,7 +239,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -257,7 +257,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
