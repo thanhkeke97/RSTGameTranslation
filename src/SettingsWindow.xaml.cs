@@ -885,7 +885,7 @@ namespace RSTGameTranslation
 
             // Set WindowsOCR integration
             // windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
-
+            isSendDataToServerCheckBox.IsChecked = ConfigManager.Instance.IsSendDataToServerEnabled();
             // Set multi selection area from config
             multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
             if (!ConfigManager.Instance.IsMultiSelectionAreaEnabled())
