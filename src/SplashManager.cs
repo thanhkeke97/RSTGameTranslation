@@ -126,7 +126,7 @@ namespace RSTGameTranslation
                 // Version Text
                 _versionTextBlock = new TextBlock
                 {
-                    Text = $"Realtime Screen Translator v{CurrentVersion.ToString("F1")} By Thanh Pham",
+                    Text = $"Realtime Screen Translator v{CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} By Thanh Pham",
                     FontSize = 16,
                     FontWeight = FontWeights.SemiBold,
                     Margin = new Thickness(0, 10, 0, 10),
@@ -173,12 +173,12 @@ namespace RSTGameTranslation
 
                 if (versionInfo.LatestVersion > CurrentVersion)
                 {
-                    string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString("F1")) 
-                    ?? $"New version {versionInfo.LatestVersion.ToString("F1")} is available. Would you like to download it now?";
+                    string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)) 
+                    ?? $"New version {versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} is available. Would you like to download it now?";
                     
                     
                     // Update status text
-                    UpdateStatusText($"New version V{versionInfo.LatestVersion.ToString("F1")} available!");
+                    UpdateStatusText($"New version V{versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} available!");
                     
                     // Wait for 2 seconds before showing update dialog
                     await Task.Delay(2000);
@@ -286,7 +286,7 @@ namespace RSTGameTranslation
 
         private void DownloadUpdate(double version)
         {
-            string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{version.ToString("F1")}/RSTGameTranslation_v{version.ToString("F1")}.zip";
+            string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{version.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}/RSTGameTranslation_v{version.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}.zip";
             try
             {
                 UpdateStatusText("Starting download...");
