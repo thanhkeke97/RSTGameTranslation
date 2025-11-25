@@ -48,7 +48,7 @@ namespace RSTGameTranslation
             OcrPanel.Visibility = Visibility.Collapsed;
             TranslationPanel.Visibility = Visibility.Collapsed;
             CompletePanel.Visibility = Visibility.Collapsed;
-            CondaSetupPanel.Visibility = Visibility.Collapsed;
+            // CondaSetupPanel.Visibility = Visibility.Collapsed;
 
             // Show the appropriate panel based on the current step
             switch (step)
@@ -58,10 +58,6 @@ namespace RSTGameTranslation
                     PrevButton.IsEnabled = false;
                     break;
                 case 2:
-                    CondaSetupPanel.Visibility = Visibility.Visible;
-                    PrevButton.IsEnabled = true;
-                    break;
-                case 3:
                     LanguagePanel.Visibility = Visibility.Visible;
                     PrevButton.IsEnabled = true;
                     if (!LoadedLanguageSettings)
@@ -69,7 +65,7 @@ namespace RSTGameTranslation
                         LoadLanguageSettings();
                     }
                     break;
-                case 4:
+                case 3:
                     OcrPanel.Visibility = Visibility.Visible;
                     PrevButton.IsEnabled = true;
                     if (!LoadedOcrSettings)
@@ -77,7 +73,7 @@ namespace RSTGameTranslation
                         LoadOcrSettings();
                     }
                     break;
-                case 5:
+                case 4:
                     TranslationPanel.Visibility = Visibility.Visible;
                     PrevButton.IsEnabled = true;
                     if (!LoadedTranslationSettings)
@@ -85,7 +81,7 @@ namespace RSTGameTranslation
                         LoadTranslationSettings();
                     }
                     break;
-                case 6:
+                case 5:
                     CompletePanel.Visibility = Visibility.Visible;
                     PrevButton.IsEnabled = true;
                     NextButton.Visibility = Visibility.Collapsed;
@@ -817,35 +813,35 @@ namespace RSTGameTranslation
             Console.WriteLine($"Popup quickstart will not show again");
         }
 
-        private async void SetupConda_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
+        // private async void SetupConda_Click(object sender, RoutedEventArgs e)
+        // {
+        //     try
+        //     {
 
-                // Show setup dialog
-                MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to install conda?\n\n" +
-                    "This process may take a long time and requires an internet connection",
-                    "Confirm installation",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+        //         // Show setup dialog
+        //         MessageBoxResult result = System.Windows.MessageBox.Show(
+        //             $"Are you sure you want to install conda?\n\n" +
+        //             "This process may take a long time and requires an internet connection",
+        //             "Confirm installation",
+        //             MessageBoxButton.YesNo,
+        //             MessageBoxImage.Question);
 
-                if (result == MessageBoxResult.Yes)
-                {
+        //         if (result == MessageBoxResult.Yes)
+        //         {
 
-                    // Run setup
-                    await Task.Run(() =>
-                    {
-                        OcrServerManager.Instance.InstallConda();
-                    });
+        //             // Run setup
+        //             await Task.Run(() =>
+        //             {
+        //                 OcrServerManager.Instance.InstallConda();
+        //             });
 
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //     }
+        // }
 
         #endregion
     }

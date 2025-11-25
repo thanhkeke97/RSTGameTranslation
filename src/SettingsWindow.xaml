@@ -276,12 +276,12 @@
                                          Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
                                          ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
                                 
-                                <!-- Install Conda-->
+                                <!-- Install Conda
                                 <TextBlock Text="Conda Install:" Grid.Row="8" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button x:Name="condaInstallButton" Content="Setup Conda" Grid.Row="8" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="CondaInstallButton_Click"
-                                       ToolTip="Setup conda enviroment for easyOCR, RapidOCR and paddleOCR"/>
+                                       ToolTip="Setup conda enviroment for easyOCR, RapidOCR and paddleOCR"/> -->
                                 
                                 <!-- Select Screen -->
                                 <TextBlock Text="Select Screen:" Grid.Row="9" Grid.Column="0" 

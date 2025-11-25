@@ -1410,39 +1410,39 @@ namespace RSTGameTranslation
             // The SelectionChanged events will handle updating the MainWindow
             Console.WriteLine($"Languages swapped: {GetLanguageCode(sourceLanguageComboBox)} ⇄ {GetLanguageCode(targetLanguageComboBox)}");
         }
-        // Conda install button
-        private async void CondaInstallButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
+        // // Conda install button
+        // private async void CondaInstallButton_Click(object sender, RoutedEventArgs e)
+        // {
+        //     try
+        //     {
 
-                // Show setup dialog
-                MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to install conda?\n\n" +
-                    "This process may take a long time and requires an internet connection",
-                    "Confirm installation",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+        //         // Show setup dialog
+        //         MessageBoxResult result = System.Windows.MessageBox.Show(
+        //             $"Are you sure you want to install conda?\n\n" +
+        //             "This process may take a long time and requires an internet connection",
+        //             "Confirm installation",
+        //             MessageBoxButton.YesNo,
+        //             MessageBoxImage.Question);
 
-                if (result == MessageBoxResult.Yes)
-                {
-                    // Show status message
-                    MainWindow.Instance.SetStatus($"Setting up conda");
+        //         if (result == MessageBoxResult.Yes)
+        //         {
+        //             // Show status message
+        //             MainWindow.Instance.SetStatus($"Setting up conda");
 
-                    // Run setup
-                    await Task.Run(() =>
-                    {
-                        OcrServerManager.Instance.InstallConda();
-                    });
+        //             // Run setup
+        //             await Task.Run(() =>
+        //             {
+        //                 OcrServerManager.Instance.InstallConda();
+        //             });
 
-                    MainWindow.Instance.SetStatus($"Conda setup is completed");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+        //             MainWindow.Instance.SetStatus($"Conda setup is completed");
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //     }
+        // }
 
         // Helper method to get language code from ComboBox
         private string GetLanguageCode(ComboBox comboBox)

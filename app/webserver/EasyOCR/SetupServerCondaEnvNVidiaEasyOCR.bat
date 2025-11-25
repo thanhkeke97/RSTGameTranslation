@@ -1,47 +1,69 @@
 @echo off
-echo ===== Setting up an EasyOCR with NVidia GPU Support Conda Env =====
-echo 
-echo This is something you only have to do once, it creates (or recreates) a Conda environment called "ocrstuffeasyocr".
-echo This can take quite a long time to setup.  It's for NVidia cards, you'll have to hack this script up or do it
-echo manually for other card types.
-echo
+echo ===== Setting up EasyOCR with NVidia GPU Support (Custom Python Path) =====
+echo.
+echo This script creates a standard Python Venv called "ocrstuffeasyocr".
+echo.
 
-REM Activating base environment
-call conda activate base
-call conda update -y conda
-call conda config --add channels conda-forge
-call conda config --set channel_priority strict
+REM =================================================================
+REM CONFIGURATION: SET THE PATH TO YOUR PYTHON.EXE BELOW
+REM Using relative path: ..\ means "Go up one folder level"
+REM =================================================================
+set "SOURCE_PYTHON=..\Python311\python.exe"
 
-echo Removing existing ocrstuffeasyocr environment if it exists...
-call conda env remove -n ocrstuffeasyocr -y
 
-echo Creating and setting up new Conda environment...
-call conda create -y --name ocrstuffeasyocr python=3.9
-call conda activate ocrstuffeasyocr
+REM 1. Verify if the Python path is correct
+if not exist "%SOURCE_PYTHON%" (
+    echo [ERROR] Python executable not found at: "%SOURCE_PYTHON%"
+    echo Please check if the folder exists next to this project folder.
+    pause
+    exit /b
+)
 
-REM Install PyTorch with GPU support (includes correct CUDA and cuDNN versions)
-echo Installing PyTorch with GPU support...
+echo Using Python source: "%SOURCE_PYTHON%"
+
+REM 2. Remove existing environment if it exists
+if exist "ocrstuffeasyocr" (
+    echo Removing existing ocrstuffeasyocr folder...
+    rmdir /s /q "ocrstuffeasyocr"
+)
+
+REM 3. Create new venv using the specific Python executable
+echo Creating new venv environment...
+"%SOURCE_PYTHON%" -m venv ocrstuffeasyocr
+
+REM 4. Activate the environment
+echo Activating environment...
+call ocrstuffeasyocr\Scripts\activate
+
+REM 5. Install dependencies
+echo Upgrading pip...
+python -m pip install --upgrade pip
+
+REM Install PyTorch with GPU support (Heavy download ~2-3GB)
+echo Installing PyTorch with GPU support (CUDA 12.6)...
 call pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
 
 REM Install additional dependencies
+echo Installing helper libraries...
 call pip install pillow==11.2.1 matplotlib==3.9.4 scipy==1.13.1 tqdm==4.67.1 pyyaml==6.0.2 requests==2.32.3
 
-
-REM Install EasyOCR via pip
-@REM echo Installing EasyOCR...
+REM 6. Install EasyOCR via pip
+echo Installing EasyOCR...
 call pip install easyocr==1.7.2
 
-
-
-REM Download language models for EasyOCR (Japanese and English)
-echo Installing language models for EasyOCR...
+REM 7. Download language models (This runs python to trigger the download)
+echo Downloading language models for EasyOCR (Japanese and English)...
+echo This might take a moment...
 python -c "import easyocr; reader = easyocr.Reader(['ja', 'en'])"
 
-REM Verify installations
+REM 8. Verification
+echo.
 echo Verifying installations...
 python -c "import torch; print('PyTorch Version:', torch.__version__); print('CUDA Version:', torch.version.cuda); print('CUDA Available:', torch.cuda.is_available()); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0)"
 python -c "import easyocr; print('EasyOCR imported successfully')"
 
+echo.
 echo ===== Setup Complete =====
-echo If the above looks looks like the test worked, you can now close this window and click "StartOCR" to start the server.
+echo You can now close this window.
+echo To run your app later, remember to execute: call ocrstuffeasyocr\Scripts\activate
 pause

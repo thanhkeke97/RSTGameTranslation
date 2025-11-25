@@ -22,12 +22,14 @@ mkdir tempbuild\translation_server\templates
 mkdir tempbuild\webserver\EasyOCR
 mkdir tempbuild\webserver\PaddleOCR
 mkdir tempbuild\webserver\RapidOCR
+mkdir tempbuild\webserver\Python311
 copy app\webserver\EasyOCR\*.py tempbuild\webserver\EasyOCR
 copy app\webserver\EasyOCR\*.bat tempbuild\webserver\EasyOCR
 copy app\webserver\PaddleOCR\*.bat tempbuild\webserver\PaddleOCR
 copy app\webserver\PaddleOCR\*.py tempbuild\webserver\PaddleOCR
 copy app\webserver\RapidOCR\*.bat tempbuild\webserver\RapidOCR
 copy app\webserver\RapidOCR\*.py tempbuild\webserver\RapidOCR
+copy app\webserver\Python311\* tempbuild\webserver\Python311
 copy app\translation_server\*.py tempbuild\translation_server
 copy app\translation_server\*.bat tempbuild\translation_server
 copy app\OneOcr\* tempbuild

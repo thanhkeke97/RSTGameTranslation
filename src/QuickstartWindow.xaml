@@ -230,7 +230,7 @@
                         </GroupBox>
                 </StackPanel>
 
-                <!-- Conda install Panel -->
+                <!-- Conda install Panel
                 <StackPanel x:Name="CondaSetupPanel" Visibility="Collapsed">
                     <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="#3498db" Margin="0,0,0,20">
                         Conda Setup:
@@ -248,7 +248,7 @@
                     <TextBlock TextWrapping="Wrap" FontSize="15" Margin="0,0,0,20" Foreground="Red">
                         IMPORTANT: You need to restart the application after successfully installing conda to proceed to the next step.
                     </TextBlock>
-                </StackPanel>
+                </StackPanel> -->
 
                 <!-- OCR Settings Panel -->
                 <StackPanel x:Name="OcrPanel" Visibility="Collapsed">

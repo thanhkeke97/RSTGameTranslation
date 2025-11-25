@@ -402,12 +402,10 @@ FodyWeavers.xsd
 obj/
 tempbuild/
 unused/
+ocrstuff*/
 #disable everything in the app directory except a few things
 /app/*
 app/webserver/Miniconda3
-app/webserver/PaddleOCR/ocrstuffpaddleocr/*
-app/webserver/RapidOCR/ocrstuffrapidocr/*
-app/webserver/EasyOCR/ocrstufeasyocr/*
 app/webserver/*.exe
 !app/webserver/
 !app/tessdata/
