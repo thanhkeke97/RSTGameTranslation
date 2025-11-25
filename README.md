@@ -48,20 +48,16 @@
 7. Press **Alt+G** to start/stop
 
 #### 🔴 Advanced Setup (Need Installation)
-1. **Conda Install**: (Setup is only needed the first time the application is opened, no need to reinstall)
-   - Go to **Settings** → **OCR**: Press button Setup Conda (Remember that the path to the folder containing the application must not have spaces; otherwise, the conda installation will fail)
-   - Wait until the conda setup is successful, close the application and reopen it.
-
-3. **OCR Options**: (Setup is only needed the first time the new OCR is chosen, no need to reinstall.)
+1. **OCR Options**: (Setup is only needed the first time the new OCR is chosen, no need to reinstall.)
    - Built-in: OneOCR, Windows OCR (no setup needed)
    - External: Click **SetupOCR** for PaddleOCR, RapidOCR, EasyOCR (5-15 min wait)
-
-4. **Translation Services**:
+   
+2. **Translation Services**:
    - No API needed: Google Translate
    - API required: Gemini, Groq, Mistral, ChatGPT (add keys in Settings)
    - Local options: Ollama, LM Studio
 
-5. **Start translating**:
+3. **Start translating**:
    - Click **StartOCR** (if using external OCR) and wait until it starts successfully (You will see a red notification line at the bottom right corner)
    - Press button ***Select Window***: Choose window which you want to capture
    - Select area (Alt+Q) then turn on overlay (Alt+F)
