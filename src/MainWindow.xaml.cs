@@ -1419,11 +1419,11 @@ namespace RSTGameTranslation
                                     string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
                                     Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
                                 }
-                                else if (ocrMethod != "Windows OCR" && ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
-                                {
-                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                                    Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
-                                }
+                                // else if (ocrMethod != "Windows OCR" && ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
+                                // {
+                                //     string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                //     Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
+                                // }
                                 else if (ocrMethod == "OneOCR")
                                 {
                                     string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
@@ -2538,6 +2538,10 @@ namespace RSTGameTranslation
                 selectWindowButton.Content = "Select Window";
                 selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
                 UpdateCaptureRect();
+                if (Windows_Version != "Windows 10")
+                {
+                    MonitorWindow.Instance.EnableExcludeFromCapture();
+                }
 
                 Console.WriteLine("Window capture mode disabled");
             }
@@ -2545,6 +2549,7 @@ namespace RSTGameTranslation
             {
                 WindowSelectorPopup popup = new WindowSelectorPopup();
                 popup.WindowSelected += OnWindowSelected;
+                MonitorWindow.Instance.DisableExcludeFromCapture();
                 popup.ShowDialog();
             }
         }

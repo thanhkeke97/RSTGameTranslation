@@ -20,6 +20,7 @@ namespace RSTGameTranslation
         private const int DWM_TNP_VISIBLE = 8;
         private const int DWM_TNP_OPACITY = 4;
         private const int DWM_TNP_RECTDESTINATION = 1;
+        private const int WDA_NONE = 0x00000000;
         private const int WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
         public double dpiScale = 1;
@@ -107,7 +108,7 @@ namespace RSTGameTranslation
             this.PreviewKeyDown += Application_KeyDown;
 
             Console.WriteLine("MonitorWindow constructor completed");
-            if (ConfigManager.Instance.IsAutoOCREnabled() && !MainWindow.Instance.isCapturingWindow)
+            if (MainWindow.Instance.Windows_Version != "Windows 10")
             {
                 // Add SourceInitialized event handler to set window attributes
                 this.SourceInitialized += MonitorWindow_SourceInitialized;
@@ -118,6 +119,11 @@ namespace RSTGameTranslation
         // Add a new method to handle SourceInitialized event
         private void MonitorWindow_SourceInitialized(object? sender, EventArgs e)
         {
+            EnableExcludeFromCapture();
+        }
+
+        public void EnableExcludeFromCapture()
+        {
             // Get window handle
             IntPtr hwnd = new WindowInteropHelper(this).Handle;
 
@@ -125,6 +131,17 @@ namespace RSTGameTranslation
             SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
 
             Console.WriteLine("MonitorWindow set to be excluded from screen capture");
+        }
+
+        public void DisableExcludeFromCapture()
+        {
+            // Get window handle
+            IntPtr hwnd = new WindowInteropHelper(this).Handle;
+
+            // Set the window to be excluded from capture
+            SetWindowDisplayAffinity(hwnd, WDA_NONE);
+
+            Console.WriteLine("MonitorWindow set to be included in screen capture");
         }
 
         private void OnSocketConnectionChanged(object? sender, bool isConnected)
