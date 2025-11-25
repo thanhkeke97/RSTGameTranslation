@@ -159,7 +159,8 @@ namespace RSTGameTranslation
                     "### CRITICAL INSTRUCTIONS:\n" +
                     "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
                     "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
-                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n" +
+                    "   - Use `game_info` (if available) to understand the specific game context, lore, and terminology.\n\n" +
                     "2. **Translate SECOND (MANDATORY)**: \n" +
                     "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
                     "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
@@ -167,7 +168,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **Preserve Separators**: Keep `|||RST_SEPARATOR|||` exactly as is in the translated text.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -177,7 +178,8 @@ namespace RSTGameTranslation
                     "### CRITICAL INSTRUCTIONS:\n" +
                     "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
                     "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
-                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n" +
+                    "   - Use `game_info` (if available) to understand the specific game context, lore, and terminology.\n\n" +
                     "2. **Translate SECOND (MANDATORY)**: \n" +
                     "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
                     "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
@@ -185,7 +187,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -195,7 +197,8 @@ namespace RSTGameTranslation
                     "### CRITICAL INSTRUCTIONS:\n" +
                     "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
                     "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
-                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n" +
+                    "   - Use `game_info` (if available) to understand the specific game context, lore, and terminology.\n\n" +
                     "2. **Translate SECOND (MANDATORY)**: \n" +
                     "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
                     "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
@@ -203,7 +206,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -213,7 +216,8 @@ namespace RSTGameTranslation
                     "### CRITICAL INSTRUCTIONS:\n" +
                     "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
                     "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
-                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n" +
+                    "   - Use `game_info` (if available) to understand the specific game context, lore, and terminology.\n\n" +
                     "2. **Translate SECOND (MANDATORY)**: \n" +
                     "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
                     "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
@@ -221,7 +225,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -231,7 +235,8 @@ namespace RSTGameTranslation
                     "### CRITICAL INSTRUCTIONS:\n" +
                     "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
                     "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
-                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n" +
+                    "   - Use `game_info` (if available) to understand the specific game context, lore, and terminology.\n\n" +
                     "2. **Translate SECOND (MANDATORY)**: \n" +
                     "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
                     "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
@@ -239,7 +244,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
@@ -249,7 +254,8 @@ namespace RSTGameTranslation
                     "### CRITICAL INSTRUCTIONS:\n" +
                     "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
                     "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
-                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n" +
+                    "   - Use `game_info` (if available) to understand the specific game context, lore, and terminology.\n\n" +
                     "2. **Translate SECOND (MANDATORY)**: \n" +
                     "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
                     "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
@@ -257,7 +263,7 @@ namespace RSTGameTranslation
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
                     "   - Structure: Same as input `text_blocks`.\n" +
-                    "   - **SEPARATOR RULE**: The input text contains |||RST_SEPARATOR|||. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
+                    "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
