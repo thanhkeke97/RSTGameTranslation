@@ -20,6 +20,11 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
+    - name: Install Windows 11 SDK
+      shell: powershell
+      run: |
+        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --add Microsoft.VisualStudio.Component.Windows11SDK.22621 --quiet --norestart
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
