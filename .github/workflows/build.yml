@@ -20,12 +20,9 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Update CsWinRT Package
-      run: dotnet add package Microsoft.Windows.CsWinRT --version 2.1.1
-
     - name: Publish .NET App
       run: |
-        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -o ./publish_output
+        dotnet publish .\RST.CI.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -o ./publish_output
 
     - name: Prepare Release Folder
       shell: cmd
