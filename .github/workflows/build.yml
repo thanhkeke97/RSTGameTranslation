@@ -30,8 +30,7 @@ jobs:
 
     - name: Publish .NET App
       run: |
-        dotnet restore .\RST.csproj -p:TargetFramework=net9.0-windows -p:SupportedOSPlatformVersion=7.0
-        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -p:TargetFramework=net9.0-windows -p:SupportedOSPlatformVersion=7.0 --no-restore -o ./publish_output
+        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true /p:WindowsSdkPackageVersion=10.0.19041.38 -o ./publish_output
 
     - name: Prepare Release Folder
       shell: cmd
