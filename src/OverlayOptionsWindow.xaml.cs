@@ -19,7 +19,7 @@ namespace RSTGameTranslation
         // Store original values for cancel operation
         private Color _originalBackgroundColor;
         private Color _originalTextColor;
-        private string _originalFont;
+        private string _originalFont = "";
         private bool _originalFontOverrideEnabled;
         private double _originalFontSizeMin;
         private double _originalFontSizeMax;
@@ -27,7 +27,7 @@ namespace RSTGameTranslation
         // Store current values for apply operation
         private Color _currentBackgroundColor;
         private Color _currentTextColor;
-        private string _currentFont;
+        private string _currentFont = "";
         private bool _currentFontOverrideEnabled;
         private double _currentFontSizeMin;
         private double _currentFontSizeMax;

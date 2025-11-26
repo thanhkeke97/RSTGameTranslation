@@ -544,7 +544,7 @@
                             </TextBlock>
 
                             <TextBlock TextWrapping="Wrap">
-                                <Run FontWeight="Bold" Foreground="#3498db">4. View Translation Overlay (works only on Windows 11)</Run>
+                                <Run FontWeight="Bold" Foreground="#3498db">4. View Translation Overlay</Run>
                                 <LineBreak/>
                                 Click the "Overlay" button to display the translation over the original text position on the screen.
                             </TextBlock>

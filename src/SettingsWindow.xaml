@@ -586,7 +586,7 @@
                                              Tag="Groq"/>
                                     <Button x:Name="viewGroqKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="Groq" Width="70"/>
-                                    <Button x:Name="SaveGroqKeysButton" Content="Save Keys" Grid.Row="1" Tag="Gemini"
+                                    <Button x:Name="SaveGroqKeysButton" Content="Save Keys" Grid.Row="1" Tag="Groq"
                                             HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
                                     <TextBlock x:Name="groqApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>

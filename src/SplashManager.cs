@@ -9,6 +9,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
+using Brushes = System.Windows.Media.Brushes;
+using FontFamily = System.Windows.Media.FontFamily;
 
 // Use explicit namespaces to avoid ambiguity
 using WPFPoint = System.Windows.Point;
@@ -51,49 +54,70 @@ namespace RSTGameTranslation
                 _splashWindow = new Window
                 {
                     Title = "Realtime Screen Translator",
-                    Width = 550,
-                    Height = 350,
+                    Width = 600,
+                    Height = 400,
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                    Background = new SolidColorBrush(Colors.White),
+                    Background = Brushes.Transparent,
                     AllowsTransparency = true,
-                    Topmost = true
+                    Topmost = true,
+                    Opacity = 0 // Start invisible for fade-in animation
                 };
 
-                // Create a border with drop shadow and rounded corners for visual appeal
+                // Main container with dark glassmorphism effect (Option 1 Style)
                 Border mainBorder = new Border
                 {
-                    CornerRadius = new CornerRadius(12),
-                    BorderBrush = new SolidColorBrush(WPFColor.FromRgb(100, 149, 237)), // Cornflower blue
-                    BorderThickness = new Thickness(2),
-                    Padding = new Thickness(20),
+                    CornerRadius = new CornerRadius(20),
+                    BorderThickness = new Thickness(1),
+                    Padding = new Thickness(30),
                     Background = new LinearGradientBrush
                     {
                         StartPoint = new WPFPoint(0, 0),
                         EndPoint = new WPFPoint(1, 1),
                         GradientStops = new GradientStopCollection
                         {
-                            new GradientStop(Colors.White, 0.0),
-                            new GradientStop(WPFColor.FromRgb(240, 248, 255), 1.0) // AliceBlue
+                            new GradientStop(WPFColor.FromArgb(255, 15, 15, 35), 0.0),      // Dark blue-black
+                            new GradientStop(WPFColor.FromArgb(255, 25, 20, 45), 0.5),      // Deep purple
+                            new GradientStop(WPFColor.FromArgb(255, 20, 25, 50), 1.0)       // Dark blue
                         }
                     },
                     Effect = new DropShadowEffect
                     {
-                        Color = Colors.Black,
+                        Color = WPFColor.FromRgb(100, 80, 200),
                         Direction = 315,
-                        ShadowDepth = 10,
-                        BlurRadius = 15,
-                        Opacity = 0.6
+                        ShadowDepth = 0,
+                        BlurRadius = 40,
+                        Opacity = 0.8
+                    }
+                };
+
+                // Gradient border effect
+                Border gradientBorder = new Border
+                {
+                    CornerRadius = new CornerRadius(20),
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = new LinearGradientBrush
+                    {
+                        StartPoint = new WPFPoint(0, 0),
+                        EndPoint = new WPFPoint(1, 1),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(WPFColor.FromRgb(138, 43, 226), 0.0),   // Blue-violet
+                            new GradientStop(WPFColor.FromRgb(75, 0, 130), 0.5),     // Indigo
+                            new GradientStop(WPFColor.FromRgb(147, 112, 219), 1.0)   // Medium purple
+                        }
                     }
                 };
                 
                 Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Icon
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Title
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Author (Đã thêm lại)
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Status
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(40) }); // Loading bar
 
-                // App Icon with reflection effect
+                // App Icon with glow effect
                 StackPanel iconPanel = new StackPanel
                 {
                     Orientation = WPFOrientation.Vertical,
@@ -101,21 +125,21 @@ namespace RSTGameTranslation
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 
-                // Main icon
+                // Main icon with enhanced glow
                 System.Windows.Controls.Image appIcon = new System.Windows.Controls.Image
                 {
                     Source = new BitmapImage(new Uri("pack://application:,,,/media/AppIcon.ico")),
-                    Width = 180,
-                    Height = 180,
+                    Width = 200,
+                    Height = 200,
                     VerticalAlignment = VerticalAlignment.Center,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     Effect = new DropShadowEffect
                     {
-                        Color = Colors.Black,
-                        Direction = 320,
-                        ShadowDepth = 3,
-                        BlurRadius = 5,
-                        Opacity = 0.4
+                        Color = WPFColor.FromRgb(138, 43, 226),
+                        Direction = 0,
+                        ShadowDepth = 0,
+                        BlurRadius = 30,
+                        Opacity = 0.9
                     }
                 };
                 iconPanel.Children.Add(appIcon);
@@ -123,40 +147,132 @@ namespace RSTGameTranslation
                 Grid.SetRow(iconPanel, 0);
                 grid.Children.Add(iconPanel);
 
-                // Version Text
+                // Version Text with glow
                 _versionTextBlock = new TextBlock
                 {
-                    Text = $"Realtime Screen Translator v{CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} By Thanh Pham",
-                    FontSize = 16,
-                    FontWeight = FontWeights.SemiBold,
-                    Margin = new Thickness(0, 10, 0, 10),
+                    Text = $"Realtime Screen Translator v{CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}",
+                    FontSize = 22,
+                    FontWeight = FontWeights.Bold,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    Margin = new Thickness(0, 20, 0, 5),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(WPFColor.FromRgb(30, 30, 110))
+                    Foreground = new SolidColorBrush(Colors.White),
+                    Effect = new DropShadowEffect
+                    {
+                        Color = WPFColor.FromRgb(138, 43, 226),
+                        Direction = 0,
+                        ShadowDepth = 0,
+                        BlurRadius = 20,
+                        Opacity = 0.8
+                    }
                 };
                 Grid.SetRow(_versionTextBlock, 1);
                 grid.Children.Add(_versionTextBlock);
 
-                // Status Text
+                // Author text (Đã thêm lại)
+                TextBlock authorText = new TextBlock
+                {
+                    Text = "By Thanh Pham",
+                    FontSize = 13,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 0, 0, 15),
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                    Foreground = new SolidColorBrush(WPFColor.FromArgb(180, 200, 200, 255)),
+                    Opacity = 0.7
+                };
+                Grid.SetRow(authorText, 2); // Row riêng
+                grid.Children.Add(authorText);
+
+                // Status Text with modern styling
                 _statusTextBlock = new TextBlock
                 {
                     Text = "Checking latest version...",
-                    FontSize = 12,
-                    FontStyle = FontStyles.Italic,
-                    Margin = new Thickness(0, 0, 0, 10),
+                    FontSize = 13,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    Margin = new Thickness(0, 10, 0, 15),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(WPFColor.FromRgb(90, 90, 90))
+                    Foreground = new SolidColorBrush(WPFColor.FromArgb(200, 180, 180, 255))
                 };
-                Grid.SetRow(_statusTextBlock, 2);
+                Grid.SetRow(_statusTextBlock, 3);
                 grid.Children.Add(_statusTextBlock);
 
-                // Set the grid as content of the border
+                // Modern loading bar
+                Border loadingBarContainer = new Border
+                {
+                    Height = 4,
+                    Margin = new Thickness(40, 0, 40, 20),
+                    CornerRadius = new CornerRadius(2),
+                    Background = new SolidColorBrush(WPFColor.FromArgb(40, 255, 255, 255)),
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch
+                };
+
+                Border loadingBar = new Border
+                {
+                    Height = 4,
+                    CornerRadius = new CornerRadius(2),
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
+                    Width = 0,
+                    Background = new LinearGradientBrush
+                    {
+                        StartPoint = new WPFPoint(0, 0.5),
+                        EndPoint = new WPFPoint(1, 0.5),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(WPFColor.FromRgb(138, 43, 226), 0.0),
+                            new GradientStop(WPFColor.FromRgb(147, 112, 219), 1.0)
+                        }
+                    }
+                };
+
+                loadingBarContainer.Child = loadingBar;
+                Grid.SetRow(loadingBarContainer, 4);
+                grid.Children.Add(loadingBarContainer);
+
+                // Set the grid as content of borders
                 mainBorder.Child = grid;
+                gradientBorder.Child = mainBorder;
                 
                 // Set the border as content of the window
-                _splashWindow.Content = mainBorder;
+                _splashWindow.Content = gradientBorder;
                 _splashWindow.Show();
+
+                // === ANIMATIONS ===
+                
+                // 1. Fade-in animation for window
+                DoubleAnimation fadeIn = new DoubleAnimation
+                {
+                    From = 0,
+                    To = 1,
+                    Duration = TimeSpan.FromMilliseconds(600),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+                _splashWindow.BeginAnimation(Window.OpacityProperty, fadeIn);
+
+                // 2. Icon pulse animation (subtle glow effect)
+                DoubleAnimation iconPulse = new DoubleAnimation
+                {
+                    From = 0.7,
+                    To = 1.0,
+                    Duration = TimeSpan.FromMilliseconds(1500),
+                    AutoReverse = true,
+                    RepeatBehavior = RepeatBehavior.Forever,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                };
+                appIcon.BeginAnimation(UIElement.OpacityProperty, iconPulse);
+
+                // 3. Loading bar animation (FIXED: Chạy trực tiếp)
+                DoubleAnimation loadingAnimation = new DoubleAnimation
+                {
+                    From = 0,
+                    To = 520, // Ước lượng width (600 - 40*2 padding)
+                    Duration = TimeSpan.FromMilliseconds(2000),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+                };
+                
+                // Fix: Chạy animation ngay lập tức, không chờ Loaded event
+                loadingBar.BeginAnimation(Border.WidthProperty, loadingAnimation);
+
                 CheckForUpdates();
-                // CloseSplashAfterDelay(2000);
             });
         }
 
