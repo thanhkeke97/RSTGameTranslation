@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build Windows App
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - name: Checkout Code
@@ -24,9 +24,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-
-    - name: Install Windows Workload
-      run: dotnet workload install windows
 
     - name: Run Update Version Script
       run: node update-version.js
