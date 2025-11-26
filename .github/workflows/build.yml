@@ -20,11 +20,6 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Install Windows 11 SDK
-      shell: powershell
-      run: |
-        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --add Microsoft.VisualStudio.Component.Windows11SDK.22621 --quiet --norestart
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -35,7 +30,7 @@ jobs:
 
     - name: Publish .NET App
       run: |
-        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -p:TargetPlatformVersion=10.0.22621.0 -o ./publish_output
+        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -p:TargetFramework=net9.0-windows -o ./publish_output
 
     - name: Prepare Release Folder
       shell: cmd
