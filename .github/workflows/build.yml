@@ -15,11 +15,6 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Windows SDK 10.0.19041.0
-      shell: powershell
-      run: |
-        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --quiet --norestart
-        
     - name: Setup .NET 9.0
       uses: actions/setup-dotnet@v4
       with:
@@ -35,7 +30,7 @@ jobs:
 
     - name: Publish .NET App
       run: |
-        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -o ./publish_output
+        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -p:TargetPlatformVersion=10.0.22621.0 -o ./publish_output
 
     - name: Prepare Release Folder
       shell: cmd
