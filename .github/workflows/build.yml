@@ -20,17 +20,12 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
-    - name: Run Update Version Script
-      run: node update-version.js
+    - name: Add Windows SDK Build Tools
+      run: dotnet add package Microsoft.Windows.SDK.BuildTools --version 10.0.19041.8
 
     - name: Publish .NET App
       run: |
-        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true /p:WindowsSdkPackageVersion=10.0.19041.38 -o ./publish_output
+        dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -o ./publish_output
 
     - name: Prepare Release Folder
       shell: cmd
