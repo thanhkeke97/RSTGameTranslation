@@ -20,8 +20,8 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Add Windows SDK Build Tools
-      run: dotnet add package Microsoft.Windows.SDK.BuildTools --version 10.0.19041.8
+    - name: Update CsWinRT Package
+      run: dotnet add package Microsoft.Windows.CsWinRT --version 2.1.1
 
     - name: Publish .NET App
       run: |
