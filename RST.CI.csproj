@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.19041.38" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="SocketIOClient" Version="3.1.2" />
     <PackageReference Include="System.Management" Version="7.0.1" />
