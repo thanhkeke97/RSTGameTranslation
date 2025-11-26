@@ -25,6 +25,9 @@ jobs:
       with:
         node-version: '20'
 
+    - name: Install Windows Workload
+      run: dotnet workload install windows
+
     - name: Run Update Version Script
       run: node update-version.js
 
