@@ -169,7 +169,7 @@ namespace RSTGameTranslation
                 Grid.SetRow(_versionTextBlock, 1);
                 grid.Children.Add(_versionTextBlock);
 
-                // Author text (Đã thêm lại)
+                // Author text 
                 TextBlock authorText = new TextBlock
                 {
                     Text = "By Thanh Pham",

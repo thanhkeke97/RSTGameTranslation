@@ -180,12 +180,12 @@
                 </ScrollViewer>
             </TabItem>
             
-            <!-- OCR Settings Tab -->
-            <TabItem Header="OCR">
+            <!-- OCR/Screen Selection Tab -->
+            <TabItem Header="OCR/Screen Selection">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
-                        <!-- OCR Settings -->
-                        <GroupBox Header="OCR Settings" Margin="0,0,0,15" Padding="10">
+                        <!-- OCR/Screen Selection -->
+                        <GroupBox Header="OCR/Screen Selection" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -226,55 +226,6 @@
                                          ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
                                          Checked="WindowsOCRIntegrationCheckBox_CheckedChanged" 
                                          Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/> -->
-                                         
-                                <!-- Auto Translate -->
-                                <TextBlock Text="Auto Translate:" Grid.Row="2" Grid.Column="0" Visibility="Collapsed"
-                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="2" Grid.Column="1" Visibility="Collapsed"
-                                         Margin="0,5" IsChecked="True" 
-                                         Checked="AutoTranslateCheckBox_CheckedChanged" 
-                                         Unchecked="AutoTranslateCheckBox_CheckedChanged"/>
-                                         
-                                <!-- Minimum Text Fragment Size -->
-                                <TextBlock Text="Smallest text fragment:" Grid.Row="3" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
-                                <TextBox x:Name="minTextFragmentSizeTextBox" Grid.Row="3" Grid.Column="1" 
-                                        Margin="0,5" Text="2" LostFocus="MinTextFragmentSizeTextBox_LostFocus"
-                                        ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
-                                
-                                <!-- Minimum Letter Confidence -->
-                                <TextBlock Text="Min letter confidence:" Grid.Row="4" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
-                                <TextBox x:Name="minLetterConfidenceTextBox" Grid.Row="4" Grid.Column="1" 
-                                        Margin="0,5" Text="0.1" LostFocus="MinLetterConfidenceTextBox_LostFocus"
-                                        ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
-                                
-                                <!-- Minimum Line Confidence -->
-                                <TextBlock Text="Min line confidence:" Grid.Row="5" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
-                                <TextBox x:Name="minLineConfidenceTextBox" Grid.Row="5" Grid.Column="1" 
-                                        Margin="0,5" Text="0.2" LostFocus="MinLineConfidenceTextBox_LostFocus"
-                                        ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
-                                
-                                <!-- Multi Selection Area -->
-                                <TextBlock Text="Multi Selection Area" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
-                                    ToolTip="Enable multi selection area for text selection."/>
-                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="6" Grid.Column="1" Margin="0,5"
-                                         Checked="MultiSelectionAreaCheckBox_CheckedChanged"
-                                         Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
-
-                                <!-- Leave Translation Onscreen -->
-                                <TextBlock Text="Leave translation onscreen:" Grid.Row="7" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
-                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="7" Grid.Column="1" 
-                                         Margin="0,5" IsChecked="False" 
-                                         Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged" 
-                                         Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
-                                         ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
                                 
                                 <!-- Select Screen -->
                                 <TextBlock Text="Select Screen:" Grid.Row="9" Grid.Column="0" 
@@ -301,14 +252,114 @@
                             </Grid>
                         </GroupBox>
                         
-                        <!-- Block Detection Settings -->
-                        <GroupBox Header="Block Detection Settings" Margin="0,0,0,15" Padding="10">
+                        <!-- OCR Methods Comparison -->
+                        <GroupBox Header="OCR Methods Comparison" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="5"/>
+                                    </Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+                                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                        <Setter Property="Padding" Value="2"/>
+                                    </Style>
+                                </Grid.Resources>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/> <!-- Method Name -->
+                                    <ColumnDefinition Width="Auto"/> <!-- Install -->
+                                    <ColumnDefinition Width="Auto"/> <!-- Speed -->
+                                    <ColumnDefinition Width="Auto"/> <!-- Accuracy -->
+                                    <ColumnDefinition Width="Auto"/> <!-- Support Manga -->
+                                    <ColumnDefinition Width="Auto"/> <!-- Resources needed -->
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/> <!-- Header -->
+                                    <RowDefinition Height="Auto"/> <!-- Windows OCR -->
+                                    <RowDefinition Height="Auto"/> <!-- OneOCR -->
+                                    <RowDefinition Height="Auto"/> <!-- RapidOCR -->
+                                    <RowDefinition Height="Auto"/> <!-- EasyOCR -->
+                                    <RowDefinition Height="Auto"/> <!-- PaddleOCR -->
+                                </Grid.RowDefinitions>
+
+                                <!-- Header Row -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Method" FontWeight="Bold"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Install?" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Speed" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="3" Text="Accuracy" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="4" Text="Support Manga" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="5" Text="Resources Needed" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <Border Grid.Row="0" Grid.ColumnSpan="6" BorderThickness="0,0,0,2" BorderBrush="#FF888888" Margin="0,0,0,5"/>
+
+                                <!-- Windows OCR -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Windows OCR"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="No" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="Very Fast" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="1" Grid.Column="3" Text="Medium" HorizontalAlignment="Center" Foreground="#FFA500"/> <!-- Orange -->
+                                <TextBlock Grid.Row="1" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="1" Grid.Column="5" Text="CPU(~2%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <Border Grid.Row="1" Grid.ColumnSpan="6"/>
+
+                                <!-- OneOCR -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="OneOCR"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="No" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="2" Grid.Column="3" Text="High" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="2" Grid.Column="4" Text="Yes" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="2" Grid.Column="5" Text="CPU(~10%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <Border Grid.Row="2" Grid.ColumnSpan="6"/>
+
+                                <!-- RapidOCR -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="RapidOCR"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="3" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="3" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="3" Grid.Column="5" Text="AMD/NVIDIA(~10%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <Border Grid.Row="3" Grid.ColumnSpan="6"/>
+
+                                <!-- EasyOCR -->
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="EasyOCR"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="Medium" HorizontalAlignment="Center" Foreground="#FFA500"/>
+                                <TextBlock Grid.Row="4" Grid.Column="3" Text="Good" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="4" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="4" Grid.Column="5" Text="NVIDIA(~20%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <Border Grid.Row="4" Grid.ColumnSpan="6"/>
+
+                                <!-- PaddleOCR -->
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="PaddleOCR"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="5" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="Green"/>
+                                <TextBlock Grid.Row="5" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="5" Grid.Column="5" Text="NVIDIA(~15%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <Border Grid.Row="5" Grid.ColumnSpan="6" BorderThickness="0"/>
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- OCR Settings Tab -->
+            <TabItem Header="OCR Settings">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <!-- OCR Settings -->
+                        <GroupBox Header="OCR Settings" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
@@ -347,6 +398,56 @@
                                          Margin="0,5" IsChecked="True" 
                                          Checked="CharLevelCheckBox_CheckedChanged" 
                                          Unchecked="CharLevelCheckBox_CheckedChanged"/>
+                                
+                                <!-- Minimum Text Fragment Size -->
+                                <TextBlock Text="Smallest text fragment:" Grid.Row="4" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
+                                <TextBox x:Name="minTextFragmentSizeTextBox" Grid.Row="4" Grid.Column="1" 
+                                        Margin="0,5" Text="2" LostFocus="MinTextFragmentSizeTextBox_LostFocus"
+                                        ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
+                                
+                                <!-- Minimum Letter Confidence -->
+                                <TextBlock Text="Min letter confidence:" Grid.Row="5" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
+                                <TextBox x:Name="minLetterConfidenceTextBox" Grid.Row="5" Grid.Column="1" 
+                                        Margin="0,5" Text="0.1" LostFocus="MinLetterConfidenceTextBox_LostFocus"
+                                        ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
+                                
+                                <!-- Minimum Line Confidence -->
+                                <TextBlock Text="Min line confidence:" Grid.Row="6" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
+                                <TextBox x:Name="minLineConfidenceTextBox" Grid.Row="6" Grid.Column="1" 
+                                        Margin="0,5" Text="0.2" LostFocus="MinLineConfidenceTextBox_LostFocus"
+                                        ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
+                                
+                                <!-- Auto Translate -->
+                                <TextBlock Text="Auto Translate:" Grid.Row="7" Grid.Column="0" Visibility="Collapsed"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="7" Grid.Column="1" Visibility="Collapsed"
+                                         Margin="0,5" IsChecked="True" 
+                                         Checked="AutoTranslateCheckBox_CheckedChanged" 
+                                         Unchecked="AutoTranslateCheckBox_CheckedChanged"/>
+                                         
+                                
+                                <!-- Multi Selection Area -->
+                                <TextBlock Text="Multi Selection Area" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    ToolTip="Enable multi selection area for text selection."/>
+                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="8" Grid.Column="1" Margin="0,5"
+                                         Checked="MultiSelectionAreaCheckBox_CheckedChanged"
+                                         Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
+
+                                <!-- Leave Translation Onscreen -->
+                                <TextBlock Text="Leave translation onscreen:" Grid.Row="9" Grid.Column="0" 
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
+                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="9" Grid.Column="1" 
+                                         Margin="0,5" IsChecked="False" 
+                                         Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged" 
+                                         Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
+                                         ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
