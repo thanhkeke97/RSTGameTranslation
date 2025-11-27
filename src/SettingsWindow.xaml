@@ -1288,40 +1288,167 @@
                                        ToolTip="Set Modifed Hotkey"/>
                                 <TextBlock x:Name="statusUpdateHotKey" Foreground="Green" Text="HotKey update success" 
                                     Visibility="Collapsed" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <!-- Language Code Explanation -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" 
-                                          Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
-                                    <Run FontWeight="Bold">List HotKey:</Run>
-                                    <LineBreak/>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyStartStop">Start/Stop: ALT+G</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyOverlay">Overlay: ALT+F</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeySetting">Setting: ALT+P</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyLog">Log: ALT+L</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeySelectArea">Select Area: ALT+Q</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyClearAreas">Clear Areas: ALT+R</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyClearPreviousArea">Clear Selected Area: ALT+H</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyShowArea">Show Area: ALT+B</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyChatBox">ChatBox: ALT+C</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyArea1">Area 1: ALT+1</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyArea2">Area 2: ALT+2</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyArea3">Area 3: ALT+3</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyArea4">Area 4: ALT+4</Run>
-                                    <LineBreak/>
-                                    <Run x:Name="hotKeyArea5">Area 5: ALT+5</Run>
-                                </TextBlock>
+                                <!-- List HotKey Table -->
+                                <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" BorderBrush="#333" BorderThickness="1" CornerRadius="5">
+                                    <StackPanel>
+                                        <Border Background="#333" Padding="10,5">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Function Name" FontWeight="Bold" Foreground="White"/>
+                                                <TextBlock Grid.Column="1" Text="Shortcut" FontWeight="Bold" Foreground="White" Margin="0,0,20,0"/>
+                                            </Grid>
+                                        </Border>
+                                        
+                                        <!-- Items -->
+                                        <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                            <StackPanel>
+                                                <!-- Item Template -->
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Start/Stop Translation"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyStartStop" Text="ALT + G" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Toggle Overlay"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyOverlay" Text="ALT + F" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+                                                
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Open Settings"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeySetting" Text="ALT + P" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Toggle Log"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Select Area"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeySelectArea" Text="ALT + Q" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Clear All Areas"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearAreas" Text="ALT + R" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Clear Selected Area"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Show Area Border"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Toggle ChatBox"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <!-- Areas 1-5 -->
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Select Area 1"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea1" Text="ALT + 1" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+                                                
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Select Area 2"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea2" Text="ALT + 2" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Select Area 3"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea3" Text="ALT + 3" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Select Area 4"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea4" Text="ALT + 4" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Select Area 5"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                    </StackPanel>
+                                </Border>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
