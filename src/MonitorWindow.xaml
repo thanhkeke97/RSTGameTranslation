@@ -53,7 +53,7 @@
         </WrapPanel>
         
         <!-- ScrollViewer for zooming and scrolling -->
-        <ScrollViewer Grid.Row="1" x:Name="imageScrollViewer"
+        <ScrollViewer Grid.Row="1" x:Name="imageScrollViewer" Visibility="Collapsed"
               HorizontalScrollBarVisibility="Hidden" 
               VerticalScrollBarVisibility="Hidden"
               Background="{x:Null}">

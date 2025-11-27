@@ -56,7 +56,6 @@ namespace RSTGameTranslation
         private const uint SC_CLOSE = 0xF060;
         private const uint MF_BYCOMMAND = 0x00000000;
         private const uint MF_GRAYED = 0x00000001;
-        
         private static readonly HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(5) };
 
 
@@ -416,7 +415,7 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetForceUpdatePrompt(isForceUpdatePrompt);
 
             }
-
+            MonitorWindow.Instance.Show();
             // Create socket status text block
             CreateSocketStatusIndicator();
 
@@ -1859,12 +1858,12 @@ namespace RSTGameTranslation
         
         private void ToggleMonitorWindow()
         {
-            if (MonitorWindow.Instance.IsVisible)
+            if (MonitorWindow.Instance.imageScrollViewer.Visibility == Visibility.Visible && MonitorWindow.Instance.IsVisible)
             {
 
                 Console.WriteLine($"Saving monitor position: {monitorWindowLeft}, {monitorWindowTop}");
 
-                MonitorWindow.Instance.Hide();
+                MonitorWindow.Instance.imageScrollViewer.Visibility = Visibility.Collapsed;
                 Console.WriteLine("Monitor window hidden from MainWindow toggle");
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
             }
@@ -1878,10 +1877,9 @@ namespace RSTGameTranslation
             {
                 try
                 {
-                    // Close and reset instance
-                    MonitorWindow.Instance.Hide();
-
                     Console.WriteLine("Creating new MonitorWindow instance...");
+                    // Close and reset instance
+                    MonitorWindow.Instance.imageScrollViewer.Visibility = Visibility.Visible;
 
                     // If a custom translation area has been selected, use that area
                     // if (hasSelectedTranslationArea)
@@ -1934,10 +1932,10 @@ namespace RSTGameTranslation
         // Show current area button click handler
         private void ShowAreaButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!MonitorWindow.Instance.IsVisible)
-            {
-                ToggleMonitorWindow();
-            }
+            // if (!MonitorWindow.Instance.IsVisible)
+            // {
+            //     ToggleMonitorWindow();
+            // }
             
             // Toggle BorderThickness: 0 <-> 1
             MonitorWindow.Instance.BorderThickness = 
