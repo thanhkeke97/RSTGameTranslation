@@ -2528,7 +2528,7 @@ namespace RSTGameTranslation
 
                 if (chatGptModelComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    string model = selectedItem.Tag?.ToString() ?? "gpt-3.5-turbo";
+                    string model = selectedItem.Tag?.ToString() ?? "gpt-4.1-mini";
 
                     // Save to config
                     ConfigManager.Instance.SetChatGptModel(model);

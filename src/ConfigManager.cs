@@ -167,7 +167,7 @@ namespace RSTGameTranslation
                     "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
-                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - Structure: Same as input `text_blocks` (must include `text_blocks` in response).\n" +
                     "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
@@ -186,7 +186,7 @@ namespace RSTGameTranslation
                     "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
-                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - Structure: Same as input `text_blocks` (must include `text_blocks` in response).\n" +
                     "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
@@ -205,7 +205,7 @@ namespace RSTGameTranslation
                     "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
-                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - Structure: Same as input `text_blocks` (must include `text_blocks` in response).\n" +
                     "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
@@ -224,7 +224,7 @@ namespace RSTGameTranslation
                     "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
-                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - Structure: Same as input `text_blocks` (must include `text_blocks` in response).\n" +
                     "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
@@ -243,7 +243,7 @@ namespace RSTGameTranslation
                     "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
-                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - Structure: Same as input `text_blocks` (must include `text_blocks` in response).\n" +
                     "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
@@ -262,7 +262,7 @@ namespace RSTGameTranslation
                     "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
                     "3. **Output Format Rules**:\n" +
                     "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
-                    "   - Structure: Same as input `text_blocks`.\n" +
+                    "   - Structure: Same as input `text_blocks` (must include `text_blocks` in response).\n" +
                     "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
@@ -449,7 +449,7 @@ namespace RSTGameTranslation
             _configValues[MIN_CONTEXT_SIZE] = (8).ToString(CultureInfo.InvariantCulture);
             _configValues[GAME_INFO] = "We're playing an unspecified game.";
             _configValues[MIN_TEXT_FRAGMENT_SIZE] = (1).ToString(CultureInfo.InvariantCulture);
-            _configValues[CHATGPT_MODEL] = "gpt-4.1-nano";
+            _configValues[CHATGPT_MODEL] = "gpt-4.1-mini";
             _configValues[CHATGPT_API_KEY] = "<your API key here>";
             _configValues[MISTRAL_MODEL] = "open-mistral-nemo";
             _configValues[MISTRAL_API_KEY] = "<your API key here>";

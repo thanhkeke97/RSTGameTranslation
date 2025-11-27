@@ -345,10 +345,9 @@ namespace RSTGameTranslation
 
             // Load ChatGPT models
             ChatGptModelComboBox.Items.Clear();
-            ChatGptModelComboBox.Items.Add("gpt-3.5-turbo");
-            ChatGptModelComboBox.Items.Add("gpt-4o-mini");
+            ChatGptModelComboBox.Items.Add("gpt-4.1");
+            ChatGptModelComboBox.Items.Add("gpt-4.1-mini");
             ChatGptModelComboBox.Items.Add("gpt-4.1-nano");
-            ChatGptModelComboBox.Items.Add("gpt-4o");
 
             // Load Gemini models
             GeminiModelComboBox.Items.Clear();

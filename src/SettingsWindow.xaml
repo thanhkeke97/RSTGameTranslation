@@ -812,16 +812,11 @@
                                     </Grid.ColumnDefinitions>
                                     <ComboBox x:Name="chatGptModelComboBox" Grid.Column="0"
                                             SelectionChanged="ChatGptModelComboBox_SelectionChanged">
-                                        <ComboBoxItem Content="GPT-3.5 Turbo" Tag="gpt-3.5-turbo"/>
-                                        <ComboBoxItem Content="GPT-4o Mini" Tag="gpt-4o-mini"/>
-                                        <ComboBoxItem Content="GPT-4o" Tag="gpt-4o"/>
-                                        <ComboBoxItem Content="O4 Mini" Tag="o4-mini"/>
                                         <ComboBoxItem Content="GPT-4.1" Tag="gpt-4.1"/>
+                                        <ComboBoxItem Content="GPT-5.1" Tag="gpt-5.1"/>
                                         <ComboBoxItem Content="GPT-4.1 Nano" Tag="gpt-4.1-nano"/>
                                         <ComboBoxItem Content="GPT-4.1 Mini" Tag="gpt-4.1-mini"/>
-                                        <ComboBoxItem Content="GPT-4.5 Preview" Tag="gpt-4.5-preview"/>
-                                        <ComboBoxItem Content="O3" Tag="o3"/>
-                                        <ComboBoxItem Content="O3 Mini" Tag="o3-mini"/>
+                                        <ComboBoxItem Content="GPT-5-Mini" Tag="gpt-5-mini"/>
                                     </ComboBox>
                                     <Button x:Name="viewChatGptModelsButton" Content="View Models" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewChatGptModelsButton_Click"
