@@ -98,29 +98,62 @@ def release_gpu_resources():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-def preprocess_image(image):
+def preprocess_image_hdr(image, mode='auto'):
     """
-    Preprocess the image to improve OCR performance.
-    This includes converting to grayscale, enhancing contrast, and reducing noise.
+    Enhanced preprocessing for HDR tone-mapped images from GDI capture.
+    Uses CLAHE and bilateral filtering.
     
     Args:
-        image (PIL.Image): Input image.
+        image (PIL.Image): Input image
+        mode (str): 'auto', 'basic', or 'enhanced'
     
     Returns:
-        PIL.Image: Preprocessed image.
+        PIL.Image: Preprocessed image
     """
-    # Convert image to grayscale
-    image = image.convert('L')
+    # Convert PIL to numpy
+    img_np = np.array(image)
     
-    # Enhance contrast
-    enhancer = ImageEnhance.Contrast(image)
-    image = enhancer.enhance(2.0)
+    # Convert to grayscale
+    if len(img_np.shape) == 3:
+        gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+    else:
+        gray = img_np
     
-    # Apply a median filter for noise reduction
-    image = image.filter(ImageFilter.MedianFilter(size=3))
+    # Auto-detect if enhanced processing needed
+    if mode == 'auto':
+        mean_brightness = np.mean(gray)
+        std_brightness = np.std(gray)
+        
+        if std_brightness < 40 or mean_brightness > 200 or mean_brightness < 55:
+            mode = 'enhanced'
+            print(f"Auto-detected HDR artifacts (mean={mean_brightness:.1f}, std={std_brightness:.1f})")
     
-    # Convert back to RGB (EasyOCR may expect an RGB image)
-    return image.convert('RGB')
+    # Enhanced mode for HDR
+    if mode == 'enhanced':
+        # CLAHE for tone-mapped images
+        clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+        enhanced = clahe.apply(gray)
+        
+        # Bilateral filter (reduce noise, keep edges)
+        denoised = cv2.bilateralFilter(enhanced, 5, 50, 50)
+        
+        # Sharpen
+        kernel = np.array([[-1,-1,-1], [-1, 9,-1], [-1,-1,-1]])
+        sharpened = cv2.filter2D(denoised, -1, kernel=kernel)
+        
+        result = Image.fromarray(sharpened)
+        print("Applied CLAHE + bilateral filter + sharpening")
+    else:
+        # Basic preprocessing
+        result = image.convert('L')
+        enhancer = ImageEnhance.Contrast(result)
+        result = enhancer.enhance(2.0)
+        result = result.filter(ImageFilter.MedianFilter(size=3))
+    
+    return result.convert('RGB')
+
+def preprocess_image(image):
+    return preprocess_image_hdr(image, mode='auto')
 
 def upscale_image(image, min_width=1024, min_height=768):
     """
@@ -147,7 +180,7 @@ def upscale_image(image, min_width=1024, min_height=768):
 # Initialize with default language at module load time
 initialize_ocr_engine('english')
 
-def process_image(image_path, lang='english', preprocess_images=False, upscale_if_needed=False, char_level="True"):
+def process_image(image_path, lang='english', preprocess_images=True, upscale_if_needed=False, char_level="True"):
     """
     Process an image using EasyOCR and return the OCR results.
     

@@ -346,11 +346,12 @@ namespace RSTGameTranslation
             try
             {
                 // Convert the image format to BGRA
-                using (Bitmap imgRgba = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb))
+                using (var preprocessed = PreprocessBitmapForOCR(bitmap))
+                using (Bitmap imgRgba = new Bitmap(preprocessed.Width, preprocessed.Height, PixelFormat.Format32bppArgb))
                 {
                     using (Graphics g = Graphics.FromImage(imgRgba))
                     {
-                        g.DrawImage(bitmap, 0, 0);
+                        g.DrawImage(preprocessed, 0, 0);
                     }
 
                     int rows = imgRgba.Height;
@@ -387,6 +388,84 @@ namespace RSTGameTranslation
                 Console.WriteLine($"OneOCR error: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return new List<Line>();
+            }
+        }
+
+        // Preprocess bitmap for better OCR with HDR support
+        private System.Drawing.Bitmap PreprocessBitmapForOCR(System.Drawing.Bitmap source)
+        {
+            try
+            {
+                var result = new System.Drawing.Bitmap(source.Width, source.Height);
+                
+                using (var graphics = System.Drawing.Graphics.FromImage(result))
+                {
+                    graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    
+                    using (var attributes = new System.Drawing.Imaging.ImageAttributes())
+                    {
+                        // Analyze brightness (simple sampling)
+                        float avgBrightness = AnalyzeBrightness(source);
+                        
+                        // Adaptive contrast based on brightness
+                        float contrast = avgBrightness < 55 || avgBrightness > 200 ? 1.5f : 1.2f;
+                        float brightness = (128 - avgBrightness) / 255.0f * 0.15f;
+                        
+                        // Color matrix for enhancement
+                        float[][] colorMatrix = {
+                            new float[] {contrast, 0, 0, 0, 0},
+                            new float[] {0, contrast, 0, 0, 0},
+                            new float[] {0, 0, contrast, 0, 0},
+                            new float[] {0, 0, 0, 1, 0},
+                            new float[] {brightness, brightness, brightness, 0, 1}
+                        };
+                        
+                        attributes.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix(colorMatrix));
+                        attributes.SetGamma(1.1f);
+                        
+                        graphics.DrawImage(
+                            source,
+                            new System.Drawing.Rectangle(0, 0, result.Width, result.Height),
+                            0, 0, source.Width, source.Height,
+                            System.Drawing.GraphicsUnit.Pixel,
+                            attributes);
+                    }
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Preprocessing failed: {ex.Message}");
+                return new System.Drawing.Bitmap(source);
+            }
+        }
+
+        // Fast brightness analysis
+        private float AnalyzeBrightness(System.Drawing.Bitmap bitmap)
+        {
+            try
+            {
+                int sampleSize = Math.Max(1, Math.Min(bitmap.Width, bitmap.Height) / 20);
+                float totalBrightness = 0;
+                int samples = 0;
+                
+                for (int y = 0; y < bitmap.Height; y += sampleSize)
+                {
+                    for (int x = 0; x < bitmap.Width; x += sampleSize)
+                    {
+                        var pixel = bitmap.GetPixel(x, y);
+                        totalBrightness += 0.299f * pixel.R + 0.587f * pixel.G + 0.114f * pixel.B;
+                        samples++;
+                    }
+                }
+                
+                return samples > 0 ? totalBrightness / samples : 128f;
+            }
+            catch
+            {
+                return 128f;
             }
         }
 
