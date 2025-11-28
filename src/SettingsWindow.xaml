@@ -226,11 +226,21 @@
                                          ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
                                          Checked="WindowsOCRIntegrationCheckBox_CheckedChanged" 
                                          Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/> -->
+
+                                <!-- HDR support -->
+                                <TextBlock Text="HDR support:" Grid.Row="9" Grid.Column="0" 
+                                          ToolTip="This feature will use HDR support for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="hdrSupportCheckBox" Grid.Row="9" Grid.Column="1" 
+                                         Margin="0,5"
+                                         ToolTip="This feature will use HDR support for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
+                                         Checked="HDRSupportCheckBox_CheckedChanged" 
+                                         Unchecked="HDRSupportCheckBox_CheckedChanged"/>
                                 
                                 <!-- Select Screen -->
-                                <TextBlock Text="Select Screen:" Grid.Row="9" Grid.Column="0" 
+                                <TextBlock Text="Select Screen:" Grid.Row="8" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="screenComboBox" Grid.Row="9" Grid.Column="1" 
+                                <ComboBox x:Name="screenComboBox" Grid.Row="8" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="ScreenComboBox_SelectionChanged">
                                 </ComboBox>
 

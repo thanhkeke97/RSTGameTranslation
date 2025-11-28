@@ -1902,7 +1902,7 @@ namespace RSTGameTranslation
                     _lastOcrRequestTime = DateTime.Now;
                     bool charLevel = ConfigManager.Instance.IsCharLevelEnabled();
                     // If we got here, socket is connected - explicitly request character-level OCR
-                    await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|{ocrMethod}|{charLevel}");
+                    await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|{ocrMethod}|{charLevel}|{ConfigManager.Instance.IsHDRSupportEnabled()}");
                 }
             }
             catch (Exception ex)

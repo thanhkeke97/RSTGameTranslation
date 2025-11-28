@@ -107,6 +107,7 @@ namespace RSTGameTranslation
         public const string WINDOWS_OCR_INTEGRATION = "windows_ocr_integration";
         public const string AUTO_OCR = "auto_ocr";
         public const string MANGA_MODE = "manga_mode";
+        public const string HDR_SUPPORT = "hdr_support";
 
         // Text-to-Speech configuration keys
         public const string TTS_ENABLED = "tts_enabled";
@@ -495,6 +496,7 @@ namespace RSTGameTranslation
             _configValues[LANGUAGE_FONT_OVERRIDE] = "false";
             _configValues[LANGUAGE_FONT_SIZE_MIN] = (10).ToString(CultureInfo.InvariantCulture);
             _configValues[LANGUAGE_FONT_SIZE_MAX] = (68).ToString(CultureInfo.InvariantCulture);
+            _configValues[HDR_SUPPORT] = "false";
 
             // Save the default configuration
             SaveConfig();
@@ -1335,6 +1337,21 @@ namespace RSTGameTranslation
             _configValues[CHAR_LEVEL] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Char level enabled: {enabled}");
+        }
+
+        // Check if HDR support is enabled
+        public bool IsHDRSupportEnabled()
+        {
+            string value = GetValue(HDR_SUPPORT, "false");
+            return value.ToLower() == "true";
+        }
+
+        // Set HDR support
+        public void SetHDRSupportEnabled(bool enabled)
+        {
+            _configValues[HDR_SUPPORT] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"HDR support enabled: {enabled}");
         }
 
         // Check if need show quick start

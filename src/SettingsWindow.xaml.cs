@@ -879,6 +879,9 @@ namespace RSTGameTranslation
             // Set auto OCR
             AutoOCRCheckBox.IsChecked = ConfigManager.Instance.IsAutoOCREnabled();
 
+            // Set HDR support
+            hdrSupportCheckBox.IsChecked = ConfigManager.Instance.IsHDRSupportEnabled();
+
             // Set manga mode
             // MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
             // isNeedShowWarningMangaMode = true;
@@ -3693,6 +3696,13 @@ namespace RSTGameTranslation
             bool enabled = autoSetOverlayBackgroundColorcheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetAutoSetOverlayBackground(enabled);
             Console.WriteLine($"Auto set overlay background color set to {enabled}");
+        }
+
+        private void HDRSupportCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = hdrSupportCheckBox.IsChecked ?? true;
+            ConfigManager.Instance.SetHDRSupportEnabled(enabled);
+            Console.WriteLine($"HDR support set to {enabled}");
         }
 
         // private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)

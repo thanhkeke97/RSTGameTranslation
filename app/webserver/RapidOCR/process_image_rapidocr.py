@@ -3,6 +3,7 @@ import json
 import time
 import numpy as np
 import tempfile
+import cv2
 from PIL import Image, ImageEnhance, ImageFilter
 from rapidocr import RapidOCR, OCRVersion, ModelType, LangDet, LangRec, EngineType
 # import torch

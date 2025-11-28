@@ -345,42 +345,55 @@ namespace RSTGameTranslation
 
             try
             {
-                // Convert the image format to BGRA
-                using (var preprocessed = PreprocessBitmapForOCR(bitmap))
-                using (Bitmap imgRgba = new Bitmap(preprocessed.Width, preprocessed.Height, PixelFormat.Format32bppArgb))
+                // Convert the image format to BGRA with optional preprocessing
+                bool enablePreprocessing = ConfigManager.Instance.IsHDRSupportEnabled();
+                Bitmap sourceImage = enablePreprocessing ? PreprocessBitmapForOCR(bitmap) : bitmap;
+
+                try
                 {
-                    using (Graphics g = Graphics.FromImage(imgRgba))
+                    using (Bitmap imgRgba = new Bitmap(sourceImage.Width, sourceImage.Height, PixelFormat.Format32bppArgb))
                     {
-                        g.DrawImage(preprocessed, 0, 0);
+                        using (Graphics g = Graphics.FromImage(imgRgba))
+                        {
+                            g.DrawImage(sourceImage, 0, 0);
+                        }
+
+                        int rows = imgRgba.Height;
+                        int cols = imgRgba.Width;
+                        int step = System.Drawing.Image.GetPixelFormatSize(imgRgba.PixelFormat) / 8 * cols;
+
+                        // Get pixel data
+                        BitmapData bitmapData = imgRgba.LockBits(
+                            new Rectangle(0, 0, imgRgba.Width, imgRgba.Height), 
+                            ImageLockMode.ReadOnly, 
+                            imgRgba.PixelFormat);
+                        
+                        IntPtr dataPtr = bitmapData.Scan0;
+
+                        // Create an instance of the Img structure
+                        Img formattedImage = new Img
+                        {
+                            t = 3,
+                            col = cols,
+                            row = rows,
+                            _unk = 0,
+                            step = step,
+                            data_ptr = dataPtr
+                        };
+
+                        // Execute OCR processing
+                        Line[]? result = RunOcr(formattedImage);
+                        imgRgba.UnlockBits(bitmapData);
+                        return result != null ? result.ToList() : new List<Line>();
                     }
-
-                    int rows = imgRgba.Height;
-                    int cols = imgRgba.Width;
-                    int step = System.Drawing.Image.GetPixelFormatSize(imgRgba.PixelFormat) / 8 * cols;
-
-                    // Get pixel data
-                    BitmapData bitmapData = imgRgba.LockBits(
-                        new Rectangle(0, 0, imgRgba.Width, imgRgba.Height), 
-                        ImageLockMode.ReadOnly, 
-                        imgRgba.PixelFormat);
-                    
-                    IntPtr dataPtr = bitmapData.Scan0;
-
-                    // Create an instance of the Img structure
-                    Img formattedImage = new Img
+                }
+                finally
+                {
+                    // Cleanup preprocessed image if it was created
+                    if (enablePreprocessing && sourceImage != bitmap)
                     {
-                        t = 3,
-                        col = cols,
-                        row = rows,
-                        _unk = 0,
-                        step = step,
-                        data_ptr = dataPtr
-                    };
-
-                    // Execute OCR processing
-                    Line[]? result = RunOcr(formattedImage);
-                    imgRgba.UnlockBits(bitmapData);
-                    return result != null ? result.ToList() : new List<Line>();
+                        sourceImage?.Dispose();
+                    }
                 }
             }
             catch (Exception ex)

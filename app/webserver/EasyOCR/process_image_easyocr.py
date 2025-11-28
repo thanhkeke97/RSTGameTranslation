@@ -6,6 +6,7 @@ import numpy as np
 import easyocr
 from PIL import Image, ImageEnhance, ImageFilter
 import torch
+import cv2
 
 # Global variables to manage OCR engine
 OCR_ENGINE = None

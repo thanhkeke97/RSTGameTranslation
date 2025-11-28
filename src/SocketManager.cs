@@ -187,7 +187,7 @@ namespace RSTGameTranslation
             {
                 byte[] messageBytes = Encoding.UTF8.GetBytes(data);
                 await _clientSocket.SendAsync(messageBytes, SocketFlags.None);
-                //Console.WriteLine($"Sent data: {data}");
+                Console.WriteLine($"Sent data: {data}");
                 return true;
             }
             catch (SocketException ex)

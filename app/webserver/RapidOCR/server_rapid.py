@@ -73,6 +73,7 @@ def handle_client_connection(conn, addr):
                 lang = 'english'  # Default language
                 implementation = 'rapidOCR'
                 char_level_rec = 'True'
+                hdr_support_rec = 'False'
                 
                 if "|" in command:
                     parts = command.split("|")
@@ -82,16 +83,18 @@ def handle_client_connection(conn, addr):
                         implementation = parts[2].lower()
                     if len(parts) > 3 and parts[3]:
                         char_level_rec = parts[3]
+                    if len(parts) > 4 and parts[4]:
+                        hdr_support_rec = parts[4]
 
                 # Check if character-level OCR is requested
                 char_level = char_level_rec  # Default to character-level
                 
                 # Log the OCR engine and language being used
-                logger.info(f"Using rapidOCR with language: {lang}, character-level: {char_level}, OCR engine: {implementation}")
+                logger.info(f"Using rapidOCR with language: {lang}, character-level: {char_level}, OCR engine: {implementation}, HDR support: {hdr_support_rec}")
                 
                 # Process image with PaddleOCR
                 start_time = time.time()
-                result = process_image("../image_to_process.png", lang=lang, char_level=char_level)
+                result = process_image("../image_to_process.png", lang=lang, char_level=char_level, preprocess_images=hdr_support_rec)
                 
                 
                 release_gpu_resources()
