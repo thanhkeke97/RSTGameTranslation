@@ -115,7 +115,34 @@ Tham gia [Discord](https://discord.gg/FusrDU5tdn) của chúng tôi để đư�
 
 ---
 
-## 📄 Giấy phép
+## �️ Công nghệ Mã nguồn mở
+
+Dự án này được xây dựng dựa trên sự đóng góp của cộng đồng mã nguồn mở. Chúng tôi xin gửi lời cảm ơn chân thành đến các dự án sau:
+
+### Core & UI
+- **[WPF (Windows Presentation Foundation)](https://github.com/dotnet/wpf)** - Framework giao diện người dùng
+
+### OCR (Nhận dạng Ký tự Quang học)
+- **[PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)** - Bộ công cụ OCR đa ngôn ngữ tuyệt vời
+- **[EasyOCR](https://github.com/JaidedAI/EasyOCR)** - OCR sẵn sàng sử dụng với hơn 80 ngôn ngữ được hỗ trợ
+- **[RapidOCR](https://github.com/RapidAI/RapidOCR)** - Thư viện OCR đa nền tảng dựa trên OnnxRuntime
+
+### AI & Dịch thuật
+- **[SocketIOClient](https://github.com/doghappy/socket.io-client-csharp)** - Socket.IO client cho .NET
+- **[System.Text.Json](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-overview)** - Tuần tự hóa JSON hiệu suất cao
+- **[Hugging Face](https://huggingface.co/)** - Nền tảng cho các mô hình AI và bộ dữ liệu
+
+### Âm thanh
+- **[NAudio](https://github.com/naudio/NAudio)** - Thư viện âm thanh và MIDI cho .NET
+- **[System.Speech](https://learn.microsoft.com/en-us/dotnet/api/system.speech.synthesis.speechsynthesizer)** - Thư viện tổng hợp giọng nói .NET
+
+### Khác
+- **[Python](https://www.python.org/)** - Ngôn ngữ kịch bản backend
+- **[PyTorch](https://pytorch.org/)** - Framework học máy
+
+---
+
+## �📄 Giấy phép
 
 Giấy phép kiểu BSD - xem chi tiết tại [LICENSE.md](LICENSE.md)
 

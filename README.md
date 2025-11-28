@@ -115,6 +115,33 @@ Join our [Discord](https://discord.gg/FusrDU5tdn) for support and updates!
 
 ---
 
+## 🛠️ Open Source Technologies
+
+This project stands on the shoulders of giants. We gratefully acknowledge the following open-source projects:
+
+### Core & UI
+- **[WPF (Windows Presentation Foundation)](https://github.com/dotnet/wpf)** - UI Framework
+
+### OCR (Optical Character Recognition)
+- **[PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)** - Awesome multilingual OCR toolkits
+- **[EasyOCR](https://github.com/JaidedAI/EasyOCR)** - Ready-to-use OCR with 80+ supported languages
+- **[RapidOCR](https://github.com/RapidAI/RapidOCR)** - Cross platform OCR library based on OnnxRuntime
+
+### AI & Translation
+- **[SocketIOClient](https://github.com/doghappy/socket.io-client-csharp)** - Socket.IO client for .NET
+- **[System.Text.Json](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-overview)** - High-performance JSON serialization
+- **[Hugging Face](https://huggingface.co/)** - For various AI models and datasets
+
+### Audio
+- **[NAudio](https://github.com/naudio/NAudio)** - Audio and MIDI library for .NET
+- **[System.Speech](https://learn.microsoft.com/en-us/dotnet/api/system.speech.synthesis.speechsynthesizer)** - .NET Speech Synthesis Library
+
+### Others
+- **[Python](https://www.python.org/)** - Backend scripting
+- **[PyTorch](https://pytorch.org/)** - Machine learning framework
+
+---
+
 ## 📄 License
 
 BSD-style attribution - see [LICENSE.md](LICENSE.md)
