@@ -354,6 +354,11 @@
                                         <TextBlock Name="AppVersion" Text="Version" Foreground="#AAFFFFFF" FontSize="12" Margin="0,5,0,0"/>
                                         <TextBlock Text="Game Translation Made Simple" Foreground="White" 
                                                 FontSize="14" Margin="0,5,0,0" FontStyle="Italic"/>
+                                        
+                                        <!-- Note-->
+                                        <TextBlock Text="Note: Users updating from versions below 3.5 must re-run setupOCR to ensure proper functionality." 
+                                                   Foreground="#FFCC00" FontSize="12" Margin="0,8,0,0" 
+                                                   TextWrapping="Wrap" FontWeight="SemiBold"/>
                                     </StackPanel>
 
                                     <!-- Discord Button -->

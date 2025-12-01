@@ -2547,7 +2547,6 @@ namespace RSTGameTranslation
             {
                 WindowSelectorPopup popup = new WindowSelectorPopup();
                 popup.WindowSelected += OnWindowSelected;
-                MonitorWindow.Instance.DisableExcludeFromCapture();
                 popup.ShowDialog();
             }
         }
