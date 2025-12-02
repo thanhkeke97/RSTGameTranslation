@@ -732,7 +732,7 @@ namespace RSTGameTranslation
             SettingsWindow.Instance.ListHotKey_TextChanged();
 
             // Update app version on setup screen
-            AppVersion.Text = "Version " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
 
             // Add socket status to the header
             if (FooterBorder != null && FooterBorder.Child is Grid footerGrid)
@@ -2760,6 +2760,7 @@ namespace RSTGameTranslation
             {
                 LocalizationManager.Instance.CurrentLanguage = languageCode;
                 ConfigManager.Instance.SetLanguageInterface(languageCode);
+                AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
             }
         }
 
