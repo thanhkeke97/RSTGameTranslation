@@ -350,7 +350,7 @@
                                     <StackPanel Grid.Column="1" Margin="15,0,15,0" VerticalAlignment="Center">
                                         <TextBlock Text="RSTGameTranslation" FontSize="28" 
                                                 FontWeight="Bold" Foreground="#FF00AAFF"/>
-                                        <TextBlock Name="AppVersion" Text="Version" Foreground="#AAFFFFFF" FontSize="12" Margin="0,5,0,0"/>
+                                        <TextBlock Name="AppVersion" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Version]}" Foreground="#AAFFFFFF" FontSize="12" Margin="0,5,0,0"/>
                                         <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Description]}" Foreground="White" 
                                                 FontSize="14" Margin="0,5,0,0" FontStyle="Italic"/>
                                         
@@ -572,6 +572,7 @@
                                     <ComboBoxItem Content="English" Tag="en"/>
                                     <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
                                     <ComboBoxItem Content="中国人" Tag="zh_cn"/>
+                                    <ComboBoxItem Content="日本語" Tag="ja"/>
                                 </ComboBox>
                             
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Author], Mode=OneWay}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"

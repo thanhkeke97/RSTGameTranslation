@@ -384,5 +384,6 @@
   "Status_PleaseStartEasyOCR": "Please start EasyOCR server",
   "Status_PleaseStartRapidOCR": "Please start RapidOCR server",
   "Status_PleaseStartPaddleOCR": "Please start PaddleOCR server",
-  "Status_PleaseClickStartServer": "Please click StartServer button to reconnect server"
+  "Status_PleaseClickStartServer": "Please click StartServer button to reconnect server",
+  "App_Version": "Version"
 }
