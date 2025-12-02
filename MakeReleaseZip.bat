@@ -23,6 +23,7 @@ mkdir tempbuild\webserver\EasyOCR
 mkdir tempbuild\webserver\PaddleOCR
 mkdir tempbuild\webserver\RapidOCR
 mkdir tempbuild\webserver\Python311
+mkdir tempbuild\Languages
 copy app\webserver\EasyOCR\*.py tempbuild\webserver\EasyOCR
 copy app\webserver\EasyOCR\*.bat tempbuild\webserver\EasyOCR
 copy app\webserver\PaddleOCR\*.bat tempbuild\webserver\PaddleOCR
@@ -34,6 +35,7 @@ copy app\translation_server\*.bat tempbuild\translation_server
 copy app\OneOcr\* tempbuild
 copy app\translation_server\templates\*.html tempbuild\translation_server\templates
 copy app\webserver\*.bat tempbuild\webserver
+copy app\Languages\* tempbuild\Languages
 robocopy app\webserver\Python311 tempbuild\webserver\Python311 /E /NFL /NDL
 
 7-zip\7z.exe a -r -tzip %FNAME% tempbuild

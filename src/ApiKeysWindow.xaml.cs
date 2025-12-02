@@ -52,8 +52,8 @@ namespace RSTGameTranslation
                 int selectedIndex = apiKeysListView.SelectedIndex;
                 
                 MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to remove this API key?", 
-                    "Confirm Removal", 
+                    LocalizationManager.Instance.Strings["Msg_ConfirmRemoveKey"], 
+                    LocalizationManager.Instance.Strings["Title_ConfirmRemoval"], 
                     MessageBoxButton.YesNo, 
                     MessageBoxImage.Question);
                 
@@ -79,8 +79,8 @@ namespace RSTGameTranslation
             if (_apiKeys.Count > 0)
             {
                 MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to remove ALL API keys for {_serviceType}?", 
-                    "Confirm Removal", 
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ConfirmRemoveAllKeys"], _serviceType), 
+                    LocalizationManager.Instance.Strings["Title_ConfirmRemoval"], 
                     MessageBoxButton.YesNo, 
                     MessageBoxImage.Warning);
                 

@@ -140,6 +140,9 @@ namespace RSTGameTranslation
 
         public const string TEXTSIMILAR_THRESHOLD = "textsimilar_threshold";
 
+        // Language interface
+        public const string LANGUAGE_INTERFACE = "language_interface";
+
         // Constants for overlay settings
         public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
         public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
@@ -497,6 +500,7 @@ namespace RSTGameTranslation
             _configValues[LANGUAGE_FONT_SIZE_MIN] = (10).ToString(CultureInfo.InvariantCulture);
             _configValues[LANGUAGE_FONT_SIZE_MAX] = (68).ToString(CultureInfo.InvariantCulture);
             _configValues[HDR_SUPPORT] = "false";
+            _configValues[LANGUAGE_INTERFACE] = "en";
 
             // Save the default configuration
             SaveConfig();
@@ -1752,6 +1756,22 @@ namespace RSTGameTranslation
                 _configValues[SOURCE_LANGUAGE] = language;
                 SaveConfig();
                 Console.WriteLine($"Source language set to: {language}");
+            }
+        }
+
+        // Get/Set language interface
+        public string GetLanguageInterface()
+        {
+            return GetValue(LANGUAGE_INTERFACE, "en"); // Default to English
+        }
+
+        public void SetLanguageInterface(string language)
+        {
+            if (!string.IsNullOrWhiteSpace(language))
+            {
+                _configValues[LANGUAGE_INTERFACE] = language;
+                SaveConfig();
+                Console.WriteLine($"Language interface set to: {language}");
             }
         }
 

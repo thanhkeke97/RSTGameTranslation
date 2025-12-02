@@ -767,6 +767,17 @@ namespace RSTGameTranslation
             // Test configuration loading
             TestConfigLoading();
 
+            // Load language interface settings
+            string currentLang = ConfigManager.Instance.GetLanguageInterface();
+            foreach (ComboBoxItem item in languageSelector.Items)
+            {
+                if (item.Tag.ToString() == currentLang)
+                {
+                    languageSelector.SelectedItem = item;
+                    break;
+                }
+            }
+
             // Initialization is complete, now we can save settings changes
             _isInitializing = false;
             Console.WriteLine("MainWindow initialization complete. Settings changes will now be saved.");
@@ -969,7 +980,7 @@ namespace RSTGameTranslation
             {
                 Logic.Instance.ResetHash();
                 isStarted = false;
-                btn.Content = "Start";
+                btn.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("Strings[Btn_Start]") { Source = LocalizationManager.Instance });
                 btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green                                                   
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.RefreshOverlays();
@@ -985,7 +996,7 @@ namespace RSTGameTranslation
                 {
                     isStarted = true;
                     isStopOCR = false;
-                    btn.Content = "Stop";
+                    btn.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("Strings[Btn_Stop]") { Source = LocalizationManager.Instance });
                     UpdateCaptureRect();
                     SetOCRCheckIsWanted(true);
                     btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
@@ -2702,6 +2713,15 @@ namespace RSTGameTranslation
                 if (openAIRealtimeAudioService == null)
                     openAIRealtimeAudioService = new OpenAIRealtimeAudioServiceWhisper();
                 openAIRealtimeAudioService.StartRealtimeAudioService(OnOpenAITranscriptionReceived);
+            }
+        }
+
+        private void LanguageSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (languageSelector.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag is string languageCode)
+            {
+                LocalizationManager.Instance.CurrentLanguage = languageCode;
+                ConfigManager.Instance.SetLanguageInterface(languageCode);
             }
         }
 

@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:RSTGameTranslation"
     mc:Ignorable="d"
-    Title="Settings"
+    Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Settings_Title]}"
     Height="550"
     Width="600"
     WindowStyle="SingleBorderWindow"
@@ -15,11 +15,11 @@
     <Grid>
         <TabControl Margin="5">
             <!-- Language Settings Tab -->
-            <TabItem Header="Language">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_Language]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Language Settings -->
-                        <GroupBox Header="Language Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_LanguageSettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -34,7 +34,7 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Source Language -->
-                                <TextBlock Text="Source Language:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SourceLanguage]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="sourceLanguageComboBox" Grid.Row="0" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="0" SelectionChanged="SourceLanguageComboBox_SelectionChanged">
@@ -71,7 +71,7 @@
                                 </Button>
                                 
                                 <!-- Target Language -->
-                                <TextBlock Text="Target Language:" Grid.Row="1" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TargetLanguage]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="targetLanguageComboBox" Grid.Row="1" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="TargetLanguageComboBox_SelectionChanged">
@@ -101,17 +101,17 @@
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
-                                <TextBlock x:Name="checkLanguagePack" Text="Check Language Pack" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock x:Name="checkLanguagePack" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CheckLanguagePack]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"  ToolTip="Check if the language package is installed."/>
                                 <Button x:Name="checkLanguagePackButton" Grid.Row="2" Grid.Column="1"
                                         Width="60" Height="20" Margin="10,0"
                                         Click="CheckLanguagePackButton_Click">
-                                    <TextBlock Text="Check"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Check]}"/>
                                 </Button>
                             </Grid>
                         </GroupBox>
                         <!-- Language Code Explanation -->
-                        <GroupBox Header="Language Mapping" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_LanguageMapping]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -181,11 +181,11 @@
             </TabItem>
             
             <!-- OCR/Screen Selection Tab -->
-            <TabItem Header="OCR/Screen Selection">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_OCRScreen]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- OCR/Screen Selection -->
-                        <GroupBox Header="OCR/Screen Selection" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCRScreenSelection]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -206,7 +206,7 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- OCR Method -->
-                                <TextBlock Text="OCR Method:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OCRMethod]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="ocrMethodComboBox" Grid.Row="0" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="OcrMethodComboBox_SelectionChanged">
@@ -228,7 +228,7 @@
                                          Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/> -->
 
                                 <!-- HDR support -->
-                                <TextBlock Text="HDR support:" Grid.Row="9" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HDRSupport]}" Grid.Row="9" Grid.Column="0" 
                                           ToolTip="This feature will use HDR support for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="hdrSupportCheckBox" Grid.Row="9" Grid.Column="1" 
@@ -238,14 +238,14 @@
                                          Unchecked="HDRSupportCheckBox_CheckedChanged"/>
                                 
                                 <!-- Select Screen -->
-                                <TextBlock Text="Select Screen:" Grid.Row="8" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectScreen]}" Grid.Row="8" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="screenComboBox" Grid.Row="8" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="ScreenComboBox_SelectionChanged">
                                 </ComboBox>
 
                                 <!-- Auto OCR -->
-                                <TextBlock Text="Auto OCR:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoOCR]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="AutoOCRCheckBox" Grid.Row="2" Grid.Column="1" 
                                          Checked="AutoOCRCheckBox_CheckedChanged" 
@@ -263,7 +263,7 @@
                         </GroupBox>
                         
                         <!-- OCR Methods Comparison -->
-                        <GroupBox Header="OCR Methods Comparison" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCRComparison]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.Resources>
                                     <Style TargetType="TextBlock">
@@ -294,12 +294,12 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Header Row -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Method" FontWeight="Bold"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Install?" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Speed" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Row="0" Grid.Column="3" Text="Accuracy" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Row="0" Grid.Column="4" Text="Support Manga" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Row="0" Grid.Column="5" Text="Resources Needed" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Method]}" FontWeight="Bold"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Install]}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Speed]}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Accuracy]}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_SupportManga]}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="5" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Resources]}" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <Border Grid.Row="0" Grid.ColumnSpan="6" BorderThickness="0,0,0,2" BorderBrush="#FF888888" Margin="0,0,0,5"/>
 
                                 <!-- Windows OCR -->
@@ -353,11 +353,11 @@
             </TabItem>
 
             <!-- OCR Settings Tab -->
-            <TabItem Header="OCR Settings">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_OCRSettings]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- OCR Settings -->
-                        <GroupBox Header="OCR Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCRSettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -377,7 +377,7 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Block Power -->
-                                <TextBlock Text="Block Power:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_BlockPower]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
                                 <TextBox x:Name="blockDetectionPowerTextBox" Grid.Row="0" Grid.Column="1" 
@@ -385,7 +385,7 @@
                                         ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
                                 
                                 <!-- Settle Time -->
-                                <TextBlock Text="Settle Time (s):" Grid.Row="1" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SettleTime]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Time in seconds to wait for the text to settle before capturing"/>
                                 <TextBox x:Name="settleTimeTextBox" Grid.Row="1" Grid.Column="1" 
@@ -393,7 +393,7 @@
                                         ToolTip="Time in seconds to wait for the text to settle before capturing"/>
 
                                 <!-- TextSimilar Threshold-->
-                                <TextBlock Text="Text Similar Threshold:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TextSimilarThreshold]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Check the similarity between two consecutive texts. &#x0a;For example, 0.5 is equivalent to 50% - if text 1 has a similarity greater than or equal to 50%, it will be skipped."/>
                                 <TextBox x:Name="textSimilarThresholdTextBox" Grid.Row="2" Grid.Column="1" 
@@ -401,7 +401,7 @@
                                         ToolTip="Check the similarity between two consecutive texts. &#x0a;For example, 0.5 is equivalent to 50% - if text 1 has a similarity greater than or equal to 50%, it will be skipped."/>
                                 
                                 <!-- Char Level Checkbox-->
-                                <TextBlock Text="Char Level:" Grid.Row="3" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CharLevel]}" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Split OCR result to character"/>
                                 <CheckBox x:Name="charLevelCheckBox" Grid.Row="3" Grid.Column="1" 
@@ -410,7 +410,7 @@
                                          Unchecked="CharLevelCheckBox_CheckedChanged"/>
                                 
                                 <!-- Minimum Text Fragment Size -->
-                                <TextBlock Text="Smallest text fragment:" Grid.Row="4" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinTextFragmentSize]}" Grid.Row="4" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
                                 <TextBox x:Name="minTextFragmentSizeTextBox" Grid.Row="4" Grid.Column="1" 
@@ -418,7 +418,7 @@
                                         ToolTip="Minimum number of characters for a text fragment to be processed. Smaller fragments will be ignored."/>
                                 
                                 <!-- Minimum Letter Confidence -->
-                                <TextBlock Text="Min letter confidence:" Grid.Row="5" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinLetterConfidence]}" Grid.Row="5" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
                                 <TextBox x:Name="minLetterConfidenceTextBox" Grid.Row="5" Grid.Column="1" 
@@ -426,7 +426,7 @@
                                         ToolTip="Minimum confidence threshold for individual letters/characters (0.0-1.0). Characters with confidence below this threshold will be filtered out."/>
                                 
                                 <!-- Minimum Line Confidence -->
-                                <TextBlock Text="Min line confidence:" Grid.Row="6" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinLineConfidence]}" Grid.Row="6" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
                                 <TextBox x:Name="minLineConfidenceTextBox" Grid.Row="6" Grid.Column="1" 
@@ -434,7 +434,7 @@
                                         ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
                                 
                                 <!-- Auto Translate -->
-                                <TextBlock Text="Auto Translate:" Grid.Row="7" Grid.Column="0" Visibility="Collapsed"
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoTranslate]}" Grid.Row="7" Grid.Column="0" Visibility="Collapsed"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="7" Grid.Column="1" Visibility="Collapsed"
                                          Margin="0,5" IsChecked="True" 
@@ -443,14 +443,14 @@
                                          
                                 
                                 <!-- Multi Selection Area -->
-                                <TextBlock Text="Multi Selection Area" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MultiSelection]}" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
                                     ToolTip="Enable multi selection area for text selection."/>
                                 <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="8" Grid.Column="1" Margin="0,5"
                                          Checked="MultiSelectionAreaCheckBox_CheckedChanged"
                                          Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
 
                                 <!-- Leave Translation Onscreen -->
-                                <TextBlock Text="Leave translation onscreen:" Grid.Row="9" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LeaveOnscreen]}" Grid.Row="9" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
                                 <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="9" Grid.Column="1" 
@@ -465,11 +465,11 @@
             </TabItem>
             
             <!-- Translation Context Tab -->
-            <TabItem Header="Context/Overlay">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_ContextOverlay]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Translation Context Settings -->
-                        <GroupBox Header="Translation Context Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ContextSettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -484,28 +484,28 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Context Settings -->
-                                <TextBlock Text="Max Previous Context:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MaxContext]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Maximum number of previous text pieces to include as context. Set to 0 to disable context."/>
                                 <TextBox x:Name="maxContextPiecesTextBox" Grid.Row="0" Grid.Column="1" 
                                         Margin="0,5" Text="3" LostFocus="MaxContextPiecesTextBox_LostFocus"
                                         ToolTip="Maximum number of previous text pieces to include as context. Set to 0 to disable context."/>
                                 
-                                <TextBlock Text="Min Context Size:" Grid.Row="1" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinContextSize]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum size in characters for a text piece to be included as context. Helps avoid adding tiny menu labels or buttons as context."/>
                                 <TextBox x:Name="minContextSizeTextBox" Grid.Row="1" Grid.Column="1" 
                                         Margin="0,5" Text="20" LostFocus="MinContextSizeTextBox_LostFocus"
                                         ToolTip="Minimum size in characters for a text piece to be included as context. Helps avoid adding tiny menu labels or buttons as context."/>
                                         
-                                <TextBlock Text="Min ChatBox Text Size:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinChatBoxSize]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Minimum size in characters for text to be shown in ChatBox. Smaller text will be ignored."/>
                                 <TextBox x:Name="minChatBoxTextSizeTextBox" Grid.Row="2" Grid.Column="1" 
                                         Margin="0,5" Text="2" LostFocus="MinChatBoxTextSizeTextBox_LostFocus"
                                         ToolTip="Minimum size in characters for text to be shown in ChatBox. Smaller text will be ignored."/>
                                 
-                                <TextBlock Text="Info about the game:" Grid.Row="3" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GameInfo]}" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Top" Margin="0,8,10,0" 
                                           ToolTip="Information about the game being played to help the LLM translate more accurately."/>
                                 <TextBox x:Name="gameInfoTextBox" Grid.Row="3" Grid.Column="1" 
@@ -514,15 +514,15 @@
                                         AcceptsReturn="True" TextWrapping="Wrap" Height="60" VerticalScrollBarVisibility="Auto"/>
                                 
                                 <!-- Clear Context Button -->
-                                <TextBlock Text="Clear Translation Context:" Grid.Row="4" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearContext]}" Grid.Row="4" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"
                                           ToolTip="Clear all translation history and context. Forces new translation on next capture."/>
-                                <Button x:Name="clearContextButton" Content="Clear Context" Grid.Row="4" Grid.Column="1"
+                                <Button x:Name="clearContextButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ClearContext]}" Grid.Row="4" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="0,8,0,10" Padding="5,3" Click="ClearContextButton_Click"
                                        ToolTip="Clear all translation history and context. Forces new translation on next capture."/>
                             </Grid>
                         </GroupBox>
-                        <GroupBox Header="Overlay Setting" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OverlaySettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -536,14 +536,14 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <!-- Clear Context Button -->
-                                <TextBlock Text="Text Overlay Config:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OverlayConfig]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"
                                           ToolTip="Adjust overlay background and text colour"/>
-                                <Button x:Name="overlayConfig" Content="Adjust Config" Grid.Row="0" Grid.Column="1"
+                                <Button x:Name="overlayConfig" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AdjustConfig]}" Grid.Row="0" Grid.Column="1"
                                        HorizontalAlignment="Left" Width="100" Margin="20,8,0,10" Padding="5,3" Click="AdjustOverlayConfig_Click"
                                        ToolTip="Adjust overlay background and text colour"/>
                                 <!-- Auto Set Overlay Background Color Checkbox-->
-                                <TextBlock Text="Auto Set Overlay Background Color:" Grid.Row="1" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoOverlayBg]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"
                                           ToolTip="Smart select background color for overlay base on image"/>
                                 <CheckBox x:Name="autoSetOverlayBackgroundColorcheckBox" Grid.Row="1" Grid.Column="1" 
@@ -552,7 +552,7 @@
                                          Unchecked="AutoSetOverlayBackgroundColorcheckBox_CheckedChanged"/>
                                 
                                 <!-- Show Icon Signal When Start OCR -->
-                                <TextBlock Text="Show Icon Signal When Start OCR" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowIconSignal]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0" 
                                           ToolTip="Show small icon when starting OCR and translate"/>
                                 <CheckBox x:Name="showIconSignalCheckBox" Grid.Row="2" Grid.Column="1" 
@@ -566,11 +566,11 @@
             </TabItem>
             
             <!-- Ignore Phrases Tab -->
-            <TabItem Header="Ignore Phrases">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_IgnorePhrases]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Ignore Phrases Settings -->
-                        <GroupBox Header="Ignore Phrases Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_IgnorePhrases]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -585,7 +585,7 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Header for list -->
-                                <TextBlock Text="Phrases to ignore:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_PhrasesToIgnore]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="List of phrases that will be ignored during translation. If exact match is enabled, the whole text will be ignored if it matches. If disabled, the phrase will be removed from the text."/>
                                 
@@ -594,8 +594,8 @@
                                          Margin="0,5" Height="300" SelectionMode="Single" SelectionChanged="IgnorePhraseListView_SelectionChanged">
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Header="Phrase" Width="350" DisplayMemberBinding="{Binding Phrase}"/>
-                                            <GridViewColumn Header="Exact Match" Width="100">
+                                            <GridViewColumn Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Phrase]}" Width="350" DisplayMemberBinding="{Binding Phrase}"/>
+                                            <GridViewColumn Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_ExactMatch]}" Width="100">
                                                 <GridViewColumn.CellTemplate>
                                                     <DataTemplate>
                                                         <CheckBox IsChecked="{Binding ExactMatch}" Checked="IgnorePhrase_CheckedChanged" Unchecked="IgnorePhrase_CheckedChanged" Tag="{Binding Phrase}"/>
@@ -607,15 +607,15 @@
                                 </ListView>
                                 
                                 <!-- Input for new phrase -->
-                                <TextBlock Text="Add new phrase:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AddPhrase]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"/>
                                 <TextBox x:Name="newIgnorePhraseTextBox" Grid.Row="2" Grid.Column="1" 
                                         Margin="0,8,10,0"/>
-                                <CheckBox x:Name="newExactMatchCheckBox" Content="Exact Match" Grid.Row="2" Grid.Column="2" 
+                                <CheckBox x:Name="newExactMatchCheckBox" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_ExactMatch]}" Grid.Row="2" Grid.Column="2" 
                                          VerticalAlignment="Center" Margin="0,8,10,0" IsChecked="True"/>
                                 <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="3">
-                                    <Button x:Name="addIgnorePhraseButton" Content="Add" Margin="0,8,5,0" Width="60" Click="AddIgnorePhraseButton_Click"/>
-                                    <Button x:Name="removeIgnorePhraseButton" Content="Remove" Margin="0,8,0,0" Width="60" Click="RemoveIgnorePhraseButton_Click" IsEnabled="False"/>
+                                    <Button x:Name="addIgnorePhraseButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Add]}" Margin="0,8,5,0" Width="60" Click="AddIgnorePhraseButton_Click"/>
+                                    <Button x:Name="removeIgnorePhraseButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Remove]}" Margin="0,8,0,0" Width="60" Click="RemoveIgnorePhraseButton_Click" IsEnabled="False"/>
                                 </StackPanel>
                             </Grid>
                         </GroupBox>
@@ -624,11 +624,11 @@
             </TabItem>
             
             <!-- Translation Service Tab -->
-            <TabItem Header="Translation">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_Translation]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Translation Service Settings -->
-                        <GroupBox Header="Translation Service Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_TranslationService]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -646,7 +646,7 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Translation Service -->
-                                <TextBlock Text="Translation Service:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationService]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="translationServiceComboBox" Grid.Row="0" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="0" SelectionChanged="TranslationServiceComboBox_SelectionChanged">
@@ -660,7 +660,7 @@
                                 </ComboBox>
                                 
                                 <!-- Gemini API Key - Only visible when Gemini is selected -->
-                                <TextBlock x:Name="geminiApiKeyLabel" Text="Gemini API Key:" Grid.Row="1" Grid.Column="0" 
+                                <TextBlock x:Name="geminiApiKeyLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GeminiKey]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Top" Margin="0,8,10,0"/>
                                 <Grid Grid.Row="1" Grid.Column="1" Margin="0,5,0,0">
                                     <Grid.RowDefinitions>
@@ -672,9 +672,9 @@
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
                                              PasswordChanged="GeminiApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
                                              Tag="Gemini"/>
-                                    <Button x:Name="viewGeminiKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
+                                    <Button x:Name="viewGeminiKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewKeys]}" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="Gemini" Width="70"/>
-                                    <Button x:Name="SaveGeminiKeysButton" Content="Save Keys" Grid.Row="1" Tag="Gemini"
+                                    <Button x:Name="SaveGeminiKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Gemini"
                                             HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
                                     <TextBlock x:Name="geminiApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
@@ -695,9 +695,9 @@
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
                                              PasswordChanged="GroqApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
                                              Tag="Groq"/>
-                                    <Button x:Name="viewGroqKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
+                                    <Button x:Name="viewGroqKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewKeys]}" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="Groq" Width="70"/>
-                                    <Button x:Name="SaveGroqKeysButton" Content="Save Keys" Grid.Row="1" Tag="Groq"
+                                    <Button x:Name="SaveGroqKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Groq"
                                             HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
                                     <TextBlock x:Name="groqApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
@@ -706,7 +706,7 @@
                                 </Grid>
                                 
                                 <!-- Gemini Model - Only visible when Gemini is selected -->
-                                <TextBlock x:Name="geminiModelLabel" Text="Gemini Model:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock x:Name="geminiModelLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GeminiModel]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0"/>
                                 <Grid Grid.Row="2" Grid.Column="1" Margin="0,5" x:Name="geminiModelGrid">
                                     <Grid.ColumnDefinitions>
@@ -726,7 +726,7 @@
                                         <ComboBoxItem Content="gemini-flash-lite-latest"/>
                                         <ComboBoxItem Content="gemini-flash-latest"/>
                                     </ComboBox>
-                                    <Button x:Name="viewGeminiModelsButton" Content="View Models" Grid.Column="1"
+                                    <Button x:Name="viewGeminiModelsButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewModels]}" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewGeminiModelsButton_Click"
                                            ToolTip="Open Gemini models documentation in browser"/>
                                 </Grid>
@@ -752,7 +752,7 @@
                                         <ComboBoxItem Content="meta-llama/llama-prompt-guard-2-22m"/>
                                         <ComboBoxItem Content="meta-llama/llama-guard-4-12b"/>
                                     </ComboBox>
-                                    <Button x:Name="viewGroqModelsButton" Content="View Models" Grid.Column="1"
+                                    <Button x:Name="viewGroqModelsButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewModels]}" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewGroqModelsButton_Click"
                                            ToolTip="Open Groq models documentation in browser"/>
                                 </Grid>
@@ -773,7 +773,7 @@
                                         <ComboBoxItem Content="open-mistral-nemo"/>
                                         <ComboBoxItem Content="mistral-small-2503"/>
                                     </ComboBox>
-                                    <Button x:Name="viewMistralModelsButton" Content="View Models" Grid.Column="1"
+                                    <Button x:Name="viewMistralModelsButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewModels]}" Grid.Column="1"
                                            Margin="5,0,0,0" Padding="5,0" Click="ViewMistralModelsButton_Click"
                                            ToolTip="Open Mistral models documentation in browser"/>
                                 </Grid>
@@ -791,9 +791,9 @@
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
                                              PasswordChanged="MistralApiKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
                                              Tag="Mistral"/>
-                                    <Button x:Name="viewMistralKeysButton" Content="View Keys" Grid.Row="1" HorizontalAlignment="Right"
+                                    <Button x:Name="viewMistralKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewKeys]}" Grid.Row="1" HorizontalAlignment="Right"
                                              Click="ViewApiKeysButton_Click" Tag="Mistral" Width="70"/>
-                                    <Button x:Name="SaveMistralKeysButton" Content="Save Keys" Grid.Row="1" Tag="Mistral"
+                                    <Button x:Name="SaveMistralKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Mistral"
                                             HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
                                     <TextBlock x:Name="mistralApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from (need login mistral AI website before click this link) </Run>
@@ -1006,11 +1006,11 @@
             </TabItem>
             
             <!-- Text-to-Speech Tab -->
-            <TabItem Header="TTS">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_TTS]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Text-to-Speech Settings -->
-                        <GroupBox Header="Text-to-Speech Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_TTSSettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -1025,15 +1025,15 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- TTS Enabled -->
-                                <TextBlock Text="Enable TTS:" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_EnableTTS]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="ttsEnabledCheckBox" Grid.Row="0" Grid.Column="1" 
                                          Margin="0,5"
                                          Checked="TtsEnabledCheckBox_CheckedChanged" 
                                          Unchecked="TtsEnabledCheckBox_CheckedChanged"/>
                                 
-                                <TextBlock Text="Exclude Character Name" Grid.Row="4" Grid.Column="0" 
-                                          ToolTip="The application will automatically exclude character's name in the dialogue. The required format is &lt;character name&gt;: &lt;dialogue&gt;"
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ExcludeCharName]}" Grid.Row="4" Grid.Column="0" 
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ExcludeCharName]}"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="excludeCharacterNameCheckBox" Grid.Row="4" Grid.Column="1" 
                                          Margin="0,5" 
@@ -1041,7 +1041,7 @@
                                          Unchecked="ExcludeCharacterNameCheckBox_CheckedChanged"/>
                                 
                                 <!-- TTS Service -->
-                                <TextBlock Text="TTS Service:" Grid.Row="1" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TTSService]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="ttsServiceComboBox" Grid.Row="1" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="0" SelectionChanged="TtsServiceComboBox_SelectionChanged">
@@ -1051,7 +1051,7 @@
                                 </ComboBox>
                                 
                                 <!-- ElevenLabs API Key - Only visible when ElevenLabs is selected -->
-                                <TextBlock x:Name="elevenLabsApiKeyLabel" Text="ElevenLabs API Key:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock x:Name="elevenLabsApiKeyLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ElevenLabsKey]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Top" Margin="0,8,10,0"/>
                                 <Grid Grid.Row="2" Grid.Column="1" Margin="0,5,0,0" x:Name="elevenLabsApiKeyGrid">
                                     <Grid.RowDefinitions>
@@ -1069,7 +1069,7 @@
                                 </Grid>
                                 
                                 <!-- ElevenLabs Voice - Only visible when ElevenLabs is selected -->
-                                <TextBlock x:Name="elevenLabsVoiceLabel" Text="ElevenLabs Voice:" Grid.Row="3" Grid.Column="0" 
+                                <TextBlock x:Name="elevenLabsVoiceLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ElevenLabsVoice]}" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0"/>
                                 <ComboBox x:Name="elevenLabsVoiceComboBox" Grid.Row="3" Grid.Column="1" 
                                          Margin="0,5" SelectionChanged="ElevenLabsVoiceComboBox_SelectionChanged">
@@ -1087,7 +1087,7 @@
                                 </ComboBox>
 
                                 <!-- Windows TTS Voice - Only visible when Windows TTS is selected -->
-                                <TextBlock x:Name="windowTTSVoiceLabel" Text="Windows TTS Voice:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock x:Name="windowTTSVoiceLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WindowsTTSVoice]}" Grid.Row="2" Grid.Column="0" 
                                         VerticalAlignment="Center" Margin="0,5,10,0"/>
                                 <ComboBox x:Name="windowTTSVoiceComboBox" Grid.Row="2" Grid.Column="1" 
                                         Margin="0,5" SelectionChanged="WindowTTSVoiceComboBox_SelectionChanged">
@@ -1096,7 +1096,7 @@
                                 </ComboBox>
 
                                 <!-- Windows TTS Guide GroupBox -->
-                                <GroupBox x:Name="windowsTTSGuide" Header="Windows TTS Guide" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" Visibility="Collapsed">
+                                <GroupBox x:Name="windowsTTSGuide" Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_WindowsTTSGuide]}" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" Visibility="Collapsed">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
@@ -1111,41 +1111,34 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         
-                                        <TextBlock Text="Robotic Voices:" Grid.Row="0" Grid.Column="0" 
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_RoboticVoices]}" Grid.Row="0" Grid.Column="0" 
                                                 VerticalAlignment="Top" Margin="0,5,10,0" FontWeight="Bold"/>
                                         <TextBlock Grid.Row="0" Grid.Column="1" 
-                                                VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap">
-                                            To install robotic language voices, go to Settings > Time &amp; language > Speech > Add voices. Select the language you want, 
-                                            click the Add button then wait for the voice to be added to the system. After that, reset the RstGameTranslation application 
-                                            to display the new voices.
-                                        </TextBlock>
+                                                VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap"
+                                                Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_RoboticVoicesGuide]}"/>
                                         
-                                        <TextBlock Text="Natural Voices:" Grid.Row="1" Grid.Column="0" 
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_NaturalVoices]}" Grid.Row="1" Grid.Column="0" 
                                                 VerticalAlignment="Top" Margin="0,10,10,0" FontWeight="Bold"/>
                                         <TextBlock Grid.Row="1" Grid.Column="1" 
-                                                VerticalAlignment="Top" Margin="0,10,0,0" TextWrapping="Wrap">
-                                            For higher quality natural voices:
-                                        </TextBlock>
+                                                VerticalAlignment="Top" Margin="0,10,0,0" TextWrapping="Wrap"
+                                                Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_NaturalVoicesIntro]}"/>
                                         
                                         <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap">
-                                            <Run>1. Download and install NaturalVoiceSAPIAdapter from: </Run>
+                                            <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_NaturalVoicesStep1], Mode=OneWay}"/>
                                             <Hyperlink Click="NaturalVoiceSAPIAdapterLink_Click">https://github.com/gexgd0419/NaturalVoiceSAPIAdapter</Hyperlink>
                                         </TextBlock>
                                         
                                         <TextBlock Grid.Row="3" Grid.Column="1" 
-                                                VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap">
-                                            2. After installation, restart this application.
-                                        </TextBlock>
+                                                VerticalAlignment="Top" Margin="0,5,0,0" TextWrapping="Wrap" 
+                                                Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_NaturalVoicesStep2]}"/>
                                         
                                         <TextBlock Grid.Row="4" Grid.Column="1" 
-                                                VerticalAlignment="Top" Margin="0,5,0,10" TextWrapping="Wrap">
-                                            3. Natural voices will appear in the combo box above marked with (SAPI), while robotic voices will be marked with (UWP).
-                                        </TextBlock>
+                                                VerticalAlignment="Top" Margin="0,5,0,10" TextWrapping="Wrap" 
+                                                Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_NaturalVoicesStep3]}"/>
 
                                         <TextBlock Grid.Row="5" Grid.Column="1" 
-                                                VerticalAlignment="Top" Margin="0,5,0,10" TextWrapping="Wrap">
-                                            4. For voice languages not available in the list, please select the Multilingual voices in the combo box. These voices can speak multiple languages in addition to their main language.
-                                        </TextBlock>
+                                                VerticalAlignment="Top" Margin="0,5,0,10" TextWrapping="Wrap" 
+                                                Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_NaturalVoicesStep4]}"/>
                                     </Grid>
                                 </GroupBox>
                                 
@@ -1213,11 +1206,11 @@
             </TabItem>
             
             <!-- Hot Keys Tab -->
-            <TabItem Header="HotKeys">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_HotKeys]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Hot Keys Settings -->
-                        <GroupBox Header="HotKeys Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_HotKeySettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -1230,33 +1223,33 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="HotKey Functions:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyFunctions]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="hotKeyFunctionComboBox" Grid.Row="0" Grid.Column="1" Padding="5,3" Margin="0,8,10,10" SelectionChanged="HotKeyFunctionComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="----------- Select -----------"/>
-                                    <ComboBoxItem Content="Start/Stop"/>
-                                    <ComboBoxItem Content="Overlay"/>
-                                    <ComboBoxItem Content="Setting"/>
-                                    <ComboBoxItem Content="Log"/>
-                                    <ComboBoxItem Content="Select Area"/>
-                                    <ComboBoxItem Content="Clear Areas"/>
-                                    <ComboBoxItem Content="Clear Selected Area"/>
-                                    <ComboBoxItem Content="Show Area"/>
-                                    <ComboBoxItem Content="ChatBox"/>
-                                    <ComboBoxItem Content="Area 1"/>
-                                    <ComboBoxItem Content="Area 2"/>
-                                    <ComboBoxItem Content="Area 3"/>
-                                    <ComboBoxItem Content="Area 4"/>
-                                    <ComboBoxItem Content="Area 5"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_StartStop]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Overlay]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Setting]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Log]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_SelectArea]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ClearAreas]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ClearSelectedArea]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ShowArea]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ChatBox]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area1]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area2]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area3]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area4]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area5]}"/>
                                 </ComboBox>
-                                <TextBlock Text="Combine Keys:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CombineKeys]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="combineKey1" Grid.Row="1" Grid.Column="1" Padding="5,3" Margin="0,8,10,10">
-                                    <ComboBoxItem Content="----------- Select -----------"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
                                     <ComboBoxItem Content="CTRL"/>
                                     <ComboBoxItem Content="SHIFT"/>
                                     <ComboBoxItem Content="ALT"/>
                                 </ComboBox>
                                 <ComboBox x:Name="combineKey2" Grid.Row="1" Grid.Column="2" Padding="5,3" Margin="0,8,10,10">
-                                    <ComboBoxItem Content="----------- Select -----------"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
                                     <ComboBoxItem Content="A"/>
                                     <ComboBoxItem Content="B"/>
                                     <ComboBoxItem Content="C"/>
@@ -1293,10 +1286,10 @@
                                     <ComboBoxItem Content="8"/>
                                     <ComboBoxItem Content="9"/>
                                 </ComboBox>
-                                <Button x:Name="setHotKeyButton" Content="Set HotKey" Grid.Row="2" Grid.Column="1"
+                                <Button x:Name="setHotKeyButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SetHotKey]}"  Grid.Row="2" Grid.Column="1"
                                        HorizontalAlignment="Center" Width="100" Margin="0,8,0,10" Padding="5,3" Click="SetHotKeyButton_Click"
-                                       ToolTip="Set Modifed Hotkey"/>
-                                <TextBlock x:Name="statusUpdateHotKey" Foreground="Green" Text="HotKey update success" 
+                                       ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SetHotKey]}"/>
+                                <TextBlock x:Name="statusUpdateHotKey" Foreground="Green" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_HotKeyUpdateSuccess]}" 
                                     Visibility="Collapsed" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <!-- List HotKey Table -->
                                 <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" BorderBrush="#333" BorderThickness="1" CornerRadius="5">
@@ -1307,8 +1300,8 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Function Name" FontWeight="Bold" Foreground="White"/>
-                                                <TextBlock Grid.Column="1" Text="Shortcut" FontWeight="Bold" Foreground="White" Margin="0,0,20,0"/>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_FunctionName]}" FontWeight="Bold" Foreground="White"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Shortcut]}" FontWeight="Bold" Foreground="White" Margin="0,0,20,0"/>
                                             </Grid>
                                         </Border>
                                         
@@ -1321,7 +1314,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Start/Stop Translation"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartStopTranslation]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyStartStop" Text="ALT + G" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1331,7 +1324,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Toggle Overlay"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleOverlay]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyOverlay" Text="ALT + F" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1341,7 +1334,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Open Settings"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeySetting" Text="ALT + P" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1351,7 +1344,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Toggle Log"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleLog]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1361,7 +1354,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Select Area"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeySelectArea" Text="ALT + Q" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1371,7 +1364,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Clear All Areas"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearAllAreas]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyClearAreas" Text="ALT + R" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1381,7 +1374,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Clear Selected Area"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearSelectedArea]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1391,7 +1384,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Show Area Border"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowAreaBorder]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1401,7 +1394,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Toggle ChatBox"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1412,7 +1405,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Select Area 1"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea1]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyArea1" Text="ALT + 1" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1422,7 +1415,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Select Area 2"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea2]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyArea2" Text="ALT + 2" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1432,7 +1425,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Select Area 3"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea3]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyArea3" Text="ALT + 3" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1442,7 +1435,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Select Area 4"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea4]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyArea4" Text="ALT + 4" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
@@ -1452,7 +1445,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Select Area 5"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea5]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                             </StackPanel>
@@ -1498,11 +1491,11 @@
             </TabItem>
 
             <!-- Server Tab -->
-            <TabItem Header="Server">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_Server]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Server Settings -->
-                        <GroupBox Header="Server Setting" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ServerSetting]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -1515,28 +1508,28 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="Install Server (Once time):" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_InstallServer]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button Grid.Row="0" Grid.Column="1" Click="InstallServerButton_Click" HorizontalAlignment="Left"
                                         Width="100" Height="20" Margin="50,10,10,0">
-                                    <TextBlock Text="Install"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Install]}"/>
                                 </Button>
-                                <TextBlock Text="Remove Server:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_RemoveServer]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button Grid.Row="1" Grid.Column="1" Click="RemoveServerButton_Click" HorizontalAlignment="Left"
                                         Width="100" Height="20" Margin="50,10,10,0">
-                                    <TextBlock Text="Remove"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Remove]}"/>
                                 </Button>
-                                <TextBlock Text="Start Server:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartServer]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button Grid.Row="2" Grid.Column="1" Click="StartServerButton_Click" HorizontalAlignment="Left"
                                         Width="100" Height="20" Margin="50,10,10,0">
-                                    <TextBlock Text="Start"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}"/>
                                 </Button>
-                                <TextBlock Text="Send Translated Data To Server:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SendData]}" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,10,10,0"/>
                                 <CheckBox x:Name="isSendDataToServerCheckBox" Grid.Row="3" Grid.Column="1" Margin="50,10,10,0"
                                          Checked="IsSendDataToServerCheckBox_CheckedChanged"
                                          Unchecked="IsSendDataToServerCheckBox_CheckedChanged"/>
                             </Grid>
                         </GroupBox>
-                        <GroupBox Header="Server Guide" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ServerGuide]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -1547,10 +1540,10 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="This feature allows you to create a local hotspot server. The server is responsible for displaying translated text retrieved from the RSTGameTranslation app. You can access the server from any device within the LAN network." 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_ServerGuide1]}" 
                                     HorizontalAlignment="Left" TextWrapping="Wrap"
                                     Grid.Row="1" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock Text="This feature allows you to use your phone as a screen to view translations, which is useful for people who do not use multiple monitors." 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_ServerGuide2]}" 
                                     HorizontalAlignment="Left" TextWrapping="Wrap"
                                     Grid.Row="2" Grid.Column="1" Margin="10,10,0,0"/>
                             </Grid>
@@ -1560,11 +1553,11 @@
             </TabItem>
 
             <!--  Game Profile Tab -->
-            <TabItem Header="Game Profile">
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_GameProfile]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <!-- Audio Processing Settings -->
-                        <GroupBox Header="Game Profile Settings" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ProfileSettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -1577,34 +1570,34 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="Profile Name" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ProfileName]}" Grid.Row="0" Grid.Column="0" 
                                           Margin="0,10,10,0"/>
                                 <TextBox x:Name="profileNameTextBox" Grid.Row="0" Grid.Column="1" 
                                           Margin="0,5"/>
-                                <TextBlock Text="Select Profile:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectProfile]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="profileComboBox" Grid.Row="1" Grid.Column="1" Margin="0,5">
                                 </ComboBox>
                                 <Button Grid.Row="0" Grid.Column="2" Click="CreateProfileButton_Click"
                                         Width="100" Height="20" Margin="10,0">
-                                    <TextBlock Text="Create Profile"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_CreateProfile]}"/>
                                 </Button>
                                 <Button Grid.Row="2" Grid.Column="1" Click="UpdateProfileButton_Click"
                                         Width="100" Height="20" Margin="10,0">
-                                    <TextBlock Text="Update Profile"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_UpdateProfile]}"/>
                                 </Button>
                                 <Button Grid.Row="1" Grid.Column="2" Click="RemoveProfileButton_Click"
                                         Width="100" Height="20" Margin="10,0">
-                                    <TextBlock Text="Remove Profile"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RemoveProfile]}"/>
                                 </Button>
                                 <Button Grid.Row="2" Grid.Column="2" Click="LoadProfileButton_Click"
                                         Width="100" Height="20" Margin="10,0">
-                                    <TextBlock Text="Load Profile"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_LoadProfile]}"/>
                                 </Button>
                                 <TextBlock x:Name="statusUpdateGameProfile" Foreground="Green" Text="" HorizontalAlignment="Center"
                                     Grid.Row="3" Grid.Column="1" Margin="0,20,0,0"/>
                             </Grid>
                         </GroupBox>
-                        <GroupBox Header="Game Profile Detail Function" Margin="0,0,0,15" Padding="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ProfileDetails]}" Margin="0,0,0,15" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -1617,27 +1610,27 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock FontWeight="Bold" Text="Create Profile: " HorizontalAlignment="Left"
+                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CreateProfileBold]}" HorizontalAlignment="Left"
                                     Grid.Row="0" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="To create a new profile, enter the profile name in the 'Profile Name' field and click the 'Create Profile' button." 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CreateProfileGuide]}" 
                                     HorizontalAlignment="Left" TextWrapping="Wrap"
                                     Grid.Row="0" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock Text="Important: Profile name must be unaccented characters and no spaces, for example: GodOfWar, GTAV, TheLastOfUs, etc" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_ProfileNameNote]}" 
                                     HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="Red"
                                     Grid.Row="1" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock FontWeight="Bold" Text="Remove Profile: " HorizontalAlignment="Left"
+                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_RemoveProfileBold]}" HorizontalAlignment="Left"
                                     Grid.Row="2" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="To remove a new profile, select the profile name in the combobox 'Select Profile' and click the 'Remove Profile' button." 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_RemoveProfileGuide]}" 
                                     HorizontalAlignment="Left" TextWrapping="Wrap"
                                     Grid.Row="2" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock FontWeight="Bold" Text="Update Profile: " HorizontalAlignment="Left"
+                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_UpdateProfileBold]}" HorizontalAlignment="Left"
                                     Grid.Row="3" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="To update a new profile, select the profile name in the combobox 'Select Profile' and click the 'Update Profile' button. This will update all current configs in settings to the profile you choose." 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_UpdateProfileGuide]}" 
                                     HorizontalAlignment="Left" TextWrapping="Wrap"
                                     Grid.Row="3" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock FontWeight="Bold" Text="Load Profile: " HorizontalAlignment="Left"
+                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LoadProfileBold]}" HorizontalAlignment="Left"
                                     Grid.Row="4" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="To load a new profile, select the profile name in the combobox 'Select Profile' and click the 'Load Profile' button. This will apply all configurations from the selected profile to your current settings." 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_LoadProfileGuide]}" 
                                     HorizontalAlignment="Left" TextWrapping="Wrap"
                                     Grid.Row="4" Grid.Column="1" Margin="10,10,0,0"/>
                             </Grid>

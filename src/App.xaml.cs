@@ -37,6 +37,7 @@ public partial class App : Application
         
         // We'll attach the keyboard handlers when the windows are loaded
         // Each window now has its own Application_KeyDown method attached to PreviewKeyDown
+        LocalizationManager.Instance.CurrentLanguage = ConfigManager.Instance.GetLanguageInterface();
         
         // Add event handler to show main window after splash closes
         SplashManager.Instance.SplashClosed += (sender, args) =>
