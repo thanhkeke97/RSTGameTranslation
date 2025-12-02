@@ -206,8 +206,8 @@ namespace RSTGameTranslation
                                 // Show error message to user
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                                     System.Windows.MessageBox.Show(
-                                        $"LM Studio error: {detailedError}\n\nPlease check your model name and LM Studio settings.",
-                                        "LM Studio Translation Error",
+                                        string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioError"], detailedError),
+                                        LocalizationManager.Instance.Strings["Title_LMStudioError"],
                                         System.Windows.MessageBoxButton.OK,
                                         System.Windows.MessageBoxImage.Error);
                                 });
@@ -223,8 +223,8 @@ namespace RSTGameTranslation
                         // Show general error if JSON parsing failed
                         System.Windows.Application.Current.Dispatcher.Invoke(() => {
                             System.Windows.MessageBox.Show(
-                                $"LM Studio API error: {response.StatusCode}\n{errorMessage}\n\nPlease check your settings.",
-                                "LM Studio Translation Error",
+                                string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioApiErrorStatus"], response.StatusCode, errorMessage),
+                                LocalizationManager.Instance.Strings["Title_LMStudioError"],
                                 System.Windows.MessageBoxButton.OK,
                                 System.Windows.MessageBoxImage.Error);
                         });
@@ -240,8 +240,8 @@ namespace RSTGameTranslation
                 // Show error message to user for other exceptions
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                     System.Windows.MessageBox.Show(
-                        $"LM Studio API error: {ex.Message}\n\nPlease check your network connection and LM Studio settings.",
-                        "LM Studio Translation Error",
+                        string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioApiException"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_LMStudioError"],
                         System.Windows.MessageBoxButton.OK,
                         System.Windows.MessageBoxImage.Error);
                 });

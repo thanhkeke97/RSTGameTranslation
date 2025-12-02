@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
-        Title="Overlay Options" Height="420" Width="400"
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Title]}" Height="420" Width="400"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Icon="/media/AppIcon.ico">
@@ -17,7 +17,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Text Overlay Appearance Options" 
+        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Header]}" 
                    Grid.Row="0"
                    FontSize="16" 
                    FontWeight="SemiBold" 
@@ -26,10 +26,10 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- Background settings -->
-                <GroupBox Header="Background Settings" Margin="0,5,0,10" Padding="5">
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Grp_Background]}" Margin="0,5,0,10" Padding="5">
                     <StackPanel>
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Background Color:" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Lbl_BackgroundColor]}" VerticalAlignment="Center" Width="120" />
                             <Button x:Name="backgroundColorButton" 
                                     Width="30" Height="20" 
                                     Margin="5,0,0,0"
@@ -43,10 +43,10 @@
                 </GroupBox>
 
                 <!-- Text settings -->
-                <GroupBox Header="Text Settings" Margin="0,5,0,10" Padding="5">
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Grp_Text]}" Margin="0,5,0,10" Padding="5">
                     <StackPanel>                   
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Text Color:" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Lbl_TextColor]}" VerticalAlignment="Center" Width="120" />
                             <Button x:Name="textColorButton" 
                                     Width="30" Height="20" 
                                     Margin="5,0,0,0"
@@ -60,11 +60,11 @@
                 </GroupBox>
 
                 <!-- Font settings -->
-                <GroupBox Header="Font Settings" Margin="0,5,0,10" Padding="5">
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Grp_Font]}" Margin="0,5,0,10" Padding="5">
                     <StackPanel>
                         <DockPanel Margin="0,5">
                             <!-- Language Font Override -->
-                            <TextBlock Text="Font Override:"
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Lbl_FontOverride]}"
                                        VerticalAlignment="Center" 
                                        Width="120"/>
                             <CheckBox x:Name="languageFontOverrideCheckBox" 
@@ -72,7 +72,7 @@
                         </DockPanel>
                         <DockPanel Margin="0,5">
                             <!-- Language Font Family -->
-                            <TextBlock Text="Select Font:" 
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Lbl_SelectFont]}" 
                                        VerticalAlignment="Center" 
                                        Width="120"/>
                             <ComboBox x:Name="languageFontFamilyComboBox" 
@@ -80,7 +80,7 @@
                         </DockPanel>
                         <DockPanel Margin="0,5">
                             <!-- Font Size Min -->
-                            <TextBlock Text="Font Size Min:" 
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Lbl_FontSizeMin]}" 
                                        VerticalAlignment="Center" 
                                        Width="120"/>
                             <TextBox x:Name="languageFontSizeMinTextBox" 
@@ -89,7 +89,7 @@
                         </DockPanel>
                         <DockPanel Margin="0,5">
                             <!-- Font Size Max -->
-                            <TextBlock Text="Font Size Max:" 
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Lbl_FontSizeMax]}" 
                                        VerticalAlignment="Center" 
                                        Width="120"/>
                             <TextBox x:Name="languageFontSizeMaxTextBox" 
@@ -109,25 +109,25 @@
             </Grid.ColumnDefinitions>
             
             <Button x:Name="defaultsButton" 
-                    Content="Set Defaults" 
+                    Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Btn_SetDefaults]}" 
                     Width="100" 
                     Height="25" 
                     HorizontalAlignment="Left"
                     Click="DefaultsButton_Click"
-                    ToolTip="Reset all settings to default values"
+                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Tip_SetDefaults]}"
                     Grid.Column="0"/>
             
             <StackPanel Orientation="Horizontal" 
                         HorizontalAlignment="Right"
                         Grid.Column="1">
                 <Button x:Name="applyButton" 
-                        Content="Apply" 
+                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Btn_Apply]}" 
                         Width="80" 
                         Height="25" 
                         Margin="5,0" 
                         Click="ApplyButton_Click"/>
                 <Button x:Name="cancelButton" 
-                        Content="Cancel" 
+                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[OverlayOptions_Btn_Cancel]}" 
                         Width="80" 
                         Height="25" 
                         Margin="5,0" 

@@ -101,8 +101,8 @@ namespace RSTGameTranslation
                                 // Show error message to user
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                                     System.Windows.MessageBox.Show(
-                                        $"Groq API error: {detailedError}\n\nPlease check your API key and settings.",
-                                        "Groq Translation Error",
+                                        string.Format(LocalizationManager.Instance.Strings["Msg_GroqApiError"], detailedError),
+                                        LocalizationManager.Instance.Strings["Title_GroqError"],
                                         System.Windows.MessageBoxButton.OK,
                                         System.Windows.MessageBoxImage.Error);
                                 });
@@ -123,8 +123,8 @@ namespace RSTGameTranslation
                         // Show general error if JSON parsing failed
                         System.Windows.Application.Current.Dispatcher.Invoke(() => {
                             System.Windows.MessageBox.Show(
-                                $"Groq API error: {response.StatusCode}\n{errorMessage}\n\nPlease check your API key and settings.",
-                                "Groq Translation Error",
+                                string.Format(LocalizationManager.Instance.Strings["Msg_GroqApiErrorStatus"], response.StatusCode, errorMessage),
+                                LocalizationManager.Instance.Strings["Title_GroqError"],
                                 System.Windows.MessageBoxButton.OK,
                                 System.Windows.MessageBoxImage.Error);
                         });
@@ -143,8 +143,8 @@ namespace RSTGameTranslation
                 // Show error message to user
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                     System.Windows.MessageBox.Show(
-                        $"Groq API error: {ex.Message}\n\nPlease check your network connection and API key.",
-                        "Groq Translation Error",
+                        string.Format(LocalizationManager.Instance.Strings["Msg_GroqApiException"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_GroqError"],
                         System.Windows.MessageBoxButton.OK,
                         System.Windows.MessageBoxImage.Error);
                 });

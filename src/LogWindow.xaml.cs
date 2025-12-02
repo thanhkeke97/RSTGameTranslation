@@ -152,7 +152,10 @@ namespace RSTGameTranslation
         // Update line count display
         private void updateLineCount()
         {
-            lineCountText.Text = $"Lines: {_lineCount}";
+            lineCountText.Text = string.Format(
+                LocalizationManager.Instance.Strings["LogWindow_Status_Lines"],
+                _lineCount
+            );
         }
         
         // Clear button click

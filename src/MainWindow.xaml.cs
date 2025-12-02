@@ -517,8 +517,11 @@ namespace RSTGameTranslation
                 {
                     savedTranslationAreas = savedTranslationAreas.Skip(savedTranslationAreas.Count - 5).Take(5).ToList();
                     Console.WriteLine("Maximum of 5 areas allowed. Keeping only the 5 most recent selections.");
-                    System.Windows.MessageBox.Show($"Maximum of 5 areas allowed. Keeping only the 5 most recent selections. Please click ClearArea button to clear all areas",
-                        "Maximum selection area", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    System.Windows.MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_MaximumAreasAllowed"],
+                        LocalizationManager.Instance.Strings["Title_MaximumSelectionArea"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
                 }
             }
             else
@@ -1004,8 +1007,11 @@ namespace RSTGameTranslation
                 else
                 {
                     // Warning message if OCR server is not ready
-                    System.Windows.MessageBox.Show($"Please make sure {method} server is ready before starting.",
-                        "OCR Server Not Ready", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_OcrServerNotReady"], method),
+                        LocalizationManager.Instance.Strings["Title_OcrServerNotReady"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
                 }
             }
         }
@@ -1463,8 +1469,8 @@ namespace RSTGameTranslation
                             selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
                             
                             System.Windows.MessageBox.Show(
-                                "The selected window is no longer available. Reverting to normal capture mode.",
-                                "Window Lost",
+                                LocalizationManager.Instance.Strings["Msg_WindowLost"],
+                                LocalizationManager.Instance.Strings["Title_WindowLost"],
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Warning);
                         });
@@ -1727,10 +1733,10 @@ namespace RSTGameTranslation
             if (Windows_Version == "Windows 10" && !isCapturingWindow)
             {
                 System.Windows.MessageBox.Show(
-                $"Windows 10 requires selecting a window before enabling overlay (Click the Select window button)",
-                "Information",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                        string.Format(LocalizationManager.Instance.Strings["Msg_Win10RequiresSelectWindow"]),
+                        LocalizationManager.Instance.Strings["Title_Information"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
             }
             else
             {
@@ -2408,12 +2414,20 @@ namespace RSTGameTranslation
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.MessageBox.Show($"Error when stopping OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_ErrorStoppingOcrServer"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
             }
             else
             {
-                System.Windows.MessageBox.Show("This OCR doesn't require stopping a server.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_OcrNoStopRequired"],
+                        LocalizationManager.Instance.Strings["Title_WarningExclamation"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
             }
         }
 
@@ -2437,11 +2451,10 @@ namespace RSTGameTranslation
 
                 // Show setup dialog
                 MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to install the environment for {ocrMethod}?\n\n" +
-                    "This process may take a long time and requires an internet connection",
-                    "Confirm installation",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+                        string.Format(LocalizationManager.Instance.Strings["Msg_ConfirmOcrInstall"], ocrMethod),
+                        LocalizationManager.Instance.Strings["Title_ConfirmInstallation"],
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
 
                 if (result == MessageBoxResult.Yes)
                 {
@@ -2459,7 +2472,11 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_ErrorInstallingOcrServer"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
             }
             finally
             {
@@ -2687,8 +2704,11 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error opening Discord link: {ex.Message}");
 
                 // Show error message
-                System.Windows.MessageBox.Show($"Cannot open discord link: {ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_CannotOpenDiscordLink"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
             }
         }
 

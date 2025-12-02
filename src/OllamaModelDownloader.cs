@@ -22,14 +22,22 @@ namespace RSTGameTranslation
         {
             if (string.IsNullOrWhiteSpace(model))
             {
-                MessageBox.Show("Please enter a model name", "Model Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_PleaseEnterModelName"],
+                    LocalizationManager.Instance.Strings["Title_ModelError"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
                 return false;
             }
             
             // Check if already downloading
             if (_isModelDownloading)
             {
-                MessageBox.Show("A model is already being downloaded", "Download in Progress", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_ModelDownloadInProgress"],
+                    LocalizationManager.Instance.Strings["Title_DownloadInProgress"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
                 return false;
             }
             
@@ -55,9 +63,9 @@ namespace RSTGameTranslation
                     _modelStatusWindow?.Hide();
                     
                     var result = MessageBox.Show(
-                        $"Model '{model}' not found. Do you want to download it?", 
-                        "Download Model", 
-                        MessageBoxButton.YesNo, 
+                        string.Format(LocalizationManager.Instance.Strings["Msg_ModelNotFoundDownload"], model),
+                        LocalizationManager.Instance.Strings["Title_DownloadModel"],
+                        MessageBoxButton.YesNo,
                         MessageBoxImage.Question);
                         
                     if (result == MessageBoxResult.Yes)
@@ -80,7 +88,11 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 CloseModelStatusWindow();
-                MessageBox.Show($"Error checking model: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorCheckingModel"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
                 Console.WriteLine($"Error checking/downloading model: {ex.Message}");
                 return false;
             }
@@ -93,7 +105,7 @@ namespace RSTGameTranslation
             {
                 _modelStatusWindow = new Window
                 {
-                    Title = "Ollama Model Status",
+                    Title = LocalizationManager.Instance.Strings["Title_OllamaModelStatus"],
                     Width = 400,
                     Height = 150,
                     WindowStartupLocation = WindowStartupLocation.CenterScreen,
@@ -140,7 +152,11 @@ namespace RSTGameTranslation
                     if (_isModelDownloading)
                     {
                         e.Cancel = true;
-                        MessageBox.Show("Please wait for the model download to complete", "Download in Progress", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(
+                            LocalizationManager.Instance.Strings["Msg_PleaseWaitDownload"],
+                            LocalizationManager.Instance.Strings["Title_DownloadInProgress"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
                     }
                 };
             }
@@ -372,15 +388,22 @@ namespace RSTGameTranslation
                             // Show success message and close window after delay
                             await Task.Delay(3000);
                             CloseModelStatusWindow();
-                            MessageBox.Show($"Model {model} has been downloaded successfully!", "Download Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show(
+                                string.Format(LocalizationManager.Instance.Strings["Msg_ModelDownloadSuccess"], model),
+                                LocalizationManager.Instance.Strings["Title_DownloadComplete"],
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
                         }
                         else
                         {
                             // Something went wrong - model still doesn't exist
                             Console.WriteLine($"WARNING: Model {model} was not found after download completed");
                             CloseModelStatusWindow();
-                            MessageBox.Show($"Download appeared to complete, but model {model} was not found in Ollama. Please try again or check the Ollama server logs.", 
-                                           "Download Issue", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            MessageBox.Show(
+                                string.Format(LocalizationManager.Instance.Strings["Msg_ModelDownloadIssue"], model),
+                                LocalizationManager.Instance.Strings["Title_DownloadIssue"],
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
                         }
                     }
                     else

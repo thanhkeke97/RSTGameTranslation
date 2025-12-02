@@ -145,8 +145,11 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error during initialization: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorInitialization"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -224,14 +227,16 @@ namespace RSTGameTranslation
                     _hasShownConnectionErrorMessage = true;
                     string serverUrl = $"localhost:{SocketManager.Instance.GetPort()}";
 
-                    string message = $"Connection Error: AI server not running at {serverUrl}\n\n" +
-                                     "Have you been click SetupServer button yet (only need to do this once during initial setup)?\n\n" +
-                                     "If you have not been run, please click the SetupServer button, wait for finish and try again.\n\n" +
-                                     "Some fix you can try:\n\n" +
-                                     "1. Click StopServer button to stop server then Click StartServer button to start server\n" +
-                                     "2. Close and reopen application";
+                    string message = string.Format(
+                        LocalizationManager.Instance.Strings["Msg_ServerConnectionError"],
+                        serverUrl
+                    );
 
-                    MessageBox.Show(message, "Server Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        message,
+                        LocalizationManager.Instance.Strings["Title_ServerConnectionError"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
             }
             else
@@ -1909,8 +1914,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error processing screenshot: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                MessageBox.Show($"Error processing screenshot: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorProcessingScreenshot"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
 
             // We'll do this after we get a reply

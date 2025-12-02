@@ -105,8 +105,8 @@ namespace RSTGameTranslation
                                 // Show error message to user
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                                     System.Windows.MessageBox.Show(
-                                        $"Gemini API error: {detailedError}\n\nPlease check your API key and settings.",
-                                        "Gemini Translation Error",
+                                        string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiError"], detailedError),
+                                        LocalizationManager.Instance.Strings["Title_GeminiError"],
                                         System.Windows.MessageBoxButton.OK,
                                         System.Windows.MessageBoxImage.Error);
                                 });
@@ -127,8 +127,8 @@ namespace RSTGameTranslation
                         // Show general error if JSON parsing failed
                         System.Windows.Application.Current.Dispatcher.Invoke(() => {
                             System.Windows.MessageBox.Show(
-                                $"Gemini API error: {response.StatusCode}\n{errorMessage}\n\nPlease check your API key and settings.",
-                                "Gemini Translation Error",
+                                string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiErrorStatus"], response.StatusCode, errorMessage),
+                                LocalizationManager.Instance.Strings["Title_GeminiError"],
                                 System.Windows.MessageBoxButton.OK,
                                 System.Windows.MessageBoxImage.Error);
                         });
@@ -147,8 +147,8 @@ namespace RSTGameTranslation
                 // Show error message to user
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                     System.Windows.MessageBox.Show(
-                        $"Gemini API error: {ex.Message}\n\nPlease check your network connection and API key.",
-                        "Gemini Translation Error",
+                        string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiException"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_GeminiError"],
                         System.Windows.MessageBoxButton.OK,
                         System.Windows.MessageBoxImage.Error);
                 });

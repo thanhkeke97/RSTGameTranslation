@@ -186,7 +186,7 @@ namespace RSTGameTranslation
                 // Status Text with modern styling
                 _statusTextBlock = new TextBlock
                 {
-                    Text = "Checking latest version...",
+                    Text = LocalizationManager.Instance.Strings["Splash_CheckingVersion"],
                     FontSize = 13,
                     FontFamily = new FontFamily("Segoe UI"),
                     Margin = new Thickness(0, 10, 0, 15),
@@ -294,7 +294,10 @@ namespace RSTGameTranslation
                     
                     
                     // Update status text
-                    UpdateStatusText($"New version V{versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} available!");
+                    UpdateStatusText(string.Format(
+                        LocalizationManager.Instance.Strings["Splash_NewVersionAvailable"],
+                        versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
+                    ));
                     
                     // Wait for 2 seconds before showing update dialog
                     await Task.Delay(2000);
@@ -307,8 +310,12 @@ namespace RSTGameTranslation
                             _splashWindow.Topmost = false;
                         }
                         
-                        System.Windows.MessageBoxResult result = System.Windows.MessageBox.Show(message, "Update Available", 
-                            System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Information);
+                        System.Windows.MessageBoxResult result = System.Windows.MessageBox.Show(
+                            message,
+                            LocalizationManager.Instance.Strings["Title_UpdateAvailable"],
+                            System.Windows.MessageBoxButton.YesNo,
+                            System.Windows.MessageBoxImage.Information
+                        );
                         
                         if (result == System.Windows.MessageBoxResult.Yes)
                         {
@@ -320,7 +327,7 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    UpdateStatusText("You have the latest version");
+                    UpdateStatusText(LocalizationManager.Instance.Strings["Splash_LatestVersion"]);
                     CloseSplashAfterDelay(2000);
                 }
             }
@@ -405,7 +412,7 @@ namespace RSTGameTranslation
             string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{version.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}/RSTGameTranslation_v{version.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}.zip";
             try
             {
-                UpdateStatusText("Starting download...");
+                UpdateStatusText(LocalizationManager.Instance.Strings["Splash_StartingDownload"]);
                 
                 // Open the download URL in the default browser
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -423,8 +430,12 @@ namespace RSTGameTranslation
                     _splashWindow.Topmost = false;
                 }
                 
-                System.Windows.MessageBox.Show($"Failed to download update: {ex.Message}", "Error", 
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_FailedDownloadUpdate"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error
+                );
             }
         }
 

@@ -186,8 +186,8 @@ namespace RSTGameTranslation
                                 // Show error message to user
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                                     System.Windows.MessageBox.Show(
-                                        $"Ollama error: {detailedError}\n\nPlease check your model name and Ollama settings.",
-                                        "Ollama Translation Error",
+                                        string.Format(LocalizationManager.Instance.Strings["Msg_OllamaError"], detailedError),
+                                        LocalizationManager.Instance.Strings["Title_OllamaError"],
                                         System.Windows.MessageBoxButton.OK,
                                         System.Windows.MessageBoxImage.Error);
                                 });
@@ -203,8 +203,8 @@ namespace RSTGameTranslation
                         // Show general error if JSON parsing failed
                         System.Windows.Application.Current.Dispatcher.Invoke(() => {
                             System.Windows.MessageBox.Show(
-                                $"Ollama API error: {response.StatusCode}\n{errorMessage}\n\nPlease check your settings.",
-                                "Ollama Translation Error",
+                                string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiErrorStatus"], response.StatusCode, errorMessage),
+                                LocalizationManager.Instance.Strings["Title_OllamaError"],
                                 System.Windows.MessageBoxButton.OK,
                                 System.Windows.MessageBoxImage.Error);
                         });
@@ -220,8 +220,8 @@ namespace RSTGameTranslation
                 // Show error message to user for other exceptions
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                     System.Windows.MessageBox.Show(
-                        $"Ollama API error: {ex.Message}\n\nPlease check your network connection and Ollama settings.",
-                        "Ollama Translation Error",
+                        string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiException"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_OllamaError"],
                         System.Windows.MessageBoxButton.OK,
                         System.Windows.MessageBoxImage.Error);
                 });

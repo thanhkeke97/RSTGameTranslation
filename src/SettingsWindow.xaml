@@ -987,17 +987,17 @@
                                         LostFocus="PromptTemplateTextBox_LostFocus"/>
                                 
                                 <!-- Save Button -->
-                                <Button x:Name="savePromptButton" Content="Save Prompt" Grid.Row="5" Grid.Column="1"
+                                <Button x:Name="savePromptButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SavePrompt]}" Grid.Row="5" Grid.Column="1"
                                        HorizontalAlignment="Right" Margin="0,10,0,0" Padding="10,5"
                                        Click="SavePromptButton_Click"/>
 
                                 <!-- Restore Default Prompt Button -->
-                                <Button x:Name="restoreDefaultPromptButton" Content="Restore Default Prompt" Grid.Row="5" Grid.Column="1"
+                                <Button x:Name="restoreDefaultPromptButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RestoreDefaultPrompt]}" Grid.Row="5" Grid.Column="1"
                                        HorizontalAlignment="Left" Margin="0,10,0,0" Padding="10,5"
                                        Click="RestoreDefaultPromptButton_Click"/>
 
                                 <!-- Restore Default Prompt Button -->
-                                <TextBlock x:Name="statusPrompt" Text="Saved !!!" Grid.Row="5" Grid.Column="1" Visibility="Collapsed"
+                                <TextBlock x:Name="statusPrompt" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_PromptSaved]}" Grid.Row="5" Grid.Column="1" Visibility="Collapsed"
                                        HorizontalAlignment="Center" Margin="0,10,0,0" Padding="10,5"/>
                             </Grid>
                         </GroupBox>
@@ -1161,7 +1161,7 @@
                                 </Grid>
                                 
                                 <!-- Google TTS Voice - Only visible when Google TTS is selected -->
-                                <TextBlock x:Name="googleTtsVoiceLabel" Text="Google Voice:" Grid.Row="3" Grid.Column="0" 
+                                <TextBlock x:Name="googleTtsVoiceLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GoogleTTSVoice]}" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"/>
                                 <ComboBox x:Name="googleTtsVoiceComboBox" Grid.Row="3" Grid.Column="1" 
                                          Margin="0,5" SelectionChanged="GoogleTtsVoiceComboBox_SelectionChanged" Visibility="Collapsed">

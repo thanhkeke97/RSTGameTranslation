@@ -101,8 +101,8 @@ namespace RSTGameTranslation
                                 // Show error message to user
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                                     System.Windows.MessageBox.Show(
-                                        $"Mistral API error: {detailedError}\n\nPlease check your API key and settings.",
-                                        "Mistral Translation Error",
+                                        string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiError"], detailedError),
+                                        LocalizationManager.Instance.Strings["Title_MistralError"],
                                         System.Windows.MessageBoxButton.OK,
                                         System.Windows.MessageBoxImage.Error);
                                 });
@@ -123,8 +123,8 @@ namespace RSTGameTranslation
                         // Show general error if JSON parsing failed
                         System.Windows.Application.Current.Dispatcher.Invoke(() => {
                             System.Windows.MessageBox.Show(
-                                $"Mistral API error: {response.StatusCode}\n{errorMessage}\n\nPlease check your API key and settings.",
-                                "Mistral Translation Error",
+                                string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiErrorStatus"], response.StatusCode, errorMessage),
+                                LocalizationManager.Instance.Strings["Title_MistralError"],
                                 System.Windows.MessageBoxButton.OK,
                                 System.Windows.MessageBoxImage.Error);
                         });
@@ -143,8 +143,8 @@ namespace RSTGameTranslation
                 // Show error message to user
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                     System.Windows.MessageBox.Show(
-                        $"Mistral API error: {ex.Message}\n\nPlease check your network connection and API key.",
-                        "Mistral Translation Error",
+                        string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiException"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_MistralError"],
                         System.Windows.MessageBoxButton.OK,
                         System.Windows.MessageBoxImage.Error);
                 });

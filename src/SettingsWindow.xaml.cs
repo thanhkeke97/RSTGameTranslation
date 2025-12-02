@@ -318,7 +318,12 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading Windows TTS voices: {ex.Message}");
-                MessageBox.Show($"Error loading TTS voices: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorLoadingTTSVoices"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -568,8 +573,12 @@ namespace RSTGameTranslation
                         Console.WriteLine($"Added new API key for {serviceType}");
 
 
-                        MessageBox.Show($"API key added for {serviceType}.", "API Key Added",
-                            MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(
+                            string.Format(LocalizationManager.Instance.Strings["Msg_ApiKeyAdded"], serviceType),
+                            LocalizationManager.Instance.Strings["Title_ApiKeyAdded"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
                     }
                 }
             }
@@ -634,26 +643,42 @@ namespace RSTGameTranslation
                         
                         Console.WriteLine($"Added new API key for {serviceType}");
                         
-                        MessageBox.Show($"API key added for {serviceType}.", "API Key Added",
-                            MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(
+                            string.Format(LocalizationManager.Instance.Strings["Msg_ApiKeyAdded"], serviceType),
+                            LocalizationManager.Instance.Strings["Title_ApiKeyAdded"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
                     }
                     else
                     {
-                        MessageBox.Show("Please enter an API key.", "Empty API Key",
-                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show(
+                            LocalizationManager.Instance.Strings["Msg_PleaseEnterApiKey"],
+                            LocalizationManager.Instance.Strings["Title_EmptyApiKey"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning
+                        );
                     }
                 }
                 else
                 {
-                    MessageBox.Show($"No password field found for service: {serviceType}", "Configuration Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_NoPasswordField"], serviceType),
+                        LocalizationManager.Instance.Strings["Title_ConfigurationError"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error saving API key: {ex.Message}");
-                MessageBox.Show($"Error saving API key: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorSavingApiKey"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
         // Handler for application-level keyboard shortcuts
@@ -1097,9 +1122,12 @@ namespace RSTGameTranslation
                 }
                 if (key1 == "" || key2 == "" || key1 == "----------- Select -----------" || key2 == "----------- Select -----------")
                 {
-                    MessageBox.Show("Hot key is not valid, please try again", "Error",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Error);
+                    MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_HotKeyInvalid"], functionName),
+                        LocalizationManager.Instance.Strings["Title_HotKeyInvalid"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
                 else
                 {
@@ -2872,8 +2900,12 @@ namespace RSTGameTranslation
                 // Validate input is a valid number
                 if (!double.TryParse(textSimilarThresholdTextBox.Text, System.Globalization.CultureInfo.InvariantCulture, out double similarThreshold))
                 {
-                    MessageBox.Show("Please enter a valid number for the threshold.",
-                                "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_InvalidNumber"],
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
 
                     // Reset textbox to last valid value
                     textSimilarThresholdTextBox.Text = lastThreshold;
@@ -2884,8 +2916,12 @@ namespace RSTGameTranslation
                 if (similarThreshold > 1.0 || similarThreshold < 0.5)
                 {
                     // Show warning message
-                    MessageBox.Show("Please enter a value between 0.5 and 1.0",
-                                "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_ValueBetween"],
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
 
                     // Reset to current value from config
                     textSimilarThresholdTextBox.Text = lastThreshold;
@@ -2974,7 +3010,12 @@ namespace RSTGameTranslation
             {
                 _isLanguagePackInstall = false;
 
-                MessageBox.Show("No language selected.", "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_NoLanguageSelected"],
+                    LocalizationManager.Instance.Strings["Title_LanguagePackCheck"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
             }
             else
             {
@@ -2984,25 +3025,37 @@ namespace RSTGameTranslation
 
                 if (_isLanguagePackInstall)
                 {
-                    MessageBox.Show("Language pack is installed.", "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_LanguagePackInstalled"],
+                        LocalizationManager.Instance.Strings["Title_LanguagePackCheck"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
                 }
                 else
                 {
                     if (!string.IsNullOrEmpty(WindowsOCRManager.Instance._currentLanguageCode))
                     {
-                        string message = "Language pack is not installed. \n\n" +
-                                     "To install the corresponding language pack, please follow these steps:\n\n" +
-                                     "Step 1: Press \"Windows + S\" button, type \"language settings\" and press Enter button.\n\n" +
-                                     "Step 2: Click on \"Add a language\" button.\n\n" +
-                                     $"Step 3: Type \"{WindowsOCRManager.Instance._currentLanguageCode}\" to search.\n\n" +
-                                     "Step 4:  Click \"Next\" button, uncheck all option and click \"install\".\n\n" +
-                                     "Wait for language package install complete and retry";
+                        string message = string.Format(
+                            LocalizationManager.Instance.Strings["Msg_LanguagePackInstallGuide"],
+                            WindowsOCRManager.Instance._currentLanguageCode
+                        );
 
-                        MessageBox.Show(message, "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show(
+                            message,
+                            LocalizationManager.Instance.Strings["Title_LanguagePackCheck"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning
+                        );
                     }
                     else
                     {
-                        MessageBox.Show("This language is not supported for WindowsOCR", "Language Pack Check", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show(
+                            LocalizationManager.Instance.Strings["Msg_LanguageNotSupported"],
+                            LocalizationManager.Instance.Strings["Title_LanguagePackCheck"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning
+                        );
                     }
                 }
             }
@@ -3017,7 +3070,12 @@ namespace RSTGameTranslation
 
                 if (string.IsNullOrEmpty(profileName))
                 {
-                    MessageBox.Show("Please enter a profile name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_PleaseEnterProfileName"],
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
                 else
                 {
@@ -3071,7 +3129,12 @@ namespace RSTGameTranslation
                 string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
                 if (File.Exists(filePath))
                 {
-                    MessageBoxResult result = MessageBox.Show("Are you sure to remove this profile?", "Confirm", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+                    MessageBoxResult result = MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_ConfirmRemoveProfile"],
+                        LocalizationManager.Instance.Strings["Title_Confirm"],
+                        MessageBoxButton.OKCancel,
+                        MessageBoxImage.Information
+                    );
                     if (result == MessageBoxResult.OK)
                     {
                         File.Delete(filePath);
@@ -3104,12 +3167,22 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    MessageBox.Show("Profile not found, can not remove", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_ProfileNotFound"],
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
             }
             else
             {
-                MessageBox.Show("No profile selected, please select a profile from combo box", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_NoProfileSelected"],
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -3121,7 +3194,12 @@ namespace RSTGameTranslation
                 string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
                 if (File.Exists(filePath))
                 {
-                    MessageBoxResult result = MessageBox.Show("Are you sure to update this profile?", "Confirm", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+                    MessageBoxResult result = MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_ConfirmUpdateProfile"],
+                        LocalizationManager.Instance.Strings["Title_Confirm"],
+                        MessageBoxButton.OKCancel,
+                        MessageBoxImage.Information
+                    );
                     if (result == MessageBoxResult.OK)
                     {
                         if (MainWindow.Instance.savedTranslationAreas.Count > 0)
@@ -3158,12 +3236,22 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    MessageBox.Show("Profile not found, please try to create new other profile", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_ProfileNotFoundCreate"],
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
             }
             else
             {
-                MessageBox.Show("No profile selected, please select a profile from combo box", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_NoProfileSelected"],
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -3211,12 +3299,22 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    MessageBox.Show("Profile not found, please try to create new other profile", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_ProfileNotFoundCreate"],
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
             }
             else
             {
-                MessageBox.Show("No profile selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_NoProfileSelected"],
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -3263,16 +3361,24 @@ namespace RSTGameTranslation
                 Logic.Instance.ClearAllTextObjects();
 
                 // Show success message
-                MessageBox.Show("Translation context and history have been cleared.",
-                    "Context Cleared", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_ContextCleared"],
+                    LocalizationManager.Instance.Strings["Title_Success"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
 
                 Console.WriteLine("Translation context cleared successfully");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error clearing translation context: {ex.Message}");
-                MessageBox.Show($"Error clearing context: {ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorClearingContext"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -3340,16 +3446,24 @@ namespace RSTGameTranslation
 
                 if (string.IsNullOrEmpty(phrase))
                 {
-                    MessageBox.Show("Please enter a phrase to ignore.",
-                        "Missing Phrase", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_PleaseEnterPhrase"],
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
                     return;
                 }
 
                 // Check if the phrase already exists
                 if (_ignorePhrases.Any(p => p.Phrase == phrase))
                 {
-                    MessageBox.Show($"The phrase '{phrase}' is already in the list.",
-                        "Duplicate Phrase", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_PhraseAlreadyExists"], phrase),
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
                     return;
                 }
 
@@ -3369,8 +3483,12 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error adding ignore phrase: {ex.Message}");
-                MessageBox.Show($"Error adding phrase: {ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorAddingPhrase"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -3384,8 +3502,12 @@ namespace RSTGameTranslation
                     string phrase = selectedPhrase.Phrase;
 
                     // Ask for confirmation
-                    MessageBoxResult result = MessageBox.Show($"Are you sure you want to remove the phrase '{phrase}'?",
-                        "Confirm Remove", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    MessageBoxResult result = MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_ConfirmRemovePhrase"], phrase),
+                        LocalizationManager.Instance.Strings["Title_Confirm"],
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question
+                    );
 
                     if (result == MessageBoxResult.Yes)
                     {
@@ -3402,8 +3524,12 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error removing ignore phrase: {ex.Message}");
-                MessageBox.Show($"Error removing phrase: {ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorRemovingPhrase"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -3487,13 +3613,12 @@ namespace RSTGameTranslation
             if (isNeedShowMessage)
             {
                 // Show notification
-                MessageBox.Show("When this feature is enabled, you can select multiple areas to translate by clicking the SelectArea button \n\n" +
-                "Each selection corresponds to one translation area \n\n" +
-                "To switch between translation areas, press ALT+number (number from 1 to 5) \n\n" +
-                "The numbers correspond to the areas you have created; the first selected area is 1, and it increases up to 5 \n\n",
-                            "Multi selection area guide",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_MultiSelectionGuide"],
+                    LocalizationManager.Instance.Strings["Title_MultiSelectionGuide"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
             }
             isNeedShowMessage = !enabled;
         }
@@ -3597,11 +3722,12 @@ namespace RSTGameTranslation
 
         private void RemoveServerButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = System.Windows.MessageBox.Show(
-                    $"Are you sure you want to remove this hotspot server?",
-                    "Confirm Removal",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+            MessageBoxResult result = MessageBox.Show(
+                LocalizationManager.Instance.Strings["Msg_ConfirmRemoveServer"],
+                LocalizationManager.Instance.Strings["Title_ConfirmRemoval"],
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
 
             if (result == MessageBoxResult.Yes)
             {
@@ -3674,12 +3800,11 @@ namespace RSTGameTranslation
             {
                 // Show notification
                 MessageBox.Show(
-                    "If you disable this feature, the application will not automatically translate text. " +
-                    "To trigger translation of the selected area, click the Start button (default ALT+G). " +
-                    "To clear the overlay and get a new translation, click the Stop button (default ALT+G) ",
-                    "Auto OCR Disabled",
+                    LocalizationManager.Instance.Strings["Msg_AutoOCRDisabled"],
+                    LocalizationManager.Instance.Strings["Title_AutoOCRDisabled"],
                     MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    MessageBoxImage.Information
+                );
             }
             isNeedShowWarningAutoOCR = enabled;
         }

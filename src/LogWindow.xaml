@@ -1,7 +1,8 @@
 <Window x:Class="RSTGameTranslation.LogWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="RSTGameTranslation - Log Viewer"
+        xmlns:local="clr-namespace:RSTGameTranslation"
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[LogWindow_Title]}"
         Width="800" Height="600"
         MinWidth="400" MinHeight="300"
         Background="#FF1E1E1E"
@@ -26,7 +27,7 @@
                 </Grid.ColumnDefinitions>
                 
                 <TextBlock Grid.Column="0" 
-                          Text="Application Log" 
+                          Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[LogWindow_Header]}" 
                           Foreground="White" 
                           FontSize="14" 
                           FontWeight="SemiBold"
@@ -34,14 +35,14 @@
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <CheckBox x:Name="autoScrollCheckBox" 
-                             Content="Auto-scroll" 
+                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[LogWindow_Chk_AutoScroll]}" 
                              Foreground="White" 
                              IsChecked="True"
                              VerticalAlignment="Center"
                              Margin="0,0,15,0"/>
                     
                     <Button x:Name="clearButton" 
-                           Content="Clear" 
+                           Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[LogWindow_Btn_Clear]}" 
                            Padding="10,4" 
                            Margin="0,0,5,0"
                            Background="#FF3E3E42" 
@@ -51,7 +52,7 @@
                            Click="ClearButton_Click"/>
                     
                     <Button x:Name="copyAllButton" 
-                           Content="Copy All" 
+                           Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[LogWindow_Btn_CopyAll]}" 
                            Padding="10,4"
                            Background="#FF3E3E42" 
                            Foreground="White" 
@@ -96,13 +97,13 @@
                 
                 <TextBlock Grid.Column="0" 
                           x:Name="statusText"
-                          Text="Ready - Max 500 lines" 
+                          Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[LogWindow_Status_Ready]}" 
                           Foreground="White" 
                           FontSize="11"/>
                 
                 <TextBlock Grid.Column="1" 
                           x:Name="lineCountText"
-                          Text="Lines: 0" 
+                          Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[LogWindow_Status_Lines]}" 
                           Foreground="White" 
                           FontSize="11"/>
             </Grid>

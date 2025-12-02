@@ -351,7 +351,7 @@
                                         <TextBlock Text="RSTGameTranslation" FontSize="28" 
                                                 FontWeight="Bold" Foreground="#FF00AAFF"/>
                                         <TextBlock Name="AppVersion" Text="Version" Foreground="#AAFFFFFF" FontSize="12" Margin="0,5,0,0"/>
-                                        <TextBlock Text="Game Translation Made Simple" Foreground="White" 
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Description]}" Foreground="White" 
                                                 FontSize="14" Margin="0,5,0,0" FontStyle="Italic"/>
                                         
                                         <!-- Note-->
@@ -571,6 +571,7 @@
                                         SelectionChanged="LanguageSelector_SelectionChanged">
                                     <ComboBoxItem Content="English" Tag="en"/>
                                     <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
+                                    <ComboBoxItem Content="中国人" Tag="zh_cn"/>
                                 </ComboBox>
                             
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Author], Mode=OneWay}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
