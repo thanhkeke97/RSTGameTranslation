@@ -373,5 +373,22 @@
   "Title_Information": "Thông tin",
   "Btn_SavePrompt": "Lưu Prompt",
   "Btn_RestoreDefaultPrompt": "Khôi phục Prompt mặc định",
-  "Msg_PromptSaved": "Đã lưu !!!"
+  "Msg_PromptSaved": "Đã lưu !!!",
+  "Msg_OcrNoStartRequired": "{0} không yêu cầu khởi động máy chủ.",
+  "Msg_ServerStartupTimeout": "Hết thời gian khởi động máy chủ {0}. Vui lòng kiểm tra xem môi trường đã được cài đặt chưa và thử lại.",
+  "Msg_ErrorStartingOcrServer": "Lỗi khởi động máy chủ OCR: {0}",
+  "Status_StartingOcrServer": "Đang khởi động máy chủ {0}...",
+  "Status_CannotStartOcrServer": "Không thể khởi động máy chủ {0}",
+  "Status_OcrServerStopped": "Máy chủ OCR đã được dừng",
+  "Status_SettingUpEnvironment": "Đang cài đặt môi trường cho {0}...",
+  "Status_EnvironmentSetupCompleted": "Hoàn tất cài đặt môi trường {0}",
+  "Status_ConnectingToServer": "Đang kết nối đến máy chủ {0}.",
+  "Status_ConnectedToServer": "Đã kết nối đến máy chủ {0}.",
+  "Msg_ServerStartupTimeoutShort": "Hết thời gian khởi động máy chủ {0}. Vui lòng kiểm tra xem môi trường đã được cài đặt chưa.",
+  "Status_CannotConnectToServer": "Không thể kết nối đến máy chủ {0}.",
+  "Status_UsingBuiltInOcr": "Đang sử dụng {0} (tích hợp sẵn)",
+  "Status_PleaseStartEasyOCR": "Vui lòng khởi động máy chủ EasyOCR",
+  "Status_PleaseStartRapidOCR": "Vui lòng khởi động máy chủ RapidOCR",
+  "Status_PleaseStartPaddleOCR": "Vui lòng khởi động máy chủ PaddleOCR",
+  "Status_PleaseClickStartServer": "Vui lòng nhấp vào nút StartServer để kết nối lại máy chủ"
 }

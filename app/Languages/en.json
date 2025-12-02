@@ -367,5 +367,22 @@
   "Title_Information": "Information",
   "Btn_SavePrompt": "Save Prompt",
   "Btn_RestoreDefaultPrompt": "Restore Default Prompt",
-  "Msg_PromptSaved": "Saved !!!"
+  "Msg_PromptSaved": "Saved !!!",
+  "Msg_OcrNoStartRequired": "{0} doesn't require starting a server.",
+  "Msg_ServerStartupTimeout": "Server startup timeout {0}. Please check if the environment has been installed and try again.",
+  "Msg_ErrorStartingOcrServer": "Error starting OCR server: {0}",
+  "Status_StartingOcrServer": "Starting {0} server...",
+  "Status_CannotStartOcrServer": "Cannot start {0} server",
+  "Status_OcrServerStopped": "OCR server has been stopped",
+  "Status_SettingUpEnvironment": "Setting up environment for {0}...",
+  "Status_EnvironmentSetupCompleted": "{0} environment setup completed",
+  "Status_ConnectingToServer": "Connecting to Server {0}.",
+  "Status_ConnectedToServer": "Connected to Server {0}.",
+  "Msg_ServerStartupTimeoutShort": "Server startup timeout {0}. Please check if the environment has been installed.",
+  "Status_CannotConnectToServer": "Cannot connect to Server {0}.",
+  "Status_UsingBuiltInOcr": "Using {0} (built-in)",
+  "Status_PleaseStartEasyOCR": "Please start EasyOCR server",
+  "Status_PleaseStartRapidOCR": "Please start RapidOCR server",
+  "Status_PleaseStartPaddleOCR": "Please start PaddleOCR server",
+  "Status_PleaseClickStartServer": "Please click StartServer button to reconnect server"
 }

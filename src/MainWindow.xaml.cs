@@ -222,23 +222,23 @@ namespace RSTGameTranslation
                 // Important: Update status text even during initialization
                 if (method == "Windows OCR")
                 {
-                    SetStatus($"Using {method} (built-in)");
+                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
                 }
                 else if (method == "OneOCR")
                 {
-                    SetStatus($"Using {method} (built-in)");
+                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
                 }
                 else if (method == "EasyOCR")
                 {
-                    SetStatus("Please start EasyOCR server");
+                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartEasyOCR"]);
                 }
                 else if (method == "RapidOCR")
                 {
-                    SetStatus("Please start RapidOCR server");
+                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartRapidOCR"]);
                 }
                 else
                 {
-                    SetStatus("Please start PaddleOCR server");
+                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartPaddleOCR"]);
                 }
                 return;
             }
@@ -257,7 +257,7 @@ namespace RSTGameTranslation
                     }
 
                     OcrServerManager.Instance.StopOcrServer();
-                    SetStatus($"Using {method} (built-in)");
+                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
                 }
                 else
                 {
@@ -267,7 +267,7 @@ namespace RSTGameTranslation
                     }
 
                     OcrServerManager.Instance.StopOcrServer();
-                    SetStatus($"Please click StartServer button to reconnect server");
+                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseClickStartServer"]);
 
                 }
             }
@@ -1685,12 +1685,12 @@ namespace RSTGameTranslation
                     if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                     {
                         // Using Windows OCR, no need for socket connection
-                        SetStatus($"Using {ocrMethod} (built-in)");
+                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], ocrMethod));
                     }
                     else
                     {
                         // Using EasyOCR, RapidOCR or PaddleOCR, try to connect to the socket server
-                        SetStatus($"Connecting to Server {ocrMethod}.");
+                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectingToServer"], ocrMethod));
 
                         _ = OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
                         while (!OcrServerManager.Instance.serverStarted)
@@ -1698,21 +1698,24 @@ namespace RSTGameTranslation
                             await Task.Delay(100);
                             if (OcrServerManager.Instance.timeoutStartServer)
                             {
-                                SetStatus($"Cannot start {ocrMethod} server");
-                                System.Windows.MessageBox.Show($"Server startup timeout {ocrMethod}. Please check if the environment has been installed.",
-                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
+                                System.Windows.MessageBox.Show(
+                                    string.Format(LocalizationManager.Instance.Strings["Msg_ServerStartupTimeoutShort"], ocrMethod),
+                                    LocalizationManager.Instance.Strings["Title_Error"],
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
                                 break;
                             }
                         }
                         if (OcrServerManager.Instance.serverStarted)
                         {
                             _ = SocketManager.Instance.TryReconnectAsync();
-                            SetStatus($"Connected to Server {ocrMethod}.");
+                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], ocrMethod));
 
                         }
                         else
                         {
-                            SetStatus($"Can not connected to Server {ocrMethod}.");
+                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotConnectToServer"], ocrMethod));
                         }
                     }
                 }
@@ -2349,25 +2352,32 @@ namespace RSTGameTranslation
 
                 if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                 {
-                    System.Windows.MessageBox.Show($"{ocrMethod} doesn't require starting a server.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_OcrNoStartRequired"], ocrMethod),
+                        LocalizationManager.Instance.Strings["Title_WarningExclamation"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                     btnStartOcrServer.IsEnabled = true;
                     return;
                 }
                 
-                SetStatus($"Starting {ocrMethod} server...");
+                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_StartingOcrServer"], ocrMethod));
                 
                 // Start the OCR server
                 await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
-                SetStatus($"Starting {ocrMethod} server ...");
+                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_StartingOcrServer"], ocrMethod));
                 var startTime = DateTime.Now;
                 while (!OcrServerManager.Instance.serverStarted) 
                 {
-                    await Task.Delay(100); // Kiểm tra mỗi 100ms    
+                    await Task.Delay(100);  
                     if (OcrServerManager.Instance.timeoutStartServer)
                     {
-                        SetStatus($"Cannot start {ocrMethod} server");
-                        System.Windows.MessageBox.Show($"Server startup timeout {ocrMethod}. Please check if the environment has been installed and try again.",
-                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
+                        System.Windows.MessageBox.Show(
+                            string.Format(LocalizationManager.Instance.Strings["Msg_ServerStartupTimeout"], ocrMethod),
+                            LocalizationManager.Instance.Strings["Title_Error"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                         break;
                     }    
                 }
@@ -2389,7 +2399,11 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Error starting OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorStartingOcrServer"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
             finally
             {
@@ -2410,7 +2424,7 @@ namespace RSTGameTranslation
                 {
                     // Stop OCR server
                     OcrServerManager.Instance.StopOcrServer();
-                    SetStatus("OCR server has been stopped");
+                    SetStatus(LocalizationManager.Instance.Strings["Status_OcrServerStopped"]);
                 }
                 catch (Exception ex)
                 {
@@ -2444,7 +2458,11 @@ namespace RSTGameTranslation
 
                 if (ocrMethod == "Windows OCR")
                 {
-                    System.Windows.MessageBox.Show($"{ocrMethod} doesn't require installing a environment.", "Warning!!", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_OcrNoInstallRequired"], ocrMethod),
+                        LocalizationManager.Instance.Strings["Title_WarningExclamation"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                     btnSetupOcrServer.IsEnabled = true;
                     return;
                 }
@@ -2459,7 +2477,7 @@ namespace RSTGameTranslation
                 if (result == MessageBoxResult.Yes)
                 {
                     // Show status message
-                    SetStatus($"Setting up environment for {ocrMethod}...");
+                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_SettingUpEnvironment"], ocrMethod));
 
                     // Run setup
                     await Task.Run(() =>
@@ -2467,7 +2485,7 @@ namespace RSTGameTranslation
                         OcrServerManager.Instance.SetupOcrEnvironment(ocrMethod);
                     });
 
-                    SetStatus($"{ocrMethod} environment setup completed");
+                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_EnvironmentSetupCompleted"], ocrMethod));
                 }
             }
             catch (Exception ex)

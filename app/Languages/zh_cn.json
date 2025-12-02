@@ -373,5 +373,22 @@
   "Title_Information": "信息",
   "Btn_SavePrompt": "保存提示词",
   "Btn_RestoreDefaultPrompt": "恢复默认提示词",
-  "Msg_PromptSaved": "已保存 !!!"
+  "Msg_PromptSaved": "已保存 !!!",
+  "Msg_OcrNoStartRequired": "{0} 不需要启动服务器。",
+  "Msg_ServerStartupTimeout": "服务器启动超时 {0}。请检查环境是否已安装并重试。",
+  "Msg_ErrorStartingOcrServer": "启动 OCR 服务器时出错：{0}",
+  "Status_StartingOcrServer": "正在启动 {0} 服务器...",
+  "Status_CannotStartOcrServer": "无法启动 {0} 服务器",
+  "Status_OcrServerStopped": "OCR 服务器已停止",
+  "Status_SettingUpEnvironment": "正在为 {0} 设置环境...",
+  "Status_EnvironmentSetupCompleted": "{0} 环境设置完成",
+  "Status_ConnectingToServer": "正在连接到服务器 {0}。",
+  "Status_ConnectedToServer": "已连接到服务器 {0}。",
+  "Msg_ServerStartupTimeoutShort": "服务器启动超时 {0}。请检查环境是否已安装。",
+  "Status_CannotConnectToServer": "无法连接到服务器 {0}。",
+  "Status_UsingBuiltInOcr": "正在使用 {0}（内置）",
+  "Status_PleaseStartEasyOCR": "请启动 EasyOCR 服务器",
+  "Status_PleaseStartRapidOCR": "请启动 RapidOCR 服务器",
+  "Status_PleaseStartPaddleOCR": "请启动 PaddleOCR 服务器",
+  "Status_PleaseClickStartServer": "请点击 StartServer 按钮重新连接服务器"
 }
