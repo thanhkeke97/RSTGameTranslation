@@ -234,5 +234,13 @@
   "Msg_ErrorClearingContext": "Error clearing context: {0}",
   "Msg_PleaseEnterPhrase": "Please enter a phrase to ignore.",
   "Msg_PhraseAlreadyExists": "The phrase '{0}' is already in the list.",
-  "Msg_ErrorAddingPhrase": "Error adding phrase: {0}"
+  "Msg_ErrorAddingPhrase": "Error adding phrase: {0}",
+  "Header_SelectWindow": "Select Window to Capture",
+  "Common_Btn_Refresh": "Refresh",
+  "Common_Btn_Select": "Select",
+  "Common_Btn_Cancel": "Cancel",
+  "SelectWindow_Btn_Title": "Window Title",
+  "SelectWindow_Title": "Select Window to Capture",
+  "WinSelector_Msg_WindowNoLongerAvailable": "The selected window is no longer available. Please refresh the list.",
+  "WinSelector_Title_Window_Not_Available": "Window Not Available"
 }

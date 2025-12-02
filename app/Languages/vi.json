@@ -234,5 +234,13 @@
   "Msg_ErrorClearingContext": "Lỗi xóa ngữ cảnh: {0}",
   "Msg_PleaseEnterPhrase": "Vui lòng nhập cụm từ cần bỏ qua.",
   "Msg_PhraseAlreadyExists": "Cụm từ '{0}' đã có trong danh sách.",
-  "Msg_ErrorAddingPhrase": "Lỗi thêm cụm từ: {0}"
+  "Msg_ErrorAddingPhrase": "Lỗi thêm cụm từ: {0}",
+  "Header_SelectWindow": "Chọn cửa sổ để chụp ảnh",
+  "Common_Btn_Refresh": "Refresh",
+  "Common_Btn_Select": "Select",
+  "Common_Btn_Cancel": "Cancel",
+  "SelectWindow_Btn_Title": "Tiêu đề cửa sổ",
+  "SelectWindow_Title": "Chọn cửa sổ để chụp ảnh",
+  "WinSelector_Msg_WindowNoLongerAvailable": "Cửa sổ đã chọn không còn khả dụng. Vui lòng làm mới danh sách.",
+  "WinSelector_Title_Window_Not_Available": "Cửa sổ không còn khả dụng"
 }

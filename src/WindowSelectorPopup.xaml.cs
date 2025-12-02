@@ -24,7 +24,7 @@ namespace RSTGameTranslation
         {
             InitializeComponent();
 
-            this.Title = "Select Window to Capture";
+            this.Title = LocalizationManager.Instance.Strings["SelectWindow_Title"];
             this.Width = 500;
             this.Height = 400;
             this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -192,8 +192,8 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    System.Windows.MessageBox.Show("The selected window is no longer available. Please refresh the list.",
-                        "Window Not Available", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    System.Windows.MessageBox.Show(LocalizationManager.Instance.Strings["WinSelector_Msg_WindowNoLongerAvailable"],
+                        LocalizationManager.Instance.Strings["WinSelector_Title_Window_Not_Available"], MessageBoxButton.OK, MessageBoxImage.Warning);
                     LoadWindowList();
                 }
             }

@@ -410,6 +410,7 @@ app/webserver/*.exe
 !app/webserver/
 !app/tessdata/
 !app/OneOcr
+!app/Languages
 #but keep a few things...
 !app/webserver/*.bat
 !app/webserver/*.py
