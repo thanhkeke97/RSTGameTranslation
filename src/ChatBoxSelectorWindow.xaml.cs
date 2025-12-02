@@ -247,7 +247,11 @@ namespace RSTGameTranslation
             selectionRectangle.VerticalAlignment = System.Windows.VerticalAlignment.Top;
             
             // Display size information in the instruction text
-            instructionText.Text = $"Selection size: {(int)width} x {(int)height}";
+            instructionText.Text = string.Format(
+                LocalizationManager.Instance.Strings["ChatBoxSelector_SelectionSize"],
+                (int)width,
+                (int)height
+            );
         }
         
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -271,10 +275,12 @@ namespace RSTGameTranslation
             // Verify minimum size
             if (width < 50 || height < 50)
             {
-                MessageBox.Show("Please select a larger area (at least 50x50 pixels).", 
-                                "Selection too small", 
-                                MessageBoxButton.OK, 
-                                MessageBoxImage.Warning);
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["ChatBoxSelector_Msg_TooSmall"], 
+                    LocalizationManager.Instance.Strings["ChatBoxSelector_Title_TooSmall"], 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Warning
+                );
                 return;
             }
             

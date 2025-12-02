@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
-        Title="Chat Box Options" Height="420" Width="400"
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Title]}" Height="420" Width="400"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Icon="/media/AppIcon.ico">
@@ -16,7 +16,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Chat Box Appearance Options" 
+        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Header]}"
                    Grid.Row="0"
                    FontSize="16" 
                    FontWeight="SemiBold" 
@@ -25,10 +25,10 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- Background settings -->
-                <GroupBox Header="Background Settings" Margin="0,5,0,10" Padding="5">
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Grp_Background]}" Margin="0,5,0,10" Padding="5">
                     <StackPanel>
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Background Color:" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_BackgroundColor]}" VerticalAlignment="Center" Width="120" />
                             <Button x:Name="backgroundColorButton" 
                                     Width="30" Height="20" 
                                     Margin="5,0,0,0"
@@ -40,7 +40,7 @@
                         </DockPanel>
                         
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Background Opacity:" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_BackgroundOpacity]}" VerticalAlignment="Center" Width="120" />
                             <Slider x:Name="backgroundOpacitySlider" 
                                     Minimum="0" Maximum="1" 
                                     Value="0.5" 
@@ -56,7 +56,7 @@
                         </DockPanel>
                         
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Window Opacity:" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_WindowOpacity]}" VerticalAlignment="Center" Width="120" />
                             <Slider x:Name="windowOpacitySlider" 
                                     Minimum="0.1" Maximum="1" 
                                     Value="1.0" 
@@ -74,17 +74,17 @@
                 </GroupBox>
 
                 <!-- Text settings -->
-                <GroupBox Header="Text Settings" Margin="0,5,0,10" Padding="5">
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Grp_Text]}" Margin="0,5,0,10" Padding="5">
                     <StackPanel>
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Font Family:" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_FontFamily]}" VerticalAlignment="Center" Width="120" />
                             <ComboBox x:Name="fontFamilyComboBox" 
                                       Width="200" 
                                       SelectionChanged="FontFamilyComboBox_SelectionChanged"/>
                         </DockPanel>
                         
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Font Size:" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_FontSize]}" VerticalAlignment="Center" Width="120" />
                             <Slider x:Name="fontSizeSlider" 
                                     Minimum="8" Maximum="48" 
                                     Value="14" 
@@ -100,9 +100,9 @@
                         </DockPanel>
 
                         <DockPanel Margin="0,5">
-                            <TextBlock Text="Auto Clear History" VerticalAlignment="Center" Width="120" />
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_AutoClear]}" VerticalAlignment="Center" Width="120" />
                             <CheckBox x:Name="autoClearChatboxHistoryCheckBox" Grid.Row="3" Grid.Column="1" 
-                                         Margin="0,5" ToolTip="Auto Clear Chatbox History When Received New Translated Text"
+                                         Margin="0,5" ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Tip_AutoClear]}"
                                          Checked="autoClearChatboxHistoryCheckBox_CheckedChanged" 
                                          Unchecked="autoClearChatboxHistoryCheckBox_CheckedChanged"/>
                         </DockPanel>
@@ -110,9 +110,9 @@
                 </GroupBox>
 
                 <!-- Original text color -->
-                <GroupBox Header="Original Text Settings" Margin="0,5,0,10" Padding="5">
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Grp_OriginalText]}" Margin="0,5,0,10" Padding="5">
                     <DockPanel Margin="0,5">
-                        <TextBlock Text="Text Color:" VerticalAlignment="Center" Width="120" />
+                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_TextColor]}" VerticalAlignment="Center" Width="120" />
                         <Button x:Name="originalTextColorButton" 
                                 Width="30" Height="20" 
                                 Margin="5,0,0,0"
@@ -125,9 +125,9 @@
                 </GroupBox>
 
                 <!-- Translated text color -->
-                <GroupBox Header="Translated Text Settings" Margin="0,5,0,10" Padding="5">
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Grp_TranslatedText]}" Margin="0,5,0,10" Padding="5">
                     <DockPanel Margin="0,5">
-                        <TextBlock Text="Text Color:" VerticalAlignment="Center" Width="120" />
+                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_TextColor]}" VerticalAlignment="Center" Width="120" />
                         <Button x:Name="translatedTextColorButton" 
                                 Width="30" Height="20" 
                                 Margin="5,0,0,0"
@@ -149,25 +149,25 @@
             </Grid.ColumnDefinitions>
             
             <Button x:Name="defaultsButton" 
-                    Content="Set Defaults" 
+                    Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_SetDefaults]}" 
                     Width="100" 
                     Height="25" 
                     HorizontalAlignment="Left"
                     Click="DefaultsButton_Click"
-                    ToolTip="Reset all settings to default values"
+                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Tip_SetDefaults]}"
                     Grid.Column="0"/>
             
             <StackPanel Orientation="Horizontal" 
                         HorizontalAlignment="Right"
                         Grid.Column="1">
                 <Button x:Name="applyButton" 
-                        Content="Apply" 
+                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_Apply]}" 
                         Width="80" 
                         Height="25" 
                         Margin="5,0" 
                         Click="ApplyButton_Click"/>
                 <Button x:Name="cancelButton" 
-                        Content="Cancel" 
+                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_Cancel]}" 
                         Width="80" 
                         Height="25" 
                         Margin="5,0" 

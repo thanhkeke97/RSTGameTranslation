@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
-        Title="Translation History" 
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Title]}"
         Height="300" Width="400"
         Topmost="True"
         AllowsTransparency="True"
@@ -147,33 +147,33 @@
                         DockPanel.Dock="Right"
                         Style="{StaticResource CloseButtonStyle}"
                         Click="CloseButton_Click"
-                        ToolTip="Close window"/>
+                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Close_Tooltip]}"/>
                 <Button x:Name="fontIncreaseButton" Content="+" Width="28" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="FontIncreaseButton_Click"
-                        ToolTip="Increase font size"/>
+                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_FontIncrease_Tooltip]}"/>
                 <Button x:Name="fontDecreaseButton" Content="-" Width="28" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="FontDecreaseButton_Click"
-                        ToolTip="Decrease font size"/>
-                <Button x:Name="clearButton" Content="Clear" Width="50" Height="28" 
+                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_FontDecrease_Tooltip]}"/>
+                <Button x:Name="clearButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Clear]}" Width="50" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ClearButton_Click"
-                        ToolTip="Clear translation history"/>
-                <Button x:Name="modeButton" Content="Translated Text" Width="Auto" MinWidth="50" Height="28" 
+                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Clear_Tooltip]}"/>
+                <Button x:Name="modeButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Mode_TranslatedText]}" Width="Auto" MinWidth="50" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ModeButton_Click"
-                        ToolTip="Toggle between showing both languages or only the translate/source text"/>
-                <Button x:Name="optionsButton" Content="Options" Width="60" Height="28" 
+                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Mode_Tooltip]}"/>
+                <Button x:Name="optionsButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Options]}" Width="60" Height="28" 
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="OptionsButton_Click"
-                        ToolTip="Configure appearance settings"/>
-                <TextBlock Text="Recent Text" Foreground="White" 
+                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Options_Tooltip]}"/>
+                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Header_RecentText]}" Foreground="White" 
                            VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
             </DockPanel>
         </Border>
@@ -218,7 +218,7 @@
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock x:Name="translationStatusText" 
-                               Text="Waiting for translation..."
+                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Status_WaitingTranslation]}"
                                Foreground="White"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
@@ -292,7 +292,7 @@
                 Margin="0,30,10,0"
                 Panel.ZIndex="3"
                 Click="ToggleBordersButton_Click"
-                ToolTip="Hide/Show status bar and borders">
+                ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_ToggleBorders_Tooltip]}">
             <Path x:Name="toggleBordersIcon"
                   Data="M 4,2 L 12,2 L 12,6 L 4,6 Z M 4,10 L 12,10 L 12,14 L 4,14 Z"
                   Fill="White"

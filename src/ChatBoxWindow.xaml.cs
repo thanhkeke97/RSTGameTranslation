@@ -912,17 +912,17 @@ namespace RSTGameTranslation
                 if (_displayMode == 0)
                 {
                     // Both
-                    modeButton.Content = "Source&Translated Text";
+                    modeButton.Content = LocalizationManager.Instance.Strings["ChatBox_Btn_Mode_BothTexts"];
                 }
                 else if (_displayMode == 1)
                 {
                     // Target only
-                    modeButton.Content = "Translated Text";
+                    modeButton.Content = LocalizationManager.Instance.Strings["ChatBox_Btn_Mode_TranslatedText"];
                 }
                 else if (_displayMode == 2)
                 {
                     // Source only
-                    modeButton.Content = "Source Text";
+                    modeButton.Content = LocalizationManager.Instance.Strings["ChatBox_Btn_Mode_OriginalText"];
                 }
 
                 // Update the UI

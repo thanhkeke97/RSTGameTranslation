@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
-        Title="Select ChatBox Area" 
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxSelector_Title]}"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="#01000000"
@@ -21,7 +21,7 @@
                  Visibility="Collapsed"/>
 
         <TextBlock x:Name="instructionText" 
-                  Text="Click and drag to select area for the ChatBox display" 
+                  Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxSelector_Instruction]}"
                   Foreground="#FFFFFF" 
                   FontSize="24" 
                   HorizontalAlignment="Left" 
@@ -31,7 +31,7 @@
                   FontWeight="Bold"/>
 
         <Button x:Name="cancelButton" 
-               Content="Cancel" 
+               Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxSelector_Btn_Cancel]}"
                Width="109" 
                Height="48"
                HorizontalAlignment="Left"
