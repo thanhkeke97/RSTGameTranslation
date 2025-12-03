@@ -385,5 +385,11 @@
   "Status_PleaseStartRapidOCR": "Пожалуйста, запустите сервер RapidOCR",
   "Status_PleaseStartPaddleOCR": "Пожалуйста, запустите сервер PaddleOCR",
   "Status_PleaseClickStartServer": "Пожалуйста, нажмите кнопку StartServer для переподключения сервера",
-  "App_Version": "Версия"
+  "App_Version": "Версия",
+  "Chk_AutoMapLanguageCodes": "Автоматическое сопоставление кодов языка",
+  "Chk_LanguageMapping": "Сопоставление языка",
+  "Chk_PromptTemplate": "Шаблон промпта",
+  "Chk_PromptTemplateToolTip": "OCR и Google Translate используют разные коды языка. Это автоматически сопоставляет между ними.",
+  "Chk_GoogleTranslateServiceType": "Google Translate сервис",
+  "Chk_GoogleTranslateServiceTypeToolTip": "Выберите между API облака (платно) или бесплатный Web-сервис"
 }

@@ -11,11 +11,11 @@ namespace RSTGameTranslation
     public class LocalizationManager : INotifyPropertyChanged
     {
         // Singleton instance
-        private static LocalizationManager _instance;
+        private static LocalizationManager? _instance;
         public static LocalizationManager Instance => _instance ??= new LocalizationManager();
 
         private Dictionary<string, string> _strings;
-        
+
         private Dictionary<string, string> _defaultStrings;
 
         private string _currentLanguage = "en";
@@ -31,7 +31,7 @@ namespace RSTGameTranslation
                     LoadLanguage(_currentLanguage);
                     OnPropertyChanged();
                     // Notify that all properties "Strings" have changed
-                    OnPropertyChanged(nameof(Strings)); 
+                    OnPropertyChanged(nameof(Strings));
                 }
             }
         }
@@ -40,30 +40,30 @@ namespace RSTGameTranslation
         {
             get
             {
-                if (_strings != null && _strings.TryGetValue(key, out string value))
+                if (_strings != null && _strings.TryGetValue(key, out string? value))
                 {
-                    return value;
+                    return value ?? $"[{key}]";
                 }
-                
+
                 // Fallback to English if not found in the current language
-                if (_defaultStrings != null && _defaultStrings.TryGetValue(key, out string defaultValue))
+                if (_defaultStrings != null && _defaultStrings.TryGetValue(key, out string? defaultValue))
                 {
-                    return defaultValue;
+                    return defaultValue ?? $"[{key}]";
                 }
 
                 return $"[{key}]"; // Return key if not found in any language
             }
         }
-        
+
         public LocalizationManager Strings => this;
 
         private LocalizationManager()
         {
             _strings = new Dictionary<string, string>();
             _defaultStrings = new Dictionary<string, string>();
-            
+
             LoadDefaultLanguage();
-            LoadLanguage("en"); 
+            LoadLanguage("en");
         }
 
         private void LoadDefaultLanguage()
@@ -74,7 +74,11 @@ namespace RSTGameTranslation
                 if (File.Exists(path))
                 {
                     string json = File.ReadAllText(path);
-                    _defaultStrings = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                    var loadedStrings = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                    if (loadedStrings != null)
+                    {
+                        _defaultStrings = loadedStrings;
+                    }
                 }
             }
             catch (Exception ex)
@@ -92,31 +96,34 @@ namespace RSTGameTranslation
                 {
                     string json = File.ReadAllText(path);
                     var newStrings = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-                    
-                    // Merge with default strings to ensure no missing keys
-                    if (_defaultStrings != null)
+
+                    if (newStrings != null)
                     {
-                        foreach (var kvp in _defaultStrings)
+                        // Merge with default strings to ensure no missing keys
+                        if (_defaultStrings != null)
                         {
-                            if (!newStrings.ContainsKey(kvp.Key))
+                            foreach (var kvp in _defaultStrings)
                             {
-                                newStrings[kvp.Key] = kvp.Value;
+                                if (!newStrings.ContainsKey(kvp.Key))
+                                {
+                                    newStrings[kvp.Key] = kvp.Value;
+                                }
                             }
                         }
+
+                        _strings = newStrings;
                     }
-                    
-                    _strings = newStrings;
                 }
                 else
                 {
                     // If language file is not found, use default
                     _strings = new Dictionary<string, string>(_defaultStrings);
                 }
-                
+
                 // Update UI
                 OnPropertyChanged(nameof(Strings));
                 // Call PropertyChanged for null or empty string to refresh all bindings
-                OnPropertyChanged(string.Empty); 
+                OnPropertyChanged(string.Empty);
             }
             catch (Exception ex)
             {
@@ -124,9 +131,9 @@ namespace RSTGameTranslation
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

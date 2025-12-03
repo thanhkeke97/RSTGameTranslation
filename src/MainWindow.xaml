@@ -573,6 +573,7 @@
                                     <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
                                     <ComboBoxItem Content="中国人" Tag="zh_cn"/>
                                     <ComboBoxItem Content="日本語" Tag="ja"/>
+                                    <ComboBoxItem Content="한국어" Tag="ko"/>
                                     <ComboBoxItem Content="Русский" Tag="ru"/>
                                 </ComboBox>
                             

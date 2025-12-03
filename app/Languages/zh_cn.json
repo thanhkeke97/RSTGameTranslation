@@ -391,5 +391,11 @@
   "Status_PleaseStartRapidOCR": "请启动 RapidOCR 服务器",
   "Status_PleaseStartPaddleOCR": "请启动 PaddleOCR 服务器",
   "Status_PleaseClickStartServer": "请点击 StartServer 按钮重新连接服务器",
-  "App_Version": "版本"
+  "App_Version": "版本",
+  "Chk_AutoMapLanguageCodes": "自动映射语言代码",
+  "Chk_LanguageMapping": "语言映射",
+  "Chk_PromptTemplate": "提示词模板",
+  "Chk_PromptTemplateToolTip": "OCR 和 Google Translate 使用不同的语言代码。这会自动映射它们。",
+  "Chk_GoogleTranslateServiceType": "Google Translate 服务类型",
+  "Chk_GoogleTranslateServiceTypeToolTip": "选择云 API（付费）或免费 Web 服务"
 }

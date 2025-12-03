@@ -956,9 +956,9 @@
                                 </Grid>
 
                                 <!-- Google Translate Service Type - Only visible when Google Translate is selected -->
-                                <TextBlock x:Name="googleTranslateServiceTypeLabel" Text="Google Translate Service:" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock x:Name="googleTranslateServiceTypeLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_GoogleTranslateServiceType]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"
-                                          ToolTip="Choose between cloud API (paid) or free web service"/>
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_GoogleTranslateServiceTypeToolTip]}"/>
                                 <ComboBox x:Name="googleTranslateServiceTypeComboBox" Grid.Row="2" Grid.Column="1" 
                                          Margin="0,5" Visibility="Collapsed" SelectionChanged="GoogleTranslateServiceTypeComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Free Web Service"/>
@@ -966,17 +966,17 @@
                                 </ComboBox>
                                 
                                 <!-- Google Translate Language Mapping -->
-                                <TextBlock x:Name="googleTranslateMappingLabel" Text="Language Mapping:" Grid.Row="3" Grid.Column="0" 
+                                <TextBlock x:Name="googleTranslateMappingLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_LanguageMapping]}" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"
-                                          ToolTip="OCR and Google Translate use different language codes. This automatically maps between them."/>
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplateToolTip]}"/>
                                 <CheckBox x:Name="googleTranslateMappingCheckBox" Grid.Row="3" Grid.Column="1" 
-                                         Margin="0,5" IsChecked="True" Content="Auto-map language codes" Visibility="Collapsed"
+                                         Margin="0,5" IsChecked="True" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_AutoMapLanguageCodes]}" Visibility="Collapsed"
                                          Checked="GoogleTranslateMappingCheckBox_CheckedChanged" 
                                          Unchecked="GoogleTranslateMappingCheckBox_CheckedChanged"
-                                         ToolTip="OCR and Google Translate use different language codes. This automatically maps between them."/>
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplateToolTip]}"/>
                                 
                                 <!-- Prompt Label -->
-                                <TextBlock x:Name="promptLabel" Text="Prompt Template:" Grid.Row="4" Grid.Column="0" 
+                                <TextBlock x:Name="promptLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplate]}" Grid.Row="4" Grid.Column="0" 
                                           VerticalAlignment="Top" Margin="0,10,10,0"/>
                                 
                                 <!-- Prompt Editor -->

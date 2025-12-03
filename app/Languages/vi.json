@@ -391,5 +391,11 @@
   "Status_PleaseStartRapidOCR": "Vui lòng khởi động máy chủ RapidOCR",
   "Status_PleaseStartPaddleOCR": "Vui lòng khởi động máy chủ PaddleOCR",
   "Status_PleaseClickStartServer": "Vui lòng nhấp vào nút StartServer để kết nối lại máy chủ",
-  "App_Version": "Phiên bản"
+  "App_Version": "Phiên bản",
+  "Chk_AutoMapLanguageCodes": "Tự động ánh xạ mã ngôn ngữ",
+  "Chk_LanguageMapping": "Ánh xạ ngôn ngữ",
+  "Chk_PromptTemplate": "Cấu trúc prompt",
+  "Chk_PromptTemplateToolTip": "OCR và Google Translate sử dụng các mã ngôn ngữ khác nhau. Điều này tự động ánh xạ giữa chúng.",
+  "Chk_GoogleTranslateServiceType": "Google Translate dịch vụ",
+  "Chk_GoogleTranslateServiceTypeToolTip": "Chọn giữa API đám mây (thanh toán) hoặc dịch vụ web miễn phí"
 }
