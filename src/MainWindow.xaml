@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Title]}"
         Height="700" Width="1350"
@@ -111,6 +112,22 @@
     </Window.Resources>
     
     <Grid Background="Transparent">
+        <!-- System Tray Icon -->
+        <tb:TaskbarIcon x:Name="MyNotifyIcon"
+                        IconSource="/media/AppIcon.ico"
+                        ToolTipText="RST Game Translation"
+                        TrayMouseDoubleClick="TrayIcon_DoubleClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}" Click="TrayStartStop_Click" />
+                    <MenuItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}" Click="TrayOverlay_Click" />
+                    <Separator />
+                    <MenuItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Settings]}" Click="TraySettings_Click" />
+                    <Separator />
+                    <MenuItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Exit]}" Click="TrayExit_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
         <Border Name="MainBorder" BorderThickness="1" BorderBrush="#33FFFFFF" Background="#F2121212" CornerRadius="10">
                 <Border.Effect>
                 <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>

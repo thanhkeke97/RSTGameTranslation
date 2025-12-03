@@ -394,5 +394,14 @@
   "Chk_PromptTemplateToolTip": "OCR and Google Translate use different language codes. This automatically maps between them.",
   "Chk_GoogleTranslateServiceType": "Google Translate Service Type",
   "Chk_GoogleTranslateServiceTypeToolTip": "Choose between cloud API (paid) or free web service",
-  "Lbl_GlobalHotKeys": "Global Hotkeys"
+  "Lbl_GlobalHotKeys": "Global Hotkeys",
+  "Btn_Exit": "Exit",
+  "NotificationTitle_TranslationStarted": "Translation Started",
+  "NotificationMessage_TranslationStarted_Details": "OCR and Translation are now active.",
+  "NotificationTitle_TranslationStopped": "Translation Stopped",
+  "NotificationMessage_TranslationStopped_Details": "OCR and Translation have been stopped.",
+  "NotificationTitle_OverlayHidden": "Overlay Hidden",
+  "NotificationMessage_OverlayHidden_Details": "The translation overlay is now hidden.",
+  "NotificationTitle_OverlayVisible": "Overlay Visible",
+  "NotificationMessage_OverlayVisible_Details": "The translation overlay is now visible."
 }

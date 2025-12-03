@@ -394,5 +394,14 @@
   "Chk_PromptTemplateToolTip": "OCR и Google Translate используют разные коды языка. Это автоматически сопоставляет между ними.",
   "Chk_GoogleTranslateServiceType": "Google Translate сервис",
   "Chk_GoogleTranslateServiceTypeToolTip": "Выберите между API облака (платно) или бесплатный Web-сервис",
-  "Lbl_GlobalHotKeys": "Глобальные горячие клавиши"
+  "Lbl_GlobalHotKeys": "Глобальные горячие клавиши",
+  "Btn_Exit": "Выход",
+  "NotificationTitle_TranslationStarted": "Перевод начался",
+  "NotificationMessage_TranslationStarted_Details": "OCR и перевод теперь активны.",
+  "NotificationTitle_TranslationStopped": "Перевод остановился",
+  "NotificationMessage_TranslationStopped_Details": "OCR и перевод были остановлены.",
+  "NotificationTitle_OverlayHidden": "Перевод оверлей скрыт",
+  "NotificationMessage_OverlayHidden_Details": "Перевод оверлей скрыт.",
+  "NotificationTitle_OverlayVisible": "Перевод оверлей видим",
+  "NotificationMessage_OverlayVisible_Details": "Перевод оверлей видим."
 }

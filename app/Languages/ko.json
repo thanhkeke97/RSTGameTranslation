@@ -394,5 +394,14 @@
   "Chk_PromptTemplateToolTip": "OCR과 Google Translate가 다른 언어 코드를 사용합니다. 이는 자동으로 매핑됩니다.",
   "Chk_GoogleTranslateServiceType": "Google Translate 서비스",
   "Chk_GoogleTranslateServiceTypeToolTip": "클라우드 API (유료) 또는 무료 Web 서비스를 선택합니다",
-  "Lbl_GlobalHotKeys": "전역 단축키"
+  "Lbl_GlobalHotKeys": "전역 단축키",
+  "Btn_Exit": "종료",
+  "NotificationTitle_TranslationStarted": "번역이 시작되었습니다",
+  "NotificationMessage_TranslationStarted_Details": "OCR과 번역이 활성화되었습니다.",
+  "NotificationTitle_TranslationStopped": "번역이 중지되었습니다",
+  "NotificationMessage_TranslationStopped_Details": "OCR과 번역이 중지되었습니다.",
+  "NotificationTitle_OverlayHidden": "번역 오버레이가 숨겨졌습니다",
+  "NotificationMessage_OverlayHidden_Details": "번역 오버레이가 숨겨졌습니다.",
+  "NotificationTitle_OverlayVisible": "번역 오버레이가 표시되었습니다",
+  "NotificationMessage_OverlayVisible_Details": "번역 오버레이가 표시되었습니다."
 }

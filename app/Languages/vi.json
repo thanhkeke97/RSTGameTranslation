@@ -400,5 +400,14 @@
   "Chk_PromptTemplateToolTip": "OCR và Google Translate sử dụng các mã ngôn ngữ khác nhau. Điều này tự động ánh xạ giữa chúng.",
   "Chk_GoogleTranslateServiceType": "Google Translate dịch vụ",
   "Chk_GoogleTranslateServiceTypeToolTip": "Chọn giữa API đám mây (thanh toán) hoặc dịch vụ web miễn phí",
-  "Lbl_GlobalHotKeys": "Phím Tắt"
+  "Lbl_GlobalHotKeys": "Phím tắt toàn cục",
+  "Btn_Exit": "Thoát",
+  "NotificationTitle_TranslationStarted": "Bắt đầu dịch vụ",
+  "NotificationMessage_TranslationStarted_Details": "OCR và dịch vụ dịch đã được kích hoạt.",
+  "NotificationTitle_TranslationStopped": "Dừng dịch vụ",
+  "NotificationMessage_TranslationStopped_Details": "OCR và dịch vụ dịch đã được dừng.",
+  "NotificationTitle_OverlayHidden": "Overlay ẩn",
+  "NotificationMessage_OverlayHidden_Details": "Overlay đã được ẩn.",
+  "NotificationTitle_OverlayVisible": "Overlay hiển thị",
+  "NotificationMessage_OverlayVisible_Details": "Overlay đã được hiển thị."
 }

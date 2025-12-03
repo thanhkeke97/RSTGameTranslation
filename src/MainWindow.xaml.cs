@@ -1004,6 +1004,7 @@ namespace RSTGameTranslation
                 {
                     WindowsTTSService.StopAllTTS();
                 }
+                ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStopped"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStopped_Details"]);
             }
             else
             {
@@ -1015,6 +1016,7 @@ namespace RSTGameTranslation
                     UpdateCaptureRect();
                     SetOCRCheckIsWanted(true);
                     btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+                    ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStarted"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStarted_Details"]);
                 }
                 else
                 {
@@ -1124,6 +1126,14 @@ namespace RSTGameTranslation
             }
             
             return IntPtr.Zero;
+        }
+
+        private void ShowFastNotification(string title, string message)
+        {
+            MyNotifyIcon.CloseBalloon();
+            
+            FancyBalloon balloon = new FancyBalloon(title, message, MyNotifyIcon);
+            MyNotifyIcon.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, 4000); 
         }
 
         protected override void OnClosed(EventArgs e)
@@ -1610,7 +1620,8 @@ namespace RSTGameTranslation
         
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            this.WindowState = WindowState.Minimized;
+            // this.WindowState = WindowState.Minimized;
+            this.Hide();
         }
         
         // private void AutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
@@ -1898,6 +1909,7 @@ namespace RSTGameTranslation
                 MonitorWindow.Instance.imageScrollViewer.Visibility = Visibility.Collapsed;
                 Console.WriteLine("Monitor window hidden from MainWindow toggle");
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayHidden"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayHidden_Details"]);
             }
             // else 
             // {
@@ -1952,6 +1964,7 @@ namespace RSTGameTranslation
 
                     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
                     Console.WriteLine("MonitorWindow setup complete");
+                    ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayVisible"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayVisible_Details"]);
                 }
                 catch (Exception ex)
                 {
@@ -2786,6 +2799,37 @@ namespace RSTGameTranslation
 
                 ChatBoxWindow.Instance?.OnTranslationWasAdded(text, translatedText);
             });
+        }
+
+        private void TrayStartStop_Click(object sender, RoutedEventArgs e)
+        {
+            OnStartButtonToggleClicked(toggleButton, e);
+        }
+
+        private void TrayOverlay_Click(object sender, RoutedEventArgs e)
+        {
+            MonitorButton_Click(monitorButton, e);
+        }
+
+        private void TraySettings_Click(object sender, RoutedEventArgs e)
+        {
+            SettingsButton_Click(settingsButton, e);
+        }
+
+        private void TrayExit_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Application.Current.Shutdown();
+        }
+        private void TrayIcon_DoubleClick(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+            
+            if (this.WindowState == WindowState.Minimized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+            
+            this.Activate();
         }
     }
 }

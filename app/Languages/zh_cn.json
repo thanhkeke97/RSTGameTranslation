@@ -400,5 +400,14 @@
   "Chk_PromptTemplateToolTip": "OCR 和 Google Translate 使用不同的语言代码。这会自动映射它们。",
   "Chk_GoogleTranslateServiceType": "Google Translate 服务类型",
   "Chk_GoogleTranslateServiceTypeToolTip": "选择云 API（付费）或免费 Web 服务",
-  "Lbl_GlobalHotKeys": "全局热键"
+  "Lbl_GlobalHotKeys": "全局热键",
+  "Btn_Exit": "退出",
+  "NotificationTitle_TranslationStarted": "翻译开始",
+  "NotificationMessage_TranslationStarted_Details": "OCR和翻译现在已激活。",
+  "NotificationTitle_TranslationStopped": "翻译停止",
+  "NotificationMessage_TranslationStopped_Details": "OCR和翻译已停止。",
+  "NotificationTitle_OverlayHidden": "翻译覆盖隐藏",
+  "NotificationMessage_OverlayHidden_Details": "翻译覆盖隐藏。",
+  "NotificationTitle_OverlayVisible": "翻译覆盖可见",
+  "NotificationMessage_OverlayVisible_Details": "翻译覆盖可见。"
 }
