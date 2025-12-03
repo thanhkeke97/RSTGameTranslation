@@ -309,6 +309,8 @@
   "Msg_MistralApiErrorStatus": "Mistral API error: {0}\n{1}\n\nPlease check your API key and settings.",
   "Msg_MistralApiException": "Mistral API error: {0}\n\nPlease check your network connection and API key.",
   "Title_MistralError": "Mistral Translation Error",
+  "Msg_CustomApiError": "Custom API error: {0}\n\nPlease check your API key and settings.",
+  "Title_CustomApiError": "Custom API Translation Error",
   "Msg_GeminiApiError": "Gemini API error: {0}\n\nPlease check your API key and settings.",
   "Msg_GeminiApiErrorStatus": "Gemini API error: {0}\n{1}\n\nPlease check your API key and settings.",
   "Msg_GeminiApiException": "Gemini API error: {0}\n\nPlease check your network connection and API key.",

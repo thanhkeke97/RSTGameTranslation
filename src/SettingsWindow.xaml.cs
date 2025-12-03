@@ -627,6 +627,9 @@ namespace RSTGameTranslation
                     case "Groq":
                         passwordBox = groqApiKeyPasswordBox;
                         break;
+                    case "Custom API":
+                        passwordBox = customApiKeyPasswordBox;
+                        break;
                 }
                 
                 if (passwordBox != null)
@@ -988,6 +991,8 @@ namespace RSTGameTranslation
 
             // Initialize API key for Gemini
             geminiApiKeyPasswordBox.Password = ConfigManager.Instance.GetGeminiApiKey();
+            // Initialize API key for Custom API
+            customApiKeyPasswordBox.Password = ConfigManager.Instance.GetCustomApiKey();
             // Initialize API key for Groq
             groqApiKeyPasswordBox.Password = ConfigManager.Instance.GetGroqApiKey();
 
@@ -1651,6 +1656,7 @@ namespace RSTGameTranslation
                 bool isOllamaSelected = selectedService == "Ollama";
                 bool isLMStudioSelected = selectedService == "LM Studio";
                 bool isGeminiSelected = selectedService == "Gemini";
+                bool isCustomApiSelected = selectedService == "Custom API";
                 bool isChatGptSelected = selectedService == "ChatGPT";
                 bool isMistralSelected = selectedService == "Mistral";
                 bool isGoogleTranslateSelected = selectedService == "Google Translate";
@@ -1665,6 +1671,8 @@ namespace RSTGameTranslation
                     lmstudioModelLabel == null || lmstudioModelGrid == null ||
                     geminiApiKeyLabel == null || geminiApiKeyPasswordBox == null ||
                     geminiModelLabel == null || geminiModelGrid == null ||
+                    customApiKeyLabel == null || customApiKeyPasswordBox == null ||
+                    customApiModelLabel == null || customApiModelGrid == null ||
                     groqApiKeyLabel == null || groqApiKeyPasswordBox == null ||
                     groqModelLabel == null || groqModelGrid == null ||
                     mistralApiKeyLabel == null || mistralApiKeyPasswordBox == null ||
@@ -1687,6 +1695,18 @@ namespace RSTGameTranslation
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 SaveGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+
+                // Show/hide Custom API-specific settings
+                customApiKeyLabel.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiKeyPasswordBox.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiModelLabel.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiModelGrid.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                viewCustomApiKeysButton.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                SaveCustomApiKeysButton.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiUrlLabel.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiUrlTextBox.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiModelLabel.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiModelGrid.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Groq-specific settings
                 groqApiKeyLabel.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -1815,6 +1835,24 @@ namespace RSTGameTranslation
 
                     // Reattach event handler
                     groqModelComboBox.SelectionChanged += GroqModelComboBox_SelectionChanged;
+                }
+                else if (isCustomApiSelected)
+                {
+                    customApiKeyPasswordBox.Password = ConfigManager.Instance.GetCustomApiKey();
+                    // Temporarily remove event handlers to avoid triggering changes
+                    customApiUrlTextBox.LostFocus -= CustomApiUrlTextBox_LostFocus;
+                    customApiUrlTextBox.Text = ConfigManager.Instance.GetCustomApiUrl();
+
+                    // Temporarily remove event handlers to avoid triggering changes
+                    customApiModelTextBox.TextChanged -= CustomApiModelTextBox_TextChanged;
+
+                    // Set selected Custom API model
+                    customApiModelTextBox.Text = ConfigManager.Instance.GetCustomApiModel();
+
+                    // Reattach event handler
+                    customApiModelTextBox.TextChanged += CustomApiModelTextBox_TextChanged;
+                    customApiUrlTextBox.LostFocus += CustomApiUrlTextBox_LostFocus;
+
                 }
                 else if (isMistralSelected)
                 {
@@ -2079,6 +2117,23 @@ namespace RSTGameTranslation
             }
         }
 
+        // Custom API Key changed
+        private void CustomApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // string apiKey = geminiApiKeyPasswordBox.Password.Trim();
+
+                // // Update the config
+                // ConfigManager.Instance.SetGeminiApiKey(apiKey);
+                Console.WriteLine("Custom API key updated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Custom API key: {ex.Message}");
+            }
+        }
+
         // Groq API Key changed
         private void GroqApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
@@ -2300,6 +2355,101 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating Gemini model: {ex.Message}");
             }
         }
+        private void CustomApiUrlTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string url = customApiUrlTextBox.Text?.Trim() ?? "";
+
+                // Save to config
+                ConfigManager.Instance.SetCustomApiUrl(url);
+                Console.WriteLine($"Custom API URL set to: {url}");
+
+                // Trigger retranslation if the current service is Custom API
+                if (ConfigManager.Instance.GetCurrentTranslationService() == "Custom API")
+                {
+                    Console.WriteLine("Custom API URL changed. Triggering retranslation...");
+
+                    // Reset the hash to force a retranslation
+                    Logic.Instance.ResetHash();
+
+                    // Clear any existing text objects to refresh the display
+                    Logic.Instance.ClearAllTextObjects();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Custom API URL: {ex.Message}");
+            }
+        }
+
+        private void CustomApiUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string url = customApiUrlTextBox.Text?.Trim() ?? "";
+
+                // Save to config
+                ConfigManager.Instance.SetCustomApiUrl(url);
+                Console.WriteLine($"Custom API URL set to: {url}");
+
+                // Trigger retranslation if the current service is Custom API
+                if (ConfigManager.Instance.GetCurrentTranslationService() == "Custom API")
+                {
+                    Console.WriteLine("Custom API URL changed. Triggering retranslation...");
+
+                    // Reset the hash to force a retranslation
+                    Logic.Instance.ResetHash();
+
+                    // Clear any existing text objects to refresh the display
+                    Logic.Instance.ClearAllTextObjects();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Custom API URL: {ex.Message}");
+            }
+        }
+
+        private void CustomApiModelTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string model = customApiModelTextBox.Text?.Trim() ?? "";
+
+                // Save to config
+                ConfigManager.Instance.SetCustomApiModel(model);
+                Console.WriteLine($"Custom API model set to: {model}");
+
+                // Trigger retranslation if the current service is Custom API
+                if (ConfigManager.Instance.GetCurrentTranslationService() == "Custom API")
+                {
+                    Console.WriteLine("Custom API model changed. Triggering retranslation...");
+
+                    // Reset the hash to force a retranslation
+                    Logic.Instance.ResetHash();
+
+                    // Clear any existing text objects to refresh the display
+                    Logic.Instance.ClearAllTextObjects();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Custom API model: {ex.Message}");
+            }
+        }
 
         private void GroqModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -2438,6 +2588,39 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating Gemini model from text input: {ex.Message}");
+            }
+        }
+
+        private void CustomApiModelTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string model = customApiModelTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetCustomApiModel(model);
+                    Console.WriteLine($"Custom API model set from text input to: {model}");
+
+                    // Trigger retranslation if the current service is Custom API
+                    if (ConfigManager.Instance.GetCurrentTranslationService() == "Custom API")
+                    {
+                        // Reset the hash to force a retranslation
+                        Logic.Instance.ResetHash();
+
+                        // Clear any existing text objects to refresh the display
+                        Logic.Instance.ClearAllTextObjects();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Custom API model from text input: {ex.Message}");
             }
         }
 

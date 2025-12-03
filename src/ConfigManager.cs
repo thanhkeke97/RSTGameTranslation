@@ -23,6 +23,7 @@ namespace RSTGameTranslation
         private readonly string _lmstudioConfigFilePath;
         private readonly string _chatgptConfigFilePath;
         private readonly string _mistralConfigFilePath;
+        private readonly string _customApiConfigFilePath;
         private readonly string _googleTranslateConfigFilePath;
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
@@ -30,6 +31,7 @@ namespace RSTGameTranslation
         private const string SEND_DATA_TO_SERVER = "send_data_to_server";
         private const string SHOW_ICON_SIGNAL = "show_icon_signal";
         public const string GEMINI_API_KEYS = "gemini_api_keys";
+        public const string CUSTOM_API_KEYS = "custom_api_keys";
         public const string GROQ_API_KEYS = "groq_api_keys";
         public const string CHATGPT_API_KEYS = "chatgpt_api_keys";
         public const string MISTRAL_API_KEYS = "mistral_api_keys";
@@ -58,6 +60,9 @@ namespace RSTGameTranslation
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
         public const string GEMINI_MODEL = "gemini_model";
+        public const string CUSTOM_API_KEY = "custom_api_key";
+        public const string CUSTOM_API_URL = "custom_api_url";
+        public const string CUSTOM_API_MODEL = "custom_api_model";
         public const string MISTRAL_API_KEY = "mistral_api_key";
         public const string MISTRAL_MODEL = "mistral_model";
         public const string GROQ_API_KEY = "groq_api_key";
@@ -271,6 +276,24 @@ namespace RSTGameTranslation
                     "   - **Preserve IDs**: Keep original IDs.\n" +
                     "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
                     "Here is the input JSON:";
+        public const string defaultCustomApiPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
+                    "The input text comes from OCR of a video game screenshot and contains severe errors (merged words, jumbled order, typos).\n\n" +
+                    "### CRITICAL INSTRUCTIONS:\n" +
+                    "1. **Reconstruct FIRST**: Mentally correct the broken source_language text.\n" +
+                    "   - Fix merged words, jumbled characters, and OCR artifacts to form coherent sentences before translating.\n" +
+                    "   - Use `previous_context` (if available) to infer the correct meaning and tone.\n" +
+                    "   - Use `game_info` (if available) to understand the specific game context, lore, and terminology.\n\n" +
+                    "2. **Translate SECOND (MANDATORY)**: \n" +
+                    "   - **You MUST output the result in target_language.** Do NOT output the reconstructed source text.\n" +
+                    "   - Use natural, gamer-friendly language suitable for the game's context.\n" +
+                    "   - Adapt pronouns and tone to match the character relationships (e.g., enemies vs. friends, formal vs. casual).\n\n" +
+                    "3. **Output Format Rules**:\n" +
+                    "   - Output **ONLY** the valid JSON data. NO markdown, NO explanations.\n" +
+                    "   - Structure: Same as input `text_blocks` (must include `text_blocks` in response).\n" +
+                    "   - **SEPARATOR RULE**: The input text contains ##RST##. You MUST output the EXACT SAME NUMBER of separators in your translation. Do NOT translate or remove them. They separate independent sentences.\n" +
+                    "   - **Preserve IDs**: Keep original IDs.\n" +
+                    "   - **Formatting**: Use `\\n` for line breaks where appropriate.\n\n" +
+                    "Here is the input JSON:";
 
         // Singleton instance
         public static ConfigManager Instance
@@ -295,6 +318,7 @@ namespace RSTGameTranslation
             _configFilePath = Path.Combine(appDirectory, "config.txt");
             _profileFolderPath = Path.Combine(appDirectory, "Profiles");
             _geminiConfigFilePath = Path.Combine(appDirectory, "gemini_config.txt");
+            _customApiConfigFilePath = Path.Combine(appDirectory, "custom_api_config.txt");
             _groqConfigFilePath = Path.Combine(appDirectory, "groq_config.txt");
             _ollamaConfigFilePath = Path.Combine(appDirectory, "ollama_config.txt");
             _lmstudioConfigFilePath = Path.Combine(appDirectory, "lmstudio_config.txt");
@@ -305,6 +329,7 @@ namespace RSTGameTranslation
             Console.WriteLine($"Config file path: {_configFilePath}");
             Console.WriteLine($"Profile folder path: {_profileFolderPath}");
             Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
+            Console.WriteLine($"Custom API config file path: {_customApiConfigFilePath}");
             Console.WriteLine($"Groq config file path: {_groqConfigFilePath}");
             Console.WriteLine($"Ollama config file path: {_ollamaConfigFilePath}");
             Console.WriteLine($"LMStudio config file path: {_lmstudioConfigFilePath}");
@@ -501,6 +526,9 @@ namespace RSTGameTranslation
             _configValues[LANGUAGE_FONT_SIZE_MAX] = (68).ToString(CultureInfo.InvariantCulture);
             _configValues[HDR_SUPPORT] = "false";
             _configValues[LANGUAGE_INTERFACE] = "en";
+            _configValues[CUSTOM_API_KEY] = "";
+            _configValues[CUSTOM_API_URL] = "";
+            _configValues[CUSTOM_API_MODEL] = "";
 
             // Save the default configuration
             SaveConfig();
@@ -1030,7 +1058,7 @@ namespace RSTGameTranslation
         // Set current translation service
         public void SetTranslationService(string service)
         {
-            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio" || service == "Groq")
+            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio" || service == "Groq" || service == "Custom API")
             {
                 _currentTranslationService = service;
                 _configValues[TRANSLATION_SERVICE] = service;
@@ -1090,6 +1118,10 @@ namespace RSTGameTranslation
             else if (service == "LM Studio")
             {
                 return defaultLMStudioPrompt;
+            }
+            else if (service == "Custom API")
+            {
+                return defaultCustomApiPrompt;
             }
             else if (service == "Groq")
             {
@@ -1154,6 +1186,14 @@ namespace RSTGameTranslation
                     Console.WriteLine("Created default ChatGPT config file");
                 }
 
+                // Check and create Custom Api config file
+                if (!File.Exists(_customApiConfigFilePath))
+                {
+                    string customApiContent = $"<llm_prompt_multi_start>\n{defaultCustomApiPrompt}\n<llm_prompt_multi_end>";
+                    File.WriteAllText(_customApiConfigFilePath, customApiContent);
+                    Console.WriteLine("Created default Custom Api config file");
+                }
+
                 // Google Translate doesn't use prompts, so no need to create config file
             }
             catch (Exception ex)
@@ -1198,6 +1238,9 @@ namespace RSTGameTranslation
                     break;
                 case "Groq":
                     filePath = _groqConfigFilePath;
+                    break;
+                case "Custom API":
+                    filePath = _customApiConfigFilePath;
                     break;
                 default:
                     filePath = _geminiConfigFilePath;
@@ -1261,6 +1304,9 @@ namespace RSTGameTranslation
                 case "Groq":
                     filePath = _groqConfigFilePath;
                     break;
+                case "Custom API":
+                    filePath = _customApiConfigFilePath;
+                    break;
                 default:
                     filePath = _geminiConfigFilePath;
                     break;
@@ -1296,6 +1342,45 @@ namespace RSTGameTranslation
                 return textSimilar;
             }
             return 0.75;
+        }
+
+        // Get custom API key
+        public string GetCustomApiKey()
+        {
+            return GetValue(CUSTOM_API_KEY, "");
+        }
+
+        // Set custom API key
+        public void SetCustomApiKey(string apiKey)
+        {
+            _configValues[CUSTOM_API_KEY] = apiKey;
+            SaveConfig();
+        }
+
+        // Get custom API url
+        public string GetCustomApiUrl()
+        {
+            return GetValue(CUSTOM_API_URL, "");
+        }
+
+        // Set custom API url
+        public void SetCustomApiUrl(string url)
+        {
+            _configValues[CUSTOM_API_URL] = url;
+            SaveConfig();
+        }
+
+        // Get custom API model
+        public string GetCustomApiModel()
+        {
+            return GetValue(CUSTOM_API_MODEL, "");
+        }
+
+        // Set custom API model
+        public void SetCustomApiModel(string model)
+        {
+            _configValues[CUSTOM_API_MODEL] = model;
+            SaveConfig();
         }
 
         // Set auto translate enabled
@@ -2128,6 +2213,9 @@ namespace RSTGameTranslation
                 case "Groq":
                     keysConfigKey = GROQ_API_KEYS;
                     break;
+                case "Custom API":
+                    keysConfigKey = CUSTOM_API_KEYS;
+                    break;
                 case "Google Translate":
                     keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
                     break;
@@ -2194,6 +2282,9 @@ namespace RSTGameTranslation
                 case "Groq":
                     keysConfigKey = GROQ_API_KEYS;
                     break;
+                case "Custom API":
+                    keysConfigKey = CUSTOM_API_KEYS;
+                    break;
                 case "Google Translate":
                     keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
                     break;
@@ -2254,6 +2345,8 @@ namespace RSTGameTranslation
                     return MISTRAL_API_KEY;
                 case "Groq":
                     return GROQ_API_KEY;
+                case "Custom API":
+                    return CUSTOM_API_KEY;
                 case "Google Translate":
                     return GOOGLE_TRANSLATE_API_KEY;
                 default:

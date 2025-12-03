@@ -2353,7 +2353,7 @@ namespace RSTGameTranslation
                         }
                     }
                 }
-                else if (currentService == "Mistral" || currentService == "Groq")
+                else if (currentService == "Mistral" || currentService == "Groq" || currentService == "Custom API")
                 {
                     // Mistral response structure:
                     // {"id": "...", "object": "chat.completion", "created": ..., "model": "...", 
@@ -2378,7 +2378,7 @@ namespace RSTGameTranslation
                                 // Check if we already have a proper translation with text_blocks
                                 if (content.Contains("\"text_blocks\""))
                                 {
-                                    Console.WriteLine("Direct translation detected in Mistral response, using it as is");
+                                    Console.WriteLine($"Direct translation detected in {currentService} response, using it as is");
 
                                     // Look for JSON within the text
                                     int directJsonStart = content.IndexOf('{');
@@ -2399,7 +2399,7 @@ namespace RSTGameTranslation
                                         }
                                         catch (JsonException ex)
                                         {
-                                            Console.WriteLine($"Error parsing direct translation JSON from Mistral: {ex.Message}");
+                                            Console.WriteLine($"Error parsing direct translation JSON from {currentService}: {ex.Message}");
                                             // Continue with normal processing
                                         }
                                     }

@@ -21,6 +21,7 @@ namespace RSTGameTranslation
                 "Ollama" => new OllamaTranslationService(),
                 "LM Studio" => new LMStudioTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
+                "Custom API" => new CustomApiTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
                 "Mistral" => new MistralTranslationService(),
                 "Groq" => new GroqTranslationService(),
@@ -41,6 +42,7 @@ namespace RSTGameTranslation
                 "Ollama" => new OllamaTranslationService(),
                 "LM Studio" => new LMStudioTranslationService(),
                 "ChatGPT" => new ChatGptTranslationService(),
+                "Custom API" => new CustomApiTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
                 "Mistral" => new MistralTranslationService(),
                 _ => throw new ArgumentException($"Unknown translation service: {serviceName}")

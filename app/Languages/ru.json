@@ -309,6 +309,8 @@
   "Msg_MistralApiErrorStatus": "Ошибка API Mistral: {0}\\n{1}\\n\\nПожалуйста, проверьте API ключ и настройки.",
   "Msg_MistralApiException": "Ошибка API Mistral: {0}\\n\\nПожалуйста, проверьте подключение к сети и API ключ.",
   "Title_MistralError": "Ошибка перевода Mistral",
+  "Msg_CustomApiError": "Ошибка API Custom: {0}\\n\\nПожалуйста, проверьте API ключ и настройки.",
+  "Title_CustomApiError": "Ошибка перевода Custom",
   "Msg_GeminiApiError": "Ошибка API Gemini: {0}\\n\\nПожалуйста, проверьте API ключ и настройки.",
   "Msg_GeminiApiErrorStatus": "Ошибка API Gemini: {0}\\n{1}\\n\\nПожалуйста, проверьте API ключ и настройки.",
   "Msg_GeminiApiException": "Ошибка API Gemini: {0}\\n\\nПожалуйста, проверьте подключение к сети и API ключ.",

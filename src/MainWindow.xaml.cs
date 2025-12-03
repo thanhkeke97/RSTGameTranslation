@@ -387,6 +387,18 @@ namespace RSTGameTranslation
                         Console.WriteLine($"Prompt saved for Groq");
                     }
                 }
+                // Custom API
+                string custom_api_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Custom API");
+                if (!string.IsNullOrWhiteSpace(custom_api_prompt))
+                {
+                    // Save to config
+                    bool success = ConfigManager.Instance.SaveServicePrompt("Custom API", custom_api_prompt);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Prompt saved for Custom API");
+                    }
+                }
                 // Ollama
                 string ollama_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Ollama");
                 if (!string.IsNullOrWhiteSpace(ollama_prompt))
