@@ -404,7 +404,7 @@
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                         <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="#FF00AAFF" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <TextBlock Text="GLOBAL HOTKEYS" Foreground="#FF00AAFF" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GlobalHotKeys]}" Foreground="#FF00AAFF" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
                                     </StackPanel>
 
                                     <Grid>

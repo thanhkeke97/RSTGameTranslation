@@ -384,12 +384,13 @@
   "Status_PleaseStartEasyOCR": "Please start EasyOCR server",
   "Status_PleaseStartRapidOCR": "Please start RapidOCR server",
   "Status_PleaseStartPaddleOCR": "Please start PaddleOCR server",
-  "Status_PleaseClickStartServer": "Please click StartServer button to reconnect server",
+  "Status_PleaseClickStartServer": "Please click StartOCR button to reconnect server",
   "App_Version": "Version",
   "Chk_AutoMapLanguageCodes": "Auto map language codes",
   "Chk_LanguageMapping": "Language Mapping",
   "Chk_PromptTemplate": "Prompt Template",
   "Chk_PromptTemplateToolTip": "OCR and Google Translate use different language codes. This automatically maps between them.",
   "Chk_GoogleTranslateServiceType": "Google Translate Service Type",
-  "Chk_GoogleTranslateServiceTypeToolTip": "Choose between cloud API (paid) or free web service"
+  "Chk_GoogleTranslateServiceTypeToolTip": "Choose between cloud API (paid) or free web service",
+  "Lbl_GlobalHotKeys": "Global Hotkeys"
 }

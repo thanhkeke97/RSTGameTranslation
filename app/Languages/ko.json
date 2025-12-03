@@ -384,12 +384,13 @@
   "Status_PleaseStartEasyOCR": "EasyOCR 서버를 시작하세요",
   "Status_PleaseStartRapidOCR": "RapidOCR 서버를 시작하세요",
   "Status_PleaseStartPaddleOCR": "PaddleOCR 서버를 시작하세요",
-  "Status_PleaseClickStartServer": "서버를 다시 연결하려면 StartServer 버튼을 클릭하세요",
+  "Status_PleaseClickStartServer": "서버를 다시 연결하려면 StartOCR 버튼을 클릭하세요",
   "App_Version": "버전",
   "Chk_AutoMapLanguageCodes": "언어 코드를 자동 매핑",
   "Chk_LanguageMapping": "언어 매핑",
   "Chk_PromptTemplate": "프롬프트 템플릿",
   "Chk_PromptTemplateToolTip": "OCR과 Google Translate가 다른 언어 코드를 사용합니다. 이는 자동으로 매핑됩니다.",
   "Chk_GoogleTranslateServiceType": "Google Translate 서비스",
-  "Chk_GoogleTranslateServiceTypeToolTip": "클라우드 API (유료) 또는 무료 Web 서비스를 선택합니다"
+  "Chk_GoogleTranslateServiceTypeToolTip": "클라우드 API (유료) 또는 무료 Web 서비스를 선택합니다",
+  "Lbl_GlobalHotKeys": "전역 단축키"
 }

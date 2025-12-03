@@ -384,12 +384,13 @@
   "Status_PleaseStartEasyOCR": "EasyOCRサーバーを起動してください",
   "Status_PleaseStartRapidOCR": "RapidOCRサーバーを起動してください",
   "Status_PleaseStartPaddleOCR": "PaddleOCRサーバーを起動してください",
-  "Status_PleaseClickStartServer": "StartServerボタンをクリックしてサーバーに再接続してください",
+  "Status_PleaseClickStartServer": "StartOCRボタンをクリックしてサーバーに再接続してください",
   "App_Version": "バージョン",
   "Chk_AutoMapLanguageCodes": "言語コードを自動マップする",
   "Chk_LanguageMapping": "言語マッピング",
   "Chk_PromptTemplate": "プロンプトテンプレート",
   "Chk_PromptTemplateToolTip": "OCRとGoogle Translateは異なる言語コードを使用します。これにより自動的にマッピングされます。",
   "Chk_GoogleTranslateServiceType": "Google Translate 携帯",
-  "Chk_GoogleTranslateServiceTypeToolTip": "クラウド API（有料）または無料 Web サービスを選択します"
+  "Chk_GoogleTranslateServiceTypeToolTip": "クラウド API（有料）または無料 Web サービスを選択します",
+  "Lbl_GlobalHotKeys": "グローバルホットキー"
 }
