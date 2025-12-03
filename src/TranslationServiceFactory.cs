@@ -45,6 +45,7 @@ namespace RSTGameTranslation
                 "Custom API" => new CustomApiTranslationService(),
                 "Google Translate" => new GoogleTranslateService(),
                 "Mistral" => new MistralTranslationService(),
+                "Groq" => new GroqTranslationService(),
                 _ => throw new ArgumentException($"Unknown translation service: {serviceName}")
             };
         }
