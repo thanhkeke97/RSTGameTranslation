@@ -489,7 +489,7 @@ namespace RSTGameTranslation
             _configValues[GROQ_API_KEY] = "<your API key here>";
             _configValues[GEMINI_MODEL] = "gemini-2.5-flash-lite";
             _configValues[BLOCK_DETECTION_SCALE] = (3.00).ToString(CultureInfo.InvariantCulture);
-            _configValues[BLOCK_DETECTION_SETTLE_TIME] = (0.15).ToString(CultureInfo.InvariantCulture);
+            _configValues[BLOCK_DETECTION_SETTLE_TIME] = (0.2).ToString(CultureInfo.InvariantCulture);
             _configValues[KEEP_TRANSLATED_TEXT_UNTIL_REPLACED] = "true";
             _configValues[LEAVE_TRANSLATION_ONSCREEN] = "true";
             _configValues[MIN_LETTER_CONFIDENCE] = (0.1).ToString(CultureInfo.InvariantCulture);
@@ -497,7 +497,7 @@ namespace RSTGameTranslation
             _configValues[AUTO_TRANSLATE_ENABLED] = "true";
             _configValues[CHAR_LEVEL] = "false";
             _configValues[IGNORE_PHRASES] = "";
-            _configValues[TEXTSIMILAR_THRESHOLD] = (0.75).ToString(CultureInfo.InvariantCulture);
+            _configValues[TEXTSIMILAR_THRESHOLD] = (0.9).ToString(CultureInfo.InvariantCulture);
             _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
             _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
             _configValues[MULTI_SELECTION_AREA] = "false";
