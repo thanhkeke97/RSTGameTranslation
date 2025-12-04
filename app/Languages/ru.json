@@ -403,5 +403,6 @@
   "NotificationTitle_OverlayHidden": "Перевод оверлей скрыт",
   "NotificationMessage_OverlayHidden_Details": "Перевод оверлей скрыт.",
   "NotificationTitle_OverlayVisible": "Перевод оверлей видим",
-  "NotificationMessage_OverlayVisible_Details": "Перевод оверлей видим."
+  "NotificationMessage_OverlayVisible_Details": "Перевод оверлей видим.",
+  "Lbl_HotKeyEnable": "Включить горячие клавиши"
 }

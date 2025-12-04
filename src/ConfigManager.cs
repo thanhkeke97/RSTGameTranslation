@@ -162,6 +162,9 @@ namespace RSTGameTranslation
         // Multi selection area
         public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
 
+        // Hot key enable
+        public const string HOT_KEY_ENABLE = "HotKeyEnable";
+
         // Default prompts
         public const string defaultGeminiPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
                     "The input text comes from OCR of a video game screenshot and contains severe errors (merged words, jumbled order, typos).\n\n" +
@@ -529,6 +532,7 @@ namespace RSTGameTranslation
             _configValues[CUSTOM_API_KEY] = "";
             _configValues[CUSTOM_API_URL] = "";
             _configValues[CUSTOM_API_MODEL] = "";
+            _configValues[HOT_KEY_ENABLE] = "true";
 
             // Save the default configuration
             SaveConfig();
@@ -2622,6 +2626,20 @@ namespace RSTGameTranslation
             _configValues[AUDIO_SERVICE_AUTO_TRANSLATE] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Audio service auto-translate enabled: {enabled}");
+        }
+
+        // Get whether hot key should be enabled
+        public bool IsHotKeyEnabled()
+        {
+            string value = GetValue(HOT_KEY_ENABLE, "true");
+            return value.ToLower() == "true";
+        }
+        // Set whether hot key should be enabled
+        public void SetHotKeyEnable(bool enabled)
+        {
+            _configValues[HOT_KEY_ENABLE] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Hot key enable: {enabled}");
         }
 
         // Save translation areas to config

@@ -824,6 +824,10 @@ namespace RSTGameTranslation
         // Handler for application-level keyboard shortcuts
         private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if (!ConfigManager.Instance.IsHotKeyEnabled())
+            {
+                return;
+            }
             // Forward to the central keyboard shortcuts handler
             KeyboardShortcuts.HandleKeyDown(e);
         }

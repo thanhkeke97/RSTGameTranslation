@@ -347,6 +347,10 @@ namespace RSTGameTranslation
         // Process WM_HOTKEY messages in the main window
         public static bool ProcessHotKey(IntPtr wParam)
         {
+            if (!ConfigManager.Instance.IsHotKeyEnabled())
+            {
+                return false;
+            }
             int id = wParam.ToInt32();
 
             switch (id)
@@ -428,6 +432,10 @@ namespace RSTGameTranslation
         // Process WM_HOTKEY messages in the main window
         public static void ProcessHandleHotKey(string function)
         {
+            if (!ConfigManager.Instance.IsHotKeyEnabled())
+            {
+                return;
+            }
             if (function == "Start/Stop")
             {
                 Console.WriteLine("Hotkey detected: Start/Stop");
@@ -504,6 +512,10 @@ namespace RSTGameTranslation
         // Start polling for key states as a backup method - ONLY for global shortcuts
         private static void StartKeyPolling()
         {
+            if (!ConfigManager.Instance.IsHotKeyEnabled())
+            {
+                return;
+            }
             if (_isPolling)
                 return;
 
@@ -644,6 +656,10 @@ namespace RSTGameTranslation
         // Check if we should process this key press (prevents double triggers)
         private static bool ShouldProcessKeyPress(int vkCode)
         {
+            if (!ConfigManager.Instance.IsHotKeyEnabled())
+            {
+                return false;
+            }
             DateTime now = DateTime.Now;
             
             // If it's the same key and within threshold time, ignore it
@@ -762,6 +778,10 @@ namespace RSTGameTranslation
         // Handle shortcut keys - for regular window event handling
         public static bool HandleKeyDown(System.Windows.Input.KeyEventArgs e)
         {
+            if (!ConfigManager.Instance.IsHotKeyEnabled())
+            {
+                return false;
+            }
             try
             {
                 // Convert WPF key to virtual key code

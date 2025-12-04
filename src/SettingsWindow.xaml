@@ -1270,9 +1270,13 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyFunctions]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="hotKeyFunctionComboBox" Grid.Row="0" Grid.Column="1" Padding="5,3" Margin="0,8,10,10" SelectionChanged="HotKeyFunctionComboBox_SelectionChanged">
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyEnable]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="hotKeyEnableCheckBox" Checked="SetHotKeyEnableCheckBox_CheckChange" ToolTip="Enable/Disable hotkeys"
+                                    Unchecked="SetHotKeyEnableCheckBox_CheckChange" Grid.Row="0" Grid.Column="1" Padding="5,3" Margin="0,8,10,10"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyFunctions]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="hotKeyFunctionComboBox" Grid.Row="1" Grid.Column="1" Padding="5,3" Margin="0,8,10,10" SelectionChanged="HotKeyFunctionComboBox_SelectionChanged">
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_StartStop]}"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Overlay]}"/>
@@ -1289,14 +1293,14 @@
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area4]}"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area5]}"/>
                                 </ComboBox>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CombineKeys]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="combineKey1" Grid.Row="1" Grid.Column="1" Padding="5,3" Margin="0,8,10,10">
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CombineKeys]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="combineKey1" Grid.Row="2" Grid.Column="1" Padding="5,3" Margin="0,8,10,10">
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
                                     <ComboBoxItem Content="CTRL"/>
                                     <ComboBoxItem Content="SHIFT"/>
                                     <ComboBoxItem Content="ALT"/>
                                 </ComboBox>
-                                <ComboBox x:Name="combineKey2" Grid.Row="1" Grid.Column="2" Padding="5,3" Margin="0,8,10,10">
+                                <ComboBox x:Name="combineKey2" Grid.Row="2" Grid.Column="2" Padding="5,3" Margin="0,8,10,10">
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
                                     <ComboBoxItem Content="A"/>
                                     <ComboBoxItem Content="B"/>
@@ -1334,13 +1338,13 @@
                                     <ComboBoxItem Content="8"/>
                                     <ComboBoxItem Content="9"/>
                                 </ComboBox>
-                                <Button x:Name="setHotKeyButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SetHotKey]}"  Grid.Row="2" Grid.Column="1"
+                                <Button x:Name="setHotKeyButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SetHotKey]}"  Grid.Row="3" Grid.Column="1"
                                        HorizontalAlignment="Center" Width="100" Margin="0,8,0,10" Padding="5,3" Click="SetHotKeyButton_Click"
                                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SetHotKey]}"/>
                                 <TextBlock x:Name="statusUpdateHotKey" Foreground="Green" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_HotKeyUpdateSuccess]}" 
-                                    Visibility="Collapsed" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    Visibility="Collapsed" Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <!-- List HotKey Table -->
-                                <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" BorderBrush="#333" BorderThickness="1" CornerRadius="5">
+                                <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" BorderBrush="#333" BorderThickness="1" CornerRadius="5">
                                     <StackPanel>
                                         <Border Background="#333" Padding="10,5">
                                             <Grid>

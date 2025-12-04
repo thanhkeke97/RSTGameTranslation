@@ -403,5 +403,6 @@
   "NotificationTitle_OverlayHidden": "번역 오버레이가 숨겨졌습니다",
   "NotificationMessage_OverlayHidden_Details": "번역 오버레이가 숨겨졌습니다.",
   "NotificationTitle_OverlayVisible": "번역 오버레이가 표시되었습니다",
-  "NotificationMessage_OverlayVisible_Details": "번역 오버레이가 표시되었습니다."
+  "NotificationMessage_OverlayVisible_Details": "번역 오버레이가 표시되었습니다.",
+  "Lbl_HotKeyEnable": "핫키를 활성화"
 }

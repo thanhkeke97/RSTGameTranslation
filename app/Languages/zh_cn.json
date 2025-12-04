@@ -409,5 +409,6 @@
   "NotificationTitle_OverlayHidden": "翻译覆盖隐藏",
   "NotificationMessage_OverlayHidden_Details": "翻译覆盖隐藏。",
   "NotificationTitle_OverlayVisible": "翻译覆盖可见",
-  "NotificationMessage_OverlayVisible_Details": "翻译覆盖可见。"
+  "NotificationMessage_OverlayVisible_Details": "翻译覆盖可见。",
+  "Lbl_HotKeyEnable": "启用/禁用热键"
 }

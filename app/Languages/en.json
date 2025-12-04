@@ -403,5 +403,6 @@
   "NotificationTitle_OverlayHidden": "Overlay Hidden",
   "NotificationMessage_OverlayHidden_Details": "The translation overlay is now hidden.",
   "NotificationTitle_OverlayVisible": "Overlay Visible",
-  "NotificationMessage_OverlayVisible_Details": "The translation overlay is now visible."
+  "NotificationMessage_OverlayVisible_Details": "The translation overlay is now visible.",
+  "Lbl_HotKeyEnable": "Enable Hotkey"
 }

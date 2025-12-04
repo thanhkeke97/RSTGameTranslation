@@ -409,5 +409,6 @@
   "NotificationTitle_OverlayHidden": "Overlay ẩn",
   "NotificationMessage_OverlayHidden_Details": "Overlay đã được ẩn.",
   "NotificationTitle_OverlayVisible": "Overlay hiển thị",
-  "NotificationMessage_OverlayVisible_Details": "Overlay đã được hiển thị."
+  "NotificationMessage_OverlayVisible_Details": "Overlay đã được hiển thị.",
+  "Lbl_HotKeyEnable": "Bật tắt phím"
 }

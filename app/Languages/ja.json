@@ -403,5 +403,6 @@
   "NotificationTitle_OverlayHidden": "翻訳オーバーレイ非表示",
   "NotificationMessage_OverlayHidden_Details": "翻訳オーバーレイが非表示になりました。",
   "NotificationTitle_OverlayVisible": "翻訳オーバーレイ表示",
-  "NotificationMessage_OverlayVisible_Details": "翻訳オーバーレイが表示されました。"
+  "NotificationMessage_OverlayVisible_Details": "翻訳オーバーレイが表示されました。",
+  "Lbl_HotKeyEnable": "ホットキーを有効にする"
 }
