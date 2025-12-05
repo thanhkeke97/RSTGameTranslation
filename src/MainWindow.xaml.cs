@@ -1037,6 +1037,7 @@ namespace RSTGameTranslation
         
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
+            localWhisperService.Instance.Stop();
             this.Close();
         }
         
@@ -1157,6 +1158,7 @@ namespace RSTGameTranslation
             {
                 ShowWindow(consoleWindow, SW_HIDE);
             }
+            localWhisperService.Instance.Stop();
 
             // Make sure the application exits when the main window is closed
             System.Windows.Application.Current.Shutdown();
@@ -2760,28 +2762,28 @@ namespace RSTGameTranslation
         }
 
         private bool isListening = false;
-        private OpenAIRealtimeAudioServiceWhisper? openAIRealtimeAudioService = null;
+        // private OpenAIRealtimeAudioServiceWhisper? openAIRealtimeAudioService = null;
 
-        private void ListenButton_Click(object sender, RoutedEventArgs e)
-        {
-            var btn = (System.Windows.Controls.Button)sender;
-            if (isListening)
-            {
-                isListening = false;
-                btn.Content = "Listen";
-                btn.Background = new SolidColorBrush(Color.FromRgb(69, 119, 176)); // Blue
-                openAIRealtimeAudioService?.Stop();
-            }
-            else
-            {
-                isListening = true;
-                btn.Content = "Stop Listening";
-                btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
-                if (openAIRealtimeAudioService == null)
-                    openAIRealtimeAudioService = new OpenAIRealtimeAudioServiceWhisper();
-                openAIRealtimeAudioService.StartRealtimeAudioService(OnOpenAITranscriptionReceived);
-            }
-        }
+        // private void ListenButton_Click(object sender, RoutedEventArgs e)
+        // {
+        //     var btn = (System.Windows.Controls.Button)sender;
+        //     if (isListening)
+        //     {
+        //         isListening = false;
+        //         btn.Content = "Listen";
+        //         btn.Background = new SolidColorBrush(Color.FromRgb(69, 119, 176)); // Blue
+        //         openAIRealtimeAudioService?.Stop();
+        //     }
+        //     else
+        //     {
+        //         isListening = true;
+        //         btn.Content = "Stop Listening";
+        //         btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+        //         if (openAIRealtimeAudioService == null)
+        //             openAIRealtimeAudioService = new OpenAIRealtimeAudioServiceWhisper();
+        //         openAIRealtimeAudioService.StartRealtimeAudioService(OnOpenAITranscriptionReceived);
+        //     }
+        // }
 
         private void LanguageSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

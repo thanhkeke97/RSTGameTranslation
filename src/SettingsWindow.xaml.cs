@@ -1097,7 +1097,7 @@ namespace RSTGameTranslation
 
             // Audio Processing settings
             audioProcessingProviderComboBox.SelectedIndex = 0; // Only one for now
-            openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
+            // openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
             // Load Auto-translate for audio service
             audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
         }
@@ -3776,18 +3776,30 @@ namespace RSTGameTranslation
             }
         }
 
-        private void OpenAiRealtimeApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            if (_isInitializing) return;
-            ConfigManager.Instance.SetOpenAiRealtimeApiKey(openAiRealtimeApiKeyPasswordBox.Password.Trim());
-        }
+        // private void OpenAiRealtimeApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        // {
+        //     if (_isInitializing) return;
+        //     ConfigManager.Instance.SetOpenAiRealtimeApiKey(openAiRealtimeApiKeyPasswordBox.Password.Trim());
+        // }
 
         // Handle Auto-translate checkbox change for audio service
-        private void AudioServiceAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        private async void AudioServiceAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             bool enabled = audioServiceAutoTranslateCheckBox.IsChecked ?? false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
             Console.WriteLine($"Settings window: Audio service auto-translate set to {enabled}");
+            if (enabled)
+            {
+                await localWhisperService.Instance.StartServiceAsync((original, translated) =>
+                {
+                    Console.WriteLine($"Whisper detected: {original}");
+                });
+                Console.WriteLine("Local Whisper Service started");
+            }
+            else
+            {
+                localWhisperService.Instance.Stop();
+            }
         }
 
         // Handle Multi selection area checkbox change for multi selection area

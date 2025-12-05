@@ -35,6 +35,8 @@
     <PackageReference Include="SocketIOClient" Version="3.1.2" />
     <PackageReference Include="System.Management" Version="7.0.1" />
     <PackageReference Include="System.Speech" Version="9.0.9" />
+    <PackageReference Include="Whisper.net" Version="1.9.0" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
   </ItemGroup>
   
   <ItemGroup>

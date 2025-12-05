@@ -1731,6 +1731,32 @@ namespace RSTGameTranslation
             }
         }
 
+        public void AddAudioTextObject(string audioText)
+        {
+            if (string.IsNullOrEmpty(audioText)) return;
+            
+            // Xóa tất cả TextObject cũ
+            _textObjects.Clear();
+            
+            // Tạo TextObject mới từ audio
+            var audioTextObject = new TextObject(
+                text: audioText,
+                x: 100,           // Vị trí hiển thị trên màn hình (có thể điều chỉnh)
+                y: 100,
+                width: 800,       // Chiều rộng overlay
+                height: 100,      // Chiều cao
+                textColor: null,  // Dùng màu mặc định từ config
+                backgroundColor: null,
+                captureX: 0,      // Không cần với audio
+                captureY: 0
+            );
+            
+            // Thêm vào danh sách
+            _textObjects.Add(audioTextObject);
+            
+            Console.WriteLine($"Added audio text object: {audioText}");
+        }
+
         // Process bitmap directly with Windows OCR (no file saving)
         public async void ProcessWithOneOCR(System.Drawing.Bitmap bitmap, string sourceLanguage)
         {
