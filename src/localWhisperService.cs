@@ -26,7 +26,7 @@ namespace RSTGameTranslation
         private readonly List<float> audioBuffer = new List<float>();
         private readonly object bufferLock = new object();
         private CancellationTokenSource? _cancellationTokenSource;
-        private const float SilenceThreshold = 0.02f;
+        private const float SilenceThreshold = 0.01f;
         private const int SilenceDurationMs = 200;
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
