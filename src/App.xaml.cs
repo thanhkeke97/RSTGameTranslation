@@ -14,41 +14,44 @@ namespace RSTGameTranslation;
 public partial class App : Application
 {
     private MainWindow? _mainWindow;
-    
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        
+
         // Set up application-wide keyboard handling
         this.DispatcherUnhandledException += App_DispatcherUnhandledException;
-        
+
+        // Handle session ending (when user ends task from taskbar or logs off)
+        this.SessionEnding += App_SessionEnding;
+
         // We'll hook keyboard events in the main window and other windows instead
         // of at the application level (which isn't supported in this context)
-        
+
         // Show splash screen first
         SplashManager.Instance.ShowSplash();
-        
+
         // Initialize ChatBoxWindow instance without showing it
         // This ensures ChatBoxWindow.Instance is available immediately
         new ChatBoxWindow();
-        
+
         // Create main window but don't show it yet
         _mainWindow = new MainWindow();
-        
+
         // We'll attach the keyboard handlers when the windows are loaded
         // Each window now has its own Application_KeyDown method attached to PreviewKeyDown
         LocalizationManager.Instance.CurrentLanguage = ConfigManager.Instance.GetLanguageInterface();
-        
+
         // Add event handler to show main window after splash closes
         SplashManager.Instance.SplashClosed += (sender, args) =>
         {
             _mainWindow?.Show();
-            
+
             // Attach key handler to other windows once main window is shown
             AttachKeyHandlersToAllWindows();
         };
     }
-    
+
     // Ensure all windows are initialized and loaded
     private void AttachKeyHandlersToAllWindows()
     {
@@ -56,31 +59,78 @@ public partial class App : Application
         // when it's loaded, using PreviewKeyDown and its own Application_KeyDown method.
         // We don't need to do anything here anymore.
     }
-    
+
     // Handle application-level keyboard events
     private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         // No need to check window focus since this is only called when a window has focus
         KeyboardShortcuts.HandleKeyDown(e);
     }
-    
+
     // Handle any unhandled exceptions to prevent app crashes
-    private void App_DispatcherUnhandledException(object sender, 
+    private void App_DispatcherUnhandledException(object sender,
                                                System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
         // Log the exception
         System.Console.WriteLine($"Unhandled application exception: {e.Exception.Message}");
         System.Console.WriteLine($"Stack trace: {e.Exception.StackTrace}");
-        
+
         // Mark as handled to prevent app from crashing
         e.Handled = true;
     }
-    
+
+    // Handle session ending (when user ends task from taskbar or logs off)
+    private void App_SessionEnding(object sender, SessionEndingCancelEventArgs e)
+    {
+        System.Console.WriteLine($"Session ending: {e.ReasonSessionEnding}");
+
+        try
+        {
+            // Stop local whisper service
+            localWhisperService.Instance.Stop();
+
+            // Clean up Logic resources
+            Logic.Instance.Finish();
+
+            // Dispose TaskbarIcon from MainWindow if it exists
+            if (_mainWindow?.MyNotifyIcon != null)
+            {
+                _mainWindow.MyNotifyIcon.Dispose();
+            }
+
+            // Force close MonitorWindow
+            if (MonitorWindow.Instance != null)
+            {
+                MonitorWindow.Instance.ForceClose();
+            }
+
+            // Force close all windows
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window.IsLoaded)
+                {
+                    try
+                    {
+                        window.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Console.WriteLine($"Error closing window {window.GetType().Name}: {ex.Message}");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Error during session ending cleanup: {ex.Message}");
+        }
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
     }
-    
+
     /// <summary>
     /// Restarts the application, ensuring it happens on the UI thread
     /// </summary>
@@ -93,29 +143,29 @@ public partial class App : Application
             Application.Current.Dispatcher.Invoke(ShutdownApplication);
             return;
         }
-        
+
         try
         {
             // // Get current process path
             // string appPath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
-            
+
             // if (string.IsNullOrEmpty(appPath))
             // {
             //     System.Windows.MessageBox.Show("Unable to restart application: Could not determine application path.", 
             //         "Restart Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             //     return;
             // }
-            
+
             // // Create process start info
             // ProcessStartInfo startInfo = new ProcessStartInfo
             // {
             //     FileName = appPath,
             //     UseShellExecute = true
             // };
-            
+
             // // Start new instance
             // Process.Start(startInfo);
-            
+
             // Schedule application shutdown after a brief delay to ensure new process starts
             Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
             {
@@ -125,11 +175,11 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"Failed to restart application: {ex.Message}", 
+            System.Windows.MessageBox.Show($"Failed to restart application: {ex.Message}",
                 "Restart Failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
-    
+
     /// <summary>
     /// Shows a confirmation dialog and restarts the application if confirmed
     /// </summary>
@@ -144,12 +194,12 @@ public partial class App : Application
             return (bool)Application.Current.Dispatcher.Invoke(
                 new Func<string, bool>(ConfirmAndRestartApplication), message);
         }
-        
-        var result = System.Windows.MessageBox.Show(message, "Shutdown Application", 
+
+        var result = System.Windows.MessageBox.Show(message, "Shutdown Application",
             MessageBoxButton.OK, MessageBoxImage.Warning);
-            
-        ShutdownApplication ();
+
+        ShutdownApplication();
         return true;
-        
+
     }
 }

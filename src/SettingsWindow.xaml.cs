@@ -3788,17 +3788,20 @@ namespace RSTGameTranslation
             bool enabled = audioServiceAutoTranslateCheckBox.IsChecked ?? false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
             Console.WriteLine($"Settings window: Audio service auto-translate set to {enabled}");
-            if (enabled)
+            if (enabled && !localWhisperService.Instance.IsRunning)
             {
+                // Start the local Whisper service if not already running
                 await localWhisperService.Instance.StartServiceAsync((original, translated) =>
                 {
                     Console.WriteLine($"Whisper detected: {original}");
                 });
                 Console.WriteLine("Local Whisper Service started");
             }
-            else
+            else if (!enabled && localWhisperService.Instance.IsRunning)
             {
+                // Stop the local Whisper service if it was running
                 localWhisperService.Instance.Stop();
+                Console.WriteLine("Local Whisper Service stopped");
             }
         }
 

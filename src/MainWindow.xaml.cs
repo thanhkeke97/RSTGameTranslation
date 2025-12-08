@@ -31,13 +31,13 @@ namespace RSTGameTranslation
 
         [DllImport("user32.dll")]
         private static extern bool ClientToScreen(IntPtr hWnd, ref System.Drawing.Point lpPoint);
-        
+
         [DllImport("user32.dll")]
         private static extern int ShowCursor(bool bShow);
-        
+
         [DllImport("kernel32.dll")]
         private static extern IntPtr GetConsoleWindow();
-        
+
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
@@ -103,69 +103,69 @@ namespace RSTGameTranslation
         private IntPtr capturedWindowHandle = IntPtr.Zero;
         private string capturedWindowTitle = string.Empty;
         // private System.Windows.Controls.Button? selectWindowButton;
-        
+
         // Auto translation
         private bool isAutoTranslateEnabled = true;
-        
+
         // ChatBox management
         private ChatBoxWindow? chatBoxWindow;
         private bool isChatBoxVisible = false;
         private bool isSelectingChatBoxArea = false;
         private bool _chatBoxEventsAttached = false;
-        
+
         // Keep translation history even when ChatBox is closed
         private Queue<TranslationEntry> _translationHistory = new Queue<TranslationEntry>();
-        
+
         // Accessor for ChatBoxWindow to get the translation history
         public Queue<TranslationEntry> GetTranslationHistory()
         {
             return _translationHistory;
         }
-        
+
         // Method to clear translation history
         public void ClearTranslationHistory()
         {
             _translationHistory.Clear();
             Console.WriteLine("Translation history cleared from MainWindow");
         }
-       
-  
+
+
         //allow this to be accesible through an "Instance" variable
         public static MainWindow Instance { get { return _this!; } }
         // Socket connection status
         private TextBlock? socketStatusText;
-        
+
         // Console visibility management
         // private bool isConsoleVisible = false;
         private IntPtr consoleWindow;
 
         static MainWindow? _this = null;
-     
+
         [DllImport("kernel32.dll")]
         public static extern bool AllocConsole();
-        
+
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetConsoleOutputCP(uint wCodePageID);
-        
+
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetConsoleCP(uint wCodePageID);
-        
+
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow, ref CONSOLE_FONT_INFOEX lpConsoleCurrentFontEx);
-        
+
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr GetStdHandle(int nStdHandle);
-        
+
         // Console mode control
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
-        
+
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-        
+
         // Standard input handle constant
         public const int STD_INPUT_HANDLE = -10;
-        
+
         // Console input mode flags
         public const uint ENABLE_ECHO_INPUT = 0x0004;
         public const uint ENABLE_LINE_INPUT = 0x0002;
@@ -176,11 +176,11 @@ namespace RSTGameTranslation
         public const uint ENABLE_QUICK_EDIT_MODE = 0x0040;
         public const uint ENABLE_EXTENDED_FLAGS = 0x0080;
         public const uint ENABLE_AUTO_POSITION = 0x0100;
-        
+
         // Keyboard hooks are now managed in KeyboardShortcuts.cs
-        
+
         // We'll use a different approach that doesn't rely on SetConsoleCtrlHandler
-        
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct CONSOLE_FONT_INFOEX
         {
@@ -192,7 +192,7 @@ namespace RSTGameTranslation
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string FaceName;
         }
-        
+
         [StructLayout(LayoutKind.Sequential)]
         public struct COORD
         {
@@ -201,9 +201,9 @@ namespace RSTGameTranslation
         }
 
         public const int STD_OUTPUT_HANDLE = -11;
-        public bool GetIsStarted() { return isStarted; }    
+        public bool GetIsStarted() { return isStarted; }
         public bool GetTranslateEnabled() { return isAutoTranslateEnabled; }
-        
+
         // Methods for syncing UI controls with MonitorWindow
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
@@ -272,7 +272,7 @@ namespace RSTGameTranslation
                 }
             }
         }
-        
+
         public void GetVersionWindows()
         {
             var version = Environment.OSVersion.Version;
@@ -285,23 +285,23 @@ namespace RSTGameTranslation
                 Windows_Version = "Windows 10";
             }
         }
-        
+
         public void SetAutoTranslateEnabled(bool enabled)
         {
             if (isAutoTranslateEnabled != enabled)
             {
                 isAutoTranslateEnabled = enabled;
-                
+
                 // Save to config
                 ConfigManager.Instance.SetAutoTranslateEnabled(enabled);
-                
+
                 // Clear text objects
                 Logic.Instance.ClearAllTextObjects();
                 Logic.Instance.ResetHash();
-                
+
                 // Force OCR to run again
                 SetOCRCheckIsWanted(true);
-                
+
                 MonitorWindow.Instance.RefreshOverlays();
             }
         }
@@ -337,7 +337,7 @@ namespace RSTGameTranslation
 
             // Initial update of capture rectangle and setup after window is loaded
             this.Loaded += MainWindow_Loaded;
-            if(isForceUpdatePrompt > ConfigManager.Instance.GetForceUpdatePrompt())
+            if (isForceUpdatePrompt > ConfigManager.Instance.GetForceUpdatePrompt())
             {
                 // Gemini
                 string gemini_prompt = ConfigManager.Instance.GetDefaultServicePrompt("Gemini");
@@ -462,7 +462,7 @@ namespace RSTGameTranslation
         {
             ToggleTranslationAreaSelector();
         }
-        
+
         private void ToggleTranslationAreaSelector()
         {
             if (this.WindowState != WindowState.Minimized)
@@ -474,7 +474,7 @@ namespace RSTGameTranslation
                 // Cancel translation region selection if active
                 isSelectingTranslationArea = false;
                 selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
-              
+
                 // Find and close the region selection window if currently open
                 foreach (Window window in System.Windows.Application.Current.Windows)
                 {
@@ -491,11 +491,11 @@ namespace RSTGameTranslation
                 MonitorWindow.Instance.RefreshOverlays();
                 Logic.Instance.ClearAllTextObjects();
             }
-            
+
             // Show translation region picker window
             TranslationAreaSelectorWindow selectorWindow = TranslationAreaSelectorWindow.GetInstance();
             selectorWindow.SelectionComplete += TranslationAreaSelector_SelectionComplete;
-            selectorWindow.Closed += (s, e) => 
+            selectorWindow.Closed += (s, e) =>
             {
                 isSelectingTranslationArea = false;
                 if (!hasSelectedTranslationArea)
@@ -514,13 +514,13 @@ namespace RSTGameTranslation
         {
             // Check if multiple areas are allowed
             bool allowMultipleAreas = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
-            
+
             if (allowMultipleAreas)
             {
-                
+
                 if (savedTranslationAreas == null)
                     savedTranslationAreas = new List<Rect>();
-                    
+
                 // Add new selection area to the list
                 savedTranslationAreas.Add(selectionRect);
 
@@ -541,26 +541,26 @@ namespace RSTGameTranslation
                 // Save lastest selection area if multiple areas are not allowed
                 savedTranslationAreas = new List<Rect> { selectionRect };
             }
-            
+
             // Default using lastest selection area
             currentAreaIndex = savedTranslationAreas.Count - 1;
-            
+
             // Current selection area
             Rect currentRect = savedTranslationAreas[currentAreaIndex];
-            
+
             // Save current selection area
             selectedTranslationArea = currentRect;
             hasSelectedTranslationArea = true;
-            
+
             Console.WriteLine($"The translation area has been selected: X={currentRect.X}, Y={currentRect.Y}, Width={currentRect.Width}, Height={currentRect.Height}");
             Console.WriteLine($"Total saved areas: {savedTranslationAreas.Count}, Current index: {currentAreaIndex + 1}");
 
             // Update capture for new selection area
             UpdateCustomCaptureRect();
-            
+
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
         }
-        
+
         public void SwitchToTranslationArea(int index)
         {
             if (savedTranslationAreas.Count == 0)
@@ -573,28 +573,28 @@ namespace RSTGameTranslation
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.RefreshOverlays();
             }
-            
+
             // Ensure valid index
             if (index < 0 || index >= savedTranslationAreas.Count)
             {
-                Console.WriteLine($"Invalid area index: {index+1}. Available areas: {savedTranslationAreas.Count}");
+                Console.WriteLine($"Invalid area index: {index + 1}. Available areas: {savedTranslationAreas.Count}");
                 return;
             }
-            
+
             // Update current index
             currentAreaIndex = index;
-            
+
             Rect selectedRect = savedTranslationAreas[currentAreaIndex];
-            
+
             // Update select area
             selectedTranslationArea = selectedRect;
             hasSelectedTranslationArea = true;
-            
+
             Console.WriteLine($"Switched to translation area {currentAreaIndex + 1}: X={selectedRect.X}, Y={selectedRect.Y}, Width={selectedRect.Width}, Height={selectedRect.Height}");
-            
+
             // Update capture area for new selection area
             UpdateCustomCaptureRect();
-            
+
             // Show notification for user
             ShowAreaSwitchNotification(currentAreaIndex + 1);
         }
@@ -612,7 +612,7 @@ namespace RSTGameTranslation
                 Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute,
                 PlacementTarget = this
             };
-            
+
             // Content notification
             var border = new Border
             {
@@ -620,7 +620,7 @@ namespace RSTGameTranslation
                 CornerRadius = new CornerRadius(5),
                 Padding = new Thickness(10)
             };
-            
+
             var text = new TextBlock
             {
                 Text = $"Switched to Selection Area {areaNumber}",
@@ -629,14 +629,14 @@ namespace RSTGameTranslation
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center
             };
-            
+
             border.Child = text;
             notification.Child = border;
-            
+
             // Set position to selected area
             notification.HorizontalOffset = selectedTranslationArea.X + (selectedTranslationArea.Width / 2) - (notification.Width / 2);
             notification.VerticalOffset = selectedTranslationArea.Y + (selectedTranslationArea.Height / 2) - (notification.Height / 2);
-            
+
             // Auto close notification after 1.5 second
             var timer = new System.Windows.Threading.DispatcherTimer
             {
@@ -649,7 +649,7 @@ namespace RSTGameTranslation
                 timer.Stop();
                 SetOCRCheckIsWanted(true);
             };
-            
+
             timer.Start();
         }
 
@@ -676,26 +676,26 @@ namespace RSTGameTranslation
         private void UpdateMonitorWindowToSelectedArea()
         {
             if (!hasSelectedTranslationArea) return;
-            
+
             // Place the MonitorWindow exactly at the position of the selected area
             MonitorWindow.Instance.Left = selectedTranslationArea.X;
             MonitorWindow.Instance.Top = selectedTranslationArea.Y;
-            
+
             // Set the size of the MonitorWindow to match the size of the selected area
             MonitorWindow.Instance.Width = selectedTranslationArea.Width;
             MonitorWindow.Instance.Height = selectedTranslationArea.Height;
-            
+
             // Save the new position for future display
             monitorWindowLeft = selectedTranslationArea.X;
             monitorWindowTop = selectedTranslationArea.Y;
-            
+
             // Show the MonitorWindow if it is not already displayed
             if (!MonitorWindow.Instance.IsVisible)
             {
                 MonitorWindow.Instance.Show();
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
             }
-            
+
             Console.WriteLine($"The position of the MonitorWindow has been updated according to the selected area.: ({selectedTranslationArea.X}, {selectedTranslationArea.Y}, {selectedTranslationArea.Width}, {selectedTranslationArea.Height})");
         }
 
@@ -792,6 +792,24 @@ namespace RSTGameTranslation
                     break;
                 }
             }
+            if(ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled())
+            {
+                Task.Run(async () => 
+                {
+                    try
+                    {
+                        await localWhisperService.Instance.StartServiceAsync((original, translated) =>
+                        {
+                            Console.WriteLine($"Whisper detected: {original}");
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error starting Whisper service: {ex.Message}");
+                    }
+                });
+                Console.WriteLine("Local Whisper Service started");
+            }
 
             // Initialization is complete, now we can save settings changes
             _isInitializing = false;
@@ -820,7 +838,7 @@ namespace RSTGameTranslation
         {
             UpdateCaptureRect();
         }
-        
+
         // Handler for application-level keyboard shortcuts
         private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -831,7 +849,7 @@ namespace RSTGameTranslation
             // Forward to the central keyboard shortcuts handler
             KeyboardShortcuts.HandleKeyDown(e);
         }
-       
+
         private void TestConfigLoading()
         {
             try
@@ -841,19 +859,19 @@ namespace RSTGameTranslation
                 string llmPrompt = Logic.Instance.GetLlmPrompt();
                 string ocrMethod = ConfigManager.Instance.GetOcrMethod();
                 string translationService = ConfigManager.Instance.GetCurrentTranslationService();
-                
+
                 Console.WriteLine("=== Configuration Test ===");
                 Console.WriteLine($"API Key: {(string.IsNullOrEmpty(apiKey) ? "Not set" : "Set - " + apiKey.Substring(0, 4) + "...")}");
                 Console.WriteLine($"LLM Prompt: {(string.IsNullOrEmpty(llmPrompt) ? "Not set" : "Set - " + llmPrompt.Length + " chars")}");
                 Console.WriteLine($"OCR Method: {ocrMethod}");
                 Console.WriteLine($"Translation Service: {translationService}");
-                
+
                 if (!string.IsNullOrEmpty(llmPrompt))
                 {
                     Console.WriteLine("First 100 characters of LLM Prompt:");
                     Console.WriteLine(llmPrompt.Length > 100 ? llmPrompt.Substring(0, 100) + "..." : llmPrompt);
                 }
-                
+
                 Console.WriteLine("=========================");
             }
             catch (Exception ex)
@@ -861,7 +879,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error testing config: {ex.Message}");
             }
         }
-        
+
         // Update MonitorWindow position
         private void UpdateMonitorWindowPosition()
         {
@@ -939,21 +957,21 @@ namespace RSTGameTranslation
                     (windowRect.Right - windowRect.Left) - leftBorderThickness - rightBorderThickness,
                     (windowRect.Bottom - windowRect.Top) - customTitleBarHeight - customFooterHeight - bottomBorderThickness);
             }
-            
+
             // If position changed and we have text objects, update their positions
-            if ((previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) && 
+            if ((previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) &&
                 Logic.Instance.TextObjects.Count > 0)
             {
                 // Calculate the offset
                 int offsetX = captureRect.Left - previousCaptureX;
                 int offsetY = captureRect.Top - previousCaptureY;
-                
+
                 // Apply offset to text objects
                 Logic.Instance.UpdateTextObjectPositions(offsetX, offsetY);
-                
+
                 Console.WriteLine($"Capture position changed by ({offsetX}, {offsetY}). Text overlays updated.");
             }
-            
+
 
             UpdateMonitorWindowPosition();
         }
@@ -982,13 +1000,13 @@ namespace RSTGameTranslation
             System.Windows.Controls.Button btn = (System.Windows.Controls.Button)sender;
             String method = ConfigManager.Instance.GetOcrMethod();
             bool isReady = false;
-            
+
             if (method == "Windows OCR" || method == "OneOCR")
             {
                 // Windows OCR always ready because it don't need server
                 isReady = true;
             }
-            else 
+            else
             {
                 // EasyOCR, RapidOCR and PaddleOCR need connect to server
                 isReady = socketStatusText != null &&
@@ -1034,16 +1052,59 @@ namespace RSTGameTranslation
             }
         }
 
-        
+
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             localWhisperService.Instance.Stop();
             this.Close();
         }
-        
+
+        // Override OnClosing to ensure the application shuts down completely
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            // Stop local whisper service
+            localWhisperService.Instance.Stop();
+
+            // Clean up Logic resources
+            Logic.Instance.Finish();
+
+            // Dispose TaskbarIcon to remove tray icon and close any balloons
+            if (MyNotifyIcon != null)
+            {
+                MyNotifyIcon.Dispose();
+            }
+
+            // Force close MonitorWindow
+            if (MonitorWindow.Instance != null)
+            {
+                MonitorWindow.Instance.ForceClose();
+            }
+
+            // Force close all other windows
+            foreach (Window window in System.Windows.Application.Current.Windows)
+            {
+                if (window != this && window.IsLoaded)
+                {
+                    try
+                    {
+                        window.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error closing window {window.GetType().Name}: {ex.Message}");
+                    }
+                }
+            }
+
+            // Shutdown the entire application
+            System.Windows.Application.Current.Shutdown();
+
+            base.OnClosing(e);
+        }
+
         // Button to show the window when it's hidden
         private System.Windows.Controls.Button? showButton;
-        
+
         private void HideButton_Click(object sender, RoutedEventArgs e)
         {
             // Hide the main window elements
@@ -1097,12 +1158,12 @@ namespace RSTGameTranslation
                 showButton.Visibility = Visibility.Visible;
             }
         }
-        
+
         private void ShowButton_Click(object sender, RoutedEventArgs e)
         {
             // Show the main window elements
             MainBorder.Visibility = Visibility.Visible;
-            
+
             // Hide the show button
             if (showButton != null)
             {
@@ -1113,11 +1174,11 @@ namespace RSTGameTranslation
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            
+
             // Get the handle of the main window
             IntPtr handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
             KeyboardShortcuts.SetMainWindowHandle(handle);
-            
+
 
             HwndSource source = HwndSource.FromHwnd(handle);
             source.AddHook(WndProc);
@@ -1129,16 +1190,16 @@ namespace RSTGameTranslation
             {
                 handled = KeyboardShortcuts.ProcessHotKey(wParam);
             }
-            
+
             return IntPtr.Zero;
         }
 
         private void ShowFastNotification(string title, string message)
         {
             MyNotifyIcon.CloseBalloon();
-            
+
             FancyBalloon balloon = new FancyBalloon(title, message, MyNotifyIcon);
-            MyNotifyIcon.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, 4000); 
+            MyNotifyIcon.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, 4000);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -1148,7 +1209,7 @@ namespace RSTGameTranslation
 
             // Clean up MouseManager resources
             MouseManager.Instance.Cleanup();
-            
+
             Logic.Instance.Finish();
             OcrServerManager.Instance.StopOcrServer();
             OcrServerManager.Instance.KillProcessesByPort(9191);
@@ -1165,13 +1226,13 @@ namespace RSTGameTranslation
 
             base.OnClosed(e);
         }
-        
+
         // Settings button toggle handler
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
             ToggleSettingsWindow();
         }
-        
+
         // Remember the settings window position
         private double settingsWindowLeft = -1;
         private double settingsWindowTop = -1;
@@ -1219,7 +1280,7 @@ namespace RSTGameTranslation
                 settingsButton.Background = new SolidColorBrush(Color.FromRgb(176, 125, 69)); // Orange
             }
         }
-        
+
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsWindow(IntPtr hWnd);
@@ -1252,26 +1313,26 @@ namespace RSTGameTranslation
                 if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
                 {
                     var selectedArea = savedTranslationAreas[currentAreaIndex];
-                    
-                    captureX = (int) selectedArea.X - rect.Left;
-                    captureY = (int) selectedArea.Y - rect.Top;
-                    captureWidth = (int) selectedArea.Width;
-                    captureHeight = (int) selectedArea.Height;
-                    
+
+                    captureX = (int)selectedArea.X - rect.Left;
+                    captureY = (int)selectedArea.Y - rect.Top;
+                    captureWidth = (int)selectedArea.Width;
+                    captureHeight = (int)selectedArea.Height;
+
 
                     if (captureX < 0) captureX = 0;
                     if (captureY < 0) captureY = 0;
                     if (captureX + captureWidth > windowWidth) captureWidth = windowWidth - captureX;
                     if (captureY + captureHeight > windowHeight) captureHeight = windowHeight - captureY;
-                    
+
                     Console.WriteLine($"Capturing region in window: X={captureX}, Y={captureY}, Width={captureWidth}, Height={captureHeight}");
-                    
+
                     Logic.Instance.SetCurrentCapturePosition(rect.Left + captureX, rect.Top + captureY);
                 }
                 else
                 {
                     Console.WriteLine($"Capturing entire window: Width={windowWidth}, Height={windowHeight}");
-                    
+
                     Logic.Instance.SetCurrentCapturePosition(rect.Left, rect.Top);
                 }
 
@@ -1283,17 +1344,17 @@ namespace RSTGameTranslation
                     g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
                     g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
-                    
+
                     IntPtr hdc = g.GetHdc();
                     try
                     {
-                
+
                         bool success = PrintWindow(handle, hdc, 0x00000002);
                         if (!success)
                         {
                             int error = Marshal.GetLastWin32Error();
                             Console.WriteLine($"PrintWindow failed with error code: {error}");
-                            
+
                             g.ReleaseHdc(hdc);
                             return FallbackCaptureWindow(handle);
                         }
@@ -1321,15 +1382,15 @@ namespace RSTGameTranslation
                             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
                             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
                             g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
-                            
-                            g.DrawImage(fullWindowBmp, 
+
+                            g.DrawImage(fullWindowBmp,
                                         new Rectangle(0, 0, captureWidth, captureHeight),
-                                        new Rectangle(captureX, captureY, captureWidth, captureHeight), 
+                                        new Rectangle(captureX, captureY, captureWidth, captureHeight),
                                         GraphicsUnit.Pixel);
                         }
-                        
+
                         fullWindowBmp.Dispose();
-                        
+
                         return regionBmp;
                     }
                     catch (Exception ex)
@@ -1338,7 +1399,7 @@ namespace RSTGameTranslation
                         return fullWindowBmp;
                     }
                 }
-                
+
                 return fullWindowBmp;
             }
             catch (Exception ex)
@@ -1354,17 +1415,17 @@ namespace RSTGameTranslation
             {
                 int sampleSize = 20;
                 Random rand = new Random();
-                
+
                 for (int i = 0; i < sampleSize; i++)
                 {
                     int x = rand.Next(bmp.Width);
                     int y = rand.Next(bmp.Height);
-                    
+
                     System.Drawing.Color pixel = bmp.GetPixel(x, y);
                     if (pixel.R > 5 || pixel.G > 5 || pixel.B > 5)
                         return false;
                 }
-                
+
                 return true;
             }
             catch
@@ -1405,7 +1466,7 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in FallbackCaptureWindow: {ex.Message}");
-                
+
                 return new Bitmap(1, 1);
             }
         }
@@ -1423,7 +1484,7 @@ namespace RSTGameTranslation
                     {
                         RECT windowRect;
                         GetWindowRect(capturedWindowHandle, out windowRect);
-                        
+
                         if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
                         {
                             var selectedArea = savedTranslationAreas[currentAreaIndex];
@@ -1432,20 +1493,20 @@ namespace RSTGameTranslation
                         {
                             Logic.Instance.SetCurrentCapturePosition(windowRect.Left, windowRect.Top);
                         }
-                        
-                       
+
+
                         using (Bitmap bitmap = CaptureWindow(capturedWindowHandle))
                         {
-                        
+
                             bitmap.Save(outputPath, ImageFormat.Png);
-                            
-                           
+
+
                             if (MonitorWindow.Instance.IsVisible)
                             {
                                 MonitorWindow.Instance.UpdateScreenshotFromBitmap();
                             }
-                            
-                            
+
+
                             bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
                                                 (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
 
@@ -1455,8 +1516,8 @@ namespace RSTGameTranslation
                                 stopwatch.Start();
 
                                 SetOCRCheckIsWanted(false);
-                                
-                                
+
+
                                 string ocrMethod = GetSelectedOcrMethod();
                                 if (ocrMethod == "Windows OCR")
                                 {
@@ -1482,27 +1543,28 @@ namespace RSTGameTranslation
                                 Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
                             }
                         }
-                        
+
                         return;
                     }
                     else
                     {
-                        
+
                         isCapturingWindow = false;
                         capturedWindowHandle = IntPtr.Zero;
                         capturedWindowTitle = string.Empty;
-                        
-                        Dispatcher.Invoke(() => {
+
+                        Dispatcher.Invoke(() =>
+                        {
                             selectWindowButton.Content = "Select Window";
                             selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
-                            
+
                             System.Windows.MessageBox.Show(
                                 LocalizationManager.Instance.Strings["Msg_WindowLost"],
                                 LocalizationManager.Instance.Strings["Title_WindowLost"],
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Warning);
                         });
-                        
+
                         Console.WriteLine("Captured window no longer exists, reverting to normal capture mode");
                     }
                 }
@@ -1510,13 +1572,14 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Error capturing window: {ex.Message}");
                     Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                    
-                    
+
+
                     isCapturingWindow = false;
                     capturedWindowHandle = IntPtr.Zero;
                     capturedWindowTitle = string.Empty;
-                    
-                    Dispatcher.Invoke(() => {
+
+                    Dispatcher.Invoke(() =>
+                    {
                         selectWindowButton.Content = "Select Window";
                         selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
                     });
@@ -1554,7 +1617,7 @@ namespace RSTGameTranslation
                         {
                             Console.WriteLine($"Error during screen capture: {ex.Message}");
                             Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                            return; 
+                            return;
                         }
                     }
                     // if (Windows_Version == "Windows 10")
@@ -1623,13 +1686,13 @@ namespace RSTGameTranslation
                 }
             }
         }
-        
+
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             // this.WindowState = WindowState.Minimized;
             this.Hide();
         }
-        
+
         // private void AutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         // {
         //     // Convert sender to CheckBox
@@ -1646,8 +1709,8 @@ namespace RSTGameTranslation
         //         MonitorWindow.Instance.RefreshOverlays();
         //     }
         // }
-        
-   
+
+
         // Reset OCR hash when language selection changes
         private void SourceLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1656,16 +1719,16 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             if (sender is System.Windows.Controls.ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 string language = selectedItem.Content.ToString() ?? "ja";
                 Console.WriteLine($"Source language changed to: {language}");
-                
+
                 // Save to config
                 ConfigManager.Instance.SetSourceLanguage(language);
             }
-            
+
             // Reset the OCR hash to force a fresh comparison after changing source language
             Logic.Instance.ClearAllTextObjects();
         }
@@ -1677,16 +1740,16 @@ namespace RSTGameTranslation
             {
                 return;
             }
-            
+
             if (sender is System.Windows.Controls.ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 string language = selectedItem.Content.ToString() ?? "en";
                 Console.WriteLine($"Target language changed to: {language}");
-                
+
                 // Save to config
                 ConfigManager.Instance.SetTargetLanguage(language);
             }
-            
+
             // Reset the OCR hash to force a fresh comparison after changing target language
             Logic.Instance.ClearAllTextObjects();
         }
@@ -1696,14 +1759,14 @@ namespace RSTGameTranslation
             if (sender is System.Windows.Controls.ComboBox comboBox)
             {
                 string? ocrMethod = (comboBox.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content?.ToString();
-                
+
                 if (!string.IsNullOrEmpty(ocrMethod))
                 {
                     // Reset the OCR hash to force a fresh comparison after changing OCR method
                     Logic.Instance.ResetHash();
-                    
+
                     Console.WriteLine($"OCR method changed to: {ocrMethod}");
-                    
+
                     // Clear any existing text objects
                     Logic.Instance.ClearAllTextObjects();
 
@@ -1750,15 +1813,15 @@ namespace RSTGameTranslation
                 }
             }
         }
-        
+
         // Keep track of selected OCR method
         private string selectedOcrMethod = "Windows OCR";
-        
+
         public string GetSelectedOcrMethod()
         {
             return selectedOcrMethod;
         }
-       
+
         // Toggle the monitor window
         private void MonitorButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1772,16 +1835,16 @@ namespace RSTGameTranslation
             }
             else
             {
-                ToggleMonitorWindow(); 
-            }              
+                ToggleMonitorWindow();
+            }
         }
-        
+
         // Handler for the Log button click
         private void LogButton_Click(object sender, RoutedEventArgs e)
         {
             ToggleConsoleWindow();
         }
-        
+
         // Toggle console window visibility
         private void ToggleConsoleWindow()
         {
@@ -1800,7 +1863,7 @@ namespace RSTGameTranslation
                 logButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 153)); // Pink/Red
             }
         }
-        
+
         // Initialize console window with proper encoding and font
         private void InitializeConsole()
         {
@@ -1819,11 +1882,11 @@ namespace RSTGameTranslation
 
             // Disable console input to prevent the app from freezing
             DisableConsoleInput();
-            
+
             // Set Windows console code page to UTF-8 (65001)
             SetConsoleCP(65001);
             SetConsoleOutputCP(65001);
-            
+
             // Set up a proper font for Japanese characters
             IntPtr hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
             CONSOLE_FONT_INFOEX fontInfo = new CONSOLE_FONT_INFOEX();
@@ -1833,23 +1896,23 @@ namespace RSTGameTranslation
             fontInfo.FontWeight = 400; // Normal weight
             fontInfo.dwFontSize = new COORD { X = 0, Y = 16 }; // Font size
             SetCurrentConsoleFontEx(hConsoleOutput, false, ref fontInfo);
-            
+
             // Set .NET console encoding to UTF-8
             Console.OutputEncoding = Encoding.UTF8;
             Console.InputEncoding = Encoding.UTF8;
-            
+
             // Redirect standard output to the console with UTF-8 encoding
             StreamWriter standardOutput = new StreamWriter(Console.OpenStandardOutput(), Encoding.UTF8)
             {
                 AutoFlush = true
             };
             Console.SetOut(standardOutput);
-            
+
             // Write initial message
             Console.WriteLine("Console output initialized. Toggle visibility with the Log button.");
             Console.WriteLine("Note: Console input is disabled to prevent application freeze.");
         }
-        
+
         // Disable console input to prevent app freezing when focus is in the console
         private void DisableConsoleInput()
         {
@@ -1862,7 +1925,7 @@ namespace RSTGameTranslation
                     Console.WriteLine("Error getting console input handle");
                     return;
                 }
-                
+
                 // Get current console mode
                 uint mode;
                 if (!GetConsoleMode(hStdIn, out mode))
@@ -1870,21 +1933,21 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Error getting console mode: {Marshal.GetLastWin32Error()}");
                     return;
                 }
-                
+
                 // Disable input modes that would cause the app to wait for input
                 // This prevents the console from freezing when it gets focus
                 // We're turning off all input processing to make the console display-only
                 uint newMode = 0; // Set to 0 to disable all input
-                
+
                 // You can selectively re-enable certain input features if needed:
                 // newMode = ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT;
-                
+
                 if (!SetConsoleMode(hStdIn, newMode))
                 {
                     Console.WriteLine($"Error setting console mode: {Marshal.GetLastWin32Error()}");
                     return;
                 }
-                
+
                 Console.WriteLine("Console input disabled successfully");
             }
             catch (Exception ex)
@@ -1892,19 +1955,19 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error disabling console input: {ex.Message}");
             }
         }
-        
+
         // Update log button state (called from LogWindow when it's closed)
         public void updateLogButtonState(bool isVisible)
         {
-            logButton.Background = isVisible 
+            logButton.Background = isVisible
                 ? new SolidColorBrush(Color.FromRgb(176, 69, 153)) // Pink/Red - visible
                 : new SolidColorBrush(Color.FromRgb(153, 69, 176)); // Purple - hidden
         }
-        
+
         // Remember the monitor window position
         private double monitorWindowLeft = -1;
         private double monitorWindowTop = -1;
-        
+
         private void ToggleMonitorWindow()
         {
             if (MonitorWindow.Instance.imageScrollViewer.Visibility == Visibility.Visible && MonitorWindow.Instance.IsVisible)
@@ -1987,20 +2050,20 @@ namespace RSTGameTranslation
             // {
             //     ToggleMonitorWindow();
             // }
-            
+
             // Toggle BorderThickness: 0 <-> 1
-            MonitorWindow.Instance.BorderThickness = 
-                (MonitorWindow.Instance.BorderThickness == new Thickness(1)) 
-                    ? new Thickness(0) 
+            MonitorWindow.Instance.BorderThickness =
+                (MonitorWindow.Instance.BorderThickness == new Thickness(1))
+                    ? new Thickness(0)
                     : new Thickness(1);
         }
-        
+
         // ChatBox Button click handler
         private void ChatBoxButton_Click(object sender, RoutedEventArgs e)
         {
             ToggleChatBox();
         }
-        
+
         // Toggle ChatBox visibility and position
         private void ToggleChatBox()
         {
@@ -2009,7 +2072,7 @@ namespace RSTGameTranslation
                 // Cancel the selection mode if already selecting
                 isSelectingChatBoxArea = false;
                 chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
-                
+
                 // Find and close any existing selector window
                 foreach (Window window in System.Windows.Application.Current.Windows)
                 {
@@ -2021,7 +2084,7 @@ namespace RSTGameTranslation
                 }
                 return;
             }
-            
+
             // ChatBoxWindow.Instance is always available, but may not be visible
             // Make sure our chatBoxWindow reference is up to date
             // chatBoxWindow = ChatBoxWindow.Instance;
@@ -2063,13 +2126,13 @@ namespace RSTGameTranslation
                 chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
             }
         }
-        
+
         // Handle selection completion
         private void ChatBoxSelector_SelectionComplete(object? sender, Rect selectionRect)
         {
             // Use the existing ChatBoxWindow.Instance
             chatBoxWindow = ChatBoxWindow.Instance;
-            
+
             // Check if event handlers are already attached
             if (!_chatBoxEventsAttached && chatBoxWindow != null)
             {
@@ -2079,7 +2142,7 @@ namespace RSTGameTranslation
                     isChatBoxVisible = false;
                     chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
                 };
-                
+
                 // Also handle visibility changes for when the X button is clicked (which now hides instead of closes)
                 chatBoxWindow.IsVisibleChanged += (s, e) =>
                 {
@@ -2089,21 +2152,21 @@ namespace RSTGameTranslation
                         chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
                     }
                 };
-                
+
                 _chatBoxEventsAttached = true;
             }
-            
+
             // Position and size the ChatBox
             chatBoxWindow!.Left = selectionRect.Left;
             chatBoxWindow.Top = selectionRect.Top;
             chatBoxWindow.Width = selectionRect.Width;
             chatBoxWindow.Height = selectionRect.Height;
-            
+
             // Show the ChatBox
             chatBoxWindow.Show();
             isChatBoxVisible = true;
             chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red when active
-            
+
             // The ChatBox will get its data from MainWindow.GetTranslationHistory()
             // No need to manually load entries, just trigger an update
             if (chatBoxWindow != null)
@@ -2150,47 +2213,47 @@ namespace RSTGameTranslation
             {
                 _ = Task.Run(() => SendTranslatedTextToServer(translatedText));
             }
-            
+
         }
 
         private SocketIOClient.SocketIO? _socketClient;
         private Queue<TranslationItem> _pendingTranslations = new Queue<TranslationItem>();
         private volatile int _isSendingFlag = 0;
 
-        
+
         private class TranslationItem
         {
             public string Text { get; set; } = "";
             public int SequenceNumber { get; set; }
         }
 
-        
+
         private int _translationSequence = 0;
 
         private async Task SendTranslatedTextToServer(string text, string serverUrl = "http://localhost:9191")
         {
-            
+
             if (string.IsNullOrEmpty(text))
                 return;
-                
-            
+
+
             var translationItem = new TranslationItem
             {
                 Text = text,
                 SequenceNumber = Interlocked.Increment(ref _translationSequence)
             };
-            
+
             // Add to queue
             lock (_pendingTranslations)
             {
                 _pendingTranslations.Enqueue(translationItem);
             }
-            
+
             if (Interlocked.CompareExchange(ref _isSendingFlag, 1, 0) == 1)
                 return;
-            
+
             try
-            {        
+            {
                 while (true)
                 {
                     // Get all translated text in queue
@@ -2199,7 +2262,7 @@ namespace RSTGameTranslation
                     {
                         if (_pendingTranslations.Count == 0)
                             break;
-                        
+
                         // Get max 10 item
                         itemsToProcess = new List<TranslationItem>();
                         int batchSize = Math.Min(10, _pendingTranslations.Count);
@@ -2211,9 +2274,9 @@ namespace RSTGameTranslation
                                 break;
                         }
                     }
-                    
+
                     itemsToProcess.Sort((a, b) => a.SequenceNumber.CompareTo(b.SequenceNumber));
-                    
+
                     bool sentViaWebSocket = false;
                     if (_socketClient != null && _socketClient.Connected)
                     {
@@ -2221,12 +2284,13 @@ namespace RSTGameTranslation
                         {
                             foreach (var item in itemsToProcess)
                             {
-                                await _socketClient.EmitAsync("send_translation", new { 
+                                await _socketClient.EmitAsync("send_translation", new
+                                {
                                     translation = item.Text,
                                     sequence = item.SequenceNumber
                                 });
                             }
-                            
+
                             Console.WriteLine($"✅ Sent {itemsToProcess.Count} translations via WebSocket");
                             sentViaWebSocket = true;
                         }
@@ -2236,7 +2300,7 @@ namespace RSTGameTranslation
                             sentViaWebSocket = false;
                         }
                     }
-                    
+
                     // Fallback to HTTP
                     if (!sentViaWebSocket)
                     {
@@ -2244,48 +2308,50 @@ namespace RSTGameTranslation
                         {
                             var batchData = new
                             {
-                                translations = itemsToProcess.Select(i => new { 
-                                    translation = i.Text, 
+                                translations = itemsToProcess.Select(i => new
+                                {
+                                    translation = i.Text,
                                     sequence = i.SequenceNumber
                                 }).ToArray()
                             };
-                            
+
                             var jsonContent = JsonSerializer.Serialize(batchData);
                             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                            
+
                             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
                             {
                                 var response = await _httpClient.PostAsync($"{serverUrl}/api/update-batch", content, cts.Token);
-                                
+
                                 if (response.IsSuccessStatusCode)
                                 {
                                     Console.WriteLine($"✅ Sent {itemsToProcess.Count} translations via HTTP batch API");
-                                    
+
                                     if (_socketClient == null || !_socketClient.Connected)
                                     {
                                         InitSocketIO(serverUrl);
                                     }
                                     continue;
                                 }
-                                
+
                                 Console.WriteLine("Batch API not available, sending individually");
                             }
-                            
+
                             foreach (var item in itemsToProcess)
                             {
                                 try
                                 {
-                                    var singleData = new { 
+                                    var singleData = new
+                                    {
                                         translation = item.Text,
                                         sequence = item.SequenceNumber
                                     };
                                     var singleJson = JsonSerializer.Serialize(singleData);
                                     var singleContent = new StringContent(singleJson, Encoding.UTF8, "application/json");
-                                    
+
                                     using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
                                     {
                                         var response = await _httpClient.PostAsync($"{serverUrl}/api/update", singleContent, cts.Token);
-                                        
+
                                         if (response.IsSuccessStatusCode)
                                         {
                                             Console.WriteLine($"✅ Sent translation #{item.SequenceNumber} via HTTP");
@@ -2301,7 +2367,7 @@ namespace RSTGameTranslation
                                     Console.WriteLine($"❌ Error sending individual translation: {ex.Message}");
                                 }
                             }
-                            
+
                             if (_socketClient == null || !_socketClient.Connected)
                             {
                                 InitSocketIO(serverUrl);
@@ -2317,7 +2383,7 @@ namespace RSTGameTranslation
             finally
             {
                 Interlocked.Exchange(ref _isSendingFlag, 0);
-                
+
                 lock (_pendingTranslations)
                 {
                     if (_pendingTranslations.Count > 0)
@@ -2336,7 +2402,7 @@ namespace RSTGameTranslation
                 {
                     try { _socketClient.DisconnectAsync().Wait(1000); } catch { }
                 }
-                
+
                 _socketClient = new SocketIOClient.SocketIO(serverUrl, new SocketIOClient.SocketIOOptions
                 {
                     ConnectionTimeout = TimeSpan.FromSeconds(3),
@@ -2344,17 +2410,17 @@ namespace RSTGameTranslation
                     ReconnectionAttempts = 3,
                     ReconnectionDelay = 1000
                 });
-                
+
                 _socketClient.OnConnected += (sender, e) =>
                 {
                     Console.WriteLine("✅ Connected to WebSocket");
                 };
-                
+
                 _socketClient.OnDisconnected += (sender, e) =>
                 {
                     Console.WriteLine("❌ Disconnected from WebSocket");
                 };
-                
+
                 _socketClient.ConnectAsync().Wait(3000);
             }
             catch (Exception ex)
@@ -2369,7 +2435,7 @@ namespace RSTGameTranslation
         {
             AddTranslationToHistory(e.OriginalText, e.TranslatedText);
         }
-        
+
         private async void btnStartOcrServer_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -2379,7 +2445,7 @@ namespace RSTGameTranslation
 
                 // Get the OCR server port from the configuration
                 string ocrMethod = ConfigManager.Instance.GetOcrMethod();
-                
+
 
                 if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                 {
@@ -2391,16 +2457,16 @@ namespace RSTGameTranslation
                     btnStartOcrServer.IsEnabled = true;
                     return;
                 }
-                
+
                 SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_StartingOcrServer"], ocrMethod));
-                
+
                 // Start the OCR server
                 await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
                 SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_StartingOcrServer"], ocrMethod));
                 var startTime = DateTime.Now;
-                while (!OcrServerManager.Instance.serverStarted) 
+                while (!OcrServerManager.Instance.serverStarted)
                 {
-                    await Task.Delay(100);  
+                    await Task.Delay(100);
                     if (OcrServerManager.Instance.timeoutStartServer)
                     {
                         SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
@@ -2410,7 +2476,7 @@ namespace RSTGameTranslation
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
                         break;
-                    }    
+                    }
                 }
 
 
@@ -2548,7 +2614,7 @@ namespace RSTGameTranslation
                 savedTranslationAreas.RemoveAt(currentAreaIndex);
 
                 // Default switch to area last index
-                if(savedTranslationAreas.Count >= 1)
+                if (savedTranslationAreas.Count >= 1)
                 {
                     SwitchToTranslationArea(savedTranslationAreas.Count - 1);
                 }
@@ -2572,7 +2638,7 @@ namespace RSTGameTranslation
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
 
             // Update capture area to default area
-                UpdateCaptureRect();
+            UpdateCaptureRect();
 
             Console.WriteLine("All translation areas have been cleared.");
 
@@ -2627,7 +2693,7 @@ namespace RSTGameTranslation
                 popup.ShowDialog();
             }
         }
-        
+
         private void OnWindowSelected(IntPtr windowHandle, string windowTitle)
         {
             if (windowHandle != IntPtr.Zero)
@@ -2635,12 +2701,12 @@ namespace RSTGameTranslation
                 capturedWindowHandle = windowHandle;
                 capturedWindowTitle = windowTitle;
                 isCapturingWindow = true;
-                
+
                 selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
                 selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
-                
+
                 Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
-                
+
                 System.Windows.MessageBox.Show(
                     $"Now capturing window: {capturedWindowTitle}",
                     "Window Selected",
@@ -2723,7 +2789,7 @@ namespace RSTGameTranslation
             quickstartWindow.Owner = this;
             quickstartWindow.ShowDialog();
         }
-        
+
         private void CheckAndShowQuickstart()
         {
             bool showQuickstart = ConfigManager.Instance.IsNeedShowQuickStart();
@@ -2761,7 +2827,7 @@ namespace RSTGameTranslation
             }
         }
 
-        private bool isListening = false;
+        // private bool isListening = false;
         // private OpenAIRealtimeAudioServiceWhisper? openAIRealtimeAudioService = null;
 
         // private void ListenButton_Click(object sender, RoutedEventArgs e)
@@ -2829,12 +2895,12 @@ namespace RSTGameTranslation
         private void TrayIcon_DoubleClick(object sender, RoutedEventArgs e)
         {
             this.Show();
-            
+
             if (this.WindowState == WindowState.Minimized)
             {
                 this.WindowState = WindowState.Normal;
             }
-            
+
             this.Activate();
         }
     }

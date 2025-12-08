@@ -18,16 +18,16 @@ namespace RSTGameTranslation
         private WasapiLoopbackCapture? loopbackCapture;
         private BufferedWaveProvider? bufferedProvider;
         private MediaFoundationResampler? resampler;
+        public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
         private byte[]? resampleBuffer;
         private bool forceProcessing = false;
         private WhisperProcessor? processor;
         private WhisperFactory? factory;
-        private readonly List<float> audioBuffer = new List<float>(); // Whisper.net dùng float[]
+        private readonly List<float> audioBuffer = new List<float>();
         private readonly object bufferLock = new object();
-
-        // Cấu hình VAD (Phát hiện giọng nói)
-        private const float SilenceThreshold = 0.01f; // Ngưỡng âm thanh (Cần tinh chỉnh tùy Mic)
-        private const int SilenceDurationMs = 500;    // Thời gian im lặng để chốt câu (0.5s)
+        private CancellationTokenSource? _cancellationTokenSource;
+        private const float SilenceThreshold = 0.01f;
+        private const int SilenceDurationMs = 500;
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
         private const int MaxBufferSamples = 16000 * 10;
@@ -57,29 +57,24 @@ namespace RSTGameTranslation
         {
             Stop();
 
-            // 1. Tải Model (Chỉ làm 1 lần, hoặc check file tồn tại)
-            // Model "Tiny En" (75MB) là vua về tốc độ cho Game.
-            string modelPath = "ggml-base.en.bin";
-            if (!File.Exists(modelPath))
-            {
-                using var httpClient = new System.Net.Http.HttpClient();
-                using var modelStream = await new WhisperGgmlDownloader(httpClient).GetGgmlModelAsync(GgmlType.TinyEn);
-                using var fileWriter = File.OpenWrite(modelPath);
-                await modelStream.CopyToAsync(fileWriter);
-            }
+            string modelPath = "ggml-tiny.bin";
+            // if (!File.Exists(modelPath))
+            // {
+            //     using var httpClient = new System.Net.Http.HttpClient();
+            //     using var modelStream = await new WhisperGgmlDownloader(httpClient).GetGgmlModelAsync(GgmlType.LargeV3Turbo);
+            //     using var fileWriter = File.OpenWrite(modelPath);
+            //     await modelStream.CopyToAsync(fileWriter);
+            // }
 
-            // 2. Khởi tạo Whisper Factory
             factory = WhisperFactory.FromPath(modelPath);
 
-            // 3. Tạo Processor (Quan trọng: Tối ưu cho Game)
             processor = factory.CreateBuilder()
                 .WithLanguage("en")
-                .WithThreads(5)
+                .WithThreads(4)
                 .WithBeamSearchSamplingStrategy()
                 .ParentBuilder
                 .Build();
 
-            // 1. Khởi tạo Loopback Capture
             var enumerator = new MMDeviceEnumerator();
             var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
 
@@ -92,22 +87,18 @@ namespace RSTGameTranslation
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
 
             loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
-            // 2. Tạo bộ đệm để chứa âm thanh gốc từ game
             bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
-            bufferedProvider.DiscardOnBufferOverflow = true; // Tránh tràn RAM nếu xử lý chậm
+            bufferedProvider.DiscardOnBufferOverflow = true;
 
-            // 3. Tạo Resampler: Đọc từ bộ đệm -> Ra chuẩn 16kHz Mono
             var targetFormat = new WaveFormat(16000, 16, 1);
             resampler = new MediaFoundationResampler(bufferedProvider, targetFormat);
-            resampler.ResamplerQuality = 60; // 60 là đủ tốt cho Voice, max là 60
+            resampler.ResamplerQuality = 60;
 
-            // 4. Bắt sự kiện
             loopbackCapture.DataAvailable += OnGameAudioReceived;
             loopbackCapture.StartRecording();
 
-
-            // 5. Chạy vòng lặp xử lý nền
-            _ = Task.Run(() => ProcessLoop(onResult));
+            _cancellationTokenSource = new CancellationTokenSource();
+            _ = Task.Run(() => ProcessLoop(onResult, _cancellationTokenSource.Token));
         }
 
 
@@ -121,7 +112,6 @@ namespace RSTGameTranslation
             }
             try
             {
-                // Đẩy dữ liệu thô từ Game vào bộ đệm
                 bufferedProvider?.AddSamples(e.Buffer, 0, e.BytesRecorded);
                 float testMaxVol = 0;
                 for (int i = 0; i < e.BytesRecorded / 2; i++)
@@ -133,15 +123,12 @@ namespace RSTGameTranslation
                 }
                 Console.WriteLine($"[DEBUG] Input buffer max volume: {testMaxVol:F4}");
 
-                // Bây giờ đọc từ Resampler ra để lấy dữ liệu chuẩn 16kHz
                 if (resampler != null)
                 {
-                    // Tính toán lượng dữ liệu cần đọc
-                    // Tỷ lệ sample rate: Ví dụ Game 48k -> Whisper 16k (Giảm 3 lần)
-                    int estimatedOutputBytes = (e.BytesRecorded / loopbackCapture.WaveFormat.BlockAlign) * 2; // x2 vì 16bit
+                    int estimatedOutputBytes = (e.BytesRecorded / loopbackCapture.WaveFormat.BlockAlign) * 2;
                     
                     if (resampleBuffer == null || resampleBuffer.Length < estimatedOutputBytes)
-                        resampleBuffer = new byte[estimatedOutputBytes * 2]; // Cấp phát dư ra chút
+                        resampleBuffer = new byte[estimatedOutputBytes * 2];
 
                     int bytesRead = resampler.Read(resampleBuffer, 0, resampleBuffer.Length);
                     Console.WriteLine($"[DEBUG] Resampler read {bytesRead} bytes from {resampleBuffer.Length} buffer");
@@ -165,12 +152,6 @@ namespace RSTGameTranslation
                             short sample = BitConverter.ToInt16(resampleBuffer, i * 2);
                             floatBuffer[i] = sample / 32768f;
                         }
-                        // for (int i = 1; i < floatBuffer.Length; i++)
-                        // {
-                        //     floatBuffer[i] = floatBuffer[i] - 0.95f * floatBuffer[i - 1];
-                        // }
-
-                        // Check VAD và thêm vào audioBuffer...
                         float maxVol = floatBuffer.Max(x => Math.Abs(x));
                         Console.WriteLine($"[DEBUG] Max volume: {maxVol:F4}, Threshold: {SilenceThreshold}");
                         if (maxVol > SilenceThreshold)
@@ -210,6 +191,11 @@ namespace RSTGameTranslation
 
         public void Stop()
         {
+            // Cancel the processing loop first
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+            
             loopbackCapture?.StopRecording();
             loopbackCapture?.Dispose();
             loopbackCapture = null;
@@ -220,12 +206,10 @@ namespace RSTGameTranslation
             audioBuffer.Clear();
         }
 
-        // Vòng lặp xử lý (Thay thế cho WebSocket Loop)
-        private async Task ProcessLoop(Action<string, string> onResult)
+        private async Task ProcessLoop(Action<string, string> onResult, CancellationToken cancellationToken)
         {
-            while (loopbackCapture != null)
+            while (loopbackCapture != null && !cancellationToken.IsCancellationRequested)
             {
-                // Kiểm tra cờ force processing TRƯỚC
                 bool shouldProcess = forceProcessing || 
                                     (isSpeaking && (DateTime.Now - lastVoiceDetected).TotalMilliseconds > SilenceDurationMs);
                 Console.WriteLine($"[DEBUG] shouldProcess={shouldProcess}, forceProcessing={forceProcessing}, isSpeaking={isSpeaking}, voiceFrameCount={voiceFrameCount}");
@@ -242,7 +226,7 @@ namespace RSTGameTranslation
                     {
                         samplesToProcess = audioBuffer.ToArray();
                         audioBuffer.Clear();
-                        forceProcessing = false; // RESET CỜ
+                        forceProcessing = false;
                     }
                     
                     isSpeaking = false;
@@ -251,7 +235,6 @@ namespace RSTGameTranslation
                     {
                         Console.WriteLine($"[DEBUG] Processing {samplesToProcess.Length} samples ({samplesToProcess.Length / 16000.0:F1}s audio)");
                         
-                        // Tính âm lượng trung bình để debug
                         float avgVol = samplesToProcess.Average(x => Math.Abs(x));
                         Console.WriteLine($"[DEBUG] Average volume: {avgVol:F4}");
                         
@@ -260,7 +243,15 @@ namespace RSTGameTranslation
                     voiceFrameCount = 0; // Reset
                 }
 
-                await Task.Delay(100);
+                try
+                {
+                    await Task.Delay(100, cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    // Expected when stopping
+                    break;
+                }
             }
         }
 
@@ -272,7 +263,6 @@ namespace RSTGameTranslation
                 {
                     string originalText = result.Text.Trim();
                     
-                    // BỎ QUA nếu text quá ngắn hoặc rỗng
                     if (string.IsNullOrEmpty(originalText) || originalText.Length < 3)
                     {
                         Console.WriteLine($"[DEBUG] Skipped short/empty result: '{originalText}'");
@@ -292,7 +282,6 @@ namespace RSTGameTranslation
 
                     Console.WriteLine($"[DEBUG] Whisper result: {originalText}");
 
-                    // Đẩy text vào Logic để xử lý
                     await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         Logic.Instance.AddAudioTextObject(originalText);
@@ -306,32 +295,6 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Whisper Error: " + ex.Message);
             }
-        }
-
-        // Translate a single line if auto-translate is enabled
-        private async Task<string> TranslateLineAsync(string text)
-        {
-            try
-            {
-                if (!ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled() || string.IsNullOrEmpty(text))
-                    return string.Empty;
-
-                var service = TranslationServiceFactory.CreateService();
-                // Prepare minimal JSON with one text block
-                var payload = new
-                {
-                    text_blocks = new[] { new { id = "text_0", text = text } }
-                };
-                string json = JsonSerializer.Serialize(payload);
-                string? response = await service.TranslateAsync(json, string.Empty);
-                if (!string.IsNullOrEmpty(response))
-                    return response;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Translation error: {ex}");
-            }
-            return string.Empty;
         }
     }
 }
