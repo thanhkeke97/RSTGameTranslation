@@ -26,14 +26,14 @@ namespace RSTGameTranslation
         private readonly List<float> audioBuffer = new List<float>();
         private readonly object bufferLock = new object();
         private CancellationTokenSource? _cancellationTokenSource;
-        private const float SilenceThreshold = 0.01f;
-        private const int SilenceDurationMs = 500;
+        private const float SilenceThreshold = 0.02f;
+        private const int SilenceDurationMs = 200;
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
-        private const int MaxBufferSamples = 16000 * 10;
+        private const int MaxBufferSamples = 16000 * 5;
         private int voiceFrameCount = 0;
         private const int MinVoiceFrames = 1;
-        private static readonly System.Text.RegularExpressions.Regex NoisePattern = 
+        private static readonly System.Text.RegularExpressions.Regex NoisePattern =
             new System.Text.RegularExpressions.Regex(
                 @"^\[.*\]$|^\(.*\)$|^\.{3,}$|^thank|^please|inaudible|blank",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase
@@ -57,7 +57,7 @@ namespace RSTGameTranslation
         {
             Stop();
 
-            string modelPath = "ggml-tiny.bin";
+            string modelPath = "ggml-small-q5_1.bin";
             // if (!File.Exists(modelPath))
             // {
             //     using var httpClient = new System.Net.Http.HttpClient();
@@ -126,7 +126,7 @@ namespace RSTGameTranslation
                 if (resampler != null)
                 {
                     int estimatedOutputBytes = (e.BytesRecorded / loopbackCapture.WaveFormat.BlockAlign) * 2;
-                    
+
                     if (resampleBuffer == null || resampleBuffer.Length < estimatedOutputBytes)
                         resampleBuffer = new byte[estimatedOutputBytes * 2];
 
@@ -168,7 +168,7 @@ namespace RSTGameTranslation
                                 voiceFrameCount = 0;
                             }
                         }
-                        
+
                         lock (bufferLock)
                         {
                             audioBuffer.AddRange(floatBuffer);
@@ -195,7 +195,7 @@ namespace RSTGameTranslation
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
-            
+
             loopbackCapture?.StopRecording();
             loopbackCapture?.Dispose();
             loopbackCapture = null;
@@ -210,7 +210,7 @@ namespace RSTGameTranslation
         {
             while (loopbackCapture != null && !cancellationToken.IsCancellationRequested)
             {
-                bool shouldProcess = forceProcessing || 
+                bool shouldProcess = forceProcessing ||
                                     (isSpeaking && (DateTime.Now - lastVoiceDetected).TotalMilliseconds > SilenceDurationMs);
                 Console.WriteLine($"[DEBUG] shouldProcess={shouldProcess}, forceProcessing={forceProcessing}, isSpeaking={isSpeaking}, voiceFrameCount={voiceFrameCount}");
                 if (isSpeaking)
@@ -218,7 +218,7 @@ namespace RSTGameTranslation
                     double silenceDuration = (DateTime.Now - lastVoiceDetected).TotalMilliseconds;
                     Console.WriteLine($"[DEBUG] isSpeaking=true, silence={silenceDuration:F0}ms, voiceFrames={voiceFrameCount}, bufferSize={audioBuffer.Count}");
                 }
-                
+
                 if (shouldProcess)
                 {
                     float[] samplesToProcess;
@@ -228,16 +228,16 @@ namespace RSTGameTranslation
                         audioBuffer.Clear();
                         forceProcessing = false;
                     }
-                    
+
                     isSpeaking = false;
 
                     if (samplesToProcess.Length > 0)
                     {
                         Console.WriteLine($"[DEBUG] Processing {samplesToProcess.Length} samples ({samplesToProcess.Length / 16000.0:F1}s audio)");
-                        
+
                         float avgVol = samplesToProcess.Average(x => Math.Abs(x));
                         Console.WriteLine($"[DEBUG] Average volume: {avgVol:F4}");
-                        
+
                         await ProcessAudioAsync(samplesToProcess, onResult);
                     }
                     voiceFrameCount = 0; // Reset
@@ -255,6 +255,46 @@ namespace RSTGameTranslation
             }
         }
 
+        /// <summary>
+        /// Kiểm tra text có bị lặp lại không (ví dụ: "hello hello hello")
+        /// </summary>
+        private bool IsRepetitiveText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+
+            // Split thành các từ
+            string[] words = text.Split(new[] { ' ', ',', '.', '!', '?' },
+                StringSplitOptions.RemoveEmptyEntries);
+
+            if (words.Length < 3) return false; // Quá ngắn, không check
+
+            // Đếm từ lặp lại
+            var wordCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var word in words)
+            {
+                string normalized = word.ToLower().Trim();
+                if (normalized.Length < 2) continue; // Bỏ qua từ quá ngắn
+
+                if (!wordCounts.ContainsKey(normalized))
+                    wordCounts[normalized] = 0;
+                wordCounts[normalized]++;
+            }
+
+            // Kiểm tra nếu có từ nào lặp > 40% tổng số từ
+            int totalWords = words.Length;
+            foreach (var count in wordCounts.Values)
+            {
+                double ratio = (double)count / totalWords;
+                if (ratio > 0.4) // Lặp quá 40%
+                {
+                    Console.WriteLine($"[REPETITION] Word repeats {ratio:P0} of text");
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private async Task ProcessAudioAsync(float[] samples, Action<string, string> onResult)
         {
             try
@@ -262,7 +302,7 @@ namespace RSTGameTranslation
                 await foreach (var result in processor.ProcessAsync(samples))
                 {
                     string originalText = result.Text.Trim();
-                    
+
                     if (string.IsNullOrEmpty(originalText) || originalText.Length < 3)
                     {
                         Console.WriteLine($"[DEBUG] Skipped short/empty result: '{originalText}'");
@@ -277,6 +317,12 @@ namespace RSTGameTranslation
                     if (originalText.Length < 5 || originalText.All(c => c == '.'))
                     {
                         Console.WriteLine($"[DEBUG] Skipped suspicious text: '{originalText}'");
+                        continue;
+                    }
+
+                    if (IsRepetitiveText(originalText))
+                    {
+                        Console.WriteLine($"[DEBUG] Skipped repetitive text: '{originalText}'");
                         continue;
                     }
 

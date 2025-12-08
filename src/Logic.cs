@@ -26,6 +26,13 @@ namespace RSTGameTranslation
         private DateTime _lastOcrRequestTime = DateTime.MinValue;
         private readonly TimeSpan _minOcrInterval = TimeSpan.FromSeconds(0.2);
 
+        private readonly List<string> _audioBatch = new List<string>();
+        private readonly object _audioBatchLock = new object();
+        private System.Threading.Timer? _audioBatchTimer;
+        private const int AudioBatchDelayMs = 500; 
+        private bool _isProcessingAudioBatch = false;
+        private bool _hasNewAudioSinceLastTranslation = false;
+
         private DispatcherTimer _reconnectTimer;
         private string _lastOcrHash = string.Empty;
         private string _lastTextContent = string.Empty;
@@ -1731,30 +1738,211 @@ namespace RSTGameTranslation
             }
         }
 
+        /// <summary>
+        /// Kiểm tra xem text mới có trùng lặp với text gần đây không
+        /// </summary>
+        private bool IsDuplicateAudio(string newText, List<string> recentTexts, int checkLastN = 3)
+        {
+            if (recentTexts.Count == 0) return false;
+            
+            // Normalize text để so sánh
+            string normalizedNew = NormalizeTextForComparison(newText);
+            
+            // Kiểm tra N text gần nhất
+            int checkCount = Math.Min(checkLastN, recentTexts.Count);
+            for (int i = recentTexts.Count - checkCount; i < recentTexts.Count; i++)
+            {
+                string normalizedExisting = NormalizeTextForComparison(recentTexts[i]);
+                
+                // Kiểm tra trùng hoàn toàn
+                if (normalizedNew == normalizedExisting)
+                {
+                    Console.WriteLine($"[DUPLICATE] Exact match: '{newText}'");
+                    return true;
+                }
+                
+                // Kiểm tra similarity cao (>90%)
+                double similarity = CalculateTextSimilarity(normalizedNew, normalizedExisting);
+                if (similarity > 0.9)
+                {
+                    Console.WriteLine($"[DUPLICATE] High similarity ({similarity:P0}): '{newText}' vs '{recentTexts[i]}'");
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Normalize text để so sánh (loại bỏ khoảng trắng thừa, chuyển lowercase)
+        /// </summary>
+        private string NormalizeTextForComparison(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            
+            // Chuyển lowercase, loại bỏ khoảng trắng thừa
+            return System.Text.RegularExpressions.Regex.Replace(
+                text.ToLower().Trim(), 
+                @"\s+", 
+                " "
+            );
+        }
+
+        /// <summary>
+        /// Tính độ tương đồng giữa 2 string (0.0 - 1.0)
+        /// </summary>
+        private double CalculateTextSimilarity(string s1, string s2)
+        {
+            if (s1 == s2) return 1.0;
+            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
+            
+            // Levenshtein distance
+            int maxLen = Math.Max(s1.Length, s2.Length);
+            int distance = LevenshteinDistance(s1, s2);
+            
+            return 1.0 - ((double)distance / maxLen);
+        }
+
+        /// <summary>
+        /// Tính Levenshtein distance
+        /// </summary>
+        private int LevenshteinDistance(string s1, string s2)
+        {
+            int[,] d = new int[s1.Length + 1, s2.Length + 1];
+            
+            for (int i = 0; i <= s1.Length; i++)
+                d[i, 0] = i;
+            for (int j = 0; j <= s2.Length; j++)
+                d[0, j] = j;
+            
+            for (int i = 1; i <= s1.Length; i++)
+            {
+                for (int j = 1; j <= s2.Length; j++)
+                {
+                    int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
+                    d[i, j] = Math.Min(
+                        Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                        d[i - 1, j - 1] + cost
+                    );
+                }
+            }
+            
+            return d[s1.Length, s2.Length];
+        }
+
         public void AddAudioTextObject(string audioText)
         {
             if (string.IsNullOrEmpty(audioText)) return;
             
-            // Xóa tất cả TextObject cũ
-            _textObjects.Clear();
+            lock (_audioBatchLock)
+            {
+                // ===== KIỂM TRA TRÙNG LẶP =====
+                if (IsDuplicateAudio(audioText, _audioBatch, checkLastN: 3))
+                {
+                    Console.WriteLine($"[SKIP] Duplicate audio detected, ignoring: '{audioText}'");
+                    return; // Bỏ qua audio trùng lặp
+                }
+                
+                // Thêm audio vào batch
+                _audioBatch.Add(audioText);
+                Console.WriteLine($"Added audio to batch: '{audioText}'. Batch size: {_audioBatch.Count}");
+                _hasNewAudioSinceLastTranslation = true;
+                // Giới hạn max 10 câu
+                if (_audioBatch.Count >= 5)
+                {
+                    Console.WriteLine("[FORCE] Batch size reached 10, processing immediately");
+                    _audioBatchTimer?.Dispose();
+                    ProcessAudioBatchCallback(null);
+                    return; // Không cần reset timer nữa
+                }
+                
+                // Reset timer - chờ thêm 500ms nữa
+                _audioBatchTimer?.Dispose();
+                _audioBatchTimer = new System.Threading.Timer(
+                    ProcessAudioBatchCallback,
+                    null,
+                    AudioBatchDelayMs,
+                    System.Threading.Timeout.Infinite
+                );
+            }
+        }
+
+        private void ProcessAudioBatchCallback(object? state)
+        {
+            // Chuyển sang UI thread để xử lý
+            Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                await ProcessAudioBatchAsync();
+            });
+        }
+
+        private async Task ProcessAudioBatchAsync()
+        {
+            List<string> batchToProcess;
             
-            // Tạo TextObject mới từ audio
-            var audioTextObject = new TextObject(
-                text: audioText,
-                x: 100,           // Vị trí hiển thị trên màn hình (có thể điều chỉnh)
-                y: 100,
-                width: 800,       // Chiều rộng overlay
-                height: 100,      // Chiều cao
-                textColor: null,  // Dùng màu mặc định từ config
-                backgroundColor: null,
-                captureX: 0,      // Không cần với audio
-                captureY: 0
-            );
+            lock (_audioBatchLock)
+            {
+                if (!_hasNewAudioSinceLastTranslation)
+                {
+                    Console.WriteLine("[SKIP] No new audio since last translation, ignoring timer trigger");
+                    return; // Không có audio mới, bỏ qua
+                }
+                // Kiểm tra nếu đang xử lý hoặc batch rỗng
+                if (_isProcessingAudioBatch || _audioBatch.Count == 0)
+                {
+                    return;
+                }
+                
+                // Đánh dấu đang xử lý
+                _isProcessingAudioBatch = true;
+                
+                // Lấy tất cả audio trong batch
+                batchToProcess = new List<string>(_audioBatch);
+                _audioBatch.Clear();
+                _hasNewAudioSinceLastTranslation = false;
+                
+                Console.WriteLine($"Processing audio batch with {batchToProcess.Count} items");
+            }
             
-            // Thêm vào danh sách
-            _textObjects.Add(audioTextObject);
-            
-            Console.WriteLine($"Added audio text object: {audioText}");
+            try
+            {
+                // Xóa tất cả TextObject cũ
+                _textObjects.Clear();
+                
+                // Gộp tất cả audio thành 1 đoạn với separator
+                string combinedAudio = string.Join(" ", batchToProcess);
+                
+                Console.WriteLine($"Combined audio text: '{combinedAudio}'");
+                
+                // Tạo TextObject mới từ audio đã gộp
+                var audioTextObject = new TextObject(
+                    text: combinedAudio,
+                    x: 100,
+                    y: 100,
+                    width: 800,
+                    height: 100,
+                    textColor: null,
+                    backgroundColor: null,
+                    captureX: 0,
+                    captureY: 0
+                );
+                
+                _textObjects.Add(audioTextObject);
+                
+                // Dịch
+                await TranslateTextObjectsAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing audio batch: {ex.Message}");
+            }
+            finally
+            {
+                lock (_audioBatchLock)
+                {
+                    _isProcessingAudioBatch = false;
+                }
+            }
         }
 
         // Process bitmap directly with Windows OCR (no file saving)
@@ -1956,6 +2144,10 @@ namespace RSTGameTranslation
         {
             try
             {
+                // Cleanup audio batch timer
+                _audioBatchTimer?.Dispose();
+                _audioBatchTimer = null;
+                
                 // Clean up resources
                 Console.WriteLine("Logic finalized");
 
