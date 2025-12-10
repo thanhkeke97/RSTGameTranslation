@@ -22,7 +22,7 @@ namespace RSTGameTranslation
         private WaveFileWriter? debugWriter;
         private WaveFileWriter? debugWriterProcessed;
         public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
-        private byte[]? resampleBuffer;
+        private string _lastTranslatedText = ""; 
         private bool forceProcessing = false;
         private WhisperProcessor? processor;
         private WhisperFactory? factory;
@@ -90,7 +90,7 @@ namespace RSTGameTranslation
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
 
             loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
-            debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
+            // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
             bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
             bufferedProvider.DiscardOnBufferOverflow = true;
 
@@ -102,7 +102,7 @@ namespace RSTGameTranslation
 
             // Setup debug writer for 16k 16bit mono
             var targetFormat = new WaveFormat(16000, 16, 1);
-            debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
+            // debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
 
             loopbackCapture.DataAvailable += OnGameAudioReceived;
             loopbackCapture.StartRecording();
@@ -254,37 +254,32 @@ namespace RSTGameTranslation
             }
         }
 
-        /// <summary>
-        /// Kiểm tra text có bị lặp lại không (ví dụ: "hello hello hello")
-        /// </summary>
+
         private bool IsRepetitiveText(string text)
         {
             if (string.IsNullOrEmpty(text)) return false;
 
-            // Split thành các từ
             string[] words = text.Split(new[] { ' ', ',', '.', '!', '?' },
                 StringSplitOptions.RemoveEmptyEntries);
 
-            if (words.Length < 3) return false; // Quá ngắn, không check
+            if (words.Length < 3) return false; 
 
-            // Đếm từ lặp lại
             var wordCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (var word in words)
             {
                 string normalized = word.ToLower().Trim();
-                if (normalized.Length < 2) continue; // Bỏ qua từ quá ngắn
+                if (normalized.Length < 2) continue;
 
                 if (!wordCounts.ContainsKey(normalized))
                     wordCounts[normalized] = 0;
                 wordCounts[normalized]++;
             }
 
-            // Kiểm tra nếu có từ nào lặp > 40% tổng số từ
             int totalWords = words.Length;
             foreach (var count in wordCounts.Values)
             {
                 double ratio = (double)count / totalWords;
-                if (ratio > 0.4) // Lặp quá 40%
+                if (ratio > 0.4)
                 {
                     Console.WriteLine($"[REPETITION] Word repeats {ratio:P0} of text");
                     return true;
@@ -304,28 +299,31 @@ namespace RSTGameTranslation
 
                     if (string.IsNullOrEmpty(originalText) || originalText.Length < 3)
                     {
-                        Console.WriteLine($"[DEBUG] Skipped short/empty result: '{originalText}'");
                         continue;
                     }
 
                     if (NoisePattern.IsMatch(originalText))
                     {
-                        Console.WriteLine($"[DEBUG] Skipped noise/hallucination: '{originalText}'");
                         continue;
                     }
                     if (originalText.Length < 5 || originalText.All(c => c == '.'))
                     {
-                        Console.WriteLine($"[DEBUG] Skipped suspicious text: '{originalText}'");
                         continue;
                     }
 
+                    string currentNormal = originalText.ToLower().Replace(".", "").Replace("!", "").Replace("?", "").Trim();
+                    string lastNormal = _lastTranslatedText.ToLower().Replace(".", "").Replace("!", "").Replace("?", "").Trim();
+                     if (currentNormal == lastNormal || (lastNormal.Contains(currentNormal) && currentNormal.Length > 5))
+                    {
+                        continue;
+                    }
+                    _lastTranslatedText = originalText;
                     if (IsRepetitiveText(originalText))
                     {
-                        Console.WriteLine($"[DEBUG] Skipped repetitive text: '{originalText}'");
+
                         continue;
                     }
 
-                    Console.WriteLine($"[DEBUG] Whisper result: {originalText}");
 
                     await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                     {
