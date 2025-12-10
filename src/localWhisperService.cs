@@ -30,10 +30,10 @@ namespace RSTGameTranslation
         private readonly object bufferLock = new object();
         private CancellationTokenSource? _cancellationTokenSource;
         private const float SilenceThreshold = 0.005f;
-        private const int SilenceDurationMs = 500;
+        private const int SilenceDurationMs = 700;
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
-        private const int MaxBufferSamples = 16000 * 10;
+        private const int MaxBufferSamples = 16000 * 60;
         private int voiceFrameCount = 0;
         private const int MinVoiceFrames = 1;
         private static readonly System.Text.RegularExpressions.Regex NoisePattern =
@@ -97,6 +97,7 @@ namespace RSTGameTranslation
             // Build pipeline: Buffered -> Sample -> Resample (16k) -> Mono
             var sampleProvider = bufferedProvider.ToSampleProvider();
             var resampler = new WdlResamplingSampleProvider(sampleProvider, 16000);
+            bufferedProvider.BufferDuration = TimeSpan.FromSeconds(60);
             processedProvider = resampler.ToMono();
 
             // Setup debug writer for 16k 16bit mono
@@ -244,7 +245,7 @@ namespace RSTGameTranslation
 
                 try
                 {
-                    await Task.Delay(100, cancellationToken);
+                    await Task.Delay(20, cancellationToken);
                 }
                 catch (TaskCanceledException)
                 {
