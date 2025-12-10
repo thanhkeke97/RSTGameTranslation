@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using Whisper.net;
 using Whisper.net.Ggml;
 using System.Text.Json;
@@ -17,7 +18,9 @@ namespace RSTGameTranslation
     {
         private WasapiLoopbackCapture? loopbackCapture;
         private BufferedWaveProvider? bufferedProvider;
-        private MediaFoundationResampler? resampler;
+        private ISampleProvider? processedProvider;
+        private WaveFileWriter? debugWriter;
+        private WaveFileWriter? debugWriterProcessed;
         public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
         private byte[]? resampleBuffer;
         private bool forceProcessing = false;
@@ -26,11 +29,11 @@ namespace RSTGameTranslation
         private readonly List<float> audioBuffer = new List<float>();
         private readonly object bufferLock = new object();
         private CancellationTokenSource? _cancellationTokenSource;
-        private const float SilenceThreshold = 0.01f;
-        private const int SilenceDurationMs = 200;
+        private const float SilenceThreshold = 0.005f;
+        private const int SilenceDurationMs = 500;
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
-        private const int MaxBufferSamples = 16000 * 5;
+        private const int MaxBufferSamples = 16000 * 10;
         private int voiceFrameCount = 0;
         private const int MinVoiceFrames = 1;
         private static readonly System.Text.RegularExpressions.Regex NoisePattern =
@@ -87,12 +90,18 @@ namespace RSTGameTranslation
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
 
             loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
+            debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
             bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
             bufferedProvider.DiscardOnBufferOverflow = true;
 
+            // Build pipeline: Buffered -> Sample -> Resample (16k) -> Mono
+            var sampleProvider = bufferedProvider.ToSampleProvider();
+            var resampler = new WdlResamplingSampleProvider(sampleProvider, 16000);
+            processedProvider = resampler.ToMono();
+
+            // Setup debug writer for 16k 16bit mono
             var targetFormat = new WaveFormat(16000, 16, 1);
-            resampler = new MediaFoundationResampler(bufferedProvider, targetFormat);
-            resampler.ResamplerQuality = 60;
+            debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
 
             loopbackCapture.DataAvailable += OnGameAudioReceived;
             loopbackCapture.StartRecording();
@@ -104,84 +113,16 @@ namespace RSTGameTranslation
 
         private void OnGameAudioReceived(object? sender, WaveInEventArgs e)
         {
-            Console.WriteLine($"[DEBUG] Audio received: {e.BytesRecorded} bytes");
-            if (e.BytesRecorded == 0)
-            {
-                Console.WriteLine("[WARNING] e.BytesRecorded is 0, skipping");
-                return;
-            }
+            // Console.WriteLine($"[DEBUG] Audio received: {e.BytesRecorded} bytes");
+            if (e.BytesRecorded == 0) return;
+
+            // Write raw debug audio
+            debugWriter?.Write(e.Buffer, 0, e.BytesRecorded);
+
             try
             {
+                // Just add to buffer, let the Loop thread handle processing/resampling
                 bufferedProvider?.AddSamples(e.Buffer, 0, e.BytesRecorded);
-                float testMaxVol = 0;
-                for (int i = 0; i < e.BytesRecorded / 2; i++)
-                {
-                    short sample = BitConverter.ToInt16(e.Buffer, i * 2);
-                    float sampleFloat = Math.Abs(sample / 32768f);
-                    if (sampleFloat > testMaxVol)
-                        testMaxVol = sampleFloat;
-                }
-                Console.WriteLine($"[DEBUG] Input buffer max volume: {testMaxVol:F4}");
-
-                if (resampler != null)
-                {
-                    int estimatedOutputBytes = (e.BytesRecorded / loopbackCapture.WaveFormat.BlockAlign) * 2;
-
-                    if (resampleBuffer == null || resampleBuffer.Length < estimatedOutputBytes)
-                        resampleBuffer = new byte[estimatedOutputBytes * 2];
-
-                    int bytesRead = resampler.Read(resampleBuffer, 0, resampleBuffer.Length);
-                    Console.WriteLine($"[DEBUG] Resampler read {bytesRead} bytes from {resampleBuffer.Length} buffer");
-
-                    if (bytesRead > 0)
-                    {
-
-                        float resampleMaxVol = 0;
-                        for (int i = 0; i < bytesRead / 2; i++)
-                        {
-                            short sample = BitConverter.ToInt16(resampleBuffer, i * 2);
-                            float sampleFloat = Math.Abs(sample / 32768f);
-                            if (sampleFloat > resampleMaxVol)
-                                resampleMaxVol = sampleFloat;
-                        }
-                        Console.WriteLine($"[DEBUG] Resampler output max volume: {resampleMaxVol:F4}");
-                        // Convert byte[] (16kHz) -> float[] cho Whisper
-                        var floatBuffer = new float[bytesRead / 2];
-                        for (int i = 0; i < floatBuffer.Length; i++)
-                        {
-                            short sample = BitConverter.ToInt16(resampleBuffer, i * 2);
-                            floatBuffer[i] = sample / 32768f;
-                        }
-                        float maxVol = floatBuffer.Max(x => Math.Abs(x));
-                        Console.WriteLine($"[DEBUG] Max volume: {maxVol:F4}, Threshold: {SilenceThreshold}");
-                        if (maxVol > SilenceThreshold)
-                        {
-                            lastVoiceDetected = DateTime.Now;
-                            isSpeaking = true;
-                            voiceFrameCount++; // Tăng đếm
-                            Console.WriteLine($"[DEBUG] Voice frame count: {voiceFrameCount}");
-                        }
-                        else
-                        {
-                            if ((DateTime.Now - lastVoiceDetected).TotalMilliseconds > SilenceDurationMs)
-                            {
-                                voiceFrameCount = 0;
-                            }
-                        }
-
-                        lock (bufferLock)
-                        {
-                            audioBuffer.AddRange(floatBuffer);
-                            if (audioBuffer.Count > MaxBufferSamples)
-                            {
-                                Console.WriteLine($"Warning: Audio buffer exceeded {MaxBufferSamples} samples, forcing cut");
-                                forceProcessing = true; // SET CỜ
-                                isSpeaking = false;
-                                lastVoiceDetected = DateTime.Now.AddSeconds(-10);
-                            }
-                        }
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -199,8 +140,15 @@ namespace RSTGameTranslation
             loopbackCapture?.StopRecording();
             loopbackCapture?.Dispose();
             loopbackCapture = null;
+            debugWriter?.Dispose();
+            debugWriter = null;
+            debugWriterProcessed?.Dispose();
+            debugWriterProcessed = null;
+            debugWriterProcessed = null;
             bufferedProvider?.ClearBuffer();
-            resampler?.Dispose();
+            // resampler.Dispose() handled by GC or if we assign it to a field. 
+            // ISampleProvider doesn't need Dispose usually unless it wraps something that does.
+            processedProvider = null;
             processor?.Dispose();
             factory?.Dispose();
             audioBuffer.Clear();
@@ -208,16 +156,71 @@ namespace RSTGameTranslation
 
         private async Task ProcessLoop(Action<string, string> onResult, CancellationToken cancellationToken)
         {
+            float[] readBuffer = new float[8000]; // Max read ~0.5s @ 16kHz
             while (loopbackCapture != null && !cancellationToken.IsCancellationRequested)
             {
+                // 1. Consumer: Read from Resampler & VAD Check
+                if (processedProvider != null && bufferedProvider != null)
+                {
+                    try
+                    {
+                        int samplesRead = processedProvider.Read(readBuffer, 0, readBuffer.Length);
+                        if (samplesRead > 0)
+                        {
+                            var newSamples = new float[samplesRead];
+                            Array.Copy(readBuffer, newSamples, samplesRead);
+
+                            // Debug Writer (Float -> Short)
+                            if (debugWriterProcessed != null)
+                            {
+                                var byteBuffer = new byte[samplesRead * 2];
+                                for (int i = 0; i < samplesRead; i++)
+                                {
+                                    short s = (short)Math.Max(short.MinValue, Math.Min(short.MaxValue, (newSamples[i] * 32768f)));
+                                    BitConverter.GetBytes(s).CopyTo(byteBuffer, i * 2);
+                                }
+                                debugWriterProcessed.Write(byteBuffer, 0, byteBuffer.Length);
+                            }
+
+                            // VAD Logic
+                            float maxVol = newSamples.Max(x => Math.Abs(x));
+                            if (maxVol > SilenceThreshold)
+                            {
+                                lastVoiceDetected = DateTime.Now;
+                                isSpeaking = true;
+                                voiceFrameCount++;
+                            }
+                            else
+                            {
+                                if ((DateTime.Now - lastVoiceDetected).TotalMilliseconds > SilenceDurationMs)
+                                {
+                                    voiceFrameCount = 0;
+                                }
+                            }
+
+                            // Buffer Accumulation
+                            lock (bufferLock)
+                            {
+                                audioBuffer.AddRange(newSamples);
+                                if (audioBuffer.Count > MaxBufferSamples)
+                                {
+                                    Console.WriteLine($"Warning: Audio buffer exceeded {MaxBufferSamples} samples, forcing cut");
+                                    forceProcessing = true;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error reading audio pipe: {ex.Message}");
+                    }
+                }
+
+                // 2. Processing Logic
                 bool shouldProcess = forceProcessing ||
                                     (isSpeaking && (DateTime.Now - lastVoiceDetected).TotalMilliseconds > SilenceDurationMs);
-                Console.WriteLine($"[DEBUG] shouldProcess={shouldProcess}, forceProcessing={forceProcessing}, isSpeaking={isSpeaking}, voiceFrameCount={voiceFrameCount}");
-                if (isSpeaking)
-                {
-                    double silenceDuration = (DateTime.Now - lastVoiceDetected).TotalMilliseconds;
-                    Console.WriteLine($"[DEBUG] isSpeaking=true, silence={silenceDuration:F0}ms, voiceFrames={voiceFrameCount}, bufferSize={audioBuffer.Count}");
-                }
+
+                // if (isSpeaking) Console.WriteLine($"[DEBUG] Speaking... Buf: {audioBuffer.Count}");
 
                 if (shouldProcess)
                 {
@@ -229,18 +232,14 @@ namespace RSTGameTranslation
                         forceProcessing = false;
                     }
 
-                    isSpeaking = false;
+                    isSpeaking = false; // Reset VAD state
 
                     if (samplesToProcess.Length > 0)
                     {
                         Console.WriteLine($"[DEBUG] Processing {samplesToProcess.Length} samples ({samplesToProcess.Length / 16000.0:F1}s audio)");
-
-                        float avgVol = samplesToProcess.Average(x => Math.Abs(x));
-                        Console.WriteLine($"[DEBUG] Average volume: {avgVol:F4}");
-
                         await ProcessAudioAsync(samplesToProcess, onResult);
                     }
-                    voiceFrameCount = 0; // Reset
+                    voiceFrameCount = 0;
                 }
 
                 try
@@ -249,7 +248,6 @@ namespace RSTGameTranslation
                 }
                 catch (TaskCanceledException)
                 {
-                    // Expected when stopping
                     break;
                 }
             }
