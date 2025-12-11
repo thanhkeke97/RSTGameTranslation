@@ -30,11 +30,11 @@ namespace RSTGameTranslation
         private readonly List<float> audioBuffer = new List<float>();
         private readonly object bufferLock = new object();
         private CancellationTokenSource? _cancellationTokenSource;
-        private const float SilenceThreshold = 0.005f;
-        private const int SilenceDurationMs = 700;
+        private const float SilenceThreshold = 0.01f;
+        private const int SilenceDurationMs = 500;
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
-        private const int MaxBufferSamples = 16000 * 60;
+        private const int MaxBufferSamples = 16000 * 5;
         private int voiceFrameCount = 0;
         private const int MinVoiceFrames = 1;
         private static readonly System.Text.RegularExpressions.Regex NoisePattern =
@@ -61,7 +61,7 @@ namespace RSTGameTranslation
         {
             Stop();
 
-            string modelPath = "ggml-small-q5_1.bin";
+            string modelPath = "ggml-base.bin";
             // if (!File.Exists(modelPath))
             // {
             //     using var httpClient = new System.Net.Http.HttpClient();
@@ -91,7 +91,7 @@ namespace RSTGameTranslation
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
 
             loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
-            debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
+            // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
             bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
             bufferedProvider.DiscardOnBufferOverflow = true;
 
@@ -103,7 +103,7 @@ namespace RSTGameTranslation
 
             // Setup debug writer for 16k 16bit mono
             var targetFormat = new WaveFormat(16000, 16, 1);
-            debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
+            // debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
 
             loopbackCapture.DataAvailable += OnGameAudioReceived;
             loopbackCapture.StartRecording();
