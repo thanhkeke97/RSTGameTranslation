@@ -21,6 +21,7 @@ namespace RSTGameTranslation
         private ISampleProvider? processedProvider;
         private WaveFileWriter? debugWriter;
         private WaveFileWriter? debugWriterProcessed;
+        int minBytesToProcess = 192000;
         public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
         private string _lastTranslatedText = ""; 
         private bool forceProcessing = false;
@@ -90,7 +91,7 @@ namespace RSTGameTranslation
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
 
             loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
-            // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
+            debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
             bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
             bufferedProvider.DiscardOnBufferOverflow = true;
 
@@ -102,7 +103,7 @@ namespace RSTGameTranslation
 
             // Setup debug writer for 16k 16bit mono
             var targetFormat = new WaveFormat(16000, 16, 1);
-            // debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
+            debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
 
             loopbackCapture.DataAvailable += OnGameAudioReceived;
             loopbackCapture.StartRecording();
@@ -161,7 +162,7 @@ namespace RSTGameTranslation
             while (loopbackCapture != null && !cancellationToken.IsCancellationRequested)
             {
                 // 1. Consumer: Read from Resampler & VAD Check
-                if (processedProvider != null && bufferedProvider != null)
+                if (processedProvider != null && bufferedProvider != null && bufferedProvider.BufferedBytes > minBytesToProcess)
                 {
                     try
                     {
