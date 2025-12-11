@@ -2546,7 +2546,7 @@ namespace RSTGameTranslation
         }
         public void SetLanguageFontSizeMin(double fontSize)
         {
-            _configValues[LANGUAGE_FONT_SIZE_MIN] = fontSize.ToString();
+            _configValues[LANGUAGE_FONT_SIZE_MIN] = fontSize.ToString(CultureInfo.InvariantCulture);
             SaveConfig();
         }
 
@@ -2562,7 +2562,7 @@ namespace RSTGameTranslation
         }
         public void SetLanguageFontSizeMax(double fontSize)
         {
-            _configValues[LANGUAGE_FONT_SIZE_MAX] = fontSize.ToString();
+            _configValues[LANGUAGE_FONT_SIZE_MAX] = fontSize.ToString(CultureInfo.InvariantCulture);
             SaveConfig();
         }
 
