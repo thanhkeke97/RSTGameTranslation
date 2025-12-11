@@ -11,6 +11,7 @@ using Colors = System.Windows.Media.Colors;
 using FontFamily = System.Windows.Media.FontFamily;
 using Brushes = System.Windows.Media.Brushes;
 using MessageBox = System.Windows.MessageBox;
+using System.Globalization;
 
 namespace RSTGameTranslation
 {
@@ -23,7 +24,7 @@ namespace RSTGameTranslation
         private bool _originalFontOverrideEnabled;
         private double _originalFontSizeMin;
         private double _originalFontSizeMax;
-        
+
         // Store current values for apply operation
         private Color _currentBackgroundColor;
         private Color _currentTextColor;
@@ -31,7 +32,7 @@ namespace RSTGameTranslation
         private bool _currentFontOverrideEnabled;
         private double _currentFontSizeMin;
         private double _currentFontSizeMax;
-        
+
         // Default values
         private readonly Color DEFAULT_BACKGROUND_COLOR = Color.FromArgb(128, 0, 0, 0); // Dark background
         private readonly Color DEFAULT_TEXT_COLOR = Colors.White;
@@ -43,14 +44,14 @@ namespace RSTGameTranslation
         public OverlayOptionsWindow()
         {
             InitializeComponent();
-            
+
             // Load font settings
             LoadFontSettings();
 
             // Load current settings from config
             LoadCurrentSettings();
 
-            
+
             // Update UI with loaded settings
             UpdateUIFromSettings();
         }
@@ -103,7 +104,7 @@ namespace RSTGameTranslation
                 // Update background color
                 backgroundColorButton.Background = new SolidColorBrush(_currentBackgroundColor);
                 backgroundColorText.Text = ColorToHexString(_currentBackgroundColor);
-                
+
                 // Update text color
                 textColorButton.Background = new SolidColorBrush(_currentTextColor);
                 textColorText.Text = ColorToHexString(_currentTextColor);
@@ -115,10 +116,10 @@ namespace RSTGameTranslation
                 languageFontOverrideCheckBox.IsChecked = _currentFontOverrideEnabled;
 
                 // Update font size min
-                languageFontSizeMinTextBox.Text = _currentFontSizeMin.ToString();
+                languageFontSizeMinTextBox.Text = _currentFontSizeMin.ToString(CultureInfo.InvariantCulture);
 
                 // Update font size max
-                languageFontSizeMaxTextBox.Text = _currentFontSizeMax.ToString();
+                languageFontSizeMaxTextBox.Text = _currentFontSizeMax.ToString(CultureInfo.InvariantCulture);
             }
             catch (Exception ex)
             {
@@ -135,45 +136,45 @@ namespace RSTGameTranslation
         {
             // Create color dialog
             var colorDialog = new ColorDialog();
-            
+
             // Set the initial color (ignore alpha, we handle that separately)
             colorDialog.Color = System.Drawing.Color.FromArgb(
-                255, 
-                _currentBackgroundColor.R, 
-                _currentBackgroundColor.G, 
+                255,
+                _currentBackgroundColor.R,
+                _currentBackgroundColor.G,
                 _currentBackgroundColor.B);
-            
+
             // Show dialog
             if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 // Get selected color
                 _currentBackgroundColor = Color.FromArgb(
-                    255, 
+                    255,
                     colorDialog.Color.R,
                     colorDialog.Color.G,
                     colorDialog.Color.B);
-                
+
                 // Update UI
                 backgroundColorButton.Background = new SolidColorBrush(_currentBackgroundColor);
-                backgroundColorText.Text = ColorToHexString(Color.FromArgb(255, _currentBackgroundColor.R, 
-                                                                   _currentBackgroundColor.G, 
+                backgroundColorText.Text = ColorToHexString(Color.FromArgb(255, _currentBackgroundColor.R,
+                                                                   _currentBackgroundColor.G,
                                                                    _currentBackgroundColor.B));
             }
         }
-        
+
 
         private void TextColorButton_Click(object sender, RoutedEventArgs e)
         {
             // Create color dialog
             var colorDialog = new ColorDialog();
-            
+
             // Set the initial color
             colorDialog.Color = System.Drawing.Color.FromArgb(
-                _currentTextColor.A, 
-                _currentTextColor.R, 
-                _currentTextColor.G, 
+                _currentTextColor.A,
+                _currentTextColor.R,
+                _currentTextColor.G,
                 _currentTextColor.B);
-            
+
             // Show dialog
             if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -183,7 +184,7 @@ namespace RSTGameTranslation
                     colorDialog.Color.R,
                     colorDialog.Color.G,
                     colorDialog.Color.B);
-                
+
                 // Update UI
                 textColorButton.Background = new SolidColorBrush(_currentTextColor);
                 textColorText.Text = ColorToHexString(_currentTextColor);
@@ -195,8 +196,8 @@ namespace RSTGameTranslation
             try
             {
                 // Validate font sizes
-                if (!double.TryParse(languageFontSizeMinTextBox.Text, out double minSize) ||
-                    !double.TryParse(languageFontSizeMaxTextBox.Text, out double maxSize))
+                if (!double.TryParse(languageFontSizeMinTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out double minSize) ||
+                    !double.TryParse(languageFontSizeMaxTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out double maxSize))
                 {
                     MessageBox.Show("Font sizes must be valid numbers.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -221,10 +222,10 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_FAMILY, languageFontFamilyComboBox.Text);
                 ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_OVERRIDE,
                     languageFontOverrideCheckBox.IsChecked == true ? "true" : "false");
-                
+
                 // Save validated font sizes
-                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_SIZE_MIN, minSize.ToString());
-                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_SIZE_MAX, maxSize.ToString());
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_SIZE_MIN, minSize.ToString(CultureInfo.InvariantCulture));
+                ConfigManager.Instance.SetValue(ConfigManager.LANGUAGE_FONT_SIZE_MAX, maxSize.ToString(CultureInfo.InvariantCulture));
 
                 // Save config to file
                 ConfigManager.Instance.SaveConfig();
@@ -232,7 +233,7 @@ namespace RSTGameTranslation
                 var currentTexts = Logic.Instance.GetTextObjects();
                 foreach (var textObj in currentTexts)
                 {
-                    textObj.UpdateUIElement(); 
+                    textObj.UpdateUIElement();
                 }
                 MonitorWindow.Instance.RefreshOverlays();
 
@@ -253,17 +254,17 @@ namespace RSTGameTranslation
             this.DialogResult = false;
             this.Close();
         }
-        
+
         private void DefaultsButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 // Reset to default values
                 SetDefaultValues();
-                
+
                 // Update UI with default values
                 UpdateUIFromSettings();
-                
+
                 // Create flash animation for visual feedback
                 CreateFlashAnimation(defaultsButton);
             }
@@ -279,38 +280,38 @@ namespace RSTGameTranslation
             {
                 // Get all font families
                 var fontFamilies = Fonts.SystemFontFamilies.OrderBy(f => f.Source);
-                
+
                 // Populate language font combo box
                 if (languageFontFamilyComboBox != null)
                 {
                     languageFontFamilyComboBox.ItemsSource = fontFamilies;
                     languageFontFamilyComboBox.DisplayMemberPath = "Source";
                 }
-                
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error populating font family combo boxes: {ex.Message}");
             }
         }
-        
+
         private void CreateFlashAnimation(System.Windows.Controls.Button button)
         {
             try
             {
                 // Get the current background brush
                 SolidColorBrush? currentBrush = button.Background as SolidColorBrush;
-                
+
                 if (currentBrush != null)
                 {
                     // Need to freeze the original brush to animate its clone
                     currentBrush = currentBrush.Clone();
                     Color originalColor = currentBrush.Color;
-                    
+
                     // Create a new brush for animation
                     SolidColorBrush animBrush = new SolidColorBrush(originalColor);
                     button.Background = animBrush;
-                    
+
                     // Create color animation for the brush's Color property
                     var animation = new ColorAnimation
                     {
@@ -320,7 +321,7 @@ namespace RSTGameTranslation
                         AutoReverse = true,
                         FillBehavior = FillBehavior.Stop // Stop the animation when complete
                     };
-                    
+
                     // Apply the animation to the brush's Color property
                     animBrush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
                 }

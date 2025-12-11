@@ -26,6 +26,13 @@ namespace RSTGameTranslation
         private DateTime _lastOcrRequestTime = DateTime.MinValue;
         private readonly TimeSpan _minOcrInterval = TimeSpan.FromSeconds(0.2);
 
+        private readonly List<string> _audioBatch = new List<string>();
+        private readonly object _audioBatchLock = new object();
+        private System.Threading.Timer? _audioBatchTimer;
+        private const int AudioBatchDelayMs = 500; 
+        private bool _isProcessingAudioBatch = false;
+        private bool _hasNewAudioSinceLastTranslation = false;
+
         private DispatcherTimer _reconnectTimer;
         private string _lastOcrHash = string.Empty;
         private string _lastTextContent = string.Empty;
@@ -1731,6 +1738,188 @@ namespace RSTGameTranslation
             }
         }
 
+        private bool IsDuplicateAudio(string newText, List<string> recentTexts, int checkLastN = 3)
+        {
+            if (recentTexts.Count == 0) return false;
+            
+            string normalizedNew = NormalizeTextForComparison(newText);
+            
+            int checkCount = Math.Min(checkLastN, recentTexts.Count);
+            for (int i = recentTexts.Count - checkCount; i < recentTexts.Count; i++)
+            {
+                string normalizedExisting = NormalizeTextForComparison(recentTexts[i]);
+                
+                if (normalizedNew == normalizedExisting)
+                {
+                    Console.WriteLine($"[DUPLICATE] Exact match: '{newText}'");
+                    return true;
+                }
+                
+                double similarity = CalculateTextSimilarity(normalizedNew, normalizedExisting);
+                if (similarity > 0.9)
+                {
+                    Console.WriteLine($"[DUPLICATE] High similarity ({similarity:P0}): '{newText}' vs '{recentTexts[i]}'");
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        private string NormalizeTextForComparison(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            
+            return System.Text.RegularExpressions.Regex.Replace(
+                text.ToLower().Trim(), 
+                @"\s+", 
+                " "
+            );
+        }
+
+        private double CalculateTextSimilarity(string s1, string s2)
+        {
+            if (s1 == s2) return 1.0;
+            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
+            
+            // Levenshtein distance
+            int maxLen = Math.Max(s1.Length, s2.Length);
+            int distance = LevenshteinDistance(s1, s2);
+            
+            return 1.0 - ((double)distance / maxLen);
+        }
+
+        private int LevenshteinDistance(string s1, string s2)
+        {
+            int[,] d = new int[s1.Length + 1, s2.Length + 1];
+            
+            for (int i = 0; i <= s1.Length; i++)
+                d[i, 0] = i;
+            for (int j = 0; j <= s2.Length; j++)
+                d[0, j] = j;
+            
+            for (int i = 1; i <= s1.Length; i++)
+            {
+                for (int j = 1; j <= s2.Length; j++)
+                {
+                    int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
+                    d[i, j] = Math.Min(
+                        Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                        d[i - 1, j - 1] + cost
+                    );
+                }
+            }
+            
+            return d[s1.Length, s2.Length];
+        }
+
+        public void AddAudioTextObject(string audioText)
+        {
+            if (string.IsNullOrEmpty(audioText)) return;
+            
+            lock (_audioBatchLock)
+            {
+              
+                if (IsDuplicateAudio(audioText, _audioBatch, checkLastN: 3))
+                {
+                    Console.WriteLine($"[SKIP] Duplicate audio detected, ignoring: '{audioText}'");
+                    return;
+                }
+                
+
+                _audioBatch.Add(audioText);
+                Console.WriteLine($"Added audio to batch: '{audioText}'. Batch size: {_audioBatch.Count}");
+                _hasNewAudioSinceLastTranslation = true;
+
+                if (_audioBatch.Count >= 5)
+                {
+                    Console.WriteLine("[FORCE] Batch size reached 10, processing immediately");
+                    _audioBatchTimer?.Dispose();
+                    ProcessAudioBatchCallback(null);
+                    return; 
+                }
+                
+                _audioBatchTimer?.Dispose();
+                _audioBatchTimer = new System.Threading.Timer(
+                    ProcessAudioBatchCallback,
+                    null,
+                    AudioBatchDelayMs,
+                    System.Threading.Timeout.Infinite
+                );
+            }
+        }
+
+        private void ProcessAudioBatchCallback(object? state)
+        {
+            Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                await ProcessAudioBatchAsync();
+            });
+        }
+
+        private async Task ProcessAudioBatchAsync()
+        {
+            List<string> batchToProcess;
+            
+            lock (_audioBatchLock)
+            {
+                if (!_hasNewAudioSinceLastTranslation)
+                {
+                    Console.WriteLine("[SKIP] No new audio since last translation, ignoring timer trigger");
+                    return; 
+                }
+                
+                if (_isProcessingAudioBatch || _audioBatch.Count == 0)
+                {
+                    return;
+                }
+                
+                _isProcessingAudioBatch = true;
+                
+                batchToProcess = new List<string>(_audioBatch);
+                _audioBatch.Clear();
+                _hasNewAudioSinceLastTranslation = false;
+                
+                Console.WriteLine($"Processing audio batch with {batchToProcess.Count} items");
+            }
+            
+            try
+            {
+                _textObjects.Clear();
+                
+                string combinedAudio = string.Join(" ", batchToProcess);
+                
+                Console.WriteLine($"Combined audio text: '{combinedAudio}'");
+                
+                var audioTextObject = new TextObject(
+                    text: combinedAudio,
+                    x: 100,
+                    y: 100,
+                    width: 800,
+                    height: 100,
+                    textColor: null,
+                    backgroundColor: null,
+                    captureX: 0,
+                    captureY: 0
+                );
+                
+                _textObjects.Add(audioTextObject);
+                
+                await TranslateTextObjectsAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing audio batch: {ex.Message}");
+            }
+            finally
+            {
+                lock (_audioBatchLock)
+                {
+                    _isProcessingAudioBatch = false;
+                }
+            }
+        }
+
         // Process bitmap directly with Windows OCR (no file saving)
         public async void ProcessWithOneOCR(System.Drawing.Bitmap bitmap, string sourceLanguage)
         {
@@ -1930,6 +2119,10 @@ namespace RSTGameTranslation
         {
             try
             {
+                // Cleanup audio batch timer
+                _audioBatchTimer?.Dispose();
+                _audioBatchTimer = null;
+                
                 // Clean up resources
                 Console.WriteLine("Logic finalized");
 

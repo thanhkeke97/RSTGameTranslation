@@ -15,6 +15,7 @@ using System.Collections.ObjectModel;
 using ComboBox = System.Windows.Controls.ComboBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using MessageBox = System.Windows.MessageBox;
+using System.Globalization;
 using System.Windows.Forms;
 using System.Windows.Interop;
 using Windows.Media.SpeechSynthesis;
@@ -27,7 +28,7 @@ namespace RSTGameTranslation
     {
         public string Phrase { get; set; } = string.Empty;
         public bool ExactMatch { get; set; } = true;
-        
+
         public IgnorePhrase(string phrase, bool exactMatch)
         {
             Phrase = phrase;
@@ -65,6 +66,7 @@ namespace RSTGameTranslation
             _instance = this;
             LoadAvailableScreens();
             LoadAllProfile();
+            LoadAllAudioProcessingModel();
             LoadAvailableWindowTTSVoice();
 
             // Add Loaded event handler to ensure controls are initialized
@@ -85,6 +87,7 @@ namespace RSTGameTranslation
             _instance = this;
             LoadAvailableScreens();
             LoadAllProfile();
+            // LoadAllAudioProcessingModel();
             LoadAvailableWindowTTSVoice();
             SettingsWindow_Loaded(null, null);
         }
@@ -349,7 +352,7 @@ namespace RSTGameTranslation
 
                     // Get friendly display name
                     string displayName = GetFriendlyScreenName(screen.DeviceName);
-                    
+
                     // Create display info
                     string screenInfo = $"{displayName} ({width} x {height})";
                     if (screen.Primary)
@@ -366,7 +369,7 @@ namespace RSTGameTranslation
 
 
                     screenComboBox.Items.Add(item);
-                    
+
                     Console.WriteLine($"Screen {i}: {displayName}, {width}x{height}, Primary: {screen.Primary}");
                 }
 
@@ -401,13 +404,13 @@ namespace RSTGameTranslation
             {
                 // Extract the device name from the full path (e.g., \\.\DISPLAY1)
                 string shortDeviceName = deviceName.Substring(deviceName.LastIndexOf('\\') + 1);
-                
+
                 // Try multiple methods to get the friendly name
-                
+
                 // Method 1: Using EnumDisplayDevices with the device name
                 DISPLAY_DEVICE displayDevice = new DISPLAY_DEVICE();
                 displayDevice.cb = Marshal.SizeOf(displayDevice);
-                
+
                 if (EnumDisplayDevices(deviceName, 0, ref displayDevice, 0))
                 {
                     if (!string.IsNullOrEmpty(displayDevice.DeviceString))
@@ -415,11 +418,11 @@ namespace RSTGameTranslation
                         return $"{shortDeviceName} - {displayDevice.DeviceString}";
                     }
                 }
-                
+
                 uint deviceIndex = 0;
                 DISPLAY_DEVICE device = new DISPLAY_DEVICE();
                 device.cb = Marshal.SizeOf(device);
-                
+
                 while (EnumDisplayDevices(null, deviceIndex, ref device, 0))
                 {
                     if (device.DeviceName.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
@@ -430,12 +433,12 @@ namespace RSTGameTranslation
                         }
                         break;
                     }
-                    
+
                     // Try to get monitor info for this adapter
                     DISPLAY_DEVICE monitor = new DISPLAY_DEVICE();
                     monitor.cb = Marshal.SizeOf(monitor);
                     uint monitorIndex = 0;
-                    
+
                     while (EnumDisplayDevices(device.DeviceName, monitorIndex, ref monitor, 0))
                     {
                         if (monitor.DeviceName.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
@@ -449,12 +452,12 @@ namespace RSTGameTranslation
                         monitorIndex++;
                         monitor.cb = Marshal.SizeOf(monitor);
                     }
-                    
+
                     deviceIndex++;
                     device.cb = Marshal.SizeOf(device);
                 }
-                
-              
+
+
                 try
                 {
                     using (var searcher = new System.Management.ManagementObjectSearcher("SELECT * FROM Win32_DesktopMonitor"))
@@ -464,7 +467,7 @@ namespace RSTGameTranslation
                             string monitorName = monitor["Name"]?.ToString() ?? "";
                             string monitorDeviceId = monitor["DeviceID"]?.ToString() ?? "";
                             string monitorDescription = monitor["Description"]?.ToString() ?? "";
-                            
+
                             if (!string.IsNullOrEmpty(monitorName) && monitorName != "Default Monitor")
                             {
                                 return $"{shortDeviceName} - {monitorName}";
@@ -480,7 +483,7 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Error getting monitor name via WMI: {ex.Message}");
                 }
-                
+
                 // Fallback to just the device name if we couldn't get the friendly name
                 return shortDeviceName;
             }
@@ -609,10 +612,10 @@ namespace RSTGameTranslation
             {
                 // Get current service type
                 string serviceType = ConfigManager.Instance.GetCurrentTranslationService();
-                
+
                 // Get the corresponding PasswordBox
                 PasswordBox? passwordBox = null;
-                
+
                 switch (serviceType)
                 {
                     case "Gemini":
@@ -631,21 +634,21 @@ namespace RSTGameTranslation
                         passwordBox = customApiKeyPasswordBox;
                         break;
                 }
-                
+
                 if (passwordBox != null)
                 {
                     string apiKey = passwordBox.Password.Trim();
-                    
+
                     if (!string.IsNullOrEmpty(apiKey))
                     {
                         // add Api key to list
                         ConfigManager.Instance.AddApiKey(serviceType, apiKey);
-                        
+
                         // Delete content in textbox
                         passwordBox.Password = "";
-                        
+
                         Console.WriteLine($"Added new API key for {serviceType}");
-                        
+
                         MessageBox.Show(
                             string.Format(LocalizationManager.Instance.Strings["Msg_ApiKeyAdded"], serviceType),
                             LocalizationManager.Instance.Strings["Title_ApiKeyAdded"],
@@ -830,8 +833,8 @@ namespace RSTGameTranslation
             minChatBoxTextSizeTextBox.Text = ConfigManager.Instance.GetChatBoxMinTextSize().ToString();
             gameInfoTextBox.Text = ConfigManager.Instance.GetGameInfo();
             minTextFragmentSizeTextBox.Text = ConfigManager.Instance.GetMinTextFragmentSize().ToString();
-            minLetterConfidenceTextBox.Text = ConfigManager.Instance.GetMinLetterConfidence().ToString();
-            minLineConfidenceTextBox.Text = ConfigManager.Instance.GetMinLineConfidence().ToString();
+            minLetterConfidenceTextBox.Text = ConfigManager.Instance.GetMinLetterConfidence().ToString(CultureInfo.InvariantCulture);
+            minLineConfidenceTextBox.Text = ConfigManager.Instance.GetMinLineConfidence().ToString(CultureInfo.InvariantCulture);
 
             // Reattach focus event handlers
             maxContextPiecesTextBox.LostFocus += MaxContextPiecesTextBox_LostFocus;
@@ -893,7 +896,7 @@ namespace RSTGameTranslation
             targetLanguageComboBox.SelectionChanged += TargetLanguageComboBox_SelectionChanged;
 
             // Set text similar threshold from config
-            textSimilarThresholdTextBox.Text = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
+            textSimilarThresholdTextBox.Text = ConfigManager.Instance.GetTextSimilarThreshold().ToString(CultureInfo.InvariantCulture);
 
             // Set char level from config
             charLevelCheckBox.IsChecked = ConfigManager.Instance.IsCharLevelEnabled();
@@ -912,6 +915,30 @@ namespace RSTGameTranslation
 
             // Set hot key enable
             hotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsHotKeyEnabled();
+
+            audioProcessingModelComboBox.SelectionChanged -= AudioProcessingModelComboBox_SelectionChanged;
+
+            // Set audio processing model
+            foreach (var item in audioProcessingModelComboBox.Items)
+            {
+                string itemText = "";
+                if (item is ComboBoxItem cbItem)
+                {
+                    itemText = cbItem.Content?.ToString() ?? "";
+                }
+                else
+                {
+                    itemText = item.ToString() ?? "";
+                }
+                if (string.Equals(itemText.Trim(), ConfigManager.Instance.GetAudioProcessingModel(), StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"Found matching audio processing model: '{itemText}'");
+                    audioProcessingModelComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            audioProcessingModelComboBox.SelectionChanged += AudioProcessingModelComboBox_SelectionChanged;
 
             // Set manga mode
             // MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
@@ -963,8 +990,8 @@ namespace RSTGameTranslation
             settleTimeTextBox.LostFocus -= SettleTimeTextBox_LostFocus;
 
 
-            blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString("F2");
-            settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2");
+            blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString("F2", CultureInfo.InvariantCulture);
+            settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2", CultureInfo.InvariantCulture);
 
             Console.WriteLine($"SettingsWindow: Loaded block detection power: {blockDetectionPowerTextBox.Text}");
             Console.WriteLine($"SettingsWindow: Loaded settle time: {settleTimeTextBox.Text}");
@@ -1097,7 +1124,7 @@ namespace RSTGameTranslation
 
             // Audio Processing settings
             audioProcessingProviderComboBox.SelectedIndex = 0; // Only one for now
-            openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
+            // openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
             // Load Auto-translate for audio service
             audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
         }
@@ -1472,7 +1499,7 @@ namespace RSTGameTranslation
             }
 
             // Update BlockDetectionManager if applicable
-            if (float.TryParse(blockDetectionPowerTextBox.Text, out float power))
+            if (float.TryParse(blockDetectionPowerTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out float power))
             {
                 // Note: SetBlockDetectionScale will save to config
                 BlockDetectionManager.Instance.SetBlockDetectionScale(power);
@@ -1482,7 +1509,7 @@ namespace RSTGameTranslation
             else
             {
                 // If text is invalid, reset to the current value from BlockDetectionManager
-                blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString("F2");
+                blockDetectionPowerTextBox.Text = BlockDetectionManager.Instance.GetBlockDetectionScale().ToString("F2", CultureInfo.InvariantCulture);
             }
         }
 
@@ -1495,7 +1522,7 @@ namespace RSTGameTranslation
             }
 
             // Update settle time in ConfigManager
-            if (float.TryParse(settleTimeTextBox.Text, out float settleTime) && settleTime >= 0)
+            if (float.TryParse(settleTimeTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out float settleTime) && settleTime >= 0)
             {
                 ConfigManager.Instance.SetBlockDetectionSettleTime(settleTime);
                 Console.WriteLine($"Block detection settle time set to: {settleTime:F2} seconds");
@@ -1506,7 +1533,7 @@ namespace RSTGameTranslation
             else
             {
                 // If text is invalid, reset to the current value from ConfigManager
-                settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2");
+                settleTimeTextBox.Text = ConfigManager.Instance.GetBlockDetectionSettleTime().ToString("F2", CultureInfo.InvariantCulture);
             }
         }
 
@@ -2251,7 +2278,7 @@ namespace RSTGameTranslation
                 Logic.Instance.ClearAllTextObjects();
             }
         }
-        
+
         // LM Studio Model changed
         private void LMStudioModelTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -2594,6 +2621,57 @@ namespace RSTGameTranslation
             }
         }
 
+        private void AudioProcessingModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                if (localWhisperService.Instance.IsRunning)
+                {
+                   MessageBoxResult result = MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_WhisperServiceRunning"],
+                        LocalizationManager.Instance.Strings["Title_Confirm"],
+                        MessageBoxButton.OKCancel,
+                        MessageBoxImage.Warning
+                    );
+                    if (result == MessageBoxResult.Cancel)
+                    {
+                        if (e.RemovedItems.Count > 0)
+                        {
+                            _isInitializing = true; 
+                            
+                            audioProcessingModelComboBox.SelectedItem = e.RemovedItems[0];
+                            
+                            _isInitializing = false;
+                        }
+                        return;
+                    }
+                    else
+                    {
+                        localWhisperService.Instance.Stop();
+                        audioServiceAutoTranslateCheckBox.IsChecked = false;
+                    }
+                }
+
+                string model = (audioProcessingModelComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
+                               ?? audioProcessingModelComboBox.SelectedItem?.ToString()
+                               ?? "ggml-base";
+
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetAudioProcessingModel(model);
+                    Console.WriteLine($"Audio processing model set from text input to: {model}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating audio processing model from text input: {ex.Message}");
+            }
+        }
         private void CustomApiModelTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -3081,7 +3159,7 @@ namespace RSTGameTranslation
                     return;
 
                 // Get last threshold value from config
-                string lastThreshold = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
+                string lastThreshold = ConfigManager.Instance.GetTextSimilarThreshold().ToString(CultureInfo.InvariantCulture);
 
                 // Validate input is a valid number
                 if (!double.TryParse(textSimilarThresholdTextBox.Text, System.Globalization.CultureInfo.InvariantCulture, out double similarThreshold))
@@ -3116,7 +3194,7 @@ namespace RSTGameTranslation
                 }
 
                 // If we get here, the value is valid, so save it
-                ConfigManager.Instance.SetTextSimilarThreshold(similarThreshold.ToString());
+                ConfigManager.Instance.SetTextSimilarThreshold(similarThreshold.ToString(CultureInfo.InvariantCulture));
                 Console.WriteLine($"Text similar threshold updated to: {similarThreshold}");
             }
             catch (Exception ex)
@@ -3124,7 +3202,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating text similar threshold: {ex}");
 
                 // Restore last known good value in case of any error
-                textSimilarThresholdTextBox.Text = Convert.ToString(ConfigManager.Instance.GetTextSimilarThreshold());
+                textSimilarThresholdTextBox.Text = ConfigManager.Instance.GetTextSimilarThreshold().ToString(CultureInfo.InvariantCulture);
             }
         }
 
@@ -3136,7 +3214,7 @@ namespace RSTGameTranslation
                 if (_isInitializing)
                     return;
 
-                if (double.TryParse(minLetterConfidenceTextBox.Text, out double confidence) && confidence >= 0 && confidence <= 1)
+                if (double.TryParse(minLetterConfidenceTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out double confidence) && confidence >= 0 && confidence <= 1)
                 {
                     ConfigManager.Instance.SetMinLetterConfidence(confidence);
                     Console.WriteLine($"Minimum letter confidence set to: {confidence}");
@@ -3147,7 +3225,7 @@ namespace RSTGameTranslation
                 else
                 {
                     // Reset to current value from config if invalid
-                    minLetterConfidenceTextBox.Text = ConfigManager.Instance.GetMinLetterConfidence().ToString();
+                    minLetterConfidenceTextBox.Text = ConfigManager.Instance.GetMinLetterConfidence().ToString(CultureInfo.InvariantCulture);
                 }
             }
             catch (Exception ex)
@@ -3164,7 +3242,7 @@ namespace RSTGameTranslation
                 if (_isInitializing)
                     return;
 
-                if (double.TryParse(minLineConfidenceTextBox.Text, out double confidence) && confidence >= 0 && confidence <= 1)
+                if (double.TryParse(minLineConfidenceTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out double confidence) && confidence >= 0 && confidence <= 1)
                 {
                     ConfigManager.Instance.SetMinLineConfidence(confidence);
                     Console.WriteLine($"Minimum line confidence set to: {confidence}");
@@ -3175,7 +3253,7 @@ namespace RSTGameTranslation
                 else
                 {
                     // Reset to current value from config if invalid
-                    minLineConfidenceTextBox.Text = ConfigManager.Instance.GetMinLineConfidence().ToString();
+                    minLineConfidenceTextBox.Text = ConfigManager.Instance.GetMinLineConfidence().ToString(CultureInfo.InvariantCulture);
                 }
             }
             catch (Exception ex)
@@ -3504,6 +3582,27 @@ namespace RSTGameTranslation
             }
         }
 
+        private void LoadAllAudioProcessingModel()
+        {
+            audioProcessingModelComboBox.Items.Clear();
+
+            HashSet<string> uniqueNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            List<string?> fileNames = Directory.GetFiles(ConfigManager.Instance._audioProcessingModelFolderPath, "*.bin")
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .OrderBy(name => name)
+                .ToList();
+
+            foreach (string? name in fileNames)
+            {
+                if (!string.IsNullOrEmpty(name) && uniqueNames.Add(name))
+                {
+                    audioProcessingModelComboBox.Items.Add(new ComboBoxItem { Content = name });
+                }
+            }
+        }
+
         private void LoadAllProfile()
         {
             if (!Directory.Exists(ConfigManager.Instance._profileFolderPath))
@@ -3512,9 +3611,9 @@ namespace RSTGameTranslation
             }
 
             profileComboBox.Items.Clear();
-            
+
             HashSet<string> uniqueNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            
+
             List<string?> fileNames = Directory.GetFiles(ConfigManager.Instance._profileFolderPath, "*.txt")
                 .Select(Path.GetFileNameWithoutExtension)
                 .Where(name => !string.IsNullOrEmpty(name))
@@ -3776,18 +3875,33 @@ namespace RSTGameTranslation
             }
         }
 
-        private void OpenAiRealtimeApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            if (_isInitializing) return;
-            ConfigManager.Instance.SetOpenAiRealtimeApiKey(openAiRealtimeApiKeyPasswordBox.Password.Trim());
-        }
+        // private void OpenAiRealtimeApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        // {
+        //     if (_isInitializing) return;
+        //     ConfigManager.Instance.SetOpenAiRealtimeApiKey(openAiRealtimeApiKeyPasswordBox.Password.Trim());
+        // }
 
         // Handle Auto-translate checkbox change for audio service
-        private void AudioServiceAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        private async void AudioServiceAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             bool enabled = audioServiceAutoTranslateCheckBox.IsChecked ?? false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
             Console.WriteLine($"Settings window: Audio service auto-translate set to {enabled}");
+            if (enabled && !localWhisperService.Instance.IsRunning)
+            {
+                // Start the local Whisper service if not already running
+                await localWhisperService.Instance.StartServiceAsync((original, translated) =>
+                {
+                    Console.WriteLine($"Whisper detected: {original}");
+                });
+                Console.WriteLine("Local Whisper Service started");
+            }
+            else if (!enabled && localWhisperService.Instance.IsRunning)
+            {
+                // Stop the local Whisper service if it was running
+                localWhisperService.Instance.Stop();
+                Console.WriteLine("Local Whisper Service stopped");
+            }
         }
 
         // Handle Multi selection area checkbox change for multi selection area
@@ -4021,6 +4135,75 @@ namespace RSTGameTranslation
             bool enabled = hdrSupportCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetHDRSupportEnabled(enabled);
             Console.WriteLine($"HDR support set to {enabled}");
+        }
+
+        private void SilenceThresholdTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string silenceThreshold = silenceThresholdTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(silenceThreshold))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetSilenceThreshold(silenceThreshold);
+                    Console.WriteLine($"Silence threshold set to: {silenceThreshold}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating silence threshold: {ex.Message}");
+            }
+        }
+
+        private void SilenceDurationTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string silenceDuration = silenceDurationTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(silenceDuration))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetSilenceDurationMs(silenceDuration);
+                    Console.WriteLine($"Silence duration set to: {silenceDuration}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating silence duration: {ex.Message}");
+            }
+        }
+
+        private void MaxBufferSamplesTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string maxBufferSamples = maxBufferSamplesTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(maxBufferSamples))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetMaxBufferSamples(maxBufferSamples);
+                    Console.WriteLine($"Max buffer samples set to: {maxBufferSamples}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating max buffer samples: {ex.Message}");
+            }
         }
 
         // private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
