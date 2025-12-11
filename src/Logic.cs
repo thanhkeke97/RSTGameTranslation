@@ -1738,30 +1738,23 @@ namespace RSTGameTranslation
             }
         }
 
-        /// <summary>
-        /// Kiểm tra xem text mới có trùng lặp với text gần đây không
-        /// </summary>
         private bool IsDuplicateAudio(string newText, List<string> recentTexts, int checkLastN = 3)
         {
             if (recentTexts.Count == 0) return false;
             
-            // Normalize text để so sánh
             string normalizedNew = NormalizeTextForComparison(newText);
             
-            // Kiểm tra N text gần nhất
             int checkCount = Math.Min(checkLastN, recentTexts.Count);
             for (int i = recentTexts.Count - checkCount; i < recentTexts.Count; i++)
             {
                 string normalizedExisting = NormalizeTextForComparison(recentTexts[i]);
                 
-                // Kiểm tra trùng hoàn toàn
                 if (normalizedNew == normalizedExisting)
                 {
                     Console.WriteLine($"[DUPLICATE] Exact match: '{newText}'");
                     return true;
                 }
                 
-                // Kiểm tra similarity cao (>90%)
                 double similarity = CalculateTextSimilarity(normalizedNew, normalizedExisting);
                 if (similarity > 0.9)
                 {
@@ -1773,14 +1766,10 @@ namespace RSTGameTranslation
             return false;
         }
 
-        /// <summary>
-        /// Normalize text để so sánh (loại bỏ khoảng trắng thừa, chuyển lowercase)
-        /// </summary>
         private string NormalizeTextForComparison(string text)
         {
             if (string.IsNullOrEmpty(text)) return "";
             
-            // Chuyển lowercase, loại bỏ khoảng trắng thừa
             return System.Text.RegularExpressions.Regex.Replace(
                 text.ToLower().Trim(), 
                 @"\s+", 
@@ -1788,9 +1777,6 @@ namespace RSTGameTranslation
             );
         }
 
-        /// <summary>
-        /// Tính độ tương đồng giữa 2 string (0.0 - 1.0)
-        /// </summary>
         private double CalculateTextSimilarity(string s1, string s2)
         {
             if (s1 == s2) return 1.0;
@@ -1803,9 +1789,6 @@ namespace RSTGameTranslation
             return 1.0 - ((double)distance / maxLen);
         }
 
-        /// <summary>
-        /// Tính Levenshtein distance
-        /// </summary>
         private int LevenshteinDistance(string s1, string s2)
         {
             int[,] d = new int[s1.Length + 1, s2.Length + 1];
@@ -1836,27 +1819,26 @@ namespace RSTGameTranslation
             
             lock (_audioBatchLock)
             {
-                // ===== KIỂM TRA TRÙNG LẶP =====
+              
                 if (IsDuplicateAudio(audioText, _audioBatch, checkLastN: 3))
                 {
                     Console.WriteLine($"[SKIP] Duplicate audio detected, ignoring: '{audioText}'");
-                    return; // Bỏ qua audio trùng lặp
+                    return;
                 }
                 
-                // Thêm audio vào batch
+
                 _audioBatch.Add(audioText);
                 Console.WriteLine($"Added audio to batch: '{audioText}'. Batch size: {_audioBatch.Count}");
                 _hasNewAudioSinceLastTranslation = true;
-                // Giới hạn max 10 câu
+
                 if (_audioBatch.Count >= 5)
                 {
                     Console.WriteLine("[FORCE] Batch size reached 10, processing immediately");
                     _audioBatchTimer?.Dispose();
                     ProcessAudioBatchCallback(null);
-                    return; // Không cần reset timer nữa
+                    return; 
                 }
                 
-                // Reset timer - chờ thêm 500ms nữa
                 _audioBatchTimer?.Dispose();
                 _audioBatchTimer = new System.Threading.Timer(
                     ProcessAudioBatchCallback,
@@ -1869,7 +1851,6 @@ namespace RSTGameTranslation
 
         private void ProcessAudioBatchCallback(object? state)
         {
-            // Chuyển sang UI thread để xử lý
             Application.Current.Dispatcher.InvokeAsync(async () =>
             {
                 await ProcessAudioBatchAsync();
