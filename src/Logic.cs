@@ -1866,18 +1866,16 @@ namespace RSTGameTranslation
                 if (!_hasNewAudioSinceLastTranslation)
                 {
                     Console.WriteLine("[SKIP] No new audio since last translation, ignoring timer trigger");
-                    return; // Không có audio mới, bỏ qua
+                    return; 
                 }
-                // Kiểm tra nếu đang xử lý hoặc batch rỗng
+                
                 if (_isProcessingAudioBatch || _audioBatch.Count == 0)
                 {
                     return;
                 }
                 
-                // Đánh dấu đang xử lý
                 _isProcessingAudioBatch = true;
                 
-                // Lấy tất cả audio trong batch
                 batchToProcess = new List<string>(_audioBatch);
                 _audioBatch.Clear();
                 _hasNewAudioSinceLastTranslation = false;
@@ -1887,15 +1885,12 @@ namespace RSTGameTranslation
             
             try
             {
-                // Xóa tất cả TextObject cũ
                 _textObjects.Clear();
                 
-                // Gộp tất cả audio thành 1 đoạn với separator
                 string combinedAudio = string.Join(" ", batchToProcess);
                 
                 Console.WriteLine($"Combined audio text: '{combinedAudio}'");
                 
-                // Tạo TextObject mới từ audio đã gộp
                 var audioTextObject = new TextObject(
                     text: combinedAudio,
                     x: 100,
@@ -1910,7 +1905,6 @@ namespace RSTGameTranslation
                 
                 _textObjects.Add(audioTextObject);
                 
-                // Dịch
                 await TranslateTextObjectsAsync();
             }
             catch (Exception ex)
