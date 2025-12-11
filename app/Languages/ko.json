@@ -404,5 +404,17 @@
   "NotificationMessage_OverlayHidden_Details": "번역 오버레이가 숨겨졌습니다.",
   "NotificationTitle_OverlayVisible": "번역 오버레이가 표시되었습니다",
   "NotificationMessage_OverlayVisible_Details": "번역 오버레이가 표시되었습니다.",
-  "Lbl_HotKeyEnable": "핫키를 활성화"
+  "Lbl_HotKeyEnable": "핫키를 활성화",
+  "Tab_Audio": "오디오",
+  "Grp_AudioProcessingSettings": "오디오 처리 설정 (실험적!)",
+  "Lbl_AudioAutoTranslation": "오디오 자동 번역:",
+  "Lbl_Provider": "제공자:",
+  "Lbl_Model": "모델:",
+  "Lbl_VolumeThreshold": "볼륨 임계값:",
+  "Lbl_SilenceDuration": "무음 지속 시간 (ms):",
+  "Lbl_MaxBufferSamples": "최대 버퍼 샘플:",
+  "Tip_VolumeThreshold": "음성을 감지하는 볼륨 임계값 (0.001-0.1). 낮을수록 더 민감합니다.",
+  "Tip_SilenceDuration": "오디오를 처리하기 전 무음 시간 (밀리초) (100-2000).",
+  "Tip_MaxBufferSamples": "버퍼할 최대 오디오 시간 (초) (1-10). 높을수록 더 긴 구문을 캡처합니다.",
+  "Msg_WhisperServiceRunning": "로컬 Whisper 서비스가 실행 중입니다. 오디오 처리 모델을 변경하기 전에 중지하십시오."
 }

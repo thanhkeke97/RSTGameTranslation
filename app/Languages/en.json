@@ -404,5 +404,17 @@
   "NotificationMessage_OverlayHidden_Details": "The translation overlay is now hidden.",
   "NotificationTitle_OverlayVisible": "Overlay Visible",
   "NotificationMessage_OverlayVisible_Details": "The translation overlay is now visible.",
-  "Lbl_HotKeyEnable": "Enable Hotkey"
+  "Lbl_HotKeyEnable": "Enable Hotkey",
+  "Tab_Audio": "Audio",
+  "Grp_AudioProcessingSettings": "Audio Processing Settings (experimental!)",
+  "Lbl_AudioAutoTranslation": "Audio Auto Translation:",
+  "Lbl_Provider": "Provider:",
+  "Lbl_Model": "Model:",
+  "Lbl_VolumeThreshold": "Volume Threshold:",
+  "Lbl_SilenceDuration": "Silence Duration (ms):",
+  "Lbl_MaxBufferSamples": "Max Buffer Samples:",
+  "Tip_VolumeThreshold": "Volume threshold to detect voice (0.001-0.1). Lower = more sensitive.",
+  "Tip_SilenceDuration": "Milliseconds of silence before processing audio (100-2000).",
+  "Tip_MaxBufferSamples": "Maximum seconds of audio to buffer (1-10). Higher = longer phrases captured.",
+  "Msg_WhisperServiceRunning": "Local Whisper service is running. Please stop it before changing the audio processing model."
 }

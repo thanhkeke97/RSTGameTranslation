@@ -414,6 +414,7 @@ app/webserver/*.exe
 #but keep a few things...
 !app/webserver/*.bat
 !app/webserver/*.py
+!app/AudioModel
 
 
 **/.claude/settings.local.json

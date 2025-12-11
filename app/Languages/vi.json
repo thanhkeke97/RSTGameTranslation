@@ -410,5 +410,17 @@
   "NotificationMessage_OverlayHidden_Details": "Overlay đã được ẩn.",
   "NotificationTitle_OverlayVisible": "Overlay hiển thị",
   "NotificationMessage_OverlayVisible_Details": "Overlay đã được hiển thị.",
-  "Lbl_HotKeyEnable": "Bật tắt phím"
+  "Lbl_HotKeyEnable": "Bật tắt phím",
+  "Tab_Audio": "Âm thanh",
+  "Grp_AudioProcessingSettings": "Cài đặt xử lý âm thanh (thử nghiệm!)",
+  "Lbl_AudioAutoTranslation": "Tự động dịch âm thanh:",
+  "Lbl_Provider": "Nhà cung cấp:",
+  "Lbl_Model": "Mô hình:",
+  "Lbl_VolumeThreshold": "Ngưỡng âm lượng:",
+  "Lbl_SilenceDuration": "Thời gian im lặng (ms):",
+  "Lbl_MaxBufferSamples": "Số mẫu buffer tối đa:",
+  "Tip_VolumeThreshold": "Ngưỡng âm lượng để phát hiện giọng nói (0.001-0.1). Thấp hơn = nhạy hơn.",
+  "Tip_SilenceDuration": "Mili giây im lặng trước khi xử lý âm thanh (100-2000).",
+  "Tip_MaxBufferSamples": "Số giây âm thanh tối đa để lưu trữ (1-10). Cao hơn = bắt được cụm từ dài hơn.",
+  "Msg_WhisperServiceRunning": "Dịch vụ Whisper đang chạy. Vui lòng dừng nó trước khi thay đổi mô hình xử lý âm thanh."
 }

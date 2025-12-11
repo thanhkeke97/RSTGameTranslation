@@ -25,6 +25,7 @@ namespace RSTGameTranslation
         private readonly string _mistralConfigFilePath;
         private readonly string _customApiConfigFilePath;
         private readonly string _googleTranslateConfigFilePath;
+        public readonly string _audioProcessingModelFolderPath;
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
@@ -77,6 +78,7 @@ namespace RSTGameTranslation
         public const string LM_STUDIO_MODEL = "lm_studio_model";
         public const string CHATGPT_API_KEY = "chatgpt_api_key";
         public const string CHATGPT_MODEL = "chatgpt_model";
+        public const string AUDIO_PROCESSING_MODEL = "audio_processing_model";
         public const string FORCE_CURSOR_VISIBLE = "force_cursor_visible";
         public const string AUTO_SIZE_TEXT_BLOCKS = "auto_size_text_blocks";
         public const string GOOGLE_TRANSLATE_API_KEY = "google_translate_api_key";
@@ -141,6 +143,9 @@ namespace RSTGameTranslation
         public const string AUDIO_PROCESSING_PROVIDER = "audio_processing_provider";
         public const string OPENAI_REALTIME_API_KEY = "openai_realtime_api_key";
         public const string AUDIO_SERVICE_AUTO_TRANSLATE = "audio_service_auto_translate";
+        public const string SILENT_THRESHOLD = "silent_threshold";
+        public const string SILENCE_DURATION_MS = "Silence_Duration_Ms";
+        public const string MAX_BUFFER_SAMPLES = "MaxBufferSamples";
         public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
 
         public const string TEXTSIMILAR_THRESHOLD = "textsimilar_threshold";
@@ -319,6 +324,7 @@ namespace RSTGameTranslation
             // Set config file paths to be in the application's directory
             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
             _configFilePath = Path.Combine(appDirectory, "config.txt");
+            _audioProcessingModelFolderPath = Path.Combine(appDirectory, "AudioModel");
             _profileFolderPath = Path.Combine(appDirectory, "Profiles");
             _geminiConfigFilePath = Path.Combine(appDirectory, "gemini_config.txt");
             _customApiConfigFilePath = Path.Combine(appDirectory, "custom_api_config.txt");
@@ -331,6 +337,7 @@ namespace RSTGameTranslation
 
             Console.WriteLine($"Config file path: {_configFilePath}");
             Console.WriteLine($"Profile folder path: {_profileFolderPath}");
+            Console.WriteLine($"AudioProcessingModels folder path: {_audioProcessingModelFolderPath}");
             Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
             Console.WriteLine($"Custom API config file path: {_customApiConfigFilePath}");
             Console.WriteLine($"Groq config file path: {_groqConfigFilePath}");
@@ -533,6 +540,10 @@ namespace RSTGameTranslation
             _configValues[CUSTOM_API_URL] = "";
             _configValues[CUSTOM_API_MODEL] = "";
             _configValues[HOT_KEY_ENABLE] = "true";
+            _configValues[AUDIO_PROCESSING_MODEL] = "ggml-base";
+            _configValues[SILENT_THRESHOLD] = "0.01f";
+            _configValues[SILENCE_DURATION_MS] = "500";
+            _configValues[MAX_BUFFER_SAMPLES] = "5";
 
             // Save the default configuration
             SaveConfig();
@@ -711,6 +722,81 @@ namespace RSTGameTranslation
         {
             string colorHex = GetValue(OVERLAY_TEXT_COLOR, "#FFFFFFFF");
             return ParseColor(colorHex);
+        }
+
+        // Get SilenceThreshold
+        public float GetSilenceThreshold()
+        {
+            if (double.TryParse(GetValue(SILENT_THRESHOLD, "0.01f"), NumberStyles.Any, CultureInfo.InvariantCulture, out double textSimilar))
+            {
+                return (float)textSimilar;
+            }
+            return 0.01f;
+        }
+
+        // Get SilenceDurationMs
+        public int GetSilenceDurationMs()
+        {
+            if (int.TryParse(GetValue(SILENCE_DURATION_MS, "500"), NumberStyles.Any, CultureInfo.InvariantCulture, out int silenceDurationMs))
+            {
+                return silenceDurationMs;
+            }
+            return 500;
+        }
+
+        // Get MaxBufferSamples
+        public int GetMaxBufferSamples()
+        {
+            if (int.TryParse(GetValue(MAX_BUFFER_SAMPLES, "5"), NumberStyles.Any, CultureInfo.InvariantCulture, out int maxBufferSamples))
+            {
+                return maxBufferSamples;
+            }
+            return 5;
+        }
+
+        // Set SilenceThreshold
+        public void SetSilenceThreshold(string value)
+        {
+            if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out float thresholdValue))
+            {
+                _configValues[SILENT_THRESHOLD] = thresholdValue.ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                _configValues[SILENT_THRESHOLD] = value;
+            }
+            SaveConfig();
+            Console.WriteLine($"Silence threshold set to: {value}");
+        }
+
+        // Set SilenceDurationMs
+        public void SetSilenceDurationMs(string value)
+        {
+            if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int silenceDurationMs))
+            {
+                _configValues[SILENCE_DURATION_MS] = silenceDurationMs.ToString();
+            }
+            else
+            {
+                _configValues[SILENCE_DURATION_MS] = value;
+            }
+            SaveConfig();
+            Console.WriteLine($"Silence duration set to: {value}");
+        }
+
+        // Set MaxBufferSamples
+        public void SetMaxBufferSamples(string value)
+        {
+            if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int maxBufferSamples))
+            {
+                _configValues[MAX_BUFFER_SAMPLES] = maxBufferSamples.ToString();
+            }
+            else
+            {
+                _configValues[MAX_BUFFER_SAMPLES] = value;
+            }
+            SaveConfig();
+            Console.WriteLine($"Max buffer samples set to: {value}");
         }
 
         // Helper method to parse color from hex string
@@ -1759,6 +1845,19 @@ namespace RSTGameTranslation
                 SaveConfig();
                 Console.WriteLine($"Minimum text fragment size set to: {value}");
             }
+        }
+
+        // Get/Set audio processing model
+        public string GetAudioProcessingModel()
+        {
+            return GetValue(AUDIO_PROCESSING_MODEL, "ggml-base");
+        }
+
+        public void SetAudioProcessingModel(string model)
+        {
+            _configValues[AUDIO_PROCESSING_MODEL] = model;
+            SaveConfig();
+            Console.WriteLine($"Audio processing model set to: {model}");
         }
 
         // Get/Set force update prompt

@@ -66,6 +66,7 @@ namespace RSTGameTranslation
             _instance = this;
             LoadAvailableScreens();
             LoadAllProfile();
+            LoadAllAudioProcessingModel();
             LoadAvailableWindowTTSVoice();
 
             // Add Loaded event handler to ensure controls are initialized
@@ -86,6 +87,7 @@ namespace RSTGameTranslation
             _instance = this;
             LoadAvailableScreens();
             LoadAllProfile();
+            // LoadAllAudioProcessingModel();
             LoadAvailableWindowTTSVoice();
             SettingsWindow_Loaded(null, null);
         }
@@ -913,6 +915,30 @@ namespace RSTGameTranslation
 
             // Set hot key enable
             hotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsHotKeyEnabled();
+
+            audioProcessingModelComboBox.SelectionChanged -= AudioProcessingModelComboBox_SelectionChanged;
+
+            // Set audio processing model
+            foreach (var item in audioProcessingModelComboBox.Items)
+            {
+                string itemText = "";
+                if (item is ComboBoxItem cbItem)
+                {
+                    itemText = cbItem.Content?.ToString() ?? "";
+                }
+                else
+                {
+                    itemText = item.ToString() ?? "";
+                }
+                if (string.Equals(itemText.Trim(), ConfigManager.Instance.GetAudioProcessingModel(), StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"Found matching audio processing model: '{itemText}'");
+                    audioProcessingModelComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            audioProcessingModelComboBox.SelectionChanged += AudioProcessingModelComboBox_SelectionChanged;
 
             // Set manga mode
             // MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
@@ -2595,6 +2621,57 @@ namespace RSTGameTranslation
             }
         }
 
+        private void AudioProcessingModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                if (localWhisperService.Instance.IsRunning)
+                {
+                   MessageBoxResult result = MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_WhisperServiceRunning"],
+                        LocalizationManager.Instance.Strings["Title_Confirm"],
+                        MessageBoxButton.OKCancel,
+                        MessageBoxImage.Warning
+                    );
+                    if (result == MessageBoxResult.Cancel)
+                    {
+                        if (e.RemovedItems.Count > 0)
+                        {
+                            _isInitializing = true; 
+                            
+                            audioProcessingModelComboBox.SelectedItem = e.RemovedItems[0];
+                            
+                            _isInitializing = false;
+                        }
+                        return;
+                    }
+                    else
+                    {
+                        localWhisperService.Instance.Stop();
+                        audioServiceAutoTranslateCheckBox.IsChecked = false;
+                    }
+                }
+
+                string model = (audioProcessingModelComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
+                               ?? audioProcessingModelComboBox.SelectedItem?.ToString()
+                               ?? "ggml-base";
+
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetAudioProcessingModel(model);
+                    Console.WriteLine($"Audio processing model set from text input to: {model}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating audio processing model from text input: {ex.Message}");
+            }
+        }
         private void CustomApiModelTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -3505,6 +3582,27 @@ namespace RSTGameTranslation
             }
         }
 
+        private void LoadAllAudioProcessingModel()
+        {
+            audioProcessingModelComboBox.Items.Clear();
+
+            HashSet<string> uniqueNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            List<string?> fileNames = Directory.GetFiles(ConfigManager.Instance._audioProcessingModelFolderPath, "*.bin")
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .OrderBy(name => name)
+                .ToList();
+
+            foreach (string? name in fileNames)
+            {
+                if (!string.IsNullOrEmpty(name) && uniqueNames.Add(name))
+                {
+                    audioProcessingModelComboBox.Items.Add(new ComboBoxItem { Content = name });
+                }
+            }
+        }
+
         private void LoadAllProfile()
         {
             if (!Directory.Exists(ConfigManager.Instance._profileFolderPath))
@@ -4037,6 +4135,75 @@ namespace RSTGameTranslation
             bool enabled = hdrSupportCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetHDRSupportEnabled(enabled);
             Console.WriteLine($"HDR support set to {enabled}");
+        }
+
+        private void SilenceThresholdTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string silenceThreshold = silenceThresholdTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(silenceThreshold))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetSilenceThreshold(silenceThreshold);
+                    Console.WriteLine($"Silence threshold set to: {silenceThreshold}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating silence threshold: {ex.Message}");
+            }
+        }
+
+        private void SilenceDurationTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string silenceDuration = silenceDurationTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(silenceDuration))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetSilenceDurationMs(silenceDuration);
+                    Console.WriteLine($"Silence duration set to: {silenceDuration}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating silence duration: {ex.Message}");
+            }
+        }
+
+        private void MaxBufferSamplesTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string maxBufferSamples = maxBufferSamplesTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(maxBufferSamples))
+                {
+                    // Save to config
+                    ConfigManager.Instance.SetMaxBufferSamples(maxBufferSamples);
+                    Console.WriteLine($"Max buffer samples set to: {maxBufferSamples}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating max buffer samples: {ex.Message}");
+            }
         }
 
         // private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)

@@ -410,5 +410,17 @@
   "NotificationMessage_OverlayHidden_Details": "翻译覆盖隐藏。",
   "NotificationTitle_OverlayVisible": "翻译覆盖可见",
   "NotificationMessage_OverlayVisible_Details": "翻译覆盖可见。",
-  "Lbl_HotKeyEnable": "启用/禁用热键"
+  "Lbl_HotKeyEnable": "启用/禁用热键",
+  "Tab_Audio": "音频",
+  "Grp_AudioProcessingSettings": "音频处理设置（实验性！）",
+  "Lbl_AudioAutoTranslation": "音频自动翻译：",
+  "Lbl_Provider": "提供商：",
+  "Lbl_Model": "模型：",
+  "Lbl_VolumeThreshold": "音量阈值：",
+  "Lbl_SilenceDuration": "静音持续时间（毫秒）：",
+  "Lbl_MaxBufferSamples": "最大缓冲样本：",
+  "Tip_VolumeThreshold": "检测语音的音量阈值（0.001-0.1）。越低越敏感。",
+  "Tip_SilenceDuration": "处理音频前的静音时间（毫秒）（100-2000）。",
+  "Tip_MaxBufferSamples": "缓冲的最大音频秒数（1-10）。越高捕获的短语越长。",
+  "Msg_WhisperServiceRunning": "本地Whisper服务正在运行。请在更改音频处理模型之前停止它。"
 }

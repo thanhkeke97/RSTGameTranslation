@@ -404,5 +404,17 @@
   "NotificationMessage_OverlayHidden_Details": "Перевод оверлей скрыт.",
   "NotificationTitle_OverlayVisible": "Перевод оверлей видим",
   "NotificationMessage_OverlayVisible_Details": "Перевод оверлей видим.",
-  "Lbl_HotKeyEnable": "Включить горячие клавиши"
+  "Lbl_HotKeyEnable": "Включить горячие клавиши",
+  "Tab_Audio": "Аудио",
+  "Grp_AudioProcessingSettings": "Настройки обработки аудио (экспериментально!)",
+  "Lbl_AudioAutoTranslation": "Автоматический перевод аудио:",
+  "Lbl_Provider": "Провайдер:",
+  "Lbl_Model": "Модель:",
+  "Lbl_VolumeThreshold": "Порог громкости:",
+  "Lbl_SilenceDuration": "Длительность тишины (мс):",
+  "Lbl_MaxBufferSamples": "Макс. образцов буфера:",
+  "Tip_VolumeThreshold": "Порог громкости для обнаружения голоса (0.001-0.1). Ниже = более чувствительно.",
+  "Tip_SilenceDuration": "Миллисекунды тишины перед обработкой аудио (100-2000).",
+  "Tip_MaxBufferSamples": "Максимальное количество секунд аудио для буферизации (1-10). Выше = захват более длинных фраз.",
+  "Msg_WhisperServiceRunning": "Локальная служба Whisper запущена. Пожалуйста, остановите её перед изменением модели обработки аудио."
 }

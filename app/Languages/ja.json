@@ -404,5 +404,18 @@
   "NotificationMessage_OverlayHidden_Details": "翻訳オーバーレイが非表示になりました。",
   "NotificationTitle_OverlayVisible": "翻訳オーバーレイ表示",
   "NotificationMessage_OverlayVisible_Details": "翻訳オーバーレイが表示されました。",
-  "Lbl_HotKeyEnable": "ホットキーを有効にする"
+  "Lbl_HotKeyEnable": "ホットキーを有効にする",
+  "Tab_Audio": "オーディオ",
+  "Grp_AudioProcessingSettings": "音声処理設定（実験的！）",
+  "Lbl_AudioAutoTranslation": "音声自動翻訳：",
+  "Lbl_Provider": "プロバイダー：",
+  "Lbl_Model": "モデル：",
+  "Lbl_VolumeThreshold": "音量しきい値：",
+  "Lbl_SilenceDuration": "無音時間（ミリ秒）：",
+  "Lbl_MaxBufferSamples": "最大バッファサンプル：",
+  "Tip_VolumeThreshold": "音声を検出する音量しきい値（0.001-0.1）。低いほど感度が高くなります。",
+  "Tip_SilenceDuration": "音声を処理する前の無音時間（ミリ秒）（100-2000）。",
+  "Tip_MaxBufferSamples": "バッファする音声の最大秒数（1-10）。高いほど長いフレーズをキャプチャできます。",
+  "Msg_WhisperServiceRunning": "ローカルWhisperサービスが実行中です。音声処理モデルを変更する前に停止してください。"
+
 }

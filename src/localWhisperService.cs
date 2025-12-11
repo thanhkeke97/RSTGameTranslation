@@ -23,18 +23,18 @@ namespace RSTGameTranslation
         private WaveFileWriter? debugWriterProcessed;
         int minBytesToProcess = 192000;
         public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
-        private string _lastTranslatedText = ""; 
+        private string _lastTranslatedText = "";
         private bool forceProcessing = false;
         private WhisperProcessor? processor;
         private WhisperFactory? factory;
         private readonly List<float> audioBuffer = new List<float>();
         private readonly object bufferLock = new object();
         private CancellationTokenSource? _cancellationTokenSource;
-        private const float SilenceThreshold = 0.01f;
-        private const int SilenceDurationMs = 500;
+        private float SilenceThreshold => ConfigManager.Instance.GetSilenceThreshold();
+        private int SilenceDurationMs => ConfigManager.Instance.GetSilenceDurationMs();
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
-        private const int MaxBufferSamples = 16000 * 5;
+        private int MaxBufferSamples => 16000 * ConfigManager.Instance.GetMaxBufferSamples();
         private int voiceFrameCount = 0;
         private const int MinVoiceFrames = 1;
         private static readonly System.Text.RegularExpressions.Regex NoisePattern =
@@ -57,23 +57,22 @@ namespace RSTGameTranslation
             }
         }
 
+        private localWhisperService()
+        {
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => Stop();
+        }
+
         public async Task StartServiceAsync(Action<string, string> onResult)
         {
             Stop();
 
-            string modelPath = "ggml-base.bin";
-            // if (!File.Exists(modelPath))
-            // {
-            //     using var httpClient = new System.Net.Http.HttpClient();
-            //     using var modelStream = await new WhisperGgmlDownloader(httpClient).GetGgmlModelAsync(GgmlType.LargeV3Turbo);
-            //     using var fileWriter = File.OpenWrite(modelPath);
-            //     await modelStream.CopyToAsync(fileWriter);
-            // }
+            string modelPath = ConfigManager.Instance.GetAudioProcessingModel() + ".bin";
+            string fullPath = Path.Combine(ConfigManager.Instance._audioProcessingModelFolderPath, modelPath);
 
-            factory = WhisperFactory.FromPath(modelPath);
+            factory = WhisperFactory.FromPath(fullPath);
 
             processor = factory.CreateBuilder()
-                .WithLanguage("en")
+                .WithLanguage(ConfigManager.Instance.GetSourceLanguage())
                 .WithThreads(4)
                 .WithBeamSearchSamplingStrategy()
                 .ParentBuilder
@@ -146,10 +145,7 @@ namespace RSTGameTranslation
             debugWriter = null;
             debugWriterProcessed?.Dispose();
             debugWriterProcessed = null;
-            debugWriterProcessed = null;
             bufferedProvider?.ClearBuffer();
-            // resampler.Dispose() handled by GC or if we assign it to a field. 
-            // ISampleProvider doesn't need Dispose usually unless it wraps something that does.
             processedProvider = null;
             processor?.Dispose();
             factory?.Dispose();
@@ -263,7 +259,7 @@ namespace RSTGameTranslation
             string[] words = text.Split(new[] { ' ', ',', '.', '!', '?' },
                 StringSplitOptions.RemoveEmptyEntries);
 
-            if (words.Length < 3) return false; 
+            if (words.Length < 3) return false;
 
             var wordCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (var word in words)
@@ -314,7 +310,7 @@ namespace RSTGameTranslation
 
                     string currentNormal = originalText.ToLower().Replace(".", "").Replace("!", "").Replace("?", "").Trim();
                     string lastNormal = _lastTranslatedText.ToLower().Replace(".", "").Replace("!", "").Replace("?", "").Trim();
-                     if (currentNormal == lastNormal || (lastNormal.Contains(currentNormal) && currentNormal.Length > 5))
+                    if (currentNormal == lastNormal || (lastNormal.Contains(currentNormal) && currentNormal.Length > 5))
                     {
                         continue;
                     }
