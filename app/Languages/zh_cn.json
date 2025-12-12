@@ -422,5 +422,7 @@
   "Tip_VolumeThreshold": "检测语音的音量阈值（0.001-0.1）。越低越敏感。",
   "Tip_SilenceDuration": "处理音频前的静音时间（毫秒）（100-2000）。",
   "Tip_MaxBufferSamples": "缓冲的最大音频秒数（1-10）。越高捕获的短语越长。",
-  "Msg_WhisperServiceRunning": "本地Whisper服务正在运行。请在更改音频处理模型之前停止它。"
+  "Msg_WhisperServiceRunning": "本地Whisper服务正在运行。请在更改音频处理模型之前停止它。",
+  "Tip_AudioModelDownload_Part1": "模型可以在以下位置找到：",
+  "Tip_AudioModelDownload_Part2": "。您可以直接下载模型并将其放置在 RSTGameTranslation/AudioModel 文件夹中"
 }

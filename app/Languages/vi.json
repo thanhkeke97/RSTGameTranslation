@@ -422,5 +422,7 @@
   "Tip_VolumeThreshold": "Ngưỡng âm lượng để phát hiện giọng nói (0.001-0.1). Thấp hơn = nhạy hơn.",
   "Tip_SilenceDuration": "Mili giây im lặng trước khi xử lý âm thanh (100-2000).",
   "Tip_MaxBufferSamples": "Số giây âm thanh tối đa để lưu trữ (1-10). Cao hơn = bắt được cụm từ dài hơn.",
-  "Msg_WhisperServiceRunning": "Dịch vụ Whisper đang chạy. Vui lòng dừng nó trước khi thay đổi mô hình xử lý âm thanh."
+  "Msg_WhisperServiceRunning": "Dịch vụ Whisper đang chạy. Vui lòng dừng nó trước khi thay đổi mô hình xử lý âm thanh.",
+  "Tip_AudioModelDownload_Part1": "Các model có thể được tìm thấy tại: ",
+  "Tip_AudioModelDownload_Part2": ". Bạn có thể tải model trực tiếp và đặt vào thư mục RSTGameTranslation/AudioModel"
 }

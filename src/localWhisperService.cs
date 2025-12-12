@@ -11,6 +11,7 @@ using Whisper.net.Ggml;
 using System.Text.Json;
 using NAudio.CoreAudioApi;
 using System.Windows;
+using Windows.Globalization;
 
 namespace RSTGameTranslation
 {
@@ -62,6 +63,37 @@ namespace RSTGameTranslation
             AppDomain.CurrentDomain.ProcessExit += (s, e) => Stop();
         }
 
+        private string MapLanguageToWhisper(string language)
+        {
+            return language.ToLower() switch
+            {
+                "japanese" or "japan" or "ja" => "ja",
+                "english" or "en" => "en",
+                "chinese" or "zh" or "ch_sim" => "zh",
+                "korean" or "ko" => "ko",
+                "vietnamese" or "vi" => "vi",
+                "french" or "fr" => "fr",
+                "german" or "de" => "de",
+                "spanish" or "es" => "es",
+                "italian" or "it" => "it",
+                "portuguese" or "pt" => "pt",
+                "russian" or "ru" => "ru",
+                "hindi" or "hi" => "hi",
+                "indonesian" or "id" => "id",
+                "polish" or "pl" => "pl",
+                "arabic" or "ar" => "ar",
+                "dutch" or "nl" => "nl",
+                "romanian" or "ro" => "ro",
+                "persian" or "farsi" or "fa" => "fa",
+                "czech" or "cs" => "cs",
+                "thai" or "th" or "thailand" => "th",
+                "traditional chinese" or "ch_tra" => "zh",
+                "croatian" or "hr" => "hr",
+                "turkish" or "tr" => "tr",
+                _ => language
+            };
+        }
+
         public async Task StartServiceAsync(Action<string, string> onResult)
         {
             Stop();
@@ -70,10 +102,11 @@ namespace RSTGameTranslation
             string fullPath = Path.Combine(ConfigManager.Instance._audioProcessingModelFolderPath, modelPath);
 
             factory = WhisperFactory.FromPath(fullPath);
+            string current_source_language = MapLanguageToWhisper(ConfigManager.Instance.GetSourceLanguage());
 
             processor = factory.CreateBuilder()
-                .WithLanguage(ConfigManager.Instance.GetSourceLanguage())
-                .WithThreads(4)
+                .WithLanguage(current_source_language)
+                // .WithThreads(4)
                 .WithBeamSearchSamplingStrategy()
                 .ParentBuilder
                 .Build();

@@ -416,5 +416,7 @@
   "Tip_VolumeThreshold": "Volume threshold to detect voice (0.001-0.1). Lower = more sensitive.",
   "Tip_SilenceDuration": "Milliseconds of silence before processing audio (100-2000).",
   "Tip_MaxBufferSamples": "Maximum seconds of audio to buffer (1-10). Higher = longer phrases captured.",
-  "Msg_WhisperServiceRunning": "Local Whisper service is running. Please stop it before changing the audio processing model."
+  "Msg_WhisperServiceRunning": "Local Whisper service is running. Please stop it before changing the audio processing model.",
+  "Tip_AudioModelDownload_Part1": "Models can be found at: ",
+  "Tip_AudioModelDownload_Part2": ". You can download models directly and place them in the RSTGameTranslation/AudioModel folder"
 }

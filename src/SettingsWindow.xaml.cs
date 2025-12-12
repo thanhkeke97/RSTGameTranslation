@@ -916,6 +916,11 @@ namespace RSTGameTranslation
             // Set hot key enable
             hotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsHotKeyEnabled();
 
+            // Set audio option
+            silenceThresholdTextBox.Text = ConfigManager.Instance.GetSilenceThreshold().ToString(CultureInfo.InvariantCulture);
+            silenceDurationTextBox.Text = ConfigManager.Instance.GetSilenceDurationMs().ToString(CultureInfo.InvariantCulture);
+            maxBufferSamplesTextBox.Text = ConfigManager.Instance.GetMaxBufferSamples().ToString(CultureInfo.InvariantCulture);
+
             audioProcessingModelComboBox.SelectionChanged -= AudioProcessingModelComboBox_SelectionChanged;
 
             // Set audio processing model
@@ -2658,7 +2663,7 @@ namespace RSTGameTranslation
 
                 string model = (audioProcessingModelComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
                                ?? audioProcessingModelComboBox.SelectedItem?.ToString()
-                               ?? "ggml-base";
+                               ?? "ggml-small-q5_1";
 
                 if (!string.IsNullOrWhiteSpace(model))
                 {
@@ -4017,6 +4022,71 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error when start server: {ex.Message}");
                 return;
+            }
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = e.Uri.AbsoluteUri,
+                    UseShellExecute = true
+                });
+                e.Handled = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error opening URL: {ex.Message}");
+            }
+        }
+
+        private void AudioModelDownloadTextBlock_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is TextBlock textBlock)
+                {
+                    UpdateAudioModelDownloadText(textBlock);
+                    
+                    LocalizationManager.Instance.PropertyChanged += (s, args) =>
+                    {
+                        if (args.PropertyName == "Strings")
+                        {
+                            UpdateAudioModelDownloadText(textBlock);
+                        }
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading audio model download text: {ex.Message}");
+            }
+        }
+
+        private void UpdateAudioModelDownloadText(TextBlock textBlock)
+        {
+            try
+            {
+                textBlock.Inlines.Clear();
+                
+                textBlock.Inlines.Add(new Run(LocalizationManager.Instance.Strings["Tip_AudioModelDownload_Part1"]));
+                
+                // Hyperlink
+                var hyperlink = new Hyperlink(new Run("https://huggingface.co/ggerganov/whisper.cpp/tree/main"))
+                {
+                    NavigateUri = new Uri("https://huggingface.co/ggerganov/whisper.cpp/tree/main"),
+                    Foreground = System.Windows.Media.Brushes.Blue
+                };
+                hyperlink.RequestNavigate += Hyperlink_RequestNavigate;
+                textBlock.Inlines.Add(hyperlink);
+                
+                textBlock.Inlines.Add(new Run(LocalizationManager.Instance.Strings["Tip_AudioModelDownload_Part2"]));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating audio model download text: {ex.Message}");
             }
         }
 
