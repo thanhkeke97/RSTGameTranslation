@@ -3,7 +3,7 @@
 # 🎮 RSTGameTranslation
 ### Real-time Screen Translation for Gaming
 
-[![Version](https://img.shields.io/badge/version-3.7-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+[![Version](https://img.shields.io/badge/version-3.8-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 [![License](https://img.shields.io/badge/license-BSD-green.svg)](LICENSE.md)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010+-lightgrey.svg)]()
 
