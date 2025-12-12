@@ -135,6 +135,7 @@ This project stands on the shoulders of giants. We gratefully acknowledge the fo
 ### Audio
 - **[NAudio](https://github.com/naudio/NAudio)** - Audio and MIDI library for .NET
 - **[System.Speech](https://learn.microsoft.com/en-us/dotnet/api/system.speech.synthesis.speechsynthesizer)** - .NET Speech Synthesis Library
+- **[Whisper.Net](https://github.com/sandrohanea/whisper.net)** - .NET Speech To Text Library
 
 ### Others
 - **[Python](https://www.python.org/)** - Backend scripting
