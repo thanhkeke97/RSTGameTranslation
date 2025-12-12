@@ -21,7 +21,7 @@
 - **AI-Powered Translation** with Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
 - **Smart Recognition** with game context awareness and character name detection
 - **Flexible Display** options with overlay and chat window
-- **Text-to-Speech** functionality
+- **Speech-to-Text** functionality (Recognize speech from game audio and translate it)
 
 ![Preview](media/preview_video.gif)
 

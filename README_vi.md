@@ -22,6 +22,7 @@
 - **Nhận dạng thông minh** với nhận biết ngữ cảnh game và phát hiện tên nhân vật
 - **Hiển thị linh hoạt** với overlay và cửa sổ chat
 - **Chức năng Text-to-Speech** (đọc văn bản)
+- **Chức năng Speech-to-Text** (Nhận dạng giọng nói từ âm thanh game và dịch nó)
 
 ![Xem trước](media/preview_video.gif)
 
