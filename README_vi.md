@@ -136,6 +136,7 @@ Dự án này được xây dựng dựa trên sự đóng góp của cộng đ�
 ### Âm thanh
 - **[NAudio](https://github.com/naudio/NAudio)** - Thư viện âm thanh và MIDI cho .NET
 - **[System.Speech](https://learn.microsoft.com/en-us/dotnet/api/system.speech.synthesis.speechsynthesizer)** - Thư viện tổng hợp giọng nói .NET
+- **[Whisper.Net](https://github.com/sandrohanea/whisper.net)** - Thư viện chuyển đổi giọng nói sang văn bản .NET
 
 ### Khác
 - **[Python](https://www.python.org/)** - Ngôn ngữ kịch bản backend
