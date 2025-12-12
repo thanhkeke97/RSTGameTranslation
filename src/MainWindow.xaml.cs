@@ -792,24 +792,24 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            if(ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled())
-            {
-                Task.Run(async () => 
-                {
-                    try
-                    {
-                        await localWhisperService.Instance.StartServiceAsync((original, translated) =>
-                        {
-                            Console.WriteLine($"Whisper detected: {original}");
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error starting Whisper service: {ex.Message}");
-                    }
-                });
-                Console.WriteLine("Local Whisper Service started");
-            }
+            // if(ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled())
+            // {
+            //     Task.Run(async () => 
+            //     {
+            //         try
+            //         {
+            //             await localWhisperService.Instance.StartServiceAsync((original, translated) =>
+            //             {
+            //                 Console.WriteLine($"Whisper detected: {original}");
+            //             });
+            //         }
+            //         catch (Exception ex)
+            //         {
+            //             Console.WriteLine($"Error starting Whisper service: {ex.Message}");
+            //         }
+            //     });
+            //     Console.WriteLine("Local Whisper Service started");
+            // }
 
             // Initialization is complete, now we can save settings changes
             _isInitializing = false;

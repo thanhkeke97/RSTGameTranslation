@@ -1131,7 +1131,7 @@ namespace RSTGameTranslation
             audioProcessingProviderComboBox.SelectedIndex = 0; // Only one for now
             // openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
             // Load Auto-translate for audio service
-            audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
+            // audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
         }
 
 
@@ -3890,7 +3890,7 @@ namespace RSTGameTranslation
         private async void AudioServiceAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             bool enabled = audioServiceAutoTranslateCheckBox.IsChecked ?? false;
-            ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
+            // ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
             Console.WriteLine($"Settings window: Audio service auto-translate set to {enabled}");
             if (enabled && !localWhisperService.Instance.IsRunning)
             {

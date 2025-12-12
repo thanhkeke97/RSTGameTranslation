@@ -268,7 +268,7 @@ namespace RSTGameTranslation
                     if (samplesToProcess.Length > 0)
                     {
                         Console.WriteLine($"[DEBUG] Processing {samplesToProcess.Length} samples ({samplesToProcess.Length / 16000.0:F1}s audio)");
-                        await ProcessAudioAsync(samplesToProcess, onResult);
+                        await ProcessAudioAsync(samplesToProcess, onResult, cancellationToken);
                     }
                     voiceFrameCount = 0;
                 }
@@ -319,11 +319,11 @@ namespace RSTGameTranslation
             return false;
         }
 
-        private async Task ProcessAudioAsync(float[] samples, Action<string, string> onResult)
+        private async Task ProcessAudioAsync(float[] samples, Action<string, string> onResult, CancellationToken token)
         {
             try
             {
-                await foreach (var result in processor.ProcessAsync(samples))
+                await foreach (var result in processor.ProcessAsync(samples).WithCancellation(token))
                 {
                     string originalText = result.Text.Trim();
 

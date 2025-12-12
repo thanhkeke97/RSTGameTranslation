@@ -1,5 +1,5 @@
 SET APP_NAME=RSTGameTranslation
-SET APP_VERSION=3.7
+SET APP_VERSION=3.8
 SET FNAME=%APP_NAME%_v%APP_VERSION%.zip
 node update-version.js
 
@@ -12,7 +12,7 @@ dotnet publish .\RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --se
 
 
 mkdir tempbuild
-copy app\win-x64\publish\* tempbuild
+robocopy app\win-x64\publish tempbuild /E /NFL /NDL
 copy README.md tempbuild
 
 :the server stuff too
