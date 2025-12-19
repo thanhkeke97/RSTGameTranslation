@@ -11,6 +11,8 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Key = System.Windows.Input.Key;
 using MessageBox = System.Windows.MessageBox;
 using Forms = System.Windows.Forms;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 namespace RSTGameTranslation
 {
@@ -24,6 +26,21 @@ namespace RSTGameTranslation
 
         private static ChatBoxSelectorWindow? _currentInstance;
 
+        public double _dpiScaleX = 1.0;
+        public double _dpiScaleY = 1.0;
+        [DllImport("user32.dll")]
+        static extern IntPtr MonitorFromPoint(System.Drawing.Point pt, uint dwFlags);
+        [DllImport("Shcore.dll")]
+        static extern IntPtr GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
+        [DllImport("user32.dll")]
+        static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        private const int MDT_EFFECTIVE_DPI = 0;
+        private const uint MONITOR_DEFAULTTONEAREST = 2;
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        private const uint SWP_SHOWWINDOW = 0x0040;
+        private const uint SWP_NOACTIVATE = 0x0010;
+        private Forms.Screen? _selectedScreen = Forms.Screen.PrimaryScreen;
+
         public ChatBoxSelectorWindow()
         {
             InitializeComponent();
@@ -36,6 +53,58 @@ namespace RSTGameTranslation
             
             // Set window size to cover all monitors
             SetWindowToAllScreens();
+        }
+
+        private Forms.Screen GetActiveScreen()
+        {
+            if (_selectedScreen != null) return _selectedScreen;
+            
+            var primary = Forms.Screen.PrimaryScreen;
+            if (primary != null) { _selectedScreen = primary; return primary; }
+            
+            var screens = Forms.Screen.AllScreens;
+            if (screens.Length > 0) { _selectedScreen = screens[0]; return screens[0]; }
+            
+            throw new InvalidOperationException("No monitors detected.");
+        }
+
+        // Get DPI scaling for a screen
+        private void GetDpiScaling(Forms.Screen? screen)
+        {
+            try
+            {
+                if (screen == null)
+                {
+                    _dpiScaleX = 1.0;
+                    _dpiScaleY = 1.0;
+                    return;
+                }
+                
+                // Get the monitor handle from screen
+                System.Drawing.Point point = new System.Drawing.Point(
+                    screen.Bounds.Left + screen.Bounds.Width / 2,
+                    screen.Bounds.Top + screen.Bounds.Height / 2
+                );
+                
+                IntPtr monitor = MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
+                
+                // Get DPI for the monitor
+                uint dpiX, dpiY;
+                GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, out dpiX, out dpiY);
+                
+                // Calculate scaling factor (96 is the default DPI)
+                _dpiScaleX = dpiX / 96.0;
+                _dpiScaleY = dpiY / 96.0;
+                
+                Console.WriteLine($"Screen DPI: X={dpiX}, Y={dpiY}, Scale: X={_dpiScaleX}, Y={_dpiScaleY}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting DPI scaling: {ex.Message}");
+                // Default to 1.0 if there's an error
+                _dpiScaleX = 1.0;
+                _dpiScaleY = 1.0;
+            }
         }
         
         // Track whether this window was cancelled
@@ -69,34 +138,64 @@ namespace RSTGameTranslation
         // Set window to cover all screens
         private void SetWindowToAllScreens()
         {
-            // Reset window to normal state initially
-            this.WindowState = WindowState.Normal;
-            
-            // Get all screens
-            var allScreens = Forms.Screen.AllScreens;
-            
-            // Calculate the full virtual screen bounds
-            int left = int.MaxValue;
-            int top = int.MaxValue;
-            int right = int.MinValue;
-            int bottom = int.MinValue;
-            
-            foreach (var screen in allScreens)
+            try
             {
-                left = Math.Min(left, screen.Bounds.Left);
-                top = Math.Min(top, screen.Bounds.Top);
-                right = Math.Max(right, screen.Bounds.Right);
-                bottom = Math.Max(bottom, screen.Bounds.Bottom);
+                this.WindowState = WindowState.Normal;
+                
+                int selectedScreenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                var screens = Forms.Screen.AllScreens;
+                
+                if (selectedScreenIndex >= 0 && selectedScreenIndex < screens.Length)
+                {
+                    _selectedScreen = screens[selectedScreenIndex];
+                    
+                    GetDpiScaling(_selectedScreen);
+                    
+                    this.WindowStyle = WindowStyle.None;
+                    this.ResizeMode = ResizeMode.NoResize;
+                    
+                    IntPtr hwnd = new WindowInteropHelper(this).EnsureHandle();
+                    
+                    var activeScreen = GetActiveScreen();
+                    var bounds = activeScreen.Bounds;
+                    
+                    SetWindowPos(
+                        hwnd,
+                        HWND_TOPMOST,
+                        (int)(bounds.Left / _dpiScaleX),    
+                        (int)(bounds.Top / _dpiScaleY),
+                        (int)(bounds.Width / _dpiScaleX),
+                        (int)(bounds.Height / _dpiScaleY),
+                        SWP_SHOWWINDOW | SWP_NOACTIVATE
+                    );
+                    
+                    this.Left = bounds.Left / _dpiScaleX;
+                    this.Top = bounds.Top / _dpiScaleY;
+                    this.Width = bounds.Width / _dpiScaleX;
+                    this.Height = bounds.Height / _dpiScaleY;
+                    
+                    this.Topmost = true;
+                }
+                else
+                {
+                    this.Left = SystemParameters.VirtualScreenLeft;
+                    this.Top = SystemParameters.VirtualScreenTop;
+                    this.Width = SystemParameters.VirtualScreenWidth;
+                    this.Height = SystemParameters.VirtualScreenHeight;
+                    _selectedScreen = Forms.Screen.PrimaryScreen;
+                    GetDpiScaling(_selectedScreen);
+                }
+                
+                Loaded += (s, e) => PositionInstructionText();
             }
-            
-            // Set window position and size to cover all screens
-            this.Left = left;
-            this.Top = top;
-            this.Width = right - left;
-            this.Height = bottom - top;
-            
-            // Position instruction text above the MainWindow
-            Loaded += (s, e) => PositionInstructionText();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting window to selected screen: {ex.Message}");
+                this.Left = SystemParameters.VirtualScreenLeft;
+                this.Top = SystemParameters.VirtualScreenTop;
+                _selectedScreen = Forms.Screen.PrimaryScreen;
+                GetDpiScaling(_selectedScreen);
+            }
         }
         
         private void PositionInstructionText()
@@ -283,29 +382,31 @@ namespace RSTGameTranslation
                 );
                 return;
             }
+            DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY);
             
             // Convert window coordinates to screen coordinates
             // This ensures we use the actual screen coordinates for positioning
             Point screenPoint = this.PointToScreen(new Point(left, top));
+            double logicalX = screenPoint.X / _dpiScaleX;
+            double logicalY = screenPoint.Y / _dpiScaleY;
             
             // Get the screen containing this point
             Forms.Screen targetScreen = Forms.Screen.FromPoint(new System.Drawing.Point(
-                (int)screenPoint.X, 
-                (int)screenPoint.Y
+                (int)logicalX, 
+                (int)logicalY
             ));
             
-            // Create rectangle for the selection
-            Rect selectionRect = new Rect(
-                screenPoint.X, 
-                screenPoint.Y, 
-                width, 
-                height
-            );
+            // // Create rectangle for the selection
+            // Rect physicalRect  = new Rect(
+            //     logicalX, 
+            //     logicalY, 
+            //     width, 
+            //     height
+            // );
             
             // Notify listeners
+            Rect selectionRect = new Rect(logicalX, logicalY, width, height);
             SelectionComplete?.Invoke(this, selectionRect);
-            
-            // Close this window
             this.Close();
         }
         
