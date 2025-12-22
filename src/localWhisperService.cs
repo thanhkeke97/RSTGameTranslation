@@ -47,6 +47,8 @@ namespace RSTGameTranslation
         // new fields
         private Task? processingTask;
         private MMDeviceEnumerator? deviceEnumerator;
+        // Flag to indicate Stop() is in progress to avoid races with processing task
+        private volatile bool _isStopping = false;
 
         // Singleton
         private static localWhisperService? instance;
@@ -110,52 +112,61 @@ namespace RSTGameTranslation
 
         public async Task StartServiceAsync(Action<string, string> onResult)
         {
+            // Ensure previous run is stopped
             Stop();
 
-            string modelPath = ConfigManager.Instance.GetAudioProcessingModel() + ".bin";
-            string fullPath = Path.Combine(ConfigManager.Instance._audioProcessingModelFolderPath, modelPath);
-
-            factory = WhisperFactory.FromPath(fullPath);
-            string current_source_language = MapLanguageToWhisper(ConfigManager.Instance.GetSourceLanguage());
-
-            processor = factory.CreateBuilder()
-                .WithLanguage(current_source_language)
-                // .WithThreads(4)
-                .WithBeamSearchSamplingStrategy()
-                .ParentBuilder
-                .Build();
-
-            deviceEnumerator = new MMDeviceEnumerator();
-            var devices = deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-
-            Console.WriteLine("=== Available Audio Devices ===");
-            foreach (var device in devices)
+            try
             {
-                Console.WriteLine($"Device: {device.FriendlyName}");
+                string modelPath = ConfigManager.Instance.GetAudioProcessingModel() + ".bin";
+                string fullPath = Path.Combine(ConfigManager.Instance._audioProcessingModelFolderPath, modelPath);
+
+                factory = WhisperFactory.FromPath(fullPath);
+                string current_source_language = MapLanguageToWhisper(ConfigManager.Instance.GetSourceLanguage());
+
+                processor = factory.CreateBuilder()
+                    .WithLanguage(current_source_language)
+                    // .WithThreads(4)
+                    .WithBeamSearchSamplingStrategy()
+                    .ParentBuilder
+                    .Build();
+
+                deviceEnumerator = new MMDeviceEnumerator();
+                var devices = deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+                Console.WriteLine("=== Available Audio Devices ===");
+                foreach (var device in devices)
+                {
+                    Console.WriteLine($"Device: {device.FriendlyName}");
+                }
+                var defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
+
+                loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
+                // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
+                bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
+                bufferedProvider.DiscardOnBufferOverflow = true;
+
+                // Build pipeline: Buffered -> Sample -> Resample (16k) -> Mono
+                var sampleProvider = bufferedProvider.ToSampleProvider();
+                var resampler = new WdlResamplingSampleProvider(sampleProvider, 16000);
+                bufferedProvider.BufferDuration = TimeSpan.FromSeconds(60);
+                processedProvider = resampler.ToMono();
+
+                // Setup debug writer for 16k 16bit mono
+                var targetFormat = new WaveFormat(16000, 16, 1);
+                // debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
+
+                loopbackCapture.DataAvailable += OnGameAudioReceived;
+                loopbackCapture.StartRecording();
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                processingTask = Task.Run(() => ProcessLoop(onResult, _cancellationTokenSource.Token));
             }
-            var defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
-
-            loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
-            // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
-            bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
-            bufferedProvider.DiscardOnBufferOverflow = true;
-
-            // Build pipeline: Buffered -> Sample -> Resample (16k) -> Mono
-            var sampleProvider = bufferedProvider.ToSampleProvider();
-            var resampler = new WdlResamplingSampleProvider(sampleProvider, 16000);
-            bufferedProvider.BufferDuration = TimeSpan.FromSeconds(60);
-            processedProvider = resampler.ToMono();
-
-            // Setup debug writer for 16k 16bit mono
-            var targetFormat = new WaveFormat(16000, 16, 1);
-            // debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
-
-            loopbackCapture.DataAvailable += OnGameAudioReceived;
-            loopbackCapture.StartRecording();
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            processingTask = Task.Run(() => ProcessLoop(onResult, _cancellationTokenSource.Token));
+            catch (Exception ex)
+            {
+                Console.WriteLine($"StartServiceAsync failed: {ex.Message}");
+                try { Stop(); } catch { }
+            }
         }
 
 
@@ -182,27 +193,21 @@ namespace RSTGameTranslation
         {
             try
             {
+                _isStopping = true;
+
                 // Cancel processing loop
-                try
-                {
-                    _cancellationTokenSource?.Cancel();
-                }
-                catch { }
+                try { _cancellationTokenSource?.Cancel(); } catch { }
 
                 // Dispose token source
-                try
-                {
-                    _cancellationTokenSource?.Dispose();
-                }
-                catch { }
+                try { _cancellationTokenSource?.Dispose(); } catch { }
                 _cancellationTokenSource = null;
 
-                // Wait for processingTask to finish (short timeout)
+                // Wait for processingTask to finish (longer timeout)
                 try
                 {
                     if (processingTask != null && !processingTask.IsCompleted)
                     {
-                        processingTask.Wait(1000);
+                        processingTask.Wait(3000);
                     }
                 }
                 catch (AggregateException) { }
@@ -232,7 +237,7 @@ namespace RSTGameTranslation
                 bufferedProvider = null;
                 processedProvider = null;
 
-                // Dispose whisper objects
+                // Dispose whisper objects (after waiting for processingTask)
                 try { processor?.Dispose(); } catch { }
                 processor = null;
                 try { factory?.Dispose(); } catch { }
@@ -245,12 +250,16 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Error during Stop(): " + ex.Message);
             }
+            finally
+            {
+                _isStopping = false;
+            }
         }
 
         private async Task ProcessLoop(Action<string, string> onResult, CancellationToken cancellationToken)
         {
             float[] readBuffer = new float[8000]; // Max read ~0.5s @ 16kHz
-            while (loopbackCapture != null && !cancellationToken.IsCancellationRequested)
+            while (loopbackCapture != null && !cancellationToken.IsCancellationRequested && !_isStopping)
             {
                 // 1. Consumer: Read from Resampler & VAD Check
                 if (processedProvider != null && bufferedProvider != null && bufferedProvider.BufferedBytes > minBytesToProcess)
@@ -330,7 +339,14 @@ namespace RSTGameTranslation
                     if (samplesToProcess.Length > 0)
                     {
                         Console.WriteLine($"[DEBUG] Processing {samplesToProcess.Length} samples ({samplesToProcess.Length / 16000.0:F1}s audio)");
-                        await ProcessAudioAsync(samplesToProcess, onResult, cancellationToken);
+                        if (processor == null || _isStopping)
+                        {
+                            Console.WriteLine("[DEBUG] Skipping processing because processor is null or stopping");
+                        }
+                        else
+                        {
+                            await ProcessAudioAsync(samplesToProcess, onResult, cancellationToken);
+                        }
                     }
                     voiceFrameCount = 0;
                 }
@@ -385,6 +401,12 @@ namespace RSTGameTranslation
         {
             try
             {
+                if (processor == null || _isStopping)
+                {
+                    Console.WriteLine("ProcessAudioAsync: processor null or stopping, returning");
+                    return;
+                }
+
                 await foreach (var result in processor.ProcessAsync(samples).WithCancellation(token))
                 {
                     string originalText = result.Text.Trim();
@@ -425,6 +447,18 @@ namespace RSTGameTranslation
 
                     onResult(originalText, "");
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // expected on cancellation
+            }
+            catch (ObjectDisposedException)
+            {
+                Console.WriteLine("Processor disposed during processing");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("Invalid operation during processing: " + ex.Message);
             }
             catch (Exception ex)
             {
