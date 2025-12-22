@@ -106,6 +106,14 @@
                                          Checked="autoClearChatboxHistoryCheckBox_CheckedChanged" 
                                          Unchecked="autoClearChatboxHistoryCheckBox_CheckedChanged"/>
                         </DockPanel>
+                        
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_RecreateOnShow]}" VerticalAlignment="Center" Width="120" TextWrapping="Wrap" />
+                            <CheckBox x:Name="recreateChatboxCheckBox" Grid.Row="4" Grid.Column="1"
+                                      Margin="0,5" ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Tip_RecreateOnShow]}"
+                                      Checked="recreateChatboxCheckBox_CheckedChanged"
+                                      Unchecked="recreateChatboxCheckBox_CheckedChanged"/>
+                        </DockPanel>
                     </StackPanel>
                 </GroupBox>
 

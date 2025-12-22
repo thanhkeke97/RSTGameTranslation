@@ -254,6 +254,8 @@
   "ChatBoxOptions_Lbl_FontSize": "Размер шрифта:",
   "ChatBoxOptions_Lbl_AutoClear": "Авто-очистка истории",
   "ChatBoxOptions_Tip_AutoClear": "Автоматически очищать историю чат-бокса при получении нового перевода",
+  "ChatBoxOptions_Lbl_RecreateOnShow": "Создавать заново при открытии",
+  "ChatBoxOptions_Tip_RecreateOnShow": "Создавать новое окно чат-бокса при каждом открытии. Отключите, чтобы повторно использовать существующее окно.",
   "ChatBoxOptions_Grp_OriginalText": "Настройки оригинального текста",
   "ChatBoxOptions_Lbl_TextColor": "Цвет текста:",
   "ChatBoxOptions_Grp_TranslatedText": "Настройки переведенного текста",

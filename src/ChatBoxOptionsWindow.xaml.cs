@@ -23,6 +23,7 @@ namespace RSTGameTranslation
         private string _originalFontFamily = "Segoe UI";  // Initialize with default value
         private double _originalFontSize;
         private bool _autoClearChatboxHistory = false;
+        private bool _originalRecreateChatbox = false;
         private Color _originalTextColor;
         private Color _translatedTextColor;
         
@@ -33,6 +34,7 @@ namespace RSTGameTranslation
         private string _currentFontFamily = "Segoe UI";  // Initialize with default value
         private double _currentFontSize;
         private bool _currentAutoClearChatboxHistory = false;
+        private bool _currentRecreateChatbox = false;
         private Color _currentOriginalTextColor;
         private Color _currentTranslatedTextColor;
         
@@ -45,6 +47,7 @@ namespace RSTGameTranslation
         private readonly Color DEFAULT_ORIGINAL_TEXT_COLOR = Colors.LightGoldenrodYellow;
         private readonly Color DEFAULT_TRANSLATED_TEXT_COLOR = Colors.White;
         private readonly bool DEFAULT_AUTO_CLEAR_CHATBOX_HISTORY = false;
+        private readonly bool DEFAULT_RECREATE_CHATBOX = false;
 
         public ChatBoxOptionsWindow()
         {
@@ -91,6 +94,9 @@ namespace RSTGameTranslation
                 _translatedTextColor = ConfigManager.Instance.GetTranslatedTextColor();
                 _autoClearChatboxHistory = ConfigManager.Instance.IsAutoClearChatboxHistoryEnabled();
                 autoClearChatboxHistoryCheckBox.IsChecked = _autoClearChatboxHistory;
+                _originalRecreateChatbox = ConfigManager.Instance.IsChatboxRecreateOnShowEnabled();
+                _currentRecreateChatbox = _originalRecreateChatbox;
+                recreateChatboxCheckBox.IsChecked = _currentRecreateChatbox;
                 
                 // Set current values to match original values
                 _currentBackgroundColor = _originalBackgroundColor;
@@ -101,6 +107,7 @@ namespace RSTGameTranslation
                 _currentOriginalTextColor = _originalTextColor;
                 _currentTranslatedTextColor = _translatedTextColor;
                 _currentAutoClearChatboxHistory = _autoClearChatboxHistory;
+                _currentRecreateChatbox = _originalRecreateChatbox;
             }
             catch (Exception ex)
             {
@@ -314,6 +321,7 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_FAMILY, _currentFontFamily);
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, _currentFontSize.ToString());
                 ConfigManager.Instance.SetValue(ConfigManager.AUTO_CLEAR_CHAT_HISTORY, _currentAutoClearChatboxHistory.ToString());
+                ConfigManager.Instance.SetChatboxRecreateOnShow(_currentRecreateChatbox);
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_ORIGINAL_TEXT_COLOR, ColorToHexString(_currentOriginalTextColor));
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_TRANSLATED_TEXT_COLOR, ColorToHexString(_currentTranslatedTextColor));
                 
@@ -357,6 +365,7 @@ namespace RSTGameTranslation
                 _currentOriginalTextColor = DEFAULT_ORIGINAL_TEXT_COLOR;
                 _currentTranslatedTextColor = DEFAULT_TRANSLATED_TEXT_COLOR;
                 _currentAutoClearChatboxHistory = DEFAULT_AUTO_CLEAR_CHATBOX_HISTORY;
+                _currentRecreateChatbox = DEFAULT_RECREATE_CHATBOX;
                 
                 // Update UI with default values
                 UpdateUIFromSettings();
@@ -411,6 +420,12 @@ namespace RSTGameTranslation
         {
             bool enabled = autoClearChatboxHistoryCheckBox.IsChecked ?? false;
             _currentAutoClearChatboxHistory = enabled;
+        }
+
+        private void recreateChatboxCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = recreateChatboxCheckBox.IsChecked ?? false;
+            _currentRecreateChatbox = enabled;
         }
     }
 }

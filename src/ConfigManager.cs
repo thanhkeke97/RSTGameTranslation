@@ -138,6 +138,7 @@ namespace RSTGameTranslation
         public const string CHATBOX_LINES_OF_HISTORY = "chatbox_lines_of_history";
         public const string CHATBOX_OPACITY = "chatbox_opacity";
         public const string CHATBOX_MIN_TEXT_SIZE = "chatbox_min_text_size";
+        public const string CHATBOX_RECREATE_ON_SHOW = "chatbox_recreate_on_show";
         public const string SOURCE_LANGUAGE = "source_language";
         public const string TARGET_LANGUAGE = "target_language";
         public const string AUDIO_PROCESSING_PROVIDER = "audio_processing_provider";
@@ -2073,6 +2074,20 @@ namespace RSTGameTranslation
             _configValues[AUTO_CLEAR_CHAT_HISTORY] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Auto clear chatbox history enabled: {enabled}");
+        }
+
+        // Get/Set chatbox recreate-on-show behavior
+        public bool IsChatboxRecreateOnShowEnabled()
+        {
+            string value = GetValue(CHATBOX_RECREATE_ON_SHOW, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetChatboxRecreateOnShow(bool enabled)
+        {
+            _configValues[CHATBOX_RECREATE_ON_SHOW] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Chatbox recreate on show enabled: {enabled}");
         }
 
         // Get/Set manga mode

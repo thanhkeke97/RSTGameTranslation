@@ -254,6 +254,8 @@
   "ChatBoxOptions_Lbl_FontSize": "글꼴 크기:",
   "ChatBoxOptions_Lbl_AutoClear": "기록 자동 지우기",
   "ChatBoxOptions_Tip_AutoClear": "새 번역 텍스트 수신 시 채팅 상자 기록 자동 지우기",
+  "ChatBoxOptions_Lbl_RecreateOnShow": "열 때마다 다시 생성",
+  "ChatBoxOptions_Tip_RecreateOnShow": "채팅 상자를 열 때마다 새 창을 만듭니다. 비활성화하면 기존 창을 재사용합니다.",
   "ChatBoxOptions_Grp_OriginalText": "원본 텍스트 설정",
   "ChatBoxOptions_Lbl_TextColor": "텍스트 색상:",
   "ChatBoxOptions_Grp_TranslatedText": "번역된 텍스트 설정",

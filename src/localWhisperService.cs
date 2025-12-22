@@ -44,6 +44,10 @@ namespace RSTGameTranslation
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase
             );
 
+        // new fields
+        private Task? processingTask;
+        private MMDeviceEnumerator? deviceEnumerator;
+
         // Singleton
         private static localWhisperService instance;
         public static localWhisperService Instance
@@ -61,6 +65,16 @@ namespace RSTGameTranslation
         private localWhisperService()
         {
             AppDomain.CurrentDomain.ProcessExit += (s, e) => Stop();
+            try
+            {
+                if (System.Windows.Application.Current != null)
+                {
+                    System.Windows.Application.Current.Exit += (s, e) => Stop();
+                }
+            }
+            catch { }
+
+            TaskScheduler.UnobservedTaskException += (s, e) => Stop();
         }
 
         private string MapLanguageToWhisper(string language)
@@ -111,15 +125,15 @@ namespace RSTGameTranslation
                 .ParentBuilder
                 .Build();
 
-            var enumerator = new MMDeviceEnumerator();
-            var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            deviceEnumerator = new MMDeviceEnumerator();
+            var devices = deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
 
             Console.WriteLine("=== Available Audio Devices ===");
             foreach (var device in devices)
             {
                 Console.WriteLine($"Device: {device.FriendlyName}");
             }
-            var defaultDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            var defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
 
             loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
@@ -141,7 +155,7 @@ namespace RSTGameTranslation
             loopbackCapture.StartRecording();
 
             _cancellationTokenSource = new CancellationTokenSource();
-            _ = Task.Run(() => ProcessLoop(onResult, _cancellationTokenSource.Token));
+            processingTask = Task.Run(() => ProcessLoop(onResult, _cancellationTokenSource.Token));
         }
 
 
@@ -166,23 +180,71 @@ namespace RSTGameTranslation
 
         public void Stop()
         {
-            // Cancel the processing loop first
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
+            try
+            {
+                // Cancel processing loop
+                try
+                {
+                    _cancellationTokenSource?.Cancel();
+                }
+                catch { }
 
-            loopbackCapture?.StopRecording();
-            loopbackCapture?.Dispose();
-            loopbackCapture = null;
-            debugWriter?.Dispose();
-            debugWriter = null;
-            debugWriterProcessed?.Dispose();
-            debugWriterProcessed = null;
-            bufferedProvider?.ClearBuffer();
-            processedProvider = null;
-            processor?.Dispose();
-            factory?.Dispose();
-            audioBuffer.Clear();
+                // Dispose token source
+                try
+                {
+                    _cancellationTokenSource?.Dispose();
+                }
+                catch { }
+                _cancellationTokenSource = null;
+
+                // Wait for processingTask to finish (short timeout)
+                try
+                {
+                    if (processingTask != null && !processingTask.IsCompleted)
+                    {
+                        processingTask.Wait(1000);
+                    }
+                }
+                catch (AggregateException) { }
+                catch (Exception) { }
+
+                // Unregister event and stop loopback
+                if (loopbackCapture != null)
+                {
+                    try { loopbackCapture.DataAvailable -= OnGameAudioReceived; } catch { }
+                    try { loopbackCapture.StopRecording(); } catch { }
+                    try { loopbackCapture.Dispose(); } catch { }
+                    loopbackCapture = null;
+                }
+
+                // Dispose enumerator
+                try { deviceEnumerator?.Dispose(); } catch { }
+                deviceEnumerator = null;
+
+                // Dispose writers
+                try { debugWriter?.Dispose(); } catch { }
+                debugWriter = null;
+                try { debugWriterProcessed?.Dispose(); } catch { }
+                debugWriterProcessed = null;
+
+                // Clear providers
+                try { bufferedProvider?.ClearBuffer(); } catch { }
+                bufferedProvider = null;
+                processedProvider = null;
+
+                // Dispose whisper objects
+                try { processor?.Dispose(); } catch { }
+                processor = null;
+                try { factory?.Dispose(); } catch { }
+                factory = null;
+
+                audioBuffer.Clear();
+                _lastTranslatedText = "";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error during Stop(): " + ex.Message);
+            }
         }
 
         private async Task ProcessLoop(Action<string, string> onResult, CancellationToken cancellationToken)

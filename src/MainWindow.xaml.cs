@@ -2089,7 +2089,32 @@ namespace RSTGameTranslation
             // Make sure our chatBoxWindow reference is up to date
             // chatBoxWindow = ChatBoxWindow.Instance;
 
-            if (isChatBoxVisible && chatBoxWindow != null)
+            bool recreateOnShow = ConfigManager.Instance.IsChatboxRecreateOnShowEnabled();
+
+            // If recreate-on-show is enabled and we already have an instance, fully close it
+            if (isChatBoxVisible && recreateOnShow && chatBoxWindow != null)
+            {
+                chatBoxWindow.Hide();
+                isChatBoxVisible = false;
+                // Show selector to allow user to position ChatBox
+                ChatBoxSelectorWindow selectorWindow = ChatBoxSelectorWindow.GetInstance();
+                selectorWindow.SelectionComplete += ChatBoxSelector_SelectionComplete;
+                selectorWindow.Closed += (s, e) =>
+                {
+                    isSelectingChatBoxArea = false;
+                    // Only set button to blue if the ChatBox isn't visible (was cancelled)
+                    if (!isChatBoxVisible || chatBoxWindow == null || !chatBoxWindow.IsVisible)
+                    {
+                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
+                    }
+                };
+                selectorWindow.Show();
+
+                // Set button to red while selector is active
+                isSelectingChatBoxArea = true;
+                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+            }
+            else if (isChatBoxVisible && chatBoxWindow != null && !recreateOnShow)
             {
                 // Hide ChatBox
                 chatBoxWindow.Hide();
@@ -2098,9 +2123,9 @@ namespace RSTGameTranslation
 
                 // Don't set chatBoxWindow to null here - we're just hiding it, not closing it
             }
-            else if (!isChatBoxVisible && chatBoxWindow != null)
+            else if (!isChatBoxVisible && chatBoxWindow != null && !recreateOnShow) 
             {
-                // Show ChatBox
+                // Show existing ChatBox (reuse)
                 chatBoxWindow.Show();
                 isChatBoxVisible = true;
                 chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red

@@ -108,6 +108,15 @@ namespace RSTGameTranslation
             Logic.Instance.TranslationCompleted += OnTranslationCompleted;
         }
 
+        public static void ResetInstance()
+        {
+            if (Instance != null)
+            {
+                Instance.Close();
+                Instance = null;
+            }
+        }
+
         private void SetupContextMenu()
         {
             // Create a context menu

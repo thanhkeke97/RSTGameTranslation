@@ -254,6 +254,8 @@
   "ChatBoxOptions_Lbl_FontSize": "字体大小：",
   "ChatBoxOptions_Lbl_AutoClear": "自动清除历史",
   "ChatBoxOptions_Tip_AutoClear": "收到新翻译文本时自动清除聊天框历史",
+  "ChatBoxOptions_Lbl_RecreateOnShow": "每次打开时重新创建",
+  "ChatBoxOptions_Tip_RecreateOnShow": "每次显示聊天框时都会创建新的窗口；禁用则重用现有窗口。",
   "ChatBoxOptions_Grp_OriginalText": "原文设置",
   "ChatBoxOptions_Lbl_TextColor": "文本颜色：",
   "ChatBoxOptions_Grp_TranslatedText": "译文设置",
