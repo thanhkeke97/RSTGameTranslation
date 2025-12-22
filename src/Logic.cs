@@ -19,7 +19,7 @@ namespace RSTGameTranslation
         private static Logic? _instance;
         private List<TextObject> _textObjects;
         private List<TextObject> _textObjectsOld;
-        private string outputPath = MainWindow.DEFAULT_OUTPUT_PATH;
+        private string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, MainWindow.DEFAULT_OUTPUT_PATH);
         private Random _random;
         private Grid? _overlayContainer;
         private int _textIDCounter = 0;

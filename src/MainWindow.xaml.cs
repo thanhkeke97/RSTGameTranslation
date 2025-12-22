@@ -80,7 +80,7 @@ namespace RSTGameTranslation
         private bool isStarted = false;
         public bool isStopOCR = false;
         private DispatcherTimer _captureTimer;
-        private string outputPath = DEFAULT_OUTPUT_PATH;
+        private string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DEFAULT_OUTPUT_PATH);
         private WindowInteropHelper helper;
         private System.Drawing.Rectangle captureRect;
 
