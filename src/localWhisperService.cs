@@ -49,7 +49,7 @@ namespace RSTGameTranslation
         private MMDeviceEnumerator? deviceEnumerator;
 
         // Singleton
-        private static localWhisperService instance;
+        private static localWhisperService? instance;
         public static localWhisperService Instance
         {
             get
