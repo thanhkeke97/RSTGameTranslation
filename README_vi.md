@@ -9,7 +9,7 @@
 
 *Dịch game của bạn theo thời gian thực với công nghệ OCR và LLM*
 
-[📥 Tải xuống](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [⚙️ Hướng dẫn cài đặt (Tất cả cài đặt)](index_vi.html) • [📖 English Guide](README.md) • [🐛 Báo lỗi](https://github.com/thanhkeke97/RSTGameTranslation/issues)
+[📥 Tải xuống](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [⚙️ Hướng dẫn cài đặt (Tất cả cài đặt)](https://thanhkeke97.github.io/RSTGameTranslation/index_vi.html#settings) • [📖 English Guide](README.md) • [🐛 Báo lỗi](https://github.com/thanhkeke97/RSTGameTranslation/issues)
 
 </div>
 
