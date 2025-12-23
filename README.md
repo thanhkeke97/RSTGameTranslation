@@ -9,7 +9,7 @@
 
 *Translate your games in real-time with AI-powered OCR and LLM technology*
 
-[📥 Download](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [📖 Hướng dẫn tiếng việt](README_vi.md) • [🐛 Report Bug](https://github.com/thanhkeke97/RSTGameTranslation/issues)
+[📥 Download](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [⚙️ Settings guide](index.html) • [📖 Vietnamese Guide](README_vi.md) • [🐛 Report Bug](https://github.com/thanhkeke97/RSTGameTranslation/issues)
 
 </div>
 
