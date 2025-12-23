@@ -1,0 +1,100 @@
+name: Build & Release RST
+
+on:
+  workflow_dispatch: # Chạy thủ công khi cần release
+
+jobs:
+  build-and-package:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Setup Node.js (for version script)
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Run Update Version Script
+      run: node update-version.js
+
+    - name: Publish .NET App
+      # Build theo cấu hình trong file bat: Release, win-x64, SingleFile, SelfContained
+      run: dotnet publish RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
+
+    - name: Prepare Release Folder Structure
+      shell: powershell
+      run: |
+        # Tên thư mục đích (thay vì tempbuild, ta đặt tên đúng luôn để khi zip sẽ có root folder chuẩn)
+        $releaseDir = "RSTGameTranslation"
+        
+        # 1. Tạo cấu trúc thư mục
+        New-Item -ItemType Directory -Force -Path $releaseDir
+        $dirs = @(
+            "webserver\EasyOCR", 
+            "webserver\PaddleOCR", 
+            "webserver\RapidOCR", 
+            "webserver\Python311", 
+            "translation_server\templates", 
+            "AudioModel", 
+            "Languages"
+        )
+        foreach ($d in $dirs) { New-Item -ItemType Directory -Force -Path "$releaseDir\$d" }
+
+        # 2. Copy file build chính (.exe)
+        # Output của dotnet publish thường nằm ở app\win-x64\publish do cấu hình trong csproj
+        Copy-Item -Path "app\win-x64\publish\*" -Destination $releaseDir -Recurse -Force
+
+        # 3. Copy các file assets theo logic của MakeReleaseZip.bat
+        
+        # README
+        Copy-Item "README.md" -Destination $releaseDir
+
+        # Webserver & OCR Scripts
+        Copy-Item "app\webserver\EasyOCR\*.py", "app\webserver\EasyOCR\*.bat" -Destination "$releaseDir\webserver\EasyOCR"
+        Copy-Item "app\webserver\PaddleOCR\*.bat", "app\webserver\PaddleOCR\*.py" -Destination "$releaseDir\webserver\PaddleOCR"
+        Copy-Item "app\webserver\RapidOCR\*.bat", "app\webserver\RapidOCR\*.py" -Destination "$releaseDir\webserver\RapidOCR"
+        Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver"
+
+        # Translation Server
+        Copy-Item "app\translation_server\*.py", "app\translation_server\*.bat" -Destination "$releaseDir\translation_server"
+        Copy-Item "app\translation_server\templates\*.html" -Destination "$releaseDir\translation_server\templates"
+
+        # OneOcr (Copy nội dung folder ra root của releaseDir)
+        if (Test-Path "app\OneOcr") { Copy-Item "app\OneOcr\*" -Destination $releaseDir }
+
+        # Audio Model - Download from URL
+        $modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q5_1.bin?download=true"
+        $modelDest = "$releaseDir\AudioModel\ggml-base.en-q5_1.bin"
+        Write-Host "Downloading Audio Model from $modelUrl..."
+        Invoke-WebRequest -Uri $modelUrl -OutFile $modelDest
+
+        # Languages
+        Copy-Item "app\Languages\*" -Destination "$releaseDir\Languages" -Recurse
+
+        # Python311 Environment
+        # Lưu ý: Folder này phải có trong git repo thì mới copy được.
+        if (Test-Path "app\webserver\Python311") {
+            Copy-Item "app\webserver\Python311\*" -Destination "$releaseDir\webserver\Python311" -Recurse
+        } else {
+            Write-Host "Warning: Python311 folder not found in repo. Skipping."
+        }
+
+    - name: Zip Release
+      shell: powershell
+      run: |
+        $releaseDir = "RSTGameTranslation"
+        $zipName = "RSTGameTranslation_Release.zip"
+        Compress-Archive -Path $releaseDir -DestinationPath $zipName
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: RSTGameTranslation_Release
+        path: RSTGameTranslation_Release.zip
