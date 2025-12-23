@@ -1,7 +1,7 @@
 name: Build & Release RST
 
 on:
-  workflow_dispatch: # Chạy thủ công khi cần release
+  workflow_dispatch: 
 
 jobs:
   build-and-package:
@@ -16,6 +16,18 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
+    - name: Install Windows SDK with UAP
+      shell: powershell
+      run: |
+        # Cài đặt Windows SDK 10.0.19041.0 với UWP components
+        $sdkUrl = "https://go.microsoft.com/fwlink/?linkid=2120843"
+        $installerPath = "$env:TEMP\winsdksetup.exe"
+        Write-Host "Downloading Windows SDK..."
+        Invoke-WebRequest -Uri $sdkUrl -OutFile $installerPath
+        Write-Host "Installing Windows SDK (this may take a few minutes)..."
+        Start-Process -FilePath $installerPath -ArgumentList "/features OptionId.UWPCpp /quiet /norestart" -Wait
+        Write-Host "Windows SDK installation completed."
+
     - name: Setup Node.js (for version script)
       uses: actions/setup-node@v4
       with:
@@ -25,16 +37,13 @@ jobs:
       run: node update-version.js
 
     - name: Publish .NET App
-      # Build theo cấu hình trong file bat: Release, win-x64, SingleFile, SelfContained
       run: dotnet publish RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
 
     - name: Prepare Release Folder Structure
       shell: powershell
       run: |
-        # Tên thư mục đích (thay vì tempbuild, ta đặt tên đúng luôn để khi zip sẽ có root folder chuẩn)
         $releaseDir = "RSTGameTranslation"
         
-        # 1. Tạo cấu trúc thư mục
         New-Item -ItemType Directory -Force -Path $releaseDir
         $dirs = @(
             "webserver\EasyOCR", 
@@ -47,12 +56,8 @@ jobs:
         )
         foreach ($d in $dirs) { New-Item -ItemType Directory -Force -Path "$releaseDir\$d" }
 
-        # 2. Copy file build chính (.exe)
-        # Output của dotnet publish thường nằm ở app\win-x64\publish do cấu hình trong csproj
         Copy-Item -Path "app\win-x64\publish\*" -Destination $releaseDir -Recurse -Force
 
-        # 3. Copy các file assets theo logic của MakeReleaseZip.bat
-        
         # README
         Copy-Item "README.md" -Destination $releaseDir
 
@@ -66,7 +71,7 @@ jobs:
         Copy-Item "app\translation_server\*.py", "app\translation_server\*.bat" -Destination "$releaseDir\translation_server"
         Copy-Item "app\translation_server\templates\*.html" -Destination "$releaseDir\translation_server\templates"
 
-        # OneOcr (Copy nội dung folder ra root của releaseDir)
+        # OneOcr 
         if (Test-Path "app\OneOcr") { Copy-Item "app\OneOcr\*" -Destination $releaseDir }
 
         # Audio Model - Download from URL
@@ -79,7 +84,6 @@ jobs:
         Copy-Item "app\Languages\*" -Destination "$releaseDir\Languages" -Recurse
 
         # Python311 Environment
-        # Lưu ý: Folder này phải có trong git repo thì mới copy được.
         if (Test-Path "app\webserver\Python311") {
             Copy-Item "app\webserver\Python311\*" -Destination "$releaseDir\webserver\Python311" -Recurse
         } else {
