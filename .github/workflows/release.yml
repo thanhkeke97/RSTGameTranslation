@@ -19,7 +19,6 @@ jobs:
     - name: Install Windows SDK with UAP
       shell: powershell
       run: |
-        # Cài đặt Windows SDK 10.0.19041.0 với UWP components
         $sdkUrl = "https://go.microsoft.com/fwlink/?linkid=2120843"
         $installerPath = "$env:TEMP\winsdksetup.exe"
         Write-Host "Downloading Windows SDK..."
@@ -96,6 +95,23 @@ jobs:
             Copy-Item "app\OneOcr\*" -Destination $releaseDir -ErrorAction SilentlyContinue
         }
 
+        # Download Python 3.11 Embedded
+        $pythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
+        $pythonZip = "$env:TEMP\python311.zip"
+        $pythonDest = "$releaseDir\webserver\Python311"
+        Write-Host "Downloading Python 3.11 Embedded..."
+        Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonZip
+        Write-Host "Extracting Python 3.11..."
+        Expand-Archive -Path $pythonZip -DestinationPath $pythonDest -Force
+
+        Write-Host "Downloading get-pip.py..."
+        Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "$pythonDest\get-pip.py"
+        
+        $pthFile = "$pythonDest\python311._pth"
+        if (Test-Path $pthFile) {
+            (Get-Content $pthFile) -replace '#import site', 'import site' | Set-Content $pthFile
+        }
+
         # Audio Model - Download from URL
         $modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q5_1.bin?download=true"
         $modelDest = "$releaseDir\AudioModel\ggml-base.en-q5_1.bin"
@@ -107,13 +123,6 @@ jobs:
             Copy-Item "app\Languages\*" -Destination "$releaseDir\Languages" -Recurse -ErrorAction SilentlyContinue
         } else {
             Write-Host "Warning: Languages folder not found. Skipping."
-        }
-
-        # Python311 Environment
-        if (Test-Path "app\webserver\Python311") {
-            Copy-Item "app\webserver\Python311\*" -Destination "$releaseDir\webserver\Python311" -Recurse -ErrorAction SilentlyContinue
-        } else {
-            Write-Host "Warning: Python311 folder not found. Skipping."
         }
 
         Write-Host "=== Release folder contents ==="
