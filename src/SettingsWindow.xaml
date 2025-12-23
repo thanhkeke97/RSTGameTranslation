@@ -216,6 +216,10 @@
                                     <ComboBoxItem Content="RapidOCR"/>
                                     <ComboBoxItem Content="OneOCR"/>
                                 </ComboBox>
+                                <!-- Remove OCR Button (UI only) -->
+                                <Button x:Name="removeOcrButton" Grid.Row="1" Grid.Column="1"
+                                    Margin="0,5" Width="100" HorizontalAlignment="Left" Click="RemoveOcrButton_Click"
+                                    Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RemoveOCR]}"/>
                                 
                                 <!-- WINDOWS OCR integration -->
                                 <!-- <TextBlock Text="Windows OCR integration:" Grid.Row="1" Grid.Column="0" 

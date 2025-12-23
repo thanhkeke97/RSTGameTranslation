@@ -39,6 +39,9 @@ namespace RSTGameTranslation
         // Animation timer for translation status
         private DispatcherTimer? _animationTimer;
 
+        // Flag used to allow a forced close (different from normal hide-on-close behavior)
+        private bool _forceClose = false;
+
         // Semaphore to ensure only one speech request is processed at a time
         private static readonly SemaphoreSlim _speechSemaphore = new SemaphoreSlim(1, 1);
         
@@ -106,15 +109,6 @@ namespace RSTGameTranslation
 
             // Listen for Logic's translation in progress status
             Logic.Instance.TranslationCompleted += OnTranslationCompleted;
-        }
-
-        public static void ResetInstance()
-        {
-            if (Instance != null)
-            {
-                Instance.Close();
-                Instance = null;
-            }
         }
 
         private void SetupContextMenu()
@@ -428,16 +422,59 @@ namespace RSTGameTranslation
 
         private void ChatBoxWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
-            // Don't actually close the window, just hide it
-            Console.WriteLine("ChatBox window closing intercepted - hiding instead");
+            if (_forceClose)
+            {
+                // Allow the window to close for a forced close request
+                Console.WriteLine("ChatBox window force closing - performing cleanup");
 
-            // Cancel the closing operation
-            e.Cancel = true;
+                // Stop animation timer
+                try { _animationTimer?.Stop(); } catch { }
 
-            // Hide the window instead
-            this.Hide();
+                // Cancel any pending speech processing
+                try
+                {
+                    _speechCancellationTokenSource?.Cancel();
+                    _speechCancellationTokenSource?.Dispose();
+                    _speechCancellationTokenSource = null;
+                }
+                catch { }
 
-            // Note: We maintain timer and event subscriptions since the window instance stays alive
+                // Unsubscribe from Logic events
+                try { Logic.Instance.TranslationCompleted -= OnTranslationCompleted; } catch { }
+
+                // Clear the static Instance reference so a new one can be created
+                Instance = null;
+
+                // Allow the close to proceed
+                e.Cancel = false;
+            }
+            else
+            {
+                // Don't actually close the window, just hide it
+                Console.WriteLine("ChatBox window closing intercepted - hiding instead");
+
+                // Cancel the closing operation
+                e.Cancel = true;
+
+                // Hide the window instead
+                this.Hide();
+
+                // Note: We maintain timer and event subscriptions since the window instance stays alive
+            }
+        }
+
+        // Force-close the window (bypasses the normal hide-on-close behavior)
+        public void ForceClose()
+        {
+            _forceClose = true;
+            try
+            {
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error forcing ChatBox close: {ex.Message}");
+            }
         }
 
         public void ApplyConfigurationStyling()

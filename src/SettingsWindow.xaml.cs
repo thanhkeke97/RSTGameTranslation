@@ -4276,6 +4276,85 @@ namespace RSTGameTranslation
             }
         }
 
+        private void RemoveOcrButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show(
+                LocalizationManager.Instance.Strings["Msg_ConfirmRemoveOCRData"],
+                LocalizationManager.Instance.Strings["Title_ConfirmRemoval"],
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            string currentOcrEngine = ConfigManager.Instance.GetOcrMethod();
+            if (currentOcrEngine == "Windows OCR" || currentOcrEngine == "OneOCR")
+            {
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_CannotRemoveWindowsOCRData"],
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+                return;
+            }
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string webserverPath = Path.Combine(baseDirectory, "webserver");
+            string ocrDataPath = Path.Combine(webserverPath, currentOcrEngine);
+            // mapping OCR method to folder path name
+            string fullOcrPath = "";
+            if (currentOcrEngine == "PaddleOCR")
+            {
+                fullOcrPath = Path.Combine(ocrDataPath, "ocrstuffpaddleocr");
+            }
+            else if (currentOcrEngine == "EasyOCR")
+            {
+                fullOcrPath = Path.Combine(ocrDataPath, "ocrstuffeasyocr");
+            }
+            else if (currentOcrEngine == "RapidOCR")
+            {
+                fullOcrPath = Path.Combine(ocrDataPath, "ocrstuffrapidocr");
+            }
+            Console.WriteLine("Removing OCR data at: " + fullOcrPath);
+            if (Directory.Exists(fullOcrPath))
+            {
+                try
+                {
+                    Directory.Delete(fullOcrPath, true);
+                    MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_OCRDataRemoved"],
+                        LocalizationManager.Instance.Strings["Title_Success"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error removing OCR data: {ex.Message}");
+                    MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_ErrorRemovingOCRData"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                    return;
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_NoOCRDataFound"],
+                    LocalizationManager.Instance.Strings["Title_Info"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+                return;
+            }
+            
+            Console.WriteLine("OCR data removed successfully");
+        }
+
         // private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         // {
         //     bool enabled = MangaModeCheckBox.IsChecked ?? true;
