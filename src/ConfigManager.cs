@@ -542,9 +542,9 @@ namespace RSTGameTranslation
             _configValues[CUSTOM_API_MODEL] = "";
             _configValues[HOT_KEY_ENABLE] = "true";
             _configValues[AUDIO_PROCESSING_MODEL] = "ggml-small-q5_1";
-            _configValues[SILENT_THRESHOLD] = "0.01f";
+            _configValues[SILENT_THRESHOLD] = "0.02f";
             _configValues[SILENCE_DURATION_MS] = "500";
-            _configValues[MAX_BUFFER_SAMPLES] = "5";
+            _configValues[MAX_BUFFER_SAMPLES] = "3";
 
             // Save the default configuration
             SaveConfig();
