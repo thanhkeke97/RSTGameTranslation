@@ -56,39 +56,68 @@ jobs:
         )
         foreach ($d in $dirs) { New-Item -ItemType Directory -Force -Path "$releaseDir\$d" }
 
-        Copy-Item -Path "app\win-x64\publish\*" -Destination $releaseDir -Recurse -Force
+        # Copy file build chính
+        if (Test-Path "app\win-x64\publish") {
+            Copy-Item -Path "app\win-x64\publish\*" -Destination $releaseDir -Recurse -Force
+        } else {
+            Write-Host "ERROR: Build output not found at app\win-x64\publish"
+            exit 1
+        }
 
         # README
-        Copy-Item "README.md" -Destination $releaseDir
+        if (Test-Path "README.md") { Copy-Item "README.md" -Destination $releaseDir }
 
         # Webserver & OCR Scripts
-        Copy-Item "app\webserver\EasyOCR\*.py", "app\webserver\EasyOCR\*.bat" -Destination "$releaseDir\webserver\EasyOCR"
-        Copy-Item "app\webserver\PaddleOCR\*.bat", "app\webserver\PaddleOCR\*.py" -Destination "$releaseDir\webserver\PaddleOCR"
-        Copy-Item "app\webserver\RapidOCR\*.bat", "app\webserver\RapidOCR\*.py" -Destination "$releaseDir\webserver\RapidOCR"
-        Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver"
+        if (Test-Path "app\webserver\EasyOCR") {
+            Get-ChildItem "app\webserver\EasyOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\EasyOCR"
+        }
+        if (Test-Path "app\webserver\PaddleOCR") {
+            Get-ChildItem "app\webserver\PaddleOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\PaddleOCR"
+        }
+        if (Test-Path "app\webserver\RapidOCR") {
+            Get-ChildItem "app\webserver\RapidOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\RapidOCR"
+        }
+        if (Test-Path "app\webserver\*.bat") {
+            Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver" -ErrorAction SilentlyContinue
+        }
 
         # Translation Server
-        Copy-Item "app\translation_server\*.py", "app\translation_server\*.bat" -Destination "$releaseDir\translation_server"
-        Copy-Item "app\translation_server\templates\*.html" -Destination "$releaseDir\translation_server\templates"
+        if (Test-Path "app\translation_server") {
+            Get-ChildItem "app\translation_server\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\translation_server"
+            if (Test-Path "app\translation_server\templates") {
+                Copy-Item "app\translation_server\templates\*.html" -Destination "$releaseDir\translation_server\templates" -ErrorAction SilentlyContinue
+            }
+        } else {
+            Write-Host "Warning: translation_server folder not found. Skipping."
+        }
 
         # OneOcr 
-        if (Test-Path "app\OneOcr") { Copy-Item "app\OneOcr\*" -Destination $releaseDir }
+        if (Test-Path "app\OneOcr") { 
+            Copy-Item "app\OneOcr\*" -Destination $releaseDir -ErrorAction SilentlyContinue
+        }
 
         # Audio Model - Download from URL
         $modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q5_1.bin?download=true"
         $modelDest = "$releaseDir\AudioModel\ggml-base.en-q5_1.bin"
-        Write-Host "Downloading Audio Model from $modelUrl..."
+        Write-Host "Downloading Audio Model from HuggingFace..."
         Invoke-WebRequest -Uri $modelUrl -OutFile $modelDest
 
         # Languages
-        Copy-Item "app\Languages\*" -Destination "$releaseDir\Languages" -Recurse
+        if (Test-Path "app\Languages") {
+            Copy-Item "app\Languages\*" -Destination "$releaseDir\Languages" -Recurse -ErrorAction SilentlyContinue
+        } else {
+            Write-Host "Warning: Languages folder not found. Skipping."
+        }
 
         # Python311 Environment
         if (Test-Path "app\webserver\Python311") {
-            Copy-Item "app\webserver\Python311\*" -Destination "$releaseDir\webserver\Python311" -Recurse
+            Copy-Item "app\webserver\Python311\*" -Destination "$releaseDir\webserver\Python311" -Recurse -ErrorAction SilentlyContinue
         } else {
-            Write-Host "Warning: Python311 folder not found in repo. Skipping."
+            Write-Host "Warning: Python311 folder not found. Skipping."
         }
+
+        Write-Host "=== Release folder contents ==="
+        Get-ChildItem -Path $releaseDir -Recurse | Select-Object FullName
 
     - name: Zip Release
       shell: powershell
