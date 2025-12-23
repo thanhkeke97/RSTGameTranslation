@@ -276,6 +276,7 @@
                 <li><a href="#updates">🔄 Updates</a></li>
                 <li><a href="#shortcuts">⌨️ Shortcuts</a></li>
                 <li><a href="#advanced-settings">⚙️ Advanced Settings</a></li>
+                <li><a href="#settings">⚙️ All Settings</a></li>
                 <li><a href="#faq">❓ FAQ</a></li>
             </ul>
         </nav>
@@ -462,6 +463,78 @@
             </ul>
         </section>
 
+        <section id="settings">
+            <h2>⚙️ All Settings — detailed usage</h2>
+            <div class="installation-steps">
+                <p>Detailed descriptions and quick usage notes for each settings group (from SettingsWindow.xaml):</p>
+                <h3>Language</h3>
+                <ul>
+                    <li>Source / Target language: choose language codes (e.g. ja, en, vi). Swap with the ⇄ button.</li>
+                    <li>Windows OCR language pack: click Check to verify/install required language when using Windows OCR.</li>
+                </ul>
+                <h3>OCR & Screen</h3>
+                <ul>
+                    <li>OCR Method: pick EasyOCR, Windows OCR, PaddleOCR, RapidOCR or OneOCR. Non-built-in engines may require server setup.</li>
+                    <li>Select Screen: choose which display to capture if multiple monitors are connected.</li>
+                    <li>Auto OCR: enable realtime auto-capture; disable to manually run OCR.</li>
+                    <li>HDR support: enable if your game uses HDR (may affect detection).</li>
+                    <li>Remove OCR Data: deletes downloaded OCR model/data for external engines if you need to reclaim space.</li>
+                </ul>
+                <h3>OCR Settings</h3>
+                <ul>
+                    <li>Block detection power & settle time: tune how text blocks are grouped and how long to wait for text to settle before capture.</li>
+                    <li>Text similarity threshold: skip near-duplicate captures (0.5–1.0). Lower = stricter deduplication.</li>
+                    <li>Char-level OCR: enable to split results into characters (useful for tightly spaced text).</li>
+                    <li>Minimum fragment / letter / line confidence: filter noisy OCR output by confidence scores.</li>
+                    <li>Multi-selection area: allow selecting multiple translation regions (useful for HUD + chat simultaneously).</li>
+                </ul>
+                <h3>Translation Context & Overlay</h3>
+                <ul>
+                    <li>Max/Min context pieces and size: control how much previous text is sent as context to the LLM for better continuity.</li>
+                    <li>Game info: enter brief game description to help LLM produce context-aware translations.</li>
+                    <li>Overlay config & auto background: adjust overlay colors and enable automatic background selection.</li>
+                    <li>Leave translation onscreen: keep translated text visible instead of showing source text.</li>
+                </ul>
+                <h3>Ignore Phrases</h3>
+                <ul>
+                    <li>Add phrases to be ignored or stripped from OCR results. Toggle Exact Match to ignore whole texts or remove occurrences.</li>
+                </ul>
+                <h3>Translation Service (LLMs)</h3>
+                <ul>
+                    <li>Select service (Gemini, Groq, ChatGPT, Ollama, LM Studio, Google Translate, Custom API).</li>
+                    <li>API keys: enter keys in the password fields and press Enter (or use Save Keys). Multiple keys supported for failover.</li>
+                    <li>Model selection: choose service-specific models. Use View Models links to open docs.</li>
+                    <li>Prompt editor: customize the prompt template per-service, Save / Restore Default are available.</li>
+                </ul>
+                <h3>Text-to-Speech (TTS)</h3>
+                <ul>
+                    <li>Enable TTS and pick service: ElevenLabs, Google Cloud TTS or Windows TTS.</li>
+                    <li>Provide API keys for cloud services; choose voice from the list (system voices are auto-detected).</li>
+                    <li>Exclude character names: toggle to avoid speaking character names in TTS output.</li>
+                </ul>
+                <h3>Hotkeys</h3>
+                <ul>
+                    <li>Enable hotkeys globally, select a function and set a two-key combination (modifier + key) then click Set.</li>
+                    <li>Common defaults: Alt+G Start/Stop, Alt+Q Select Area, Alt+F Toggle Overlay, Alt+C ChatBox.</li>
+                </ul>
+                <h3>Audio Processing</h3>
+                <ul>
+                    <li>Auto-translate audio: starts/stops local Whisper service for live speech-to-text translation.</li>
+                    <li>Model selection: choose a local audio model (ggml .bin); use the download link if missing.</li>
+                    <li>Silence threshold/duration and max buffer samples: tune detection sensitivity for audio capture.</li>
+                </ul>
+                <h3>Server Controls</h3>
+                <ul>
+                    <li>Install / Start / Remove server: runs bundled batch scripts to setup or control OCR backends that require a server.</li>
+                    <li>Send data to server: toggle whether OCR/diagnostic data may be posted to a remote server (used by some engines).</li>
+                </ul>
+                <h3>Game Profiles</h3>
+                <ul>
+                    <li>Create, update, load and remove named profiles that store translation area rectangles and related settings per game.</li>
+                </ul>
+                <p>Tip: when changing OCR engine, model or translation service, use Clear Context and Reset Hash (app will do this automatically) to force fresh OCR & translations.</p>
+            </div>
+        </section>
         <section id="faq">
             <h2>❓ Frequently Asked Questions (FAQ)</h2>
             <div class="installation-steps">

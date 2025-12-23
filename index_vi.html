@@ -284,6 +284,7 @@
                 <li><a href="#cap-nhat">🔄 Cách cập nhật</a></li>
                 <li><a href="#phim-tat">⌨️ Phím tắt</a></li>
                 <li><a href="#cai-dat-nang-cao">⚙️ Cài đặt nâng cao</a></li>
+                <li><a href="#settings">⚙️ Tất cả cài đặt</a></li>
                 <li><a href="#faq">❓ Câu hỏi thường gặp</a></li>
             </ul>
         </nav>
@@ -499,6 +500,77 @@
             </ul>
         </section>
 
+        <section id="settings">
+            <h2>⚙️ Tất cả cài đặt — mô tả chi tiết</h2>
+            <div class="installation-steps">
+                <p>Mô tả ngắn và hướng dẫn sử dụng cho các nhóm cài đặt trong SettingsWindow.xaml:</p>
+                <h3>Ngôn ngữ</h3>
+                <ul>
+                    <li>Chọn ngôn ngữ nguồn/đích (ví dụ: ja, en, vi). Dùng nút ⇄ để hoán đổi nhanh.</li>
+                    <li>Windows OCR: bấm "Check" để kiểm tra/cài gói ngôn ngữ nếu dùng Windows OCR.</li>
+                </ul>
+                <h3>OCR & Màn hình</h3>
+                <ul>
+                    <li>Phương pháp OCR: chọn EasyOCR, Windows OCR, PaddleOCR, RapidOCR hoặc OneOCR. Các engine ngoài có thể cần cài server.</li>
+                    <li>Chọn màn hình: xác định màn hình để chụp khi có nhiều monitor.</li>
+                    <li>Auto OCR: bật để tự động chụp và dịch thời gian thực; tắt để chạy thủ công.</li>
+                    <li>HDR support: bật nếu game sử dụng HDR (có thể ảnh hưởng tới phát hiện văn bản).</li>
+                    <li>Remove OCR Data: xóa dữ liệu/mô hình đã tải cho các engine không tích hợp để giải phóng dung lượng.</li>
+                </ul>
+                <h3>Cài đặt OCR</h3>
+                <ul>
+                    <li>Block detection power & settle time: điều chỉnh cách gom khối văn bản và thời gian chờ để văn bản ổn định trước khi chụp.</li>
+                    <li>Text similarity threshold: bỏ qua các capture gần giống nhau (0.5–1.0). Giá trị thấp hơn = bỏ nhiều hơn.</li>
+                    <li>Char-level OCR: bật để tách kết quả thành ký tự (hữu ích cho text nhỏ).</li>
+                    <li>Giới hạn kích thước fragment / độ tin cậy ký tự/dòng: lọc kết quả OCR nhiễu.</li>
+                    <li>Multi-selection area: cho phép chọn nhiều vùng dịch cùng lúc (ví dụ HUD + chat).</li>
+                </ul>
+                <h3>Ngữ cảnh & Overlay</h3>
+                <ul>
+                    <li>Max/Min context và kích thước: điều khiển lượng ngữ cảnh gửi cho LLM để giữ liên tục ngữ nghĩa.</li>
+                    <li>Game info: nhập mô tả ngắn về game để LLM dịch sát ngữ cảnh.</li>
+                    <li>Overlay config & auto background: tinh chỉnh màu nền overlay và bật lựa chọn màu tự động.</li>
+                    <li>Leave translation onscreen: luôn giữ bản dịch hiển thị thay vì hiện text nguồn.</li>
+                </ul>
+                <h3>Bỏ qua cụm từ (Ignore Phrases)</h3>
+                <ul>
+                    <li>Thêm các cụm cần bỏ qua hoặc loại bỏ khỏi kết quả OCR. Chọn Exact Match để bỏ cả dòng nếu trùng khớp.</li>
+                </ul>
+                <h3>Dịch / LLM</h3>
+                <ul>
+                    <li>Chọn dịch vụ (Gemini, Groq, ChatGPT, Ollama, LM Studio, Google Translate, Custom API).</li>
+                    <li>API keys: nhập vào ô mật khẩu và nhấn Enter hoặc Save Keys; hỗ trợ nhiều key để dự phòng.</li>
+                    <li>Chọn model: dùng View Models để mở tài liệu hướng dẫn nếu cần.</li>
+                    <li>Prompt editor: tuỳ chỉnh mẫu prompt cho dịch vụ hiện tại, Save / Restore Default có sẵn.</li>
+                </ul>
+                <h3>Text-to-Speech (TTS)</h3>
+                <ul>
+                    <li>Bật TTS và chọn dịch vụ: ElevenLabs, Google Cloud TTS hoặc Windows TTS.</li>
+                    <li>Nhập API key cho dịch vụ cloud, chọn giọng từ danh sách (giọng hệ thống sẽ được load tự động).</li>
+                    <li>Exclude character name: bật để tránh đọc tên nhân vật trong TTS.</li>
+                </ul>
+                <h3>Phím tắt</h3>
+                <ul>
+                    <li>Bật/tắt hotkeys, chọn chức năng và thiết lập tổ hợp 2 phím (modifier + key) rồi nhấn Set.</li>
+                    <li>Mặc định phổ biến: Alt+G Bắt đầu/Dừng, Alt+Q Chọn vùng, Alt+F Bật/Tắt Overlay, Alt+C ChatBox.</li>
+                </ul>
+                <h3>Xử lý âm thanh</h3>
+                <ul>
+                    <li>Audio auto-translate: khởi động/dừng dịch âm thanh bằng local Whisper khi bật.</li>
+                    <li>Chọn mô hình âm thanh (file .bin) và điều chỉnh silence threshold / duration để nhận tiếng nói chính xác.</li>
+                </ul>
+                <h3>Máy chủ (Server)</h3>
+                <ul>
+                    <li>Install / Start / Remove server: chạy các script kèm theo để thiết lập hoặc điều khiển backend OCR cần server.</li>
+                    <li>Gửi dữ liệu lên server: bật/tắt tuỳ chọn gửi dữ liệu OCR/diagnostic cho server (một số engine cần).</li>
+                </ul>
+                <h3>Profiles</h3>
+                <ul>
+                    <li>Tạo, cập nhật, tải và xoá profile để lưu vùng dịch và tùy chỉnh theo từng game.</li>
+                </ul>
+                <p>Mẹo: khi đổi OCR, model hoặc dịch vụ, hãy Clear Context/Reset Hash (ứng dụng có xử lý tự động) để buộc OCR và dịch mới.</p>
+            </div>
+        </section>
         <section id="faq">
             <h2>❓ Câu hỏi thường gặp (FAQ)</h2>
             <div class="installation-steps">
