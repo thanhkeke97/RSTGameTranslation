@@ -128,15 +128,9 @@ jobs:
         Write-Host "=== Release folder contents ==="
         Get-ChildItem -Path $releaseDir -Recurse | Select-Object FullName
 
-    - name: Zip Release
-      shell: powershell
-      run: |
-        $releaseDir = "RSTGameTranslation"
-        $zipName = "RSTGameTranslation_Release.zip"
-        Compress-Archive -Path $releaseDir -DestinationPath $zipName
-
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: RSTGameTranslation_Release
-        path: RSTGameTranslation_Release.zip
+        name: RSTGameTranslation
+        path: RSTGameTranslation/*
+        compression-level: 9
