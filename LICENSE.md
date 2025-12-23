@@ -19,13 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Third-party attribution:
-
-This project includes or is based on work from the UGTLive project by Seth Robinson.
-UGTLive original repository: https://github.com/SethRobinson/UGTLive
-The original UGTLive project is released under the MIT License (see their repository for details).
-
-If you redistribute substantial portions or derivative works, please keep the above copyright notice and this attribution in place.
