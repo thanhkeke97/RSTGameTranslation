@@ -230,8 +230,8 @@
                                 </Border>
 
                                 <!-- === GROUP 5: OCR SERVER === -->
-                                <Border Style="{StaticResource GroupBorderStyle}" Margin="0">
-                                    <StackPanel Orientation="Vertical">
+                                <Border x:Name="OcrServerBorder" Style="{StaticResource GroupBorderStyle}" Margin="0" Visibility="Collapsed">
+                                    <StackPanel x:Name="OcrServerPanel" Orientation="Vertical" Visibility="Collapsed">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                             <Button x:Name="btnSetupOcrServer" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SetupOCR]}" Style="{StaticResource ModernButton}"
                                                     Background="#FF4577B0"

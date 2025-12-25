@@ -215,33 +215,43 @@ namespace RSTGameTranslation
 
             // Only update the MainWindow's internal state during initialization
             // Don't update other windows or save to config
-            if (_isInitializing)
+            // if (true)
+            // {
+            Console.WriteLine($"Setting OCR method during initialization: {method}");
+            selectedOcrMethod = method;
+            // Important: Update status text even during initialization
+            if (method == "Windows OCR")
             {
-                Console.WriteLine($"Setting OCR method during initialization: {method}");
-                selectedOcrMethod = method;
-                // Important: Update status text even during initialization
-                if (method == "Windows OCR")
-                {
-                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
-                }
-                else if (method == "OneOCR")
-                {
-                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
-                }
-                else if (method == "EasyOCR")
-                {
-                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartEasyOCR"]);
-                }
-                else if (method == "RapidOCR")
-                {
-                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartRapidOCR"]);
-                }
-                else
-                {
-                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartPaddleOCR"]);
-                }
-                return;
+                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
+                OcrServerPanel.Visibility = Visibility.Collapsed;
+                OcrServerBorder.Visibility = Visibility.Collapsed;
             }
+            else if (method == "OneOCR")
+            {
+                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
+                OcrServerPanel.Visibility = Visibility.Collapsed;
+                OcrServerBorder.Visibility = Visibility.Collapsed;
+            }
+            else if (method == "EasyOCR")
+            {
+                SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartEasyOCR"]);
+                OcrServerPanel.Visibility = Visibility.Visible;
+                OcrServerBorder.Visibility = Visibility.Visible;
+            }
+            else if (method == "RapidOCR")
+            {
+                SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartRapidOCR"]);
+                OcrServerPanel.Visibility = Visibility.Visible;
+                OcrServerBorder.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartPaddleOCR"]);
+                OcrServerPanel.Visibility = Visibility.Visible;
+                OcrServerBorder.Visibility = Visibility.Visible;
+            }
+            return;
+            // }
 
             // Only process if actually changing the method
             if (selectedOcrMethod != method)
