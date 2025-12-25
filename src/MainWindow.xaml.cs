@@ -250,7 +250,7 @@ namespace RSTGameTranslation
                 OcrServerPanel.Visibility = Visibility.Visible;
                 OcrServerBorder.Visibility = Visibility.Visible;
             }
-            return;
+            // return;
             // }
 
             // Only process if actually changing the method
@@ -259,7 +259,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"MainWindow changing OCR method from {selectedOcrMethod} to {method}");
                 selectedOcrMethod = method;
                 // No need to handle socket connection here, the MonitorWindow handles that
-                if (method == "Windows OCR")
+                if (method == "Windows OCR" || method == "OneOCR")
                 {
                     if (isStarted)
                     {

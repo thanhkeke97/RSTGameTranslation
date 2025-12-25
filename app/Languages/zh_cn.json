@@ -314,6 +314,7 @@
   "Title_MistralError": "Mistral 翻译错误",
   "Msg_CustomApiError": "Custom API 错误：{0}\\n\\n请检查您的 API 密钥和设置。",
   "Title_CustomApiError": "Custom API 翻译错误",
+  "Msg_CustomApiErrorStatus": "Custom API 错误：{0}\\n{1}\\n\\n请检查您的 API 密钥和设置。",
   "Msg_GeminiApiError": "Gemini API 错误：{0}\\n\\n请检查您的 API 密钥和设置。",
   "Msg_GeminiApiErrorStatus": "Gemini API 错误：{0}\\n{1}\\n\\n请检查您的 API 密钥和设置。",
   "Msg_GeminiApiException": "Gemini API 错误：{0}\\n\\n请检查您的网络连接和 API 密钥。",

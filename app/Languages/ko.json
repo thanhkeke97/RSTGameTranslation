@@ -314,6 +314,7 @@
   "Title_MistralError": "Mistral 번역 오류",
   "Msg_CustomApiError": "Custom API 오류: {0}\\n\\nAPI 키와 설정을 확인하세요.",
   "Title_CustomApiError": "Custom API 번역 오류",
+  "Msg_CustomApiErrorStatus": "Custom API 오류: {0}\\n{1}\\n\\nAPI 키와 설정을 확인하세요.",
   "Msg_GeminiApiError": "Gemini API 오류: {0}\\n\\nAPI 키와 설정을 확인하세요.",
   "Msg_GeminiApiErrorStatus": "Gemini API 오류: {0}\\n{1}\\n\\nAPI 키와 설정을 확인하세요.",
   "Msg_GeminiApiException": "Gemini API 오류: {0}\\n\\n네트워크 연결과 API 키를 확인하세요.",

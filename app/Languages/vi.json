@@ -314,6 +314,7 @@
   "Title_MistralError": "Lỗi dịch Mistral",
   "Msg_CustomApiError": "Lỗi API Custom: {0}\n\nVui lòng kiểm tra API key và cài đặt.",
   "Title_CustomApiError": "Lỗi dịch Custom",
+  "Msg_CustomApiErrorStatus": "Lỗi API Custom: {0}\n{1}\n\nVui lòng kiểm tra API key và cài đặt.",
   "Msg_GeminiApiError": "Lỗi Gemini API: {0}\n\nVui lòng kiểm tra API key và cài đặt.",
   "Msg_GeminiApiErrorStatus": "Lỗi Gemini API: {0}\n{1}\n\nVui lòng kiểm tra API key và cài đặt.",
   "Msg_GeminiApiException": "Lỗi Gemini API: {0}\n\nVui lòng kiểm tra kết nối mạng và API key.",
