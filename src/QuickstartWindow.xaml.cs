@@ -244,6 +244,24 @@ namespace RSTGameTranslation
             LoadedOcrSettings = true;
         }
 
+        private void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (OcrMethodComboBox.SelectedItem != null)
+            {
+                string? selectedOcrMethod = OcrMethodComboBox.SelectedItem.ToString();
+
+                // Show or hide setup button based on selected OCR method
+                if (selectedOcrMethod == "EasyOCR" || selectedOcrMethod == "PaddleOCR" || selectedOcrMethod == "RapidOCR")
+                {
+                    setupOCR.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    setupOCR.Visibility = Visibility.Collapsed;
+                }
+            }
+        }
+
         private async void SetupOcrServer_Click(object sender, RoutedEventArgs e)
         {
             Button? button = sender as Button;

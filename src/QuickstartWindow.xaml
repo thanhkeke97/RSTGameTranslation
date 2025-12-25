@@ -256,7 +256,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="OCR Method:" FontWeight="Bold" Margin="0,5,10,0"/>
-                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="OcrMethodComboBox" Width="200" HorizontalAlignment="Left"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="OcrMethodComboBox" Width="200" HorizontalAlignment="Left" SelectionChanged="OcrMethodComboBox_SelectionChanged"/>
                         <Button x:Name="setupOCR" Grid.Row="0" Grid.Column="2" Content="Setup OCR Server" Margin="0,5,0,0" Click="SetupOcrServer_Click"/>
                     </Grid>
 
