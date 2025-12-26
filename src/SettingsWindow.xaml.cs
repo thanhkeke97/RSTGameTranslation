@@ -974,6 +974,14 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Found matching OCR method: '{itemText}'");
                     ocrMethodComboBox.SelectedItem = item;
+                    if (itemText == "Windows OCR" || itemText == "OneOCR")
+                    {
+                        removeOcrButton.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        removeOcrButton.Visibility = Visibility.Visible;
+                    }
                     break;
                 }
             }
@@ -1395,6 +1403,14 @@ namespace RSTGameTranslation
                     {
                         checkLanguagePack.Visibility = Visibility.Visible;
                         checkLanguagePackButton.Visibility = Visibility.Visible;
+                    }
+                    if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
+                    {
+                        removeOcrButton.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        removeOcrButton.Visibility = Visibility.Visible;
                     }
 
                 }
