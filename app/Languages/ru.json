@@ -445,6 +445,11 @@
   "Msg_ClipboardTextDetected": "Обнаружен текст в буфере, перевод...",
   "Msg_ClipboardTranslateComplete": "Перевод буфера завершён",
   "Msg_ClipboardTranslateFailed": "Перевод буфера не удался",
+  "NotificationTitle_ClipboardTranslating": "Перевод буфера обмена",
+  "NotificationMessage_ClipboardTranslating": "Перевод скопированного текста...",
   "NotificationTitle_ClipboardTranslated": "Буфер переведён",
-  "NotificationMessage_ClipboardTranslated": "Текст переведён и скопирован в буфер обмена"
+  "NotificationMessage_ClipboardTranslated": "Текст переведён и скопирован в буфер обмена.",
+  "NotificationTitle_ClipboardError": "Ошибка перевода буфера обмена",
+  "NotificationMessage_ClipboardError": "Не удалось перевести текст в буфере обмена.",
+  "NotificationMessage_ClipboardTooLong": "Текст превышает максимально допустимую длину."
 }
