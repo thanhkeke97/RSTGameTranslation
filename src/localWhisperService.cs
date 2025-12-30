@@ -442,7 +442,7 @@ namespace RSTGameTranslation
                     await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         Logic.Instance.AddAudioTextObject(originalText);
-                        _ = Logic.Instance.TranslateTextObjectsAsync();
+                        // _ = Logic.Instance.TranslateTextObjectsAsync();
                     });
 
                     onResult(originalText, "");
