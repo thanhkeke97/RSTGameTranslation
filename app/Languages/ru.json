@@ -428,5 +428,23 @@
   "Tip_MaxBufferSamples": "Максимальное количество секунд аудио для буферизации (1-10). Выше = захват более длинных фраз.",
   "Msg_WhisperServiceRunning": "Локальная служба Whisper запущена. Пожалуйста, остановите её перед изменением модели обработки аудио.",
   "Tip_AudioModelDownload_Part1": "Модели можно найти по адресу: ",
-  "Tip_AudioModelDownload_Part2": ". Вы можете загрузить модели напрямую и поместить их в папку RSTGameTranslation/AudioModel"
+  "Tip_AudioModelDownload_Part2": ". Вы можете загрузить модели напрямую и поместить их в папку RSTGameTranslation/AudioModel",
+  
+  "Tab_Clipboard": "Буфер обмена",
+  "Grp_ClipboardAutoTranslate": "Автоперевод буфера обмена",
+  "Lbl_EnableClipboardTranslate": "Включить перевод буфера:",
+  "Tip_EnableClipboardTranslate": "При включении текст, скопированный в буфер обмена, будет автоматически переведён",
+  "Lbl_ClipboardCopyResult": "Автокопирование результата:",
+  "Tip_ClipboardCopyResult": "Автоматически копировать переведённый текст в буфер обмена",
+  "Lbl_ClipboardDebounce": "Задержка (мс):",
+  "Tip_ClipboardDebounce": "Время ожидания перед обработкой буфера (100-5000мс)",
+  "Lbl_ClipboardMaxChars": "Макс. символов:",
+  "Tip_ClipboardMaxChars": "Максимальная длина текста для перевода (100-100000)",
+  "Msg_ClipboardTranslateStarted": "Автоперевод буфера обмена запущен",
+  "Msg_ClipboardTranslateStopped": "Автоперевод буфера обмена остановлен",
+  "Msg_ClipboardTextDetected": "Обнаружен текст в буфере, перевод...",
+  "Msg_ClipboardTranslateComplete": "Перевод буфера завершён",
+  "Msg_ClipboardTranslateFailed": "Перевод буфера не удался",
+  "NotificationTitle_ClipboardTranslated": "Буфер переведён",
+  "NotificationMessage_ClipboardTranslated": "Текст переведён и скопирован в буфер обмена"
 }

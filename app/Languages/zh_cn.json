@@ -434,5 +434,23 @@
   "Tip_MaxBufferSamples": "缓冲的最大音频秒数（1-10）。越高捕获的短语越长。",
   "Msg_WhisperServiceRunning": "本地Whisper服务正在运行。请在更改音频处理模型之前停止它。",
   "Tip_AudioModelDownload_Part1": "模型可以在以下位置找到：",
-  "Tip_AudioModelDownload_Part2": "。您可以直接下载模型并将其放置在 RSTGameTranslation/AudioModel 文件夹中"
+  "Tip_AudioModelDownload_Part2": "。您可以直接下载模型并将其放置在 RSTGameTranslation/AudioModel 文件夹中",
+
+  "Tab_Clipboard": "剪贴板",
+  "Grp_ClipboardAutoTranslate": "剪贴板自动翻译",
+  "Lbl_EnableClipboardTranslate": "启用剪贴板自动翻译：",
+  "Lbl_ClipboardCopyResult": "将翻译结果复制到剪贴板：",
+  "Lbl_ClipboardDebounce": "防抖时间（毫秒）：",
+  "Lbl_ClipboardMaxChars": "最大字符数：",
+  "Tip_ClipboardEnable": "启用后，复制的文本将自动翻译。",
+  "Tip_ClipboardCopyResult": "启用后，翻译结果将自动复制到剪贴板。",
+  "Tip_ClipboardDebounce": "检测剪贴板更改的等待时间（100-2000毫秒）。",
+  "Tip_ClipboardMaxChars": "自动翻译的最大字符数（10-10000）。",
+  "NotificationTitle_ClipboardTranslating": "正在翻译剪贴板",
+  "NotificationMessage_ClipboardTranslating": "正在翻译复制的文本...",
+  "NotificationTitle_ClipboardTranslated": "剪贴板已翻译",
+  "NotificationMessage_ClipboardTranslated": "翻译结果已复制到剪贴板。",
+  "NotificationTitle_ClipboardError": "剪贴板翻译错误",
+  "NotificationMessage_ClipboardError": "翻译剪贴板文本失败。",
+  "NotificationMessage_ClipboardTooLong": "文本超过最大字符限制。"
 }

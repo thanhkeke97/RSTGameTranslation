@@ -428,6 +428,28 @@
   "Tip_MaxBufferSamples": "バッファする音声の最大秒数（1-10）。高いほど長いフレーズをキャプチャできます。",
   "Msg_WhisperServiceRunning": "ローカルWhisperサービスが実行中です。音声処理モデルを変更する前に停止してください。",
   "Tip_AudioModelDownload_Part1": "モデルは次の場所にあります：",
-  "Tip_AudioModelDownload_Part2": "。モデルを直接ダウンロードして、RSTGameTranslation/AudioModelフォルダに配置できます"
-
+  "Tip_AudioModelDownload_Part2": "。モデルを直接ダウンロードして、RSTGameTranslation/AudioModelフォルダに配置できます",
+  
+  "Tab_Clipboard": "クリップボード",
+  "Grp_ClipboardAutoTranslate": "クリップボード自動翻訳",
+  "Lbl_EnableClipboardTranslate": "クリップボード翻訳を有効：",
+  "Tip_EnableClipboardTranslate": "有効にすると、クリップボードにコピーされたテキストが自動的に翻訳されます",
+  "Lbl_ClipboardCopyResult": "結果を自動コピー：",
+  "Tip_ClipboardCopyResult": "翻訳されたテキストを自動的にクリップボードにコピーします",
+  "Lbl_ClipboardDebounce": "デバウンス（ミリ秒）：",
+  "Tip_ClipboardDebounce": "クリップボードを処理する前の待機時間（100-5000ミリ秒）",
+  "Lbl_ClipboardMaxChars": "最大文字数：",
+  "Tip_ClipboardMaxChars": "翻訳する最大テキスト長（100-100000）",
+  "Msg_ClipboardTranslateStarted": "クリップボード自動翻訳が開始されました",
+  "Msg_ClipboardTranslateStopped": "クリップボード自動翻訳が停止されました",
+  "Msg_ClipboardTextDetected": "クリップボードテキストを検出、翻訳中...",
+  "Msg_ClipboardTranslateComplete": "クリップボード翻訳完了",
+  "Msg_ClipboardTranslateFailed": "クリップボード翻訳失敗",
+  "NotificationTitle_ClipboardTranslating": "クリップボードを翻訳中",
+  "NotificationMessage_ClipboardTranslating": "コピーしたテキストを翻訳中...",
+  "NotificationTitle_ClipboardTranslated": "クリップボード翻訳完了",
+  "NotificationMessage_ClipboardTranslated": "翻訳結果がクリップボードにコピーされました。",
+  "NotificationTitle_ClipboardError": "クリップボード翻訳エラー",
+  "NotificationMessage_ClipboardError": "クリップボードテキストの翻訳に失敗しました。",
+  "NotificationMessage_ClipboardTooLong": "テキストが最大文字数を超えています。"
 }

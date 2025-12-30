@@ -2441,176 +2441,36 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Check the service we're using to determine the format
                 string currentService = ConfigManager.Instance.GetCurrentTranslationService();
-                //Console.WriteLine($"Processing translation response from {currentService} service");
 
-                // Log full response for debugging
-                //Console.WriteLine($"Raw translationResponse: {translationResponse}");
+                // Use shared method to extract inner content
+                var (innerContent, isGoogleTranslate) = ExtractInnerContentFromResponse(translationResponse);
 
-                // Parse the translation response
-                using JsonDocument doc = JsonDocument.Parse(translationResponse);
-                JsonElement textToProcess;
-
-                // Different services have different response formats
-                if (currentService == "ChatGPT")
+                if (string.IsNullOrEmpty(innerContent))
                 {
-                    // ChatGPT format: {"translated_text": "...", "original_text": "...", "detected_language": "..."}
-                    if (doc.RootElement.TryGetProperty("translated_text", out JsonElement translatedTextElement))
-                    {
-                        string translatedTextJson = translatedTextElement.GetString() ?? "";
-                        Console.WriteLine($"ChatGPT translated_text: {translatedTextJson}");
-
-                        // If the translated_text is a JSON string, parse it
-                        if (!string.IsNullOrEmpty(translatedTextJson) &&
-                            translatedTextJson.StartsWith("{") &&
-                            translatedTextJson.EndsWith("}"))
-                        {
-                            try
-                            {
-                                // Create options to handle escaped characters properly
-                                var options = new JsonDocumentOptions
-                                {
-                                    AllowTrailingCommas = true,
-                                    CommentHandling = JsonCommentHandling.Skip
-                                };
-
-                                // Parse the inner JSON
-                                using JsonDocument innerDoc = JsonDocument.Parse(translatedTextJson, options);
-                                textToProcess = innerDoc.RootElement;
-
-                                // Process directly with this JSON
-                                ProcessStructuredJsonTranslation(textToProcess);
-                                return;
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error parsing inner JSON from translated_text: {ex.Message}");
-                                // Fall back to normal processing
-                            }
-                        }
-                    }
+                    Console.WriteLine($"Could not extract content from {currentService} response");
+                    OnFinishedThings(true);
+                    return;
                 }
-                else if (currentService == "Gemini" || currentService == "Ollama" || currentService == "LM Studio")
+
+                if (isGoogleTranslate)
                 {
-                    // Gemini and Ollama response structure:
-                    // { "candidates": [ { "content": { "parts": [ { "text": "..." } ] } } ] }
-                    if (doc.RootElement.TryGetProperty("candidates", out JsonElement candidates) &&
-                        candidates.GetArrayLength() > 0)
-                    {
-                        var firstCandidate = candidates[0];
-                        var content = firstCandidate.GetProperty("content");
-                        var parts = content.GetProperty("parts");
-
-                        if (parts.GetArrayLength() > 0)
-                        {
-                            var text = parts[0].GetProperty("text").GetString();
-
-                            // Log the raw text for debugging
-                            //Console.WriteLine($"Raw text from {currentService} API: {text}");
-
-                            // Try to extract the JSON object from the text
-                            // The model might surround it with markdown or explanatory text
-                            if (text != null)
-                            {
-                                // Check if we already have a proper translation with source_language, target_language, text_blocks
-                                if (text.Contains("\"text_blocks\""))
-                                {
-                                    Console.WriteLine("Direct translation detected, using it as is");
-
-                                    // Look for JSON within the text
-                                    int directJsonStart = text.IndexOf('{');
-                                    int directJsonEnd = text.LastIndexOf('}');
-
-                                    if (directJsonStart >= 0 && directJsonEnd > directJsonStart)
-                                    {
-                                        string directJsonText = text.Substring(directJsonStart, directJsonEnd - directJsonStart + 1);
-
-                                        try
-                                        {
-                                            using JsonDocument translatedDoc = JsonDocument.Parse(directJsonText);
-                                            var translatedRoot = translatedDoc.RootElement;
-
-                                            // Now update the text objects with the translation
-                                            ProcessStructuredJsonTranslation(translatedRoot);
-                                            return;
-                                        }
-                                        catch (JsonException ex)
-                                        {
-                                            Console.WriteLine($"Error parsing direct translation JSON: {ex.Message}");
-                                            // Continue with normal processing
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Console.WriteLine("Google Translate response detected");
+                    using JsonDocument doc = JsonDocument.Parse(innerContent);
+                    ProcessGoogleTranslateJson(doc.RootElement);
+                    return;
                 }
-                else if (currentService == "Mistral" || currentService == "Groq" || currentService == "Custom API")
+
+                // Parse inner content and process structured JSON
+                try
                 {
-                    // Mistral response structure:
-                    // {"id": "...", "object": "chat.completion", "created": ..., "model": "...", 
-                    // "choices": [{"index": 0, "message": {"role": "assistant", "content": "..."}, "finish_reason": "..."}],
-                    // "usage": {"prompt_tokens": ..., "completion_tokens": ..., "total_tokens": ...}}
-                    if (doc.RootElement.TryGetProperty("choices", out JsonElement choices) &&
-                        choices.GetArrayLength() > 0)
-                    {
-                        var firstChoice = choices[0];
-
-                        if (firstChoice.TryGetProperty("message", out JsonElement message) &&
-                            message.TryGetProperty("content", out JsonElement contentElement))
-                        {
-                            var content = contentElement.GetString();
-
-                            // Log the raw text for debugging
-                            //Console.WriteLine($"Raw text from Mistral API: {content}");
-
-                            // Try to extract the JSON object from the text
-                            if (content != null)
-                            {
-                                // Check if we already have a proper translation with text_blocks
-                                if (content.Contains("\"text_blocks\""))
-                                {
-                                    Console.WriteLine($"Direct translation detected in {currentService} response, using it as is");
-
-                                    // Look for JSON within the text
-                                    int directJsonStart = content.IndexOf('{');
-                                    int directJsonEnd = content.LastIndexOf('}');
-
-                                    if (directJsonStart >= 0 && directJsonEnd > directJsonStart)
-                                    {
-                                        string directJsonText = content.Substring(directJsonStart, directJsonEnd - directJsonStart + 1);
-
-                                        try
-                                        {
-                                            using JsonDocument translatedDoc = JsonDocument.Parse(directJsonText);
-                                            var translatedRoot = translatedDoc.RootElement;
-
-                                            // Now update the text objects with the translation
-                                            ProcessStructuredJsonTranslation(translatedRoot);
-                                            return;
-                                        }
-                                        catch (JsonException ex)
-                                        {
-                                            Console.WriteLine($"Error parsing direct translation JSON from {currentService}: {ex.Message}");
-                                            // Continue with normal processing
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    using JsonDocument translatedDoc = JsonDocument.Parse(innerContent);
+                    ProcessStructuredJsonTranslation(translatedDoc.RootElement);
                 }
-                else if (currentService == "Google Translate")
+                catch (JsonException ex)
                 {
-                    // Handle response from google translate
-                    // Google Translate return: {"translations": [{"id": "...", "original_text": "...", "translated_text": "..."}]}
-                    if (doc.RootElement.TryGetProperty("translations", out JsonElement _))
-                    {
-                        Console.WriteLine("Google Translate response detected");
-                        ProcessGoogleTranslateJson(doc.RootElement);
-                        return;
-                    }
+                    Console.WriteLine($"Error parsing translation JSON: {ex.Message}");
+                    OnFinishedThings(true);
                 }
             }
             catch (Exception ex)
@@ -2850,6 +2710,294 @@ namespace RSTGameTranslation
             }
 
             return new List<string>();
+        }
+
+        /// <summary>
+        /// Translates a single text string immediately without OCR pipeline.
+        /// Used for clipboard auto-translation feature.
+        /// </summary>
+        /// <param name="text">Text to translate</param>
+        /// <returns>Translated text, or null if translation failed</returns>
+        public async Task<string?> TranslateTextImmediateAsync(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return null;
+            }
+
+            try
+            {
+                Console.WriteLine($"[ClipboardTranslate] Starting translation of {text.Length} chars");
+
+                // Create the JSON structure for translation
+                var textsToTranslate = new List<object>
+                {
+                    new
+                    {
+                        id = "clipboard",
+                        text = text
+                    }
+                };
+
+                // Get previous context if enabled
+                var previousContext = GetPreviousContext();
+
+                // Get game info if available
+                string gameInfo = ConfigManager.Instance.GetGameInfo();
+
+                // Create the full JSON object
+                var ocrData = new
+                {
+                    source_language = MapLanguageCode(GetSourceLanguage()),
+                    target_language = MapLanguageCode(GetTargetLanguage()),
+                    text_blocks = textsToTranslate,
+                    previous_context = previousContext,
+                    game_info = gameInfo
+                };
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                string jsonToTranslate = JsonSerializer.Serialize(ocrData, jsonOptions);
+
+                // Get the prompt template
+                string prompt = GetLlmPrompt();
+                prompt = prompt.Replace("source_language", MapLanguageCode(GetSourceLanguage())).Replace("target_language", MapLanguageCode(GetTargetLanguage()));
+
+                // Log the LLM request
+                LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
+
+                // Create translation service based on current configuration
+                ITranslationService translationService = TranslationServiceFactory.CreateService();
+                string currentService = ConfigManager.Instance.GetCurrentTranslationService();
+
+                // Call the translation API
+                string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
+
+                if (string.IsNullOrEmpty(translationResponse))
+                {
+                    Console.WriteLine($"[ClipboardTranslate] Translation failed with {currentService} - empty response");
+                    return null;
+                }
+
+                Console.WriteLine($"[ClipboardTranslate] Got response from {currentService}");
+
+                // Parse the translated text from response
+                string? translatedText = ExtractTranslatedTextFromResponse(translationResponse);
+                
+                return translatedText;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ClipboardTranslate] Error: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extracts the inner JSON content (text_blocks) from various API response formats.
+        /// Reuses the same parsing logic as ProcessTranslatedJSON.
+        /// </summary>
+        /// <param name="response">Raw API response</param>
+        /// <param name="currentService">Current translation service name (optional, will auto-detect if null)</param>
+        /// <returns>Tuple of (innerJsonContent, isGoogleTranslate) or (null, false) if extraction failed</returns>
+        private (string? content, bool isGoogleTranslate) ExtractInnerContentFromResponse(string response, string? currentService = null)
+        {
+            try
+            {
+                currentService ??= ConfigManager.Instance.GetCurrentTranslationService();
+                
+                using JsonDocument doc = JsonDocument.Parse(response);
+                var root = doc.RootElement;
+
+                // ChatGPT format: {"translated_text": "...", ...}
+                if (currentService == "ChatGPT")
+                {
+                    if (root.TryGetProperty("translated_text", out JsonElement translatedTextElement))
+                    {
+                        string? translatedTextJson = translatedTextElement.GetString();
+                        if (!string.IsNullOrEmpty(translatedTextJson) &&
+                            translatedTextJson.StartsWith("{") &&
+                            translatedTextJson.EndsWith("}"))
+                        {
+                            return (translatedTextJson, false);
+                        }
+                    }
+                }
+                // Gemini/Ollama/LM Studio format: candidates[0].content.parts[0].text
+                else if (currentService == "Gemini" || currentService == "Ollama" || currentService == "LM Studio")
+                {
+                    if (root.TryGetProperty("candidates", out JsonElement candidates) &&
+                        candidates.GetArrayLength() > 0)
+                    {
+                        var firstCandidate = candidates[0];
+                        if (firstCandidate.TryGetProperty("content", out var content) &&
+                            content.TryGetProperty("parts", out var parts) &&
+                            parts.GetArrayLength() > 0)
+                        {
+                            var text = parts[0].GetProperty("text").GetString();
+                            if (text != null && text.Contains("\"text_blocks\""))
+                            {
+                                int jsonStart = text.IndexOf('{');
+                                int jsonEnd = text.LastIndexOf('}');
+                                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                                {
+                                    return (text.Substring(jsonStart, jsonEnd - jsonStart + 1), false);
+                                }
+                            }
+                            // Return raw text if no JSON found
+                            return (text, false);
+                        }
+                    }
+                }
+                // Mistral/Groq/Custom API format: choices[0].message.content
+                else if (currentService == "Mistral" || currentService == "Groq" || currentService == "Custom API")
+                {
+                    if (root.TryGetProperty("choices", out JsonElement choices) &&
+                        choices.GetArrayLength() > 0)
+                    {
+                        var firstChoice = choices[0];
+                        if (firstChoice.TryGetProperty("message", out JsonElement message) &&
+                            message.TryGetProperty("content", out JsonElement contentElement))
+                        {
+                            var content = contentElement.GetString();
+                            if (content != null && content.Contains("\"text_blocks\""))
+                            {
+                                int jsonStart = content.IndexOf('{');
+                                int jsonEnd = content.LastIndexOf('}');
+                                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                                {
+                                    return (content.Substring(jsonStart, jsonEnd - jsonStart + 1), false);
+                                }
+                            }
+                            // Return raw content if no JSON found
+                            return (content, false);
+                        }
+                    }
+                }
+                // Google Translate format: {"translations": [...]}
+                else if (currentService == "Google Translate")
+                {
+                    if (root.TryGetProperty("translations", out JsonElement _))
+                    {
+                        return (response, true);
+                    }
+                }
+
+                // Fallback: check for direct text_blocks or translations in root
+                if (root.TryGetProperty("text_blocks", out _))
+                {
+                    return (response, false);
+                }
+                if (root.TryGetProperty("translations", out _))
+                {
+                    return (response, true);
+                }
+
+                return (null, false);
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Error parsing response: {ex.Message}");
+                return (null, false);
+            }
+        }
+
+        /// <summary>
+        /// Extracts the translated text from text_blocks JSON.
+        /// </summary>
+        private string? ExtractTextFromTextBlocks(string jsonContent)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(jsonContent);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("text_blocks", out var textBlocks) && textBlocks.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var block in textBlocks.EnumerateArray())
+                    {
+                        if (block.TryGetProperty("text", out var textElement))
+                        {
+                            return textElement.GetString();
+                        }
+                    }
+                }
+                return null;
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extracts the translated text from Google Translate response.
+        /// </summary>
+        private string? ExtractTextFromGoogleTranslate(string jsonContent)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(jsonContent);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("translations", out var translations) && translations.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var block in translations.EnumerateArray())
+                    {
+                        if (block.TryGetProperty("translated_text", out var translatedTextElement))
+                        {
+                            return translatedTextElement.GetString();
+                        }
+                    }
+                }
+                return null;
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extracts the translated text from the JSON response.
+        /// Reuses parsing logic from ProcessTranslatedJSON.
+        /// </summary>
+        private string? ExtractTranslatedTextFromResponse(string response)
+        {
+            try
+            {
+                var (content, isGoogleTranslate) = ExtractInnerContentFromResponse(response);
+                
+                if (string.IsNullOrEmpty(content))
+                {
+                    Console.WriteLine("[ClipboardTranslate] Could not extract content from response");
+                    return null;
+                }
+
+                if (isGoogleTranslate)
+                {
+                    return ExtractTextFromGoogleTranslate(content);
+                }
+
+                // Try to extract from text_blocks
+                var result = ExtractTextFromTextBlocks(content);
+                if (result != null)
+                {
+                    return result;
+                }
+
+                // If no text_blocks found, return the raw content (might be plain text from LLM)
+                return content.Trim();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ClipboardTranslate] Error: {ex.Message}");
+                // Response might be plain text, return as-is
+                return response.Trim();
+            }
         }
     }
 }

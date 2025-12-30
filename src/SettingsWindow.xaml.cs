@@ -18,6 +18,7 @@ using MessageBox = System.Windows.MessageBox;
 using System.Globalization;
 using System.Windows.Forms;
 using System.Windows.Interop;
+using RST;
 using Windows.Media.SpeechSynthesis;
 using System.IO;
 
@@ -1140,6 +1141,12 @@ namespace RSTGameTranslation
             // openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
             // Load Auto-translate for audio service
             // audioServiceAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
+
+            // Load Clipboard Auto-Translate settings
+            clipboardAutoTranslateCheckBox.IsChecked = ConfigManager.Instance.IsClipboardAutoTranslateEnabled();
+            clipboardCopyResultCheckBox.IsChecked = ConfigManager.Instance.IsClipboardCopyResultEnabled();
+            clipboardDebounceTextBox.Text = ConfigManager.Instance.GetClipboardDebounceMs().ToString();
+            clipboardMaxCharsTextBox.Text = ConfigManager.Instance.GetClipboardMaxChars().ToString();
         }
 
 
@@ -4370,6 +4377,105 @@ namespace RSTGameTranslation
             
             Console.WriteLine("OCR data removed successfully");
         }
+
+        #region Clipboard Auto-Translate Event Handlers
+
+        private void ClipboardAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            // Skip if initializing
+            if (_isInitializing) return;
+
+            try
+            {
+                bool enabled = clipboardAutoTranslateCheckBox.IsChecked ?? false;
+                ConfigManager.Instance.SetClipboardAutoTranslateEnabled(enabled);
+                Console.WriteLine($"Clipboard auto-translate enabled: {enabled}");
+
+                // Update MainWindow clipboard monitor state
+                MainWindow.Instance?.UpdateClipboardMonitorState();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating clipboard auto-translate: {ex.Message}");
+            }
+        }
+
+        private void ClipboardCopyResultCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            // Skip if initializing
+            if (_isInitializing) return;
+
+            try
+            {
+                bool enabled = clipboardCopyResultCheckBox.IsChecked ?? true;
+                ConfigManager.Instance.SetClipboardCopyResultEnabled(enabled);
+                Console.WriteLine($"Clipboard copy result enabled: {enabled}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating clipboard copy result: {ex.Message}");
+            }
+        }
+
+        private void ClipboardDebounceTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Skip if initializing
+            if (_isInitializing) return;
+
+            try
+            {
+                string debounceText = clipboardDebounceTextBox.Text?.Trim() ?? "";
+                
+                if (int.TryParse(debounceText, out int debounceMs))
+                {
+                    ConfigManager.Instance.SetClipboardDebounceMs(debounceMs);
+                    Console.WriteLine($"Clipboard debounce set to: {debounceMs}ms");
+
+                    // Update MainWindow clipboard monitor
+                    MainWindow.Instance?.UpdateClipboardMonitorState();
+                }
+                else
+                {
+                    // Reset to current config value
+                    clipboardDebounceTextBox.Text = ConfigManager.Instance.GetClipboardDebounceMs().ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating clipboard debounce: {ex.Message}");
+            }
+        }
+
+        private void ClipboardMaxCharsTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Skip if initializing
+            if (_isInitializing) return;
+
+            try
+            {
+                string maxCharsText = clipboardMaxCharsTextBox.Text?.Trim() ?? "";
+                
+                if (int.TryParse(maxCharsText, out int maxChars))
+                {
+                    ConfigManager.Instance.SetClipboardMaxChars(maxChars);
+                    Console.WriteLine($"Clipboard max chars set to: {maxChars}");
+
+                    // Update MainWindow clipboard monitor
+                    MainWindow.Instance?.UpdateClipboardMonitorState();
+                }
+                else
+                {
+                    // Reset to current config value
+                    clipboardMaxCharsTextBox.Text = ConfigManager.Instance.GetClipboardMaxChars().ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating clipboard max chars: {ex.Message}");
+            }
+        }
+
+        #endregion
 
         // private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         // {

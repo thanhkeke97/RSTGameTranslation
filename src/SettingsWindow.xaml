@@ -1593,6 +1593,75 @@
                 </ScrollViewer>
             </TabItem>
 
+            <!-- Clipboard Tab -->
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_Clipboard]}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <!-- Clipboard Auto-Translate Settings -->
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ClipboardAutoTranslate]}" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Enable Clipboard Auto-Translate -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_EnableClipboardTranslate]}" 
+                                           Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="clipboardAutoTranslateCheckBox" Grid.Row="0" Grid.Column="1" Margin="0,5"
+                                         Checked="ClipboardAutoTranslateCheckBox_CheckedChanged"
+                                         Unchecked="ClipboardAutoTranslateCheckBox_CheckedChanged"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ClipboardEnable]}"/>
+                                
+                                <!-- Copy Result to Clipboard -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClipboardCopyResult]}" 
+                                           Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="clipboardCopyResultCheckBox" Grid.Row="1" Grid.Column="1" Margin="0,5"
+                                         Checked="ClipboardCopyResultCheckBox_CheckedChanged"
+                                         Unchecked="ClipboardCopyResultCheckBox_CheckedChanged"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ClipboardCopyResult]}"/>
+                                
+                                <!-- Debounce Time -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClipboardDebounce]}" 
+                                           Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="clipboardDebounceTextBox" Grid.Row="2" Grid.Column="1" Margin="0,5" Text="300" 
+                                         LostFocus="ClipboardDebounceTextBox_LostFocus"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" 
+                                           Margin="0,0,0,5" 
+                                           FontStyle="Italic" 
+                                           FontSize="11" 
+                                           Foreground="Gray"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ClipboardDebounce]}"/>
+                                
+                                <!-- Max Characters -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClipboardMaxChars]}" 
+                                           Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="clipboardMaxCharsTextBox" Grid.Row="4" Grid.Column="1" Margin="0,5" Text="5000" 
+                                         LostFocus="ClipboardMaxCharsTextBox_LostFocus"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" 
+                                           Margin="0,0,0,5" 
+                                           FontStyle="Italic" 
+                                           FontSize="11" 
+                                           Foreground="Gray"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ClipboardMaxChars]}"/>
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <!-- Server Tab -->
             <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_Server]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">

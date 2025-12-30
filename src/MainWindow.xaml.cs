@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Text.Json;
 using SocketIOClient;
 using Windows.ApplicationModel.VoiceCommands;
+using RST;
 
 
 namespace RSTGameTranslation
@@ -837,6 +838,9 @@ namespace RSTGameTranslation
             // Load auto-translate setting from config
             isAutoTranslateEnabled = ConfigManager.Instance.IsAutoTranslateEnabled();
 
+            // Initialize clipboard monitoring
+            InitializeClipboardMonitor();
+
             // Register the LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
             this.LocationChanged += MainWindow_LocationChanged;
             // ToggleMonitorWindow();
@@ -1219,6 +1223,9 @@ namespace RSTGameTranslation
 
             // Clean up MouseManager resources
             MouseManager.Instance.Cleanup();
+
+            // Clean up clipboard monitor
+            ClipboardMonitor.Instance.StopListening();
 
             Logic.Instance.Finish();
             OcrServerManager.Instance.StopOcrServer();
@@ -2212,7 +2219,6 @@ namespace RSTGameTranslation
 
         private void ChatBox_IsVisibleChanged_Handler(object? sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e == null) return;
             try
             {
                 if (e.NewValue is bool visible && !visible)
@@ -3014,5 +3020,149 @@ namespace RSTGameTranslation
 
             this.Activate();
         }
+
+        #region Clipboard Auto-Translate
+
+        /// <summary>
+        /// Initializes clipboard monitoring if enabled in settings.
+        /// </summary>
+        private void InitializeClipboardMonitor()
+        {
+            try
+            {
+                // Load settings
+                var monitor = ClipboardMonitor.Instance;
+                monitor.DebounceMs = ConfigManager.Instance.GetClipboardDebounceMs();
+                monitor.MaxCharacters = ConfigManager.Instance.GetClipboardMaxChars();
+
+                // Subscribe to event
+                monitor.ClipboardTextChanged -= OnClipboardTextChanged;
+                monitor.ClipboardTextChanged += OnClipboardTextChanged;
+
+                // Start listening if enabled
+                if (ConfigManager.Instance.IsClipboardAutoTranslateEnabled())
+                {
+                    monitor.StartListening(this);
+                    Console.WriteLine("[MainWindow] Clipboard monitor started.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[MainWindow] Error initializing clipboard monitor: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handles clipboard text changes and triggers translation.
+        /// </summary>
+        private async void OnClipboardTextChanged(object? sender, ClipboardTextChangedEventArgs e)
+        {
+            if (!ConfigManager.Instance.IsClipboardAutoTranslateEnabled())
+            {
+                return;
+            }
+
+            string text = e.Text;
+            int maxChars = ConfigManager.Instance.GetClipboardMaxChars();
+
+            // Check text length
+            if (text.Length > maxChars)
+            {
+                Console.WriteLine($"[ClipboardTranslate] Text too long ({text.Length} > {maxChars})");
+                ShowFastNotification(
+                    LocalizationManager.Instance.Strings["NotificationTitle_ClipboardError"],
+                    LocalizationManager.Instance.Strings["NotificationMessage_ClipboardTooLong"]
+                );
+                return;
+            }
+
+            Console.WriteLine($"[ClipboardTranslate] Processing {text.Length} chars");
+
+            // Show translating notification
+            ShowFastNotification(
+                LocalizationManager.Instance.Strings["NotificationTitle_ClipboardTranslating"],
+                LocalizationManager.Instance.Strings["NotificationMessage_ClipboardTranslating"]
+            );
+
+            try
+            {
+                Console.WriteLine($"[ClipboardTranslate] Calling TranslateTextImmediateAsync...");
+                
+                // Perform translation
+                string? translatedText = await Logic.Instance.TranslateTextImmediateAsync(text);
+
+                Console.WriteLine($"[ClipboardTranslate] TranslateTextImmediateAsync returned: {(translatedText != null ? $"'{translatedText.Substring(0, Math.Min(50, translatedText.Length))}...'" : "null")}");
+
+                if (!string.IsNullOrWhiteSpace(translatedText))
+                {
+                    Console.WriteLine($"[ClipboardTranslate] Translation successful, length={translatedText.Length}");
+
+                    // Copy result to clipboard if enabled
+                    if (ConfigManager.Instance.IsClipboardCopyResultEnabled())
+                    {
+                        ClipboardMonitor.Instance.SetClipboardTextSilently(translatedText);
+                    }
+
+                    // Add to translation history
+                    AddTranslationToHistory(text, translatedText);
+
+                    // Update ChatBox if open
+                    ChatBoxWindow.Instance?.OnTranslationWasAdded(text, translatedText);
+
+                    // Show success notification
+                    ShowFastNotification(
+                        LocalizationManager.Instance.Strings["NotificationTitle_ClipboardTranslated"],
+                        LocalizationManager.Instance.Strings["NotificationMessage_ClipboardTranslated"]
+                    );
+                }
+                else
+                {
+                    Console.WriteLine($"[ClipboardTranslate] Translation returned empty");
+                    ShowFastNotification(
+                        LocalizationManager.Instance.Strings["NotificationTitle_ClipboardError"],
+                        LocalizationManager.Instance.Strings["NotificationMessage_ClipboardError"]
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ClipboardTranslate] Error: {ex.Message}");
+                ShowFastNotification(
+                    LocalizationManager.Instance.Strings["NotificationTitle_ClipboardError"],
+                    LocalizationManager.Instance.Strings["NotificationMessage_ClipboardError"]
+                );
+            }
+        }
+
+        /// <summary>
+        /// Starts or stops clipboard monitoring based on settings.
+        /// Called from SettingsWindow when toggle changes.
+        /// </summary>
+        public void UpdateClipboardMonitorState()
+        {
+            var monitor = ClipboardMonitor.Instance;
+
+            if (ConfigManager.Instance.IsClipboardAutoTranslateEnabled())
+            {
+                monitor.DebounceMs = ConfigManager.Instance.GetClipboardDebounceMs();
+                monitor.MaxCharacters = ConfigManager.Instance.GetClipboardMaxChars();
+                
+                if (!monitor.IsListening)
+                {
+                    monitor.StartListening(this);
+                    Console.WriteLine("[MainWindow] Clipboard monitor started via settings.");
+                }
+            }
+            else
+            {
+                if (monitor.IsListening)
+                {
+                    monitor.StopListening();
+                    Console.WriteLine("[MainWindow] Clipboard monitor stopped via settings.");
+                }
+            }
+        }
+
+        #endregion
     }
 }

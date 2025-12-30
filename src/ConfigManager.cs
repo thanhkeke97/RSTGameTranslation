@@ -154,6 +154,12 @@ namespace RSTGameTranslation
         // Language interface
         public const string LANGUAGE_INTERFACE = "language_interface";
 
+        // Clipboard Auto-Translate configuration keys
+        public const string CLIPBOARD_AUTO_TRANSLATE_ENABLED = "clipboard_auto_translate_enabled";
+        public const string CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT = "clipboard_auto_translate_copy_result";
+        public const string CLIPBOARD_AUTO_TRANSLATE_DEBOUNCE_MS = "clipboard_auto_translate_debounce_ms";
+        public const string CLIPBOARD_AUTO_TRANSLATE_MAX_CHARS = "clipboard_auto_translate_max_chars";
+
         // Constants for overlay settings
         public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
         public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
@@ -545,6 +551,10 @@ namespace RSTGameTranslation
             _configValues[SILENT_THRESHOLD] = "0.02f";
             _configValues[SILENCE_DURATION_MS] = "500";
             _configValues[MAX_BUFFER_SAMPLES] = "3";
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_ENABLED] = "false";
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = "true";
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_DEBOUNCE_MS] = "300";
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_MAX_CHARS] = "5000";
 
             // Save the default configuration
             SaveConfig();
@@ -2088,6 +2098,67 @@ namespace RSTGameTranslation
             _configValues[CHATBOX_RECREATE_ON_SHOW] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Chatbox recreate on show enabled: {enabled}");
+        }
+
+        // Get/Set clipboard auto-translate settings
+        public bool IsClipboardAutoTranslateEnabled()
+        {
+            string value = GetValue(CLIPBOARD_AUTO_TRANSLATE_ENABLED, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetClipboardAutoTranslateEnabled(bool enabled)
+        {
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_ENABLED] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Clipboard auto-translate enabled: {enabled}");
+        }
+
+        public bool IsClipboardCopyResultEnabled()
+        {
+            string value = GetValue(CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT, "true");
+            return value.ToLower() == "true";
+        }
+
+        public void SetClipboardCopyResultEnabled(bool enabled)
+        {
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Clipboard copy result enabled: {enabled}");
+        }
+
+        public int GetClipboardDebounceMs()
+        {
+            string value = GetValue(CLIPBOARD_AUTO_TRANSLATE_DEBOUNCE_MS, "300"); 
+            if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int clipboardDebounce) && clipboardDebounce >= 0 && clipboardDebounce <= 1)
+            {
+                return clipboardDebounce;
+            }
+            return 300; 
+        }
+
+        public void SetClipboardDebounceMs(int value)
+        {
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_DEBOUNCE_MS] = Math.Clamp(value, 100, 2000).ToString();
+            SaveConfig();
+            Console.WriteLine($"Clipboard debounce ms: {value}");
+        }
+
+        public int GetClipboardMaxChars()
+        {
+            string value = GetValue(CLIPBOARD_AUTO_TRANSLATE_MAX_CHARS, "5000");
+            if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int maxChars) && maxChars >= 10 && maxChars <= 10000)
+            {
+                return maxChars;
+            }
+            return 5000; // Default value
+        }
+
+        public void SetClipboardMaxChars(int value)
+        {
+            _configValues[CLIPBOARD_AUTO_TRANSLATE_MAX_CHARS] = Math.Clamp(value, 10, 10000).ToString();
+            SaveConfig();
+            Console.WriteLine($"Clipboard max chars: {value}");
         }
 
         // Get/Set manga mode
