@@ -2103,12 +2103,28 @@ namespace RSTGameTranslation
 
             if (isChatBoxVisible && chatBoxWindow != null)
             {
-                // Hide ChatBox
-                chatBoxWindow.Hide();
+                // If recreate-on-show is enabled, fully close the chat box so next show recreates it.
+                if (recreateOnShow)
+                {
+                    try
+                    {
+                        chatBoxWindow.ForceClose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error force-closing ChatBox: {ex.Message}");
+                    }
+                    chatBoxWindow = null;
+                    _chatBoxEventsAttached = false;
+                }
+                else
+                {
+                    // Hide ChatBox (reuse later)
+                    chatBoxWindow.Hide();
+                }
+
                 isChatBoxVisible = false;
                 chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
-
-                // Don't set chatBoxWindow to null here - we're just hiding it, not closing it
             }
             else if (!isChatBoxVisible && !recreateOnShow && chatBoxWindow != null)
             {
@@ -2121,39 +2137,39 @@ namespace RSTGameTranslation
             {
                 if (recreateOnShow)
                 {
-                    // Create and show a fresh ChatBox instance every time
+                    // When recreate-on-show is enabled we should always ask the user to pick a region
+                    // so the ChatBox appears at a new location rather than reusing the old one.
                     try
                     {
-                        // If an existing chatBoxWindow exists, fully close it first
+                        // If an existing chatBoxWindow exists, fully close it first to ensure Instance will recreate
                         if (chatBoxWindow != null)
                         {
-                            try
-                            {
-                                chatBoxWindow.ForceClose();
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error closing existing ChatBox: {ex.Message}");
-                            }
+                            try { chatBoxWindow.ForceClose(); } catch { }
                             chatBoxWindow = null;
+                            _chatBoxEventsAttached = false;
                         }
 
-                        // Create a fresh ChatBox instance and show it
-                        var newChat = new ChatBoxWindow();
-                        chatBoxWindow = ChatBoxWindow.Instance;
-                        if (chatBoxWindow != null)
+                        // Show selector to allow user to position ChatBox
+                        ChatBoxSelectorWindow selectorWindow = ChatBoxSelectorWindow.GetInstance();
+                        selectorWindow.SelectionComplete += ChatBoxSelector_SelectionComplete;
+                        selectorWindow.Closed += (s, e) =>
                         {
-                            chatBoxWindow.Owner = this;
-                            chatBoxWindow.Show();
-                            isChatBoxVisible = true;
-                            chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-                        }
-                        isChatBoxVisible = true;
+                            isSelectingChatBoxArea = false;
+                            // Only set button to blue if the ChatBox isn't visible (was cancelled)
+                            if (!isChatBoxVisible || chatBoxWindow == null || !chatBoxWindow.IsVisible)
+                            {
+                                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
+                            }
+                        };
+                        selectorWindow.Show();
+
+                        // Set button to red while selector is active
+                        isSelectingChatBoxArea = true;
                         chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error creating ChatBox: {ex.Message}");
+                        Console.WriteLine($"Error creating ChatBox selector: {ex.Message}");
                     }
                 }
                 else
@@ -2179,32 +2195,75 @@ namespace RSTGameTranslation
             }
         }
 
-        // Handle selection completion
-        private void ChatBoxSelector_SelectionComplete(object? sender, Rect selectionRect)
+        // Named handlers for ChatBox events so we can subscribe/unsubscribe deterministically
+        private void ChatBox_Closed_Handler(object? sender, EventArgs e)
         {
-            // Use the existing ChatBoxWindow.Instance
-            chatBoxWindow = ChatBoxWindow.Instance;
-
-            // Check if event handlers are already attached
-            if (!_chatBoxEventsAttached && chatBoxWindow != null)
+            try
             {
-                // Subscribe to both Closed and IsVisibleChanged events
-                chatBoxWindow.Closed += (s, e) =>
-                {
-                    isChatBoxVisible = false;
-                    chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
-                };
+                isChatBoxVisible = false;
+                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+            }
+            finally
+            {
+                _chatBoxEventsAttached = false;
+                try { chatBoxWindow = null; } catch { }
+            }
+        }
 
-                // Also handle visibility changes for when the X button is clicked (which now hides instead of closes)
-                chatBoxWindow.IsVisibleChanged += (s, e) =>
+        private void ChatBox_IsVisibleChanged_Handler(object? sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e == null) return;
+            try
+            {
+                if (e.NewValue is bool visible && !visible)
                 {
-                    if (!(bool)e.NewValue) // Window is now hidden
+                    // If recreate-on-show is enabled, treat hiding as a close so next show triggers selector/new instance
+                    if (ConfigManager.Instance.IsChatboxRecreateOnShowEnabled())
+                    {
+                        try
+                        {
+                            // Force close to ensure instance is disposed
+                            chatBoxWindow?.ForceClose();
+                        }
+                        catch { }
+                        try { chatBoxWindow = null; } catch { }
+                        _chatBoxEventsAttached = false;
+                    }
+                    else
                     {
                         isChatBoxVisible = false;
                         chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
                     }
-                };
+                }
+            }
+            catch { }
+        }
 
+        // Handle selection completion
+        private void ChatBoxSelector_SelectionComplete(object? sender, Rect selectionRect)
+        {
+            // Ensure a ChatBoxWindow instance exists; when recreateOnShow is enabled
+            // we may not have created one yet, so create a fresh instance here.
+            if (ChatBoxWindow.Instance == null)
+            {
+                try
+                {
+                    var tmp = new ChatBoxWindow();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error creating ChatBox instance: {ex.Message}");
+                }
+            }
+            chatBoxWindow = ChatBoxWindow.Instance;
+            // Ensure deterministic (re)attachment of named handlers
+            if (chatBoxWindow != null)
+            {
+                try { chatBoxWindow.Closed -= ChatBox_Closed_Handler; } catch { }
+                try { chatBoxWindow.IsVisibleChanged -= ChatBox_IsVisibleChanged_Handler; } catch { }
+
+                chatBoxWindow.Closed += ChatBox_Closed_Handler;
+                chatBoxWindow.IsVisibleChanged += ChatBox_IsVisibleChanged_Handler;
                 _chatBoxEventsAttached = true;
             }
 
