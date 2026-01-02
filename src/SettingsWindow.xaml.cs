@@ -2096,6 +2096,15 @@ namespace RSTGameTranslation
                 elevenLabsApiKeyHelpText.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
                 elevenLabsVoiceLabel.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
                 elevenLabsVoiceComboBox.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
+                elevenLabsModelLabel.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
+                elevenLabsModelComboBox.Visibility = isElevenLabsSelected ? Visibility.Visible : Visibility.Collapsed;
+
+                // Hide custom voice controls when ElevenLabs is not selected
+                if (!isElevenLabsSelected)
+                {
+                    elevenLabsCustomVoiceLabel.Visibility = Visibility.Collapsed;
+                    elevenLabsCustomVoiceTextBox.Visibility = Visibility.Collapsed;
+                }
 
                 // Show/hide Google TTS-specific settings
                 googleTtsApiKeyLabel.Visibility = isGoogleTtsSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -2112,13 +2121,43 @@ namespace RSTGameTranslation
                 {
                     elevenLabsApiKeyPasswordBox.Password = ConfigManager.Instance.GetElevenLabsApiKey();
 
-                    // Set selected voice
+                    // Set selected voice - check if it's a preset or custom
                     string voiceId = ConfigManager.Instance.GetElevenLabsVoice();
+                    bool foundPreset = false;
                     foreach (ComboBoxItem item in elevenLabsVoiceComboBox.Items)
                     {
-                        if (string.Equals(item.Tag?.ToString(), voiceId, StringComparison.OrdinalIgnoreCase))
+                        if (item.Tag?.ToString() != "custom" && string.Equals(item.Tag?.ToString(), voiceId, StringComparison.OrdinalIgnoreCase))
                         {
                             elevenLabsVoiceComboBox.SelectedItem = item;
+                            foundPreset = true;
+                            elevenLabsCustomVoiceLabel.Visibility = Visibility.Collapsed;
+                            elevenLabsCustomVoiceTextBox.Visibility = Visibility.Collapsed;
+                            break;
+                        }
+                    }
+                    // If not a preset voice, select "Custom" and show the textbox
+                    if (!foundPreset && !string.IsNullOrWhiteSpace(voiceId))
+                    {
+                        foreach (ComboBoxItem item in elevenLabsVoiceComboBox.Items)
+                        {
+                            if (item.Tag?.ToString() == "custom")
+                            {
+                                elevenLabsVoiceComboBox.SelectedItem = item;
+                                break;
+                            }
+                        }
+                        elevenLabsCustomVoiceTextBox.Text = voiceId;
+                        elevenLabsCustomVoiceLabel.Visibility = Visibility.Visible;
+                        elevenLabsCustomVoiceTextBox.Visibility = Visibility.Visible;
+                    }
+
+                    // Set selected model
+                    string modelId = ConfigManager.Instance.GetElevenLabsModel();
+                    foreach (ComboBoxItem item in elevenLabsModelComboBox.Items)
+                    {
+                        if (string.Equals(item.Tag?.ToString(), modelId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            elevenLabsModelComboBox.SelectedItem = item;
                             break;
                         }
                     }
@@ -3020,9 +3059,25 @@ namespace RSTGameTranslation
 
                 if (elevenLabsVoiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    string voiceId = selectedItem.Tag?.ToString() ?? "21m00Tcm4TlvDq8ikWAM"; // Default to Rachel
-                    ConfigManager.Instance.SetElevenLabsVoice(voiceId);
-                    Console.WriteLine($"ElevenLabs voice set to: {selectedItem.Content} (ID: {voiceId})");
+                    string tag = selectedItem.Tag?.ToString() ?? "";
+
+                    // Handle custom voice selection
+                    if (tag == "custom")
+                    {
+                        // Show custom voice input
+                        elevenLabsCustomVoiceLabel.Visibility = Visibility.Visible;
+                        elevenLabsCustomVoiceTextBox.Visibility = Visibility.Visible;
+                        // Don't save "custom" as voice ID - the textbox handler will save the actual ID
+                        Console.WriteLine("Custom voice selected - enter voice ID in the textbox");
+                    }
+                    else
+                    {
+                        // Hide custom voice input and save the preset voice ID
+                        elevenLabsCustomVoiceLabel.Visibility = Visibility.Collapsed;
+                        elevenLabsCustomVoiceTextBox.Visibility = Visibility.Collapsed;
+                        ConfigManager.Instance.SetElevenLabsVoice(tag);
+                        Console.WriteLine($"ElevenLabs voice set to: {selectedItem.Content} (ID: {tag})");
+                    }
                 }
             }
             catch (Exception ex)
@@ -3031,6 +3086,47 @@ namespace RSTGameTranslation
             }
         }
 
+        private void ElevenLabsCustomVoiceTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string voiceId = elevenLabsCustomVoiceTextBox.Text.Trim();
+                if (!string.IsNullOrWhiteSpace(voiceId))
+                {
+                    ConfigManager.Instance.SetElevenLabsVoice(voiceId);
+                    Console.WriteLine($"ElevenLabs custom voice ID set to: {voiceId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating ElevenLabs custom voice: {ex.Message}");
+            }
+        }
+
+        private void ElevenLabsModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                if (elevenLabsModelComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    string modelId = selectedItem.Tag?.ToString() ?? "eleven_flash_v2_5";
+                    ConfigManager.Instance.SetElevenLabsModel(modelId);
+                    Console.WriteLine($"ElevenLabs model set to: {selectedItem.Content} (ID: {modelId})");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating ElevenLabs model: {ex.Message}");
+            }
+        }
 
         private void WindowTTSVoiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

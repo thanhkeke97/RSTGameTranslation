@@ -99,18 +99,21 @@ namespace RSTGameTranslation
                 _httpClient.DefaultRequestHeaders.Remove("xi-api-key");
                 _httpClient.DefaultRequestHeaders.Add("xi-api-key", apiKey);
                 
-                // Ensure we have a valid voice ID
-                if (string.IsNullOrWhiteSpace(voice) || !DefaultVoices.ContainsValue(voice))
+                // Ensure we have a valid voice ID (allow custom voice IDs)
+                if (string.IsNullOrWhiteSpace(voice))
                 {
-                    // Use Rachel as default
+                    // Use Rachel as default only if no voice is configured
                     voice = DefaultVoices["Rachel"];
                 }
                 
+                // Get model from config (defaults to eleven_flash_v2_5)
+                string model = ConfigManager.Instance.GetElevenLabsModel();
+
                 // Create request payload
                 var requestData = new
                 {
                     text = text,
-                    model_id = "eleven_flash_v2_5",
+                    model_id = model,
                     voice_settings = new
                     {
                         stability = 0.5,

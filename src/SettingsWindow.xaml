@@ -1069,13 +1069,16 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/> <!-- Row 0: Enable TTS -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 1: TTS Service -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 2: API Key -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 3: Voice dropdown -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 4: Custom Voice ID -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 5: Model -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 6: spacer -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 7: Exclude Character Name -->
                                 </Grid.RowDefinitions>
-                                
+
                                 <!-- TTS Enabled -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_EnableTTS]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -1084,12 +1087,12 @@
                                          Checked="TtsEnabledCheckBox_CheckedChanged" 
                                          Unchecked="TtsEnabledCheckBox_CheckedChanged"/>
                                 
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ExcludeCharName]}" Grid.Row="4" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ExcludeCharName]}" Grid.Row="7" Grid.Column="0"
                                           ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ExcludeCharName]}"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="excludeCharacterNameCheckBox" Grid.Row="4" Grid.Column="1" 
-                                         Margin="0,5" 
-                                         Checked="ExcludeCharacterNameCheckBox_CheckedChanged" 
+                                <CheckBox x:Name="excludeCharacterNameCheckBox" Grid.Row="7" Grid.Column="1"
+                                         Margin="0,5"
+                                         Checked="ExcludeCharacterNameCheckBox_CheckedChanged"
                                          Unchecked="ExcludeCharacterNameCheckBox_CheckedChanged"/>
                                 
                                 <!-- TTS Service -->
@@ -1123,7 +1126,7 @@
                                 <!-- ElevenLabs Voice - Only visible when ElevenLabs is selected -->
                                 <TextBlock x:Name="elevenLabsVoiceLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ElevenLabsVoice]}" Grid.Row="3" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,5,10,0"/>
-                                <ComboBox x:Name="elevenLabsVoiceComboBox" Grid.Row="3" Grid.Column="1" 
+                                <ComboBox x:Name="elevenLabsVoiceComboBox" Grid.Row="3" Grid.Column="1"
                                          Margin="0,5" SelectionChanged="ElevenLabsVoiceComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Rachel" Tag="21m00Tcm4TlvDq8ikWAM"/>
                                     <ComboBoxItem Content="Domi" Tag="AZnzlk1XvdvUeBnXmlld"/>
@@ -1136,6 +1139,24 @@
                                     <ComboBoxItem Content="Sam" Tag="yoZ06aMxZJJ28mfd3POQ"/>
                                     <ComboBoxItem Content="MC Anh Đức" Tag="XBDAUT8ybuJTTCoOLSUj"/>
                                     <ComboBoxItem Content="Mc Hà My - Vietnames - calm and kind" Tag="RmcV9cAq1TByxNSgbii7"/>
+                                    <ComboBoxItem Content="Custom Voice ID..." Tag="custom"/>
+                                </ComboBox>
+
+                                <!-- Custom Voice ID - Only visible when Custom is selected -->
+                                <TextBlock x:Name="elevenLabsCustomVoiceLabel" Text="Custom Voice ID:" Grid.Row="4" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"/>
+                                <TextBox x:Name="elevenLabsCustomVoiceTextBox" Grid.Row="4" Grid.Column="1"
+                                         Margin="0,5" Visibility="Collapsed" TextChanged="ElevenLabsCustomVoiceTextBox_TextChanged"/>
+
+                                <!-- ElevenLabs Model - Only visible when ElevenLabs is selected -->
+                                <TextBlock x:Name="elevenLabsModelLabel" Text="Model:" Grid.Row="5" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"/>
+                                <ComboBox x:Name="elevenLabsModelComboBox" Grid.Row="5" Grid.Column="1"
+                                         Margin="0,5" Visibility="Collapsed" SelectionChanged="ElevenLabsModelComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Flash v2.5 (Fastest, 50% off)" Tag="eleven_flash_v2_5"/>
+                                    <ComboBoxItem Content="Turbo v2.5 (Balanced, 50% off)" Tag="eleven_turbo_v2_5"/>
+                                    <ComboBoxItem Content="Multilingual v2 (High quality)" Tag="eleven_multilingual_v2"/>
+                                    <ComboBoxItem Content="Eleven v3 (Best, alpha)" Tag="eleven_v3"/>
                                 </ComboBox>
 
                                 <!-- Windows TTS Voice - Only visible when Windows TTS is selected -->

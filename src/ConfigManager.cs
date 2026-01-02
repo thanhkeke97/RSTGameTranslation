@@ -121,6 +121,7 @@ namespace RSTGameTranslation
         public const string TTS_SERVICE = "tts_service";
         public const string ELEVENLABS_API_KEY = "elevenlabs_api_key";
         public const string ELEVENLABS_VOICE = "elevenlabs_voice";
+        public const string ELEVENLABS_MODEL = "elevenlabs_model";
         public const string GOOGLE_TTS_API_KEY = "google_tts_api_key";
         public const string GOOGLE_TTS_VOICE = "google_tts_voice";
         public const string WINDOWS_TTS_VOICE = "windows_tts_voice";
@@ -486,6 +487,7 @@ namespace RSTGameTranslation
             _configValues[TARGET_LANGUAGE] = "vi";
             _configValues[ELEVENLABS_API_KEY] = "<your API key here>";
             _configValues[ELEVENLABS_VOICE] = "21m00Tcm4TlvDq8ikWAM";
+            _configValues[ELEVENLABS_MODEL] = "eleven_flash_v2_5";
             _configValues[TTS_SERVICE] = "Windows TTS";
             _configValues[GOOGLE_TTS_API_KEY] = "<your API key here>";
             _configValues[GOOGLE_TTS_VOICE] = "ja-JP-Neural2-B";
@@ -2218,6 +2220,22 @@ namespace RSTGameTranslation
                 _configValues[ELEVENLABS_VOICE] = voiceId;
                 SaveConfig();
                 Console.WriteLine($"ElevenLabs voice set to: {voiceId}");
+            }
+        }
+
+        // Get/Set ElevenLabs model
+        public string GetElevenLabsModel()
+        {
+            return GetValue(ELEVENLABS_MODEL, "eleven_flash_v2_5"); // Default to Flash v2.5
+        }
+
+        public void SetElevenLabsModel(string modelId)
+        {
+            if (!string.IsNullOrWhiteSpace(modelId))
+            {
+                _configValues[ELEVENLABS_MODEL] = modelId;
+                SaveConfig();
+                Console.WriteLine($"ElevenLabs model set to: {modelId}");
             }
         }
 
