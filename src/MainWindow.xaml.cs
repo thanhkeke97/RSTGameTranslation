@@ -467,6 +467,22 @@ namespace RSTGameTranslation
 
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
+
+            // Update audio button label when localization strings change
+            LocalizationManager.Instance.PropertyChanged += (s, args) =>
+            {
+                try
+                {
+                    if (args.PropertyName == "Strings")
+                    {
+                        UpdateAudioServiceButtonUI(ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error updating localized audio button: {ex.Message}");
+                }
+            };
         }
 
         private void SelectAreaButton_Click(object sender, RoutedEventArgs e)
@@ -518,6 +534,73 @@ namespace RSTGameTranslation
 
             isSelectingTranslationArea = true;
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+        }
+
+        // Toggle Audio Service (Start/Stop local Whisper) from main window button
+        private async void AudioServiceButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bool enabled = !ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
+                ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(enabled);
+                Console.WriteLine($"MainWindow: Audio service auto-translate set to {enabled}");
+
+                UpdateAudioServiceButtonUI(enabled);
+
+                if (enabled && !localWhisperService.Instance.IsRunning)
+                {
+                    try
+                    {
+                        await localWhisperService.Instance.StartServiceAsync((original, translated) =>
+                        {
+                            Console.WriteLine($"Whisper detected: {original}");
+                        });
+                        Console.WriteLine("Local Whisper Service started from MainWindow button");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error starting Whisper service: {ex.Message}");
+                    }
+                }
+                else if (!enabled && localWhisperService.Instance.IsRunning)
+                {
+                    localWhisperService.Instance.Stop();
+                    Console.WriteLine("Local Whisper Service stopped from MainWindow button");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error toggling audio service: {ex.Message}");
+            }
+        }
+
+        private void UpdateAudioServiceButtonUI(bool enabled)
+        {
+            try
+            {
+                if (audioServiceButton == null) return;
+                Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        var baseLabel = LocalizationManager.Instance.Strings["Btn_AudioService"];
+                        var stateLabelKey = enabled ? "Btn_AudioService_On" : "Btn_AudioService_Off";
+                        var stateLabel = LocalizationManager.Instance.Strings[stateLabelKey];
+                        audioServiceButton.Content = $"{baseLabel}: {stateLabel}";
+                    }
+                    catch
+                    {
+                        // Fallback to simple english text if localization keys are missing
+                        audioServiceButton.Content = enabled ? "Audio STT: On" : "Audio STT: Off";
+                    }
+
+                    audioServiceButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(95, 95, 95));
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating audio button UI: {ex.Message}");
+            }
         }
 
         // Handle the event when translation region is selected
@@ -803,24 +886,10 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            // if(ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled())
-            // {
-            //     Task.Run(async () => 
-            //     {
-            //         try
-            //         {
-            //             await localWhisperService.Instance.StartServiceAsync((original, translated) =>
-            //             {
-            //                 Console.WriteLine($"Whisper detected: {original}");
-            //             });
-            //         }
-            //         catch (Exception ex)
-            //         {
-            //             Console.WriteLine($"Error starting Whisper service: {ex.Message}");
-            //         }
-            //     });
-            //     Console.WriteLine("Local Whisper Service started");
-            // }
+            // Initialize Audio Service button state and optionally start service
+            bool audioEnabled = false;
+            ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(audioEnabled);
+            UpdateAudioServiceButtonUI(audioEnabled);
 
             // Initialization is complete, now we can save settings changes
             _isInitializing = false;

@@ -4071,7 +4071,7 @@ namespace RSTGameTranslation
         //     ConfigManager.Instance.SetOpenAiRealtimeApiKey(openAiRealtimeApiKeyPasswordBox.Password.Trim());
         // }
 
-        // Handle Auto-translate checkbox change for audio service
+        //Handle Auto-translate checkbox change for audio service
         private async void AudioServiceAutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             bool enabled = audioServiceAutoTranslateCheckBox.IsChecked ?? false;

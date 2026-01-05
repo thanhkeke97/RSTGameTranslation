@@ -159,7 +159,10 @@
                                             <Button x:Name="toggleButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}" Style="{StaticResource ModernButton}"
                                                     Background="#FF14B414" FontWeight="Bold" MinWidth="100"
                                                     Click="OnStartButtonToggleClicked" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                            
+                                            <!-- Audio Service Toggle Button -->
+                                            <Button x:Name="audioServiceButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" Style="{StaticResource ModernButton}"
+                                                Background="#FF5F5F5F"
+                                                Click="AudioServiceButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                             <!-- hidden controls -->
                                             <Button x:Name="hideButton" Content="Hide" Visibility="Collapsed" Click="HideButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                                             <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Visibility="Collapsed" SelectionChanged="SourceLanguageComboBox_SelectionChanged">
