@@ -435,7 +435,6 @@
   "Msg_WhisperRuntimeChangeRequiresRestart": "Changing the Whisper runtime (CPU/GPU) requires restarting the application to take effect. Do you want to save this change?",
   "Tip_AudioModelDownload_Part1": "Models can be found at: ",
   "Tip_AudioModelDownload_Part2": ". You can download models directly and place them in the RSTGameTranslation/AudioModel folder",
-  
   "Tab_Clipboard": "Clipboard",
   "Grp_ClipboardAutoTranslate": "Clipboard Auto-Translate",
   "Lbl_EnableClipboardTranslate": "Enable Clipboard Translation:",

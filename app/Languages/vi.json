@@ -441,7 +441,6 @@
   "Msg_WhisperRuntimeChangeRequiresRestart": "Thay đổi runtime Whisper (CPU/GPU) cần khởi động lại ứng dụng để có hiệu lực. Bạn có muốn lưu thay đổi này không?",
   "Tip_AudioModelDownload_Part1": "Các model có thể được tìm thấy tại: ",
   "Tip_AudioModelDownload_Part2": ". Bạn có thể tải model trực tiếp và đặt vào thư mục RSTGameTranslation/AudioModel",
-  
   "Tab_Clipboard": "Clipboard",
   "Grp_ClipboardAutoTranslate": "Tự động dịch Clipboard",
   "Lbl_EnableClipboardTranslate": "Bật dịch Clipboard:",

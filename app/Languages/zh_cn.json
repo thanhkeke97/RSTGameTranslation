@@ -441,7 +441,6 @@
   "Msg_WhisperRuntimeChangeRequiresRestart": "更改Whisper运行时（CPU/GPU）需要重新启动应用程序才能生效。是否保存此更改？",
   "Tip_AudioModelDownload_Part1": "模型可以在以下位置找到：",
   "Tip_AudioModelDownload_Part2": "。您可以直接下载模型并将其放置在 RSTGameTranslation/AudioModel 文件夹中",
-
   "Tab_Clipboard": "剪贴板",
   "Grp_ClipboardAutoTranslate": "剪贴板自动翻译",
   "Lbl_EnableClipboardTranslate": "启用剪贴板自动翻译：",

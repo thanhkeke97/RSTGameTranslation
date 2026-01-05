@@ -435,7 +435,6 @@
   "Msg_WhisperRuntimeChangeRequiresRestart": "Whisperランタイム（CPU/GPU）の変更は、アプリケーションの再起動が必要です。この変更を保存しますか？",
   "Tip_AudioModelDownload_Part1": "モデルは次の場所にあります：",
   "Tip_AudioModelDownload_Part2": "。モデルを直接ダウンロードして、RSTGameTranslation/AudioModelフォルダに配置できます",
-  
   "Tab_Clipboard": "クリップボード",
   "Grp_ClipboardAutoTranslate": "クリップボード自動翻訳",
   "Lbl_EnableClipboardTranslate": "クリップボード翻訳を有効：",

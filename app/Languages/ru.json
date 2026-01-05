@@ -425,7 +425,7 @@
   "Lbl_Model": "Модель:",
   "Lbl_WhisperRuntime": "Среда выполнения:",
   "Tip_WhisperRuntime": "CPU: По умолчанию, работает на всех системах. CUDA: Ускорение NVIDIA GPU. Vulkan: Ускорение GPU для AMD/NVIDIA/Intel.",
-  "Lbl_VolumeThreshold": "Порог громкости:",,
+  "Lbl_VolumeThreshold": "Порог громкости:",
   "Lbl_SilenceDuration": "Длительность тишины (мс):",
   "Lbl_MaxBufferSamples": "Макс. образцов буфера:",
   "Tip_VolumeThreshold": "Порог громкости для обнаружения голоса (0.001-0.1). Ниже = более чувствительно.",
@@ -435,7 +435,6 @@
   "Msg_WhisperRuntimeChangeRequiresRestart": "Изменение среды выполнения Whisper (CPU/GPU) требует перезапуска приложения. Сохранить это изменение?",
   "Tip_AudioModelDownload_Part1": "Модели можно найти по адресу: ",
   "Tip_AudioModelDownload_Part2": ". Вы можете загрузить модели напрямую и поместить их в папку RSTGameTranslation/AudioModel",
-  
   "Tab_Clipboard": "Буфер обмена",
   "Grp_ClipboardAutoTranslate": "Автоперевод буфера обмена",
   "Lbl_EnableClipboardTranslate": "Включить перевод буфера:",
