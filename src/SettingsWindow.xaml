@@ -1571,7 +1571,7 @@
                                 </ComboBox>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Model]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="audioProcessingModelComboBox" Grid.Row="2" Grid.Column="1" Margin="0,5" SelectionChanged="AudioProcessingModelComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="ggml-small-q5_1"/>
+                                    <ComboBoxItem Content="ggml-tiny"/>
                                 </ComboBox>
                                 <TextBlock x:Name="audioModelDownloadTextBlock"
                                         Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" 

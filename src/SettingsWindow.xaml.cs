@@ -2725,7 +2725,7 @@ namespace RSTGameTranslation
 
                 string model = (audioProcessingModelComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
                                ?? audioProcessingModelComboBox.SelectedItem?.ToString()
-                               ?? "ggml-small-q5_1";
+                               ?? "ggml-tiny";
 
                 if (!string.IsNullOrWhiteSpace(model))
                 {

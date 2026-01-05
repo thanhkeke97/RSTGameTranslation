@@ -113,8 +113,8 @@ jobs:
         }
 
         # Audio Model - Download from URL
-        $modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q5_1.bin?download=true"
-        $modelDest = "$releaseDir\AudioModel\ggml-base.en-q5_1.bin"
+        $modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin?download=true"
+        $modelDest = "$releaseDir\AudioModel\ggml-tiny.bin"
         Write-Host "Downloading Audio Model from HuggingFace..."
         Invoke-WebRequest -Uri $modelUrl -OutFile $modelDest
 

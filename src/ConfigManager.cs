@@ -549,7 +549,7 @@ namespace RSTGameTranslation
             _configValues[CUSTOM_API_URL] = "";
             _configValues[CUSTOM_API_MODEL] = "";
             _configValues[HOT_KEY_ENABLE] = "true";
-            _configValues[AUDIO_PROCESSING_MODEL] = "ggml-small-q5_1";
+            _configValues[AUDIO_PROCESSING_MODEL] = "ggml-tiny";
             _configValues[SILENT_THRESHOLD] = "0.02f";
             _configValues[SILENCE_DURATION_MS] = "500";
             _configValues[MAX_BUFFER_SAMPLES] = "3";
@@ -1863,7 +1863,7 @@ namespace RSTGameTranslation
         // Get/Set audio processing model
         public string GetAudioProcessingModel()
         {
-            return GetValue(AUDIO_PROCESSING_MODEL, "ggml-small-q5_1");
+            return GetValue(AUDIO_PROCESSING_MODEL, "ggml-tiny");
         }
 
         public void SetAudioProcessingModel(string model)
