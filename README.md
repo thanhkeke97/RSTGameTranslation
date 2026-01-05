@@ -7,6 +7,7 @@
 [![License](https://img.shields.io/badge/license-BSD-green.svg)](LICENSE.md)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010+-lightgrey.svg)]()
 
+
 *Translate your games in real-time with AI-powered OCR and LLM technology*
 
 [📥 Download](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [⚙️ Settings guide](https://thanhkeke97.github.io/RSTGameTranslation/#settings) • [📖 Vietnamese Guide](README_vi.md) • [🐛 Report Bug](https://github.com/thanhkeke97/RSTGameTranslation/issues)
@@ -112,6 +113,18 @@ RSTGameTranslation will automatically check for updates when you start it. If th
 ## 💬 Community
 
 Join our [Discord](https://discord.gg/FusrDU5tdn) for support and updates!
+
+---
+
+## 💖 Support the author
+
+If you find RST useful and would like to support development, you can buy the author a coffee — thank you! 👋
+
+<div align="center">
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%23FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/thanhkeke97)
+
+</div>
 
 ---
 

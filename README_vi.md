@@ -7,6 +7,7 @@
 [![Giấy phép](https://img.shields.io/badge/license-BSD-green.svg)](LICENSE.md)
 [![Nền tảng](https://img.shields.io/badge/platform-Windows%2010+-lightgrey.svg)]()
 
+
 *Dịch game của bạn theo thời gian thực với công nghệ OCR và LLM*
 
 [📥 Tải xuống](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [⚙️ Hướng dẫn cài đặt (Tất cả cài đặt)](https://thanhkeke97.github.io/RSTGameTranslation/index_vi.html#settings) • [📖 English Guide](README.md) • [🐛 Báo lỗi](https://github.com/thanhkeke97/RSTGameTranslation/issues)
@@ -113,6 +114,18 @@ RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi đ
 ## 💬 Cộng đồng
 
 Tham gia [Discord](https://discord.gg/FusrDU5tdn) của chúng tôi để được hỗ trợ và cập nhật!
+
+---
+
+## 💖 Ủng hộ tác giả
+
+Nếu bạn thấy RST hữu ích và muốn hỗ trợ phát triển, bạn có thể mua một ly cà phê cho tác giả — cảm ơn bạn! 👋
+
+<div align="center">
+
+[![Ủng hộ tác giả (Buy Me a Coffee)](https://img.shields.io/badge/Ủng%20hộ-%23FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/thanhkeke97)
+
+</div>
 
 ---
 
