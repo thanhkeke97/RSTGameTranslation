@@ -656,6 +656,36 @@ namespace RSTGameTranslation
             }
         }
 
+        public static void StopSpeechQueue()
+        {
+            try
+            {
+                Console.WriteLine("Stopping speech queue processing");
+                
+                // Cancel the current speech processing task
+                if (_speechCancellationTokenSource != null)
+                {
+                    _speechCancellationTokenSource.Cancel();
+                    _speechCancellationTokenSource.Dispose();
+                    _speechCancellationTokenSource = null;
+                }
+                
+                // Clear the speech queue
+                while (_speechQueue.TryDequeue(out _))
+                {
+                    // Just dequeue to clear
+                }
+                
+                _isProcessingSpeech = false;
+                
+                Console.WriteLine("Speech queue cleared and processing stopped");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping speech queue: {ex.Message}");
+            }
+        }
+
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             // Instead of closing, hide the window (to match behavior with Log window)
@@ -786,15 +816,14 @@ namespace RSTGameTranslation
             }
         }
 
-        public void OnTranslationWasAdded(string originalText, string translatedText)
+        public void OnTranslationWasAdded(string originalText, string translatedText, bool fromClipboard=false)
         {
             // Hide translation status indicator if it was visible
             HideTranslationStatus();
 
             // Update UI with existing history
             UpdateChatHistory();
-            
-            if (!string.IsNullOrEmpty(translatedText) && ConfigManager.Instance.IsTtsEnabled())
+            if (fromClipboard)
             {
                 if (ConfigManager.Instance.IsExcludeCharacterNameEnabled())
                 {
@@ -811,6 +840,32 @@ namespace RSTGameTranslation
                 else
                 {
                     EnqueueSpeechRequest(translatedText);
+                }
+            }
+            else
+            {
+                // Only enqueue TTS if translation is still running (Start button active)
+                // This prevents TTS from playing old translations after Stop is pressed
+                if (!string.IsNullOrEmpty(translatedText) && 
+                    ConfigManager.Instance.IsTtsEnabled() && 
+                    MainWindow.Instance.GetIsStarted()) 
+                {
+                    if (ConfigManager.Instance.IsExcludeCharacterNameEnabled())
+                    {
+                        string[] text = translatedText.Split(':', 2);
+                        if (text.Length > 1)
+                        {
+                            EnqueueSpeechRequest(text[1]);
+                        }
+                        else
+                        {
+                            EnqueueSpeechRequest(text[0]);
+                        }
+                    }
+                    else
+                    {
+                        EnqueueSpeechRequest(translatedText);
+                    }
                 }
             }
         }

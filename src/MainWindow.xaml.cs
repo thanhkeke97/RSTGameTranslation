@@ -112,7 +112,7 @@ namespace RSTGameTranslation
         private ChatBoxWindow? chatBoxWindow;
         private bool isChatBoxVisible = false;
         private bool isSelectingChatBoxArea = false;
-        private bool _chatBoxEventsAttached = false;
+        // private bool _chatBoxEventsAttached = false;
 
         // Keep translation history even when ChatBox is closed
         private Queue<TranslationEntry> _translationHistory = new Queue<TranslationEntry>();
@@ -1038,7 +1038,13 @@ namespace RSTGameTranslation
                 MonitorWindow.Instance.HideTranslationStatus();
                 if (ConfigManager.Instance.IsTtsEnabled())
                 {
+                    // Stop speech queue in ChatBoxWindow first
+                    ChatBoxWindow.StopSpeechQueue();
+                    
+                    // Stop all TTS services
                     WindowsTTSService.StopAllTTS();
+                    GoogleTTSService.StopAllTTS();
+                    ElevenLabsService.StopAllTTS();
                 }
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStopped"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStopped_Details"]);
             }
@@ -2122,7 +2128,7 @@ namespace RSTGameTranslation
                         Console.WriteLine($"Error force-closing ChatBox: {ex.Message}");
                     }
                     chatBoxWindow = null;
-                    _chatBoxEventsAttached = false;
+                    // _chatBoxEventsAttached = false;
                 }
                 else
                 {
@@ -2153,7 +2159,7 @@ namespace RSTGameTranslation
                         {
                             try { chatBoxWindow.ForceClose(); } catch { }
                             chatBoxWindow = null;
-                            _chatBoxEventsAttached = false;
+                            // _chatBoxEventsAttached = false;
                         }
 
                         // Show selector to allow user to position ChatBox
@@ -2212,7 +2218,7 @@ namespace RSTGameTranslation
             }
             finally
             {
-                _chatBoxEventsAttached = false;
+                // _chatBoxEventsAttached = false;
                 try { chatBoxWindow = null; } catch { }
             }
         }
@@ -2233,7 +2239,7 @@ namespace RSTGameTranslation
                         }
                         catch { }
                         try { chatBoxWindow = null; } catch { }
-                        _chatBoxEventsAttached = false;
+                        // _chatBoxEventsAttached = false;
                     }
                     else
                     {
@@ -2270,7 +2276,7 @@ namespace RSTGameTranslation
 
                 chatBoxWindow.Closed += ChatBox_Closed_Handler;
                 chatBoxWindow.IsVisibleChanged += ChatBox_IsVisibleChanged_Handler;
-                _chatBoxEventsAttached = true;
+                // _chatBoxEventsAttached = true;
             }
 
             // Position and size the ChatBox
@@ -2293,7 +2299,7 @@ namespace RSTGameTranslation
             }
         }
 
-        public void AddTranslationToHistory(string originalText, string translatedText)
+        public void AddTranslationToHistory(string originalText, string translatedText, bool fromClipboard = false)
         {
             // Check for duplicate with most recent entry
             if (_translationHistory.Count > 0)
@@ -2325,7 +2331,7 @@ namespace RSTGameTranslation
             }
 
             //Console.WriteLine($"Translation added to history. History size: {_translationHistory.Count}");
-            ChatBoxWindow.Instance!.OnTranslationWasAdded(originalText, translatedText);
+            ChatBoxWindow.Instance!.OnTranslationWasAdded(originalText, translatedText, fromClipboard);
             if (ConfigManager.Instance.IsSendDataToServerEnabled())
             {
                 _ = Task.Run(() => SendTranslatedTextToServer(translatedText));
@@ -3104,10 +3110,10 @@ namespace RSTGameTranslation
                     }
 
                     // Add to translation history
-                    AddTranslationToHistory(text, translatedText);
+                    AddTranslationToHistory(text, translatedText, fromClipboard: true);
 
                     // Update ChatBox if open
-                    ChatBoxWindow.Instance?.OnTranslationWasAdded(text, translatedText);
+                    // ChatBoxWindow.Instance?.OnTranslationWasAdded(text, translatedText, fromClipboard: true);
 
                     // Show success notification
                     ShowFastNotification(

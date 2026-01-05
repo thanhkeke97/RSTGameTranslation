@@ -209,6 +209,24 @@ namespace RSTGameTranslation
             }
         }
         
+        public static void StopAllTTS()
+        {
+            try
+            {
+                Console.WriteLine("Stopping all ElevenLabs TTS activities");
+
+                // Stop current playback
+                if (_instance != null)
+                {
+                    _instance.StopCurrentPlayback();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping ElevenLabs TTS: {ex.Message}");
+            }
+        }
+        
         // Stop any current playback
         private void StopCurrentPlayback()
         {
