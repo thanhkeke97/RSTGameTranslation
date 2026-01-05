@@ -1,5 +1,5 @@
 SET APP_NAME=RSTGameTranslation
-SET APP_VERSION=3.9
+SET APP_VERSION=4.0
 SET FNAME=%APP_NAME%_v%APP_VERSION%.zip
 node update-version.js
 
@@ -34,7 +34,7 @@ copy app\webserver\RapidOCR\*.py tempbuild\webserver\RapidOCR
 copy app\translation_server\*.py tempbuild\translation_server
 copy app\translation_server\*.bat tempbuild\translation_server
 copy app\OneOcr\* tempbuild
-copy app\AudioModel\ggml-small-q5_1.bin tempbuild\AudioModel
+copy app\AudioModel\ggml-tiny.bin tempbuild\AudioModel
 copy app\translation_server\templates\*.html tempbuild\translation_server\templates
 copy app\webserver\*.bat tempbuild\webserver
 copy app\Languages\* tempbuild\Languages

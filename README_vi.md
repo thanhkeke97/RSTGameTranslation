@@ -78,17 +78,6 @@ RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi đ
 
 ---
 
-## ⌨️ Phím tắt
-
-| Phím | Chức năng | | Phím | Chức năng |
-|-----|----------|-|-----|----------|
-| `Alt+G` | Bắt đầu/Dừng | | `Alt+F` | Hiện/Ẩn Overlay |
-| `Alt+Q` | Chọn vùng | | `Alt+C` | Hiện/Ẩn ChatBox |
-| `Alt+P` | Cài đặt | | `Alt+L` | Hiện/Ẩn Log |
-| `Alt+B` | Hiện/Ẩn vùng đã chọn | | `Alt+H` | Xóa vùng đã chọn |
-
----
-
 ## ⚙️ Thiết lập đề xuất
 
 ### Cho sử dụng nhanh

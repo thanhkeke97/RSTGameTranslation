@@ -77,17 +77,6 @@ RSTGameTranslation will automatically check for updates when you start it. If th
 
 ---
 
-## ⌨️ Keyboard Shortcuts
-
-| Key | Function | | Key | Function |
-|-----|----------|-|-----|----------|
-| `Alt+G` | Start/Stop | | `Alt+F` | Show/Hide Overlay |
-| `Alt+Q` | Select Area | | `Alt+C` | Show/Hide ChatBox |
-| `Alt+P` | Settings | | `Alt+L` | Show/Hide Log |
-| `Alt+B` | Show/Hide Area | | `Alt+H` | Clear Area |
-
----
-
 ## ⚙️ Recommended Setups
 
 ### For Quick Use
