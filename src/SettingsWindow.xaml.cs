@@ -1292,6 +1292,7 @@ namespace RSTGameTranslation
             hotKeyArea3.Text = ConfigManager.Instance.GetHotKey("Area 3");
             hotKeyArea4.Text = ConfigManager.Instance.GetHotKey("Area 4");
             hotKeyArea5.Text = ConfigManager.Instance.GetHotKey("Area 5");
+            hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
             // Mainwindows
             MainWindow.Instance.hotKeyStartStop.Text = ConfigManager.Instance.GetHotKey("Start/Stop");
             MainWindow.Instance.hotKeyOverlay.Text = ConfigManager.Instance.GetHotKey("Overlay");
@@ -1307,6 +1308,7 @@ namespace RSTGameTranslation
             MainWindow.Instance.hotKeyArea3.Text = ConfigManager.Instance.GetHotKey("Area 3");
             MainWindow.Instance.hotKeyArea4.Text = ConfigManager.Instance.GetHotKey("Area 4");
             MainWindow.Instance.hotKeyArea5.Text = ConfigManager.Instance.GetHotKey("Area 5");
+            MainWindow.Instance.hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
         }
 
         private void HotKeyFunctionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

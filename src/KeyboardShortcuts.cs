@@ -14,6 +14,7 @@ namespace RSTGameTranslation
         #region Events
         
         public static event EventHandler? StartStopRequested;
+        public static event EventHandler? AudioServiceToggleRequested;
         public static event EventHandler? MonitorToggleRequested;
         public static event EventHandler? ChatBoxToggleRequested;
         public static event EventHandler? SettingsToggleRequested;
@@ -106,6 +107,7 @@ namespace RSTGameTranslation
         private const int HOTKEY_ID_AREA_5 = 12;
         private const int HOTKEY_ID_CLEAR_SELECTED_AREA = 13;
         private const int HOTKEY_ID_SHOW_AREA = 14;
+        private const int HOTKEY_ID_AUDIO_SERVICE = 15;
 
         private static readonly Dictionary<string, EventHandler?> _functionHandlers = new Dictionary<string, EventHandler?>();
         private static readonly Dictionary<string, int> _keyCodeMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -151,6 +153,7 @@ namespace RSTGameTranslation
             _functionHandlers["Area 3"] = SelectArea3Requested;
             _functionHandlers["Area 4"] = SelectArea4Requested;
             _functionHandlers["Area 5"] = SelectArea5Requested;
+            _functionHandlers["Audio Service"] = AudioServiceToggleRequested;
             
             // Initialize key code map
             for (int i = 0; i < 26; i++) // A-Z
@@ -208,6 +211,7 @@ namespace RSTGameTranslation
             ParseHotkey("Area 3");
             ParseHotkey("Area 4");
             ParseHotkey("Area 5");
+            ParseHotkey("Audio Service");
         }
 
         private static void ParseHotkey(string functionName)
@@ -303,7 +307,7 @@ namespace RSTGameTranslation
                 return;
                 
             // Unregister any existing hotkeys first
-            for (int i = 1; i <= 12; i++)
+            for (int i = 1; i <= 15; i++)
             {
                 UnregisterHotKey(_mainWindowHandle, i);
             }
@@ -323,6 +327,7 @@ namespace RSTGameTranslation
             RegisterFunctionHotkey("Area 3", HOTKEY_ID_AREA_3);
             RegisterFunctionHotkey("Area 4", HOTKEY_ID_AREA_4);
             RegisterFunctionHotkey("Area 5", HOTKEY_ID_AREA_5);
+            RegisterFunctionHotkey("Audio Service", HOTKEY_ID_AUDIO_SERVICE);
         }
 
         private static void RegisterFunctionHotkey(string functionName, int hotkeyId)
@@ -424,6 +429,10 @@ namespace RSTGameTranslation
                     Console.WriteLine("Hotkey detected: Area 5");
                     SelectArea5Requested?.Invoke(null, EventArgs.Empty);
                     return true;
+                case HOTKEY_ID_AUDIO_SERVICE:
+                    Console.WriteLine("Hotkey detected: Audio Service");
+                    AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
             }
             
             return false;
@@ -505,6 +514,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Hotkey detected: Area 5");
                 SelectArea5Requested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Audio Service")
+            {
+                Console.WriteLine("Hotkey detected: Audio Service");
+                AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
             }
 
         }
@@ -626,7 +640,7 @@ namespace RSTGameTranslation
             // Unregister hotkeys
             if (_mainWindowHandle != IntPtr.Zero)
             {
-                for (int i = 1; i <= 12; i++)
+                for (int i = 1; i <= 15; i++)
                 {
                     UnregisterHotKey(_mainWindowHandle, i);
                 }

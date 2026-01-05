@@ -57,6 +57,7 @@ namespace RSTGameTranslation
         public const string HOTKEY_AREA_3 = "hotkey_area_3";
         public const string HOTKEY_AREA_4 = "hotkey_area_4";
         public const string HOTKEY_AREA_5 = "hotkey_area_5";
+        public const string HOTKEY_AUDIO_SERVICE = "hotkey_audio_service";
 
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
@@ -531,6 +532,7 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_AREA_3] = "ALT+3";
             _configValues[HOTKEY_AREA_4] = "ALT+4";
             _configValues[HOTKEY_AREA_5] = "ALT+5";
+            _configValues[HOTKEY_AUDIO_SERVICE] = "ALT+K";
             _configValues[SHOW_ICON_SIGNAL] = "true";
             _configValues[SEND_DATA_TO_SERVER] = "false";
             _configValues[WINDOWS_OCR_INTEGRATION] = "false";
@@ -965,6 +967,10 @@ namespace RSTGameTranslation
             {
                 _configValues[HOTKEY_AREA_5] = hotKey;
             }
+            else if (functionName == "Audio Service")
+            {
+                _configValues[HOTKEY_AUDIO_SERVICE] = hotKey;
+            }
             SaveConfig();
             Console.WriteLine($"Saving {functionName} to hotkey {hotKey}");
         }
@@ -1027,6 +1033,10 @@ namespace RSTGameTranslation
             else if (functionName == "Area 5")
             {
                 return GetValue(HOTKEY_AREA_5, "ALT+5");
+            }
+            else if (functionName == "Audio Service")
+            {
+                return GetValue(HOTKEY_AUDIO_SERVICE, "ALT+K");
             }
             return GetValue(HOTKEY_START_STOP, "ALT+G");
         }

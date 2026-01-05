@@ -464,6 +464,19 @@ namespace RSTGameTranslation
             KeyboardShortcuts.SelectArea4Requested += (s, e) => SwitchToTranslationArea(3);
             KeyboardShortcuts.SelectArea5Requested += (s, e) => SwitchToTranslationArea(4);
 
+            // Audio service hotkey
+            KeyboardShortcuts.AudioServiceToggleRequested += async (s, e) =>
+            {
+                try
+                {
+                    await ToggleAudioServiceAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error toggling audio service via hotkey: {ex.Message}");
+                }
+            };
+
 
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
@@ -539,6 +552,12 @@ namespace RSTGameTranslation
         // Toggle Audio Service (Start/Stop local Whisper) from main window button
         private async void AudioServiceButton_Click(object sender, RoutedEventArgs e)
         {
+            await ToggleAudioServiceAsync();
+        }
+
+        // Shared toggle method so UI button and hotkey can call same logic
+        public async System.Threading.Tasks.Task ToggleAudioServiceAsync()
+        {
             try
             {
                 bool enabled = !ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled();
@@ -555,7 +574,7 @@ namespace RSTGameTranslation
                         {
                             Console.WriteLine($"Whisper detected: {original}");
                         });
-                        Console.WriteLine("Local Whisper Service started from MainWindow button");
+                        Console.WriteLine("Local Whisper Service started");
                     }
                     catch (Exception ex)
                     {
@@ -565,7 +584,7 @@ namespace RSTGameTranslation
                 else if (!enabled && localWhisperService.Instance.IsRunning)
                 {
                     localWhisperService.Instance.Stop();
-                    Console.WriteLine("Local Whisper Service stopped from MainWindow button");
+                    Console.WriteLine("Local Whisper Service stopped");
                 }
             }
             catch (Exception ex)

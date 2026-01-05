@@ -1323,6 +1323,7 @@
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area3]}"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area4]}"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area5]}"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"/>
                                 </ComboBox>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CombineKeys]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="combineKey1" Grid.Row="2" Grid.Column="1" Padding="5,3" Margin="0,8,10,10">
@@ -1479,6 +1480,16 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+                                                
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyAudio" Text="ALT + K" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 

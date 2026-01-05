@@ -468,6 +468,13 @@
                                                     <TextBlock x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="White" FontSize="13"/>
                                                 </Border>
                                             </Grid>
+                                            <!-- Audio -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyAudio" Text="ALT + K" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
                                             <!-- Settings -->
                                             <Grid Margin="0,0,0,12">
                                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
