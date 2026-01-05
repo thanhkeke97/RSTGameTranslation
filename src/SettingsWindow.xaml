@@ -1560,6 +1560,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AudioAutoTranslation]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="audioServiceAutoTranslateCheckBox" Grid.Row="0" Grid.Column="1" Margin="0,5"
@@ -1573,35 +1575,48 @@
                                 <ComboBox x:Name="audioProcessingModelComboBox" Grid.Row="2" Grid.Column="1" Margin="0,5" SelectionChanged="AudioProcessingModelComboBox_SelectionChanged">
                                     <ComboBoxItem Content="ggml-tiny"/>
                                 </ComboBox>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WhisperRuntime]}" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="whisperRuntimeComboBox" Grid.Row="3" Grid.Column="1" Margin="0,5" SelectionChanged="WhisperRuntimeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="CPU" Tag="cpu"/>
+                                    <ComboBoxItem Content="CUDA (NVIDIA GPU)" Tag="cuda"/>
+                                    <ComboBoxItem Content="Vulkan (GPU)" Tag="vulkan"/>
+                                </ComboBox>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" 
+                                        Margin="0,0,0,5" 
+                                        FontStyle="Italic" 
+                                        FontSize="11" 
+                                        Foreground="Gray"
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WhisperRuntime]}"/>
                                 <TextBlock x:Name="audioModelDownloadTextBlock"
-                                        Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" 
+                                        Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" 
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
                                         Foreground="Red"
                                         TextWrapping="Wrap"
                                         Loaded="AudioModelDownloadTextBlock_Loaded"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_VolumeThreshold]}" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox x:Name="silenceThresholdTextBox" Grid.Row="4" Grid.Column="1" Margin="0,5" Text="0.01" LostFocus="SilenceThresholdTextBox_LostFocus"/>
-                                <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" 
-                                        Margin="0,0,0,0" 
-                                        FontStyle="Italic" 
-                                        FontSize="11" 
-                                        Foreground="Red"
-                                        TextWrapping="Wrap"
-                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_VolumeThreshold]}"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SilenceDuration]}" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox x:Name="silenceDurationTextBox" Grid.Row="6" Grid.Column="1" Margin="0,5" Text="500" LostFocus="SilenceDurationTextBox_LostFocus"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_VolumeThreshold]}" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="silenceThresholdTextBox" Grid.Row="6" Grid.Column="1" Margin="0,5" Text="0.01" LostFocus="SilenceThresholdTextBox_LostFocus"/>
                                 <TextBlock Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" 
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
                                         Foreground="Red"
                                         TextWrapping="Wrap"
-                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SilenceDuration]}"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MaxBufferSamples]}" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox x:Name="maxBufferSamplesTextBox" Grid.Row="8" Grid.Column="1" Margin="0,5" Text="5" LostFocus="MaxBufferSamplesTextBox_LostFocus"/>
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_VolumeThreshold]}"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SilenceDuration]}" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="silenceDurationTextBox" Grid.Row="8" Grid.Column="1" Margin="0,5" Text="500" LostFocus="SilenceDurationTextBox_LostFocus"/>
                                 <TextBlock Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2" 
+                                        Margin="0,0,0,0" 
+                                        FontStyle="Italic" 
+                                        FontSize="11" 
+                                        Foreground="Red"
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SilenceDuration]}"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MaxBufferSamples]}" Grid.Row="10" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="maxBufferSamplesTextBox" Grid.Row="10" Grid.Column="1" Margin="0,5" Text="5" LostFocus="MaxBufferSamplesTextBox_LostFocus"/>
+                                <TextBlock Grid.Row="11" Grid.Column="1" Grid.ColumnSpan="2" 
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 

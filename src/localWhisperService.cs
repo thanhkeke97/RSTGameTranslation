@@ -8,6 +8,7 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using Whisper.net;
 using Whisper.net.Ggml;
+using Whisper.net.LibraryLoader;
 using System.Text.Json;
 using NAudio.CoreAudioApi;
 using System.Windows;
@@ -15,6 +16,16 @@ using Windows.Globalization;
 
 namespace RSTGameTranslation
 {
+    /// <summary>
+    /// Enum to specify Whisper runtime types
+    /// </summary>
+    public enum WhisperRuntimeType
+    {
+        Cpu,
+        Cuda,   // NVIDIA GPU
+        Vulkan  // AMD/NVIDIA/Intel GPU
+    }
+
     public class localWhisperService
     {
         private WasapiLoopbackCapture? loopbackCapture;
@@ -120,15 +131,24 @@ namespace RSTGameTranslation
                 string modelPath = ConfigManager.Instance.GetAudioProcessingModel() + ".bin";
                 string fullPath = Path.Combine(ConfigManager.Instance._audioProcessingModelFolderPath, modelPath);
 
-                factory = WhisperFactory.FromPath(fullPath);
+                // Get runtime from config
+                string runtimeSetting = ConfigManager.Instance.GetWhisperRuntime();
+                WhisperRuntimeType runtime = ParseRuntime(runtimeSetting);
+                
+                Console.WriteLine($"[Whisper] Loading model: {fullPath}");
+                Console.WriteLine($"[Whisper] Configured runtime: {runtimeSetting} -> {runtime}");
+
+                // Create factory with specified runtime
+                factory = CreateFactoryWithRuntime(fullPath, runtime);
+                
                 string current_source_language = MapLanguageToWhisper(ConfigManager.Instance.GetSourceLanguage());
 
-                processor = factory.CreateBuilder()
+                var processorBuilder = factory.CreateBuilder()
                     .WithLanguage(current_source_language)
-                    // .WithThreads(4)
                     .WithBeamSearchSamplingStrategy()
-                    .ParentBuilder
-                    .Build();
+                    .ParentBuilder;
+
+                processor = processorBuilder.Build();
 
                 deviceEnumerator = new MMDeviceEnumerator();
                 var devices = deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
@@ -165,10 +185,101 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"StartServiceAsync failed: {ex.Message}");
+                Console.WriteLine($"[Whisper] Stack trace: {ex.StackTrace}");
                 try { Stop(); } catch { }
             }
         }
 
+        /// <summary>
+        /// Parse runtime string to enum
+        /// </summary>
+        private WhisperRuntimeType ParseRuntime(string setting)
+        {
+            return setting?.ToLower() switch
+            {
+                "cuda" or "nvidia" => WhisperRuntimeType.Cuda,
+                "vulkan" or "gpu" => WhisperRuntimeType.Vulkan,
+                _ => WhisperRuntimeType.Cpu
+            };
+        }
+
+        /// <summary>
+        /// Create WhisperFactory with specified runtime
+        /// Use RuntimeOptions.RuntimeLibraryOrder to select runtime
+        /// </summary>
+        private WhisperFactory CreateFactoryWithRuntime(string modelPath, WhisperRuntimeType runtime)
+        {
+            try
+            {
+                // Reset LoadedLibrary to force Whisper.net to reload with new order
+                RuntimeOptions.LoadedLibrary = null;
+                
+                // Set runtime priority order based on user choice
+                // NOTE: Only include runtimes you want to use in the list
+                switch (runtime)
+                {
+                    case WhisperRuntimeType.Cuda:
+                        Console.WriteLine("[Whisper] Setting runtime: CUDA only (fallback to CPU if unavailable)");
+                        RuntimeOptions.RuntimeLibraryOrder = new List<RuntimeLibrary>
+                        {
+                            RuntimeLibrary.Cuda,
+                            RuntimeLibrary.Cpu
+                        };
+                        break;
+
+                    case WhisperRuntimeType.Vulkan:
+                        Console.WriteLine("[Whisper] Setting runtime: Vulkan only (fallback to CPU if unavailable)");
+                        RuntimeOptions.RuntimeLibraryOrder = new List<RuntimeLibrary>
+                        {
+                            RuntimeLibrary.Vulkan,
+                            RuntimeLibrary.Cpu
+                        };
+                        break;
+
+                    case WhisperRuntimeType.Cpu:
+                    default:
+                        // CPU only - no GPUs in the list
+                        Console.WriteLine("[Whisper] Setting runtime: CPU ONLY (no GPU)");
+                        RuntimeOptions.RuntimeLibraryOrder = new List<RuntimeLibrary>
+                        {
+                            RuntimeLibrary.Cpu,
+                            RuntimeLibrary.CpuNoAvx  // Fallback if CPU does not support AVX
+                        };
+                        break;
+                }
+
+                Console.WriteLine($"[Whisper] RuntimeLibraryOrder set to: [{string.Join(", ", RuntimeOptions.RuntimeLibraryOrder)}]");
+                Console.WriteLine($"[Whisper] Creating factory with model: {modelPath}");
+                
+                var factory = WhisperFactory.FromPath(modelPath);
+                
+                if (RuntimeOptions.LoadedLibrary.HasValue)
+                {
+                    Console.WriteLine($"[Whisper] ✓ Actually loaded runtime: {RuntimeOptions.LoadedLibrary.Value}");
+                }
+                else
+                {
+                    Console.WriteLine("[Whisper] ⚠ LoadedLibrary is null - runtime unknown");
+                }
+                
+                return factory;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Whisper] Error creating factory with {runtime}: {ex.Message}");
+                Console.WriteLine($"[Whisper] Stack trace: {ex.StackTrace}");
+                
+                // Fallback: reset to default and try again
+                Console.WriteLine("[Whisper] Falling back to CPU only");
+                RuntimeOptions.LoadedLibrary = null;
+                RuntimeOptions.RuntimeLibraryOrder = new List<RuntimeLibrary> 
+                { 
+                    RuntimeLibrary.Cpu, 
+                    RuntimeLibrary.CpuNoAvx 
+                };
+                return WhisperFactory.FromPath(modelPath);
+            }
+        }
 
         private void OnGameAudioReceived(object? sender, WaveInEventArgs e)
         {

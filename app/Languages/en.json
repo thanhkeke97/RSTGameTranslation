@@ -420,6 +420,8 @@
   "Lbl_AudioAutoTranslation": "Audio Auto Translation:",
   "Lbl_Provider": "Provider:",
   "Lbl_Model": "Model:",
+  "Lbl_WhisperRuntime": "Runtime:",
+  "Tip_WhisperRuntime": "CPU: Default, works on all systems. CUDA: NVIDIA GPU acceleration. Vulkan: GPU acceleration for AMD/NVIDIA/Intel.",
   "Lbl_VolumeThreshold": "Volume Threshold:",
   "Lbl_SilenceDuration": "Silence Duration (ms):",
   "Lbl_MaxBufferSamples": "Max Buffer Samples:",
@@ -427,6 +429,7 @@
   "Tip_SilenceDuration": "Milliseconds of silence before processing audio (100-2000).",
   "Tip_MaxBufferSamples": "Maximum seconds of audio to buffer (1-10). Higher = longer phrases captured.",
   "Msg_WhisperServiceRunning": "Local Whisper service is running. Please stop it before changing the audio processing model.",
+  "Msg_WhisperRuntimeChangeRequiresRestart": "Changing the Whisper runtime (CPU/GPU) requires restarting the application to take effect. Do you want to save this change?",
   "Tip_AudioModelDownload_Part1": "Models can be found at: ",
   "Tip_AudioModelDownload_Part2": ". You can download models directly and place them in the RSTGameTranslation/AudioModel folder",
   

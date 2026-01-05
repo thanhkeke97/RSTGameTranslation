@@ -79,6 +79,7 @@ namespace RSTGameTranslation
         public const string CHATGPT_API_KEY = "chatgpt_api_key";
         public const string CHATGPT_MODEL = "chatgpt_model";
         public const string AUDIO_PROCESSING_MODEL = "audio_processing_model";
+        public const string WHISPER_RUNTIME = "whisper_runtime"; // cpu, cuda, vulkan
         public const string FORCE_CURSOR_VISIBLE = "force_cursor_visible";
         public const string AUTO_SIZE_TEXT_BLOCKS = "auto_size_text_blocks";
         public const string GOOGLE_TRANSLATE_API_KEY = "google_translate_api_key";
@@ -557,6 +558,7 @@ namespace RSTGameTranslation
             _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = "true";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_DEBOUNCE_MS] = "300";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_MAX_CHARS] = "5000";
+            _configValues[WHISPER_RUNTIME] = "cpu";
 
             // Save the default configuration
             SaveConfig();
@@ -1871,6 +1873,19 @@ namespace RSTGameTranslation
             _configValues[AUDIO_PROCESSING_MODEL] = model;
             SaveConfig();
             Console.WriteLine($"Audio processing model set to: {model}");
+        }
+
+        // Get/Set Whisper runtime (cpu, cuda, vulkan)
+        public string GetWhisperRuntime()
+        {
+            return GetValue(WHISPER_RUNTIME, "cpu");
+        }
+
+        public void SetWhisperRuntime(string runtime)
+        {
+            _configValues[WHISPER_RUNTIME] = runtime.ToLower();
+            SaveConfig();
+            Console.WriteLine($"Whisper runtime set to: {runtime}");
         }
 
         // Get/Set force update prompt

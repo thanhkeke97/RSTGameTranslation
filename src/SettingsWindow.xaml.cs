@@ -946,6 +946,19 @@ namespace RSTGameTranslation
 
             audioProcessingModelComboBox.SelectionChanged += AudioProcessingModelComboBox_SelectionChanged;
 
+            // Set Whisper runtime from config
+            whisperRuntimeComboBox.SelectionChanged -= WhisperRuntimeComboBox_SelectionChanged;
+            string savedRuntime = ConfigManager.Instance.GetWhisperRuntime();
+            foreach (var item in whisperRuntimeComboBox.Items)
+            {
+                if (item is ComboBoxItem cbItem && string.Equals(cbItem.Tag?.ToString(), savedRuntime, StringComparison.OrdinalIgnoreCase))
+                {
+                    whisperRuntimeComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+            whisperRuntimeComboBox.SelectionChanged += WhisperRuntimeComboBox_SelectionChanged;
+
             // Set manga mode
             // MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
             // isNeedShowWarningMangaMode = true;
@@ -2739,6 +2752,59 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error updating audio processing model from text input: {ex.Message}");
             }
         }
+
+        private void WhisperRuntimeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string newRuntime = (whisperRuntimeComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "cpu";
+                string currentRuntime = ConfigManager.Instance.GetWhisperRuntime();
+                
+                // if no change, do nothing
+                if (string.Equals(newRuntime, currentRuntime, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                // Notify that changing runtime requires app restart
+                MessageBoxResult result = MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_WhisperRuntimeChangeRequiresRestart"],
+                    LocalizationManager.Instance.Strings["Title_Confirm"],
+                    MessageBoxButton.OKCancel,
+                    MessageBoxImage.Information
+                );
+                
+                if (result == MessageBoxResult.Cancel)
+                {
+                    // Revert selection
+                    if (e.RemovedItems.Count > 0)
+                    {
+                        _isInitializing = true;
+                        whisperRuntimeComboBox.SelectedItem = e.RemovedItems[0];
+                        _isInitializing = false;
+                    }
+                    return;
+                }
+
+                // If Whisper is running, stop it
+                if (localWhisperService.Instance.IsRunning)
+                {
+                    localWhisperService.Instance.Stop();
+                    audioServiceAutoTranslateCheckBox.IsChecked = false;
+                }
+
+                // Save new runtime
+                ConfigManager.Instance.SetWhisperRuntime(newRuntime);
+                Console.WriteLine($"Whisper runtime set to: {newRuntime} (requires app restart to take effect)");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Whisper runtime: {ex.Message}");
+            }
+        }
+
         private void CustomApiModelTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             try

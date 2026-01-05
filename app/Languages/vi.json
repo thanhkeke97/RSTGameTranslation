@@ -426,6 +426,8 @@
   "Lbl_AudioAutoTranslation": "Tự động dịch âm thanh:",
   "Lbl_Provider": "Nhà cung cấp:",
   "Lbl_Model": "Mô hình:",
+  "Lbl_WhisperRuntime": "Runtime:",
+  "Tip_WhisperRuntime": "CPU: Mặc định, hoạt động trên mọi hệ thống. CUDA: Tăng tốc GPU NVIDIA. Vulkan: Tăng tốc GPU cho AMD/NVIDIA/Intel.",
   "Lbl_VolumeThreshold": "Ngưỡng âm lượng:",
   "Lbl_SilenceDuration": "Thời gian im lặng (ms):",
   "Lbl_MaxBufferSamples": "Số mẫu buffer tối đa:",
@@ -433,6 +435,7 @@
   "Tip_SilenceDuration": "Mili giây im lặng trước khi xử lý âm thanh (100-2000).",
   "Tip_MaxBufferSamples": "Số giây âm thanh tối đa để lưu trữ (1-10). Cao hơn = bắt được cụm từ dài hơn.",
   "Msg_WhisperServiceRunning": "Dịch vụ Whisper đang chạy. Vui lòng dừng nó trước khi thay đổi mô hình xử lý âm thanh.",
+  "Msg_WhisperRuntimeChangeRequiresRestart": "Thay đổi runtime Whisper (CPU/GPU) cần khởi động lại ứng dụng để có hiệu lực. Bạn có muốn lưu thay đổi này không?",
   "Tip_AudioModelDownload_Part1": "Các model có thể được tìm thấy tại: ",
   "Tip_AudioModelDownload_Part2": ". Bạn có thể tải model trực tiếp và đặt vào thư mục RSTGameTranslation/AudioModel",
   

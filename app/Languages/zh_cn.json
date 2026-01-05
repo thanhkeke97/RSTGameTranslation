@@ -426,6 +426,8 @@
   "Lbl_AudioAutoTranslation": "音频自动翻译：",
   "Lbl_Provider": "提供商：",
   "Lbl_Model": "模型：",
+  "Lbl_WhisperRuntime": "运行时：",
+  "Tip_WhisperRuntime": "CPU: 默认，适用于所有系统。CUDA: NVIDIA GPU加速。Vulkan: AMD/NVIDIA/Intel GPU加速。",
   "Lbl_VolumeThreshold": "音量阈值：",
   "Lbl_SilenceDuration": "静音持续时间（毫秒）：",
   "Lbl_MaxBufferSamples": "最大缓冲样本：",
@@ -433,6 +435,7 @@
   "Tip_SilenceDuration": "处理音频前的静音时间（毫秒）（100-2000）。",
   "Tip_MaxBufferSamples": "缓冲的最大音频秒数（1-10）。越高捕获的短语越长。",
   "Msg_WhisperServiceRunning": "本地Whisper服务正在运行。请在更改音频处理模型之前停止它。",
+  "Msg_WhisperRuntimeChangeRequiresRestart": "更改Whisper运行时（CPU/GPU）需要重新启动应用程序才能生效。是否保存此更改？",
   "Tip_AudioModelDownload_Part1": "模型可以在以下位置找到：",
   "Tip_AudioModelDownload_Part2": "。您可以直接下载模型并将其放置在 RSTGameTranslation/AudioModel 文件夹中",
 
