@@ -2734,16 +2734,16 @@ namespace RSTGameTranslation
             }
         }
 
-        private async void btnSetupOcrServer_Click(object sender, RoutedEventArgs e)
+        // Public method to run the OCR setup flow. Can be called from SettingsWindow.
+        public async System.Threading.Tasks.Task SetupOcrServerAsync()
         {
             try
             {
-                // Disable the button to prevent multiple clicks
-                btnSetupOcrServer.IsEnabled = false;
+                // Disable the setup button in any window to prevent multiple clicks
+                SetSetupButtonEnabled(false);
 
                 // Get current OCR method
                 string ocrMethod = GetSelectedOcrMethod();
-
 
                 if (ocrMethod == "Windows OCR")
                 {
@@ -2752,11 +2752,11 @@ namespace RSTGameTranslation
                         LocalizationManager.Instance.Strings["Title_WarningExclamation"],
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
-                    btnSetupOcrServer.IsEnabled = true;
+                    SetSetupButtonEnabled(true);
                     return;
                 }
 
-                // Show setup dialog
+                // Show setup confirmation dialog
                 MessageBoxResult result = System.Windows.MessageBox.Show(
                         string.Format(LocalizationManager.Instance.Strings["Msg_ConfirmOcrInstall"], ocrMethod),
                         LocalizationManager.Instance.Strings["Title_ConfirmInstallation"],
@@ -2769,7 +2769,7 @@ namespace RSTGameTranslation
                     SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_SettingUpEnvironment"], ocrMethod));
 
                     // Run setup
-                    await Task.Run(() =>
+                    await System.Threading.Tasks.Task.Run(() =>
                     {
                         OcrServerManager.Instance.SetupOcrEnvironment(ocrMethod);
                     });
@@ -2787,8 +2787,31 @@ namespace RSTGameTranslation
             }
             finally
             {
-                // Reactivate the button after the operation is complete
-                btnSetupOcrServer.IsEnabled = true;
+                // Re-enable the setup control in any window
+                SetSetupButtonEnabled(true);
+            }
+        }
+
+        // Helper to enable/disable the setup button located in SettingsWindow (if present)
+        private void SetSetupButtonEnabled(bool enabled)
+        {
+            try
+            {
+                // If SettingsWindow is open, use its public setter
+                foreach (Window w in System.Windows.Application.Current.Windows)
+                {
+                    if (w is SettingsWindow settings)
+                    {
+                        settings.SetSetupButtonEnabled(enabled);
+                        return;
+                    }
+                }
+
+                // If SettingsWindow is not available, nothing to update in MainWindow (control moved)
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting setup button enabled: {ex.Message}");
             }
         }
         private void clearSelectedArea()

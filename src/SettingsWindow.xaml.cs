@@ -171,6 +171,42 @@ namespace RSTGameTranslation
                 _isInitializing = false; // Ensure we don't get stuck in initialization mode
             }
         }
+
+        // Allow MainWindow to enable/disable the setup button in this window
+        public void SetSetupButtonEnabled(bool enabled)
+        {
+            try
+            {
+                if (!Dispatcher.CheckAccess())
+                {
+                    Dispatcher.Invoke(() => SetSetupButtonEnabled(enabled));
+                    return;
+                }
+
+                if (btnSetupOcrServer != null)
+                {
+                    btnSetupOcrServer.IsEnabled = enabled;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting setup button enabled: {ex.Message}");
+            }
+        }
+
+        // Click handler for the setup button placed in Settings window
+        private async void Settings_BtnSetupOcrServer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Delegate the actual setup flow to MainWindow (shared logic)
+                await MainWindow.Instance.SetupOcrServerAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error invoking setup from SettingsWindow: {ex.Message}");
+            }
+        }
         // Load list of available window TTS voice
         private void LoadAvailableWindowTTSVoice()
         {
@@ -990,11 +1026,11 @@ namespace RSTGameTranslation
                     ocrMethodComboBox.SelectedItem = item;
                     if (itemText == "Windows OCR" || itemText == "OneOCR")
                     {
-                        removeOcrButton.Visibility = Visibility.Collapsed;
+                        ocrButtonsPanel.Visibility = Visibility.Collapsed;
                     }
                     else
                     {
-                        removeOcrButton.Visibility = Visibility.Visible;
+                        ocrButtonsPanel.Visibility = Visibility.Visible;
                     }
                     break;
                 }
@@ -1426,11 +1462,11 @@ namespace RSTGameTranslation
                     }
                     if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
                     {
-                        removeOcrButton.Visibility = Visibility.Collapsed;
+                        ocrButtonsPanel.Visibility = Visibility.Collapsed;
                     }
                     else
                     {
-                        removeOcrButton.Visibility = Visibility.Visible;
+                        ocrButtonsPanel.Visibility = Visibility.Visible;
                     }
 
                 }
