@@ -38,6 +38,79 @@ jobs:
     - name: Publish .NET App
       run: dotnet publish RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
 
+    - name: Sign rst.exe with SignPath
+      shell: powershell
+      env:
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      SIGNPATH_ORG_ID: ${{ secrets.SIGNPATH_ORG_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ secrets.SIGNPATH_PROJECT_SLUG }}
+      SIGNPATH_SIGNING_POLICY_SLUG: ${{ secrets.SIGNPATH_SIGNING_POLICY_SLUG }}
+      SIGNPATH_ARTIFACT_CONFIG_SLUG: ${{ secrets.SIGNPATH_ARTIFACT_CONFIG_SLUG }}
+      run: |
+      Write-Host "Searching for rst.exe to sign..."
+      $exe = Get-ChildItem -Path . -Filter "rst.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+      if (-not $exe) {
+        Write-Host "ERROR: rst.exe not found in workspace."
+        exit 1
+      }
+
+      if (-not $env:SIGNPATH_API_TOKEN) {
+        Write-Host "ERROR: SIGNPATH_API_TOKEN not set. Add it to repository secrets."
+        exit 1
+      }
+
+      $org = $env:SIGNPATH_ORG_ID
+      $token = $env:SIGNPATH_API_TOKEN
+      $project = $env:SIGNPATH_PROJECT_SLUG
+      $policy = $env:SIGNPATH_SIGNING_POLICY_SLUG
+      $artifactConfig = $env:SIGNPATH_ARTIFACT_CONFIG_SLUG
+
+      $submitUrl = "https://app.signpath.io/API/v1/$org/SigningRequests/SubmitWithArtifact"
+      $headers = @{ Authorization = "Bearer $token" }
+
+      $form = @{
+        projectSlug = $project
+        signingPolicySlug = $policy
+        artifact = Get-Item $exe.FullName
+      }
+      if ($artifactConfig) { $form['artifactConfigurationSlug'] = $artifactConfig }
+
+      Write-Host "Submitting signing request for $($exe.FullName) to SignPath..."
+      $resp = Invoke-WebRequest -Uri $submitUrl -Method Post -Headers $headers -Form $form -UseBasicParsing -ErrorAction Stop
+      if ($resp.StatusCode -ne 201) {
+        Write-Host "SignPath submission failed: $($resp.StatusCode)"
+        Write-Host $resp.Content
+        exit 1
+      }
+
+      $location = $resp.Headers['Location']
+      Write-Host "Signing request created: $location"
+      $signingRequestId = ($location -split '/')[-1]
+
+      $checkUrl = "https://app.signpath.io/API/v1/$org/SigningRequests/$signingRequestId"
+      $statusResp = $null
+      for ($i=0; $i -lt 120; $i++) {
+        Start-Sleep -Seconds 5
+        $statusResp = Invoke-RestMethod -Uri $checkUrl -Headers $headers -Method Get -ErrorAction Stop
+        Write-Host "Status: $($statusResp.status) - $($statusResp.workflowStatus)"
+        if ($statusResp.isFinalStatus -eq $true) { break }
+      }
+
+      if ($statusResp.status -ne 'Completed') {
+        Write-Host "Signing did not complete successfully: $($statusResp.status)"
+        exit 1
+      }
+
+      $signedLink = $statusResp.signedArtifactLink
+      Write-Host "Downloading signed artifact from $signedLink"
+      $outPath = Join-Path -Path (Split-Path $exe.FullName) -ChildPath ($exe.BaseName + "-signed" + $exe.Extension)
+      Invoke-WebRequest -Uri $signedLink -Headers $headers -OutFile $outPath -UseBasicParsing -ErrorAction Stop
+      Write-Host "Signed artifact saved to $outPath"
+
+      # Replace original executable with signed one
+      Move-Item -Path $outPath -Destination $exe.FullName -Force
+      Write-Host "Replaced original executable with signed artifact."
+
     - name: Prepare Release Folder Structure
       shell: powershell
       run: |
