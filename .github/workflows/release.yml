@@ -1,136 +1,242 @@
 name: Build & Release RST
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-  build-and-package:
+  build:
     runs-on: windows-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET 9
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
 
-    - name: Install Windows SDK with UAP
-      shell: powershell
-      run: |
-        $sdkUrl = "https://go.microsoft.com/fwlink/?linkid=2120843"
-        $installerPath = "$env:TEMP\winsdksetup.exe"
-        Write-Host "Downloading Windows SDK..."
-        Invoke-WebRequest -Uri $sdkUrl -OutFile $installerPath
-        Write-Host "Installing Windows SDK (this may take a few minutes)..."
-        Start-Process -FilePath $installerPath -ArgumentList "/features OptionId.UWPCpp /quiet /norestart" -Wait
-        Write-Host "Windows SDK installation completed."
+      - name: Install Windows SDK with UAP
+        shell: powershell
+        run: |
+          $sdkUrl = "https://go.microsoft.com/fwlink/?linkid=2120843"
+          $installerPath = "$env:TEMP\winsdksetup.exe"
+          Write-Host "Downloading Windows SDK..."
+          Invoke-WebRequest -Uri $sdkUrl -OutFile $installerPath
+          Write-Host "Installing Windows SDK (this may take a few minutes)..."
+          Start-Process -FilePath $installerPath -ArgumentList "/features OptionId.UWPCpp /quiet /norestart" -Wait
+          Write-Host "Windows SDK installation completed."
 
-    - name: Setup Node.js (for version script)
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
+      - name: Setup Node.js (for version script)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-    - name: Run Update Version Script
-      run: node update-version.js
+      - name: Run Update Version Script
+        run: node update-version.js
 
-    - name: Publish .NET App
-      run: dotnet publish RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
+      - name: Publish .NET App
+        run: dotnet publish RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
 
-    - name: Prepare Release Folder Structure
-      shell: powershell
-      run: |
-        $releaseDir = "RSTGameTranslation"
-        
-        New-Item -ItemType Directory -Force -Path $releaseDir
-        $dirs = @(
-            "webserver\EasyOCR", 
-            "webserver\PaddleOCR", 
-            "webserver\RapidOCR", 
-            "webserver\Python311", 
-            "translation_server\templates", 
-            "AudioModel", 
-            "Languages"
-        )
-        foreach ($d in $dirs) { New-Item -ItemType Directory -Force -Path "$releaseDir\$d" }
-
-        # Copy file build chính
-        if (Test-Path "app\win-x64\publish") {
-            Copy-Item -Path "app\win-x64\publish\*" -Destination $releaseDir -Recurse -Force
-        } else {
-            Write-Host "ERROR: Build output not found at app\win-x64\publish"
+      - name: Collect exe for signing
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path collect
+          $exe = Get-ChildItem -Path "app\win-x64\publish" -Filter "rst.exe" -Recurse | Select-Object -First 1
+          if ($exe) {
+            Copy-Item $exe.FullName -Destination collect/
+            Write-Host "Collected $($exe.Name) for signing"
+          } else {
+            Write-Host "ERROR: rst.exe not found in publish output"
             exit 1
-        }
+          }
 
-        # README
-        if (Test-Path "README.md") { Copy-Item "README.md" -Destination $releaseDir }
+      - name: Upload exe artifact for signing
+        id: upload-exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe_to_sign
+          path: collect/*
 
-        # Webserver & OCR Scripts
-        if (Test-Path "app\webserver\EasyOCR") {
-            Get-ChildItem "app\webserver\EasyOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\EasyOCR"
-        }
-        if (Test-Path "app\webserver\PaddleOCR") {
-            Get-ChildItem "app\webserver\PaddleOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\PaddleOCR"
-        }
-        if (Test-Path "app\webserver\RapidOCR") {
-            Get-ChildItem "app\webserver\RapidOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\RapidOCR"
-        }
-        if (Test-Path "app\webserver\*.bat") {
-            Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver" -ErrorAction SilentlyContinue
-        }
+  sign:
+    runs-on: windows-latest
+    needs: [build]
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Download exe artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: exe_to_sign
+          path: exe_to_sign
 
-        # Translation Server
-        if (Test-Path "app\translation_server") {
-            Get-ChildItem "app\translation_server\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\translation_server"
-            if (Test-Path "app\translation_server\templates") {
-                Copy-Item "app\translation_server\templates\*.html" -Destination "$releaseDir\translation_server\templates" -ErrorAction SilentlyContinue
-            }
-        } else {
-            Write-Host "Warning: translation_server folder not found. Skipping."
-        }
+      - name: Upload exe for SignPath
+        id: upload-for-signpath
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe_for_signpath
+          path: exe_to_sign/*
 
-        # OneOcr 
-        if (Test-Path "app\OneOcr") { 
-            Copy-Item "app\OneOcr\*" -Destination $releaseDir -ErrorAction SilentlyContinue
-        }
+      - name: Submit signing request to SignPath
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+          project-slug: ${{ secrets.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ secrets.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-for-signpath.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed_exe
 
-        # Download Python 3.11 Embedded
-        $pythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
-        $pythonZip = "$env:TEMP\python311.zip"
-        $pythonDest = "$releaseDir\webserver\Python311"
-        Write-Host "Downloading Python 3.11 Embedded..."
-        Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonZip
-        Write-Host "Extracting Python 3.11..."
-        Expand-Archive -Path $pythonZip -DestinationPath $pythonDest -Force
+      - name: Upload signed exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed_exe
+          path: signed_exe/*
 
-        Write-Host "Downloading get-pip.py..."
-        Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "$pythonDest\get-pip.py"
-        
-        $pthFile = "$pythonDest\python311._pth"
-        if (Test-Path $pthFile) {
-            (Get-Content $pthFile) -replace '#import site', 'import site' | Set-Content $pthFile
-        }
+  package:
+    runs-on: windows-latest
+    needs: [build, sign]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        # Audio Model - Download from URL
-        $modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin?download=true"
-        $modelDest = "$releaseDir\AudioModel\ggml-tiny.bin"
-        Write-Host "Downloading Audio Model from HuggingFace..."
-        Invoke-WebRequest -Uri $modelUrl -OutFile $modelDest
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
 
-        # Languages
-        if (Test-Path "app\Languages") {
-            Copy-Item "app\Languages\*" -Destination "$releaseDir\Languages" -Recurse -ErrorAction SilentlyContinue
-        } else {
-            Write-Host "Warning: Languages folder not found. Skipping."
-        }
+      - name: Install Windows SDK with UAP
+        shell: powershell
+        run: |
+          $sdkUrl = "https://go.microsoft.com/fwlink/?linkid=2120843"
+          $installerPath = "$env:TEMP\winsdksetup.exe"
+          Write-Host "Downloading Windows SDK..."
+          Invoke-WebRequest -Uri $sdkUrl -OutFile $installerPath
+          Write-Host "Installing Windows SDK (this may take a few minutes)..."
+          Start-Process -FilePath $installerPath -ArgumentList "/features OptionId.UWPCpp /quiet /norestart" -Wait
+          Write-Host "Windows SDK installation completed."
 
-        Write-Host "=== Release folder contents ==="
-        Get-ChildItem -Path $releaseDir -Recurse | Select-Object FullName
+      - name: Setup Node.js (for version script)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: RSTGameTranslation
-        path: RSTGameTranslation/*
-        compression-level: 9
+      - name: Run Update Version Script
+        run: node update-version.js
+
+      - name: Publish .NET App
+        run: dotnet publish RST.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
+
+      - name: Download signed exe
+        uses: actions/download-artifact@v4
+        with:
+          name: signed_exe
+          path: signed_exe
+
+      - name: Prepare Release Folder Structure
+        shell: powershell
+        run: |
+          $releaseDir = "RSTGameTranslation"
+
+          New-Item -ItemType Directory -Force -Path $releaseDir
+          $dirs = @(
+              "webserver\EasyOCR",
+              "webserver\PaddleOCR",
+              "webserver\RapidOCR",
+              "webserver\Python311",
+              "translation_server\templates",
+              "AudioModel",
+              "Languages"
+          )
+          foreach ($d in $dirs) { New-Item -ItemType Directory -Force -Path "$releaseDir\$d" }
+
+          # Copy file build chính (trừ rst.exe)
+          if (Test-Path "app\win-x64\publish") {
+              Get-ChildItem "app\win-x64\publish\*" | Where-Object { $_.Name -ne "rst.exe" } | Copy-Item -Destination $releaseDir -Recurse -Force
+          } else {
+              Write-Host "ERROR: Build output not found at app\win-x64\publish"
+              exit 1
+          }
+
+          # Copy signed rst.exe
+          $signedExe = Get-ChildItem -Path signed_exe -Filter "rst.exe" -Recurse | Select-Object -First 1
+          if ($signedExe) {
+              Copy-Item $signedExe.FullName -Destination $releaseDir -Force
+              Write-Host "Copied signed rst.exe to release folder"
+          } else {
+              Write-Host "ERROR: Signed rst.exe not found"
+              exit 1
+          }
+
+          # README
+          if (Test-Path "README.md") { Copy-Item "README.md" -Destination $releaseDir }
+
+          # Webserver & OCR Scripts
+          if (Test-Path "app\webserver\EasyOCR") {
+              Get-ChildItem "app\webserver\EasyOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\EasyOCR"
+          }
+          if (Test-Path "app\webserver\PaddleOCR") {
+              Get-ChildItem "app\webserver\PaddleOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\PaddleOCR"
+          }
+          if (Test-Path "app\webserver\RapidOCR") {
+              Get-ChildItem "app\webserver\RapidOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\RapidOCR"
+          }
+          if (Test-Path "app\webserver\*.bat") {
+              Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver" -ErrorAction SilentlyContinue
+          }
+
+          # Translation Server
+          if (Test-Path "app\translation_server") {
+              Get-ChildItem "app\translation_server\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\translation_server"
+              if (Test-Path "app\translation_server\templates") {
+                  Copy-Item "app\translation_server\templates\*.html" -Destination "$releaseDir\translation_server\templates" -ErrorAction SilentlyContinue
+              }
+          } else {
+              Write-Host "Warning: translation_server folder not found. Skipping."
+          }
+
+          # OneOcr
+          if (Test-Path "app\OneOcr") {
+              Copy-Item "app\OneOcr\*" -Destination $releaseDir -ErrorAction SilentlyContinue
+          }
+
+          # Download Python 3.11 Embedded
+          $pythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
+          $pythonZip = "$env:TEMP\python311.zip"
+          $pythonDest = "$releaseDir\webserver\Python311"
+          Write-Host "Downloading Python 3.11 Embedded..."
+          Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonZip
+          Write-Host "Extracting Python 3.11..."
+          Expand-Archive -Path $pythonZip -DestinationPath $pythonDest -Force
+
+          Write-Host "Downloading get-pip.py..."
+          Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "$pythonDest\get-pip.py"
+
+          $pthFile = "$pythonDest\python311._pth"
+          if (Test-Path $pthFile) {
+              (Get-Content $pthFile) -replace '#import site', 'import site' | Set-Content $pthFile
+          }
+
+          # Audio Model - Download from URL
+          $modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin?download=true"
+          $modelDest = "$releaseDir\AudioModel\ggml-tiny.bin"
+          Write-Host "Downloading Audio Model from HuggingFace..."
+          Invoke-WebRequest -Uri $modelUrl -OutFile $modelDest
+
+          # Languages
+          if (Test-Path "app\Languages") {
+              Copy-Item "app\Languages\*" -Destination "$releaseDir\Languages" -Recurse -ErrorAction SilentlyContinue
+          } else {
+              Write-Host "Warning: Languages folder not found. Skipping."
+          }
+
+          Write-Host "=== Release folder contents ==="
+          Get-ChildItem -Path $releaseDir -Recurse | Select-Object FullName
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RSTGameTranslation
+          path: RSTGameTranslation/*
+          compression-level: 9
