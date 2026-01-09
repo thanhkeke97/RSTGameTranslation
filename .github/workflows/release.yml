@@ -60,6 +60,7 @@ jobs:
   sign:
     runs-on: windows-latest
     needs: [build]
+    environment: sign_path
     permissions:
       contents: write
       id-token: write
