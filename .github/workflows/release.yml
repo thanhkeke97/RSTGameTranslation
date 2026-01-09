@@ -85,6 +85,7 @@ jobs:
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
           project-slug: ${{ secrets.SIGNPATH_PROJECT_SLUG }}
           signing-policy-slug: ${{ secrets.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: RST
           github-artifact-id: ${{ steps.upload-for-signpath.outputs.artifact-id }}
           wait-for-completion: true
           output-artifact-directory: signed_exe
