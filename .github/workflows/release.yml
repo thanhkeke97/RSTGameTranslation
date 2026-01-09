@@ -56,6 +56,7 @@ jobs:
         with:
           name: exe_to_sign
           path: collect/*
+          retention-days: 1
 
   sign:
     runs-on: windows-latest
@@ -77,6 +78,7 @@ jobs:
         with:
           name: exe_for_signpath
           path: exe_to_sign/*
+          retention-days: 1
 
       - name: Submit signing request to SignPath
         uses: signpath/github-action-submit-signing-request@v2
@@ -95,6 +97,7 @@ jobs:
         with:
           name: signed_exe
           path: signed_exe/*
+          retention-days: 1
 
   package:
     runs-on: windows-latest
