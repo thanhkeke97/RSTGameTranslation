@@ -1085,6 +1085,15 @@ namespace RSTGameTranslation
                 
                 // Update icon
                 toggleBordersIcon.Data = Geometry.Parse("M 4,2 L 12,2 L 12,6 L 4,6 Z M 4,10 L 12,10 L 12,14 L 4,14 Z");
+                
+                // Re-enable interaction with chatbox content
+                chatScrollViewer.IsHitTestVisible = true;
+                chatHistoryText.IsHitTestVisible = true;
+                
+                // Re-enable resize grip and window resize
+                resizeGrip.IsHitTestVisible = true;
+                resizeGrip.Visibility = Visibility.Visible;
+                this.ResizeMode = ResizeMode.CanResizeWithGrip;
             }
             else
             {
@@ -1097,6 +1106,16 @@ namespace RSTGameTranslation
                 
                 // Update icon
                 toggleBordersIcon.Data = Geometry.Parse("M 2,4 L 14,4 L 14,6 L 2,6 Z M 2,10 L 14,10 L 14,12 L 2,12 Z");
+                
+                // Disable interaction with chatbox content (click-through mode)
+                // Only the toggle button remains clickable
+                chatScrollViewer.IsHitTestVisible = false;
+                chatHistoryText.IsHitTestVisible = false;
+                
+                // Disable resize grip and window resize
+                resizeGrip.IsHitTestVisible = false;
+                resizeGrip.Visibility = Visibility.Collapsed;
+                this.ResizeMode = ResizeMode.NoResize;
             }
         }
 
