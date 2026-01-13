@@ -180,6 +180,7 @@
   "Lbl_SelectArea5": "エリア 5 を選択",
   "Lbl_SwapLanguages": "言語を入れ替え",
   "Cmb_SwapLanguages": "言語を入れ替え",
+  "Title_LanguageSwapped": "言語が入れ替わりました",
   "Lbl_DeveloperInfo": "開発者情報",
   "Lbl_DevelopedBy": "開発:",
   "Lbl_Copyright": "Copyright © 2023-2025. All rights reserved.",

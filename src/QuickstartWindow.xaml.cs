@@ -167,7 +167,9 @@ namespace RSTGameTranslation
                 "cs",
                 "id",
                 "th",
-                "tr"
+                "tr",
+                "si",
+                "da"
             };
 
             // Sort languages alphabetically

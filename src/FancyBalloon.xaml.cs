@@ -18,7 +18,7 @@ namespace RSTGameTranslation
             _taskbarIcon = taskbarIcon;
 
             DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1.5); 
+            timer.Interval = TimeSpan.FromSeconds(2); 
             timer.Tick += (s, e) =>
             {
                 timer.Stop();

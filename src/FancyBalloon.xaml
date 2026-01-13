@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             Height="60" Width="280">
+             Height="Auto" MinHeight="60" Width="280">
     <Border BorderBrush="#FF454545" BorderThickness="1" Background="#CC252525" CornerRadius="5">
         <Grid Margin="10">
             <Grid.RowDefinitions>

@@ -1880,23 +1880,56 @@ namespace RSTGameTranslation
         // Swap source and target languages
         public void SwapLanguages()
         {
-            SettingsWindow.Instance.SwapLanguagesButton_Click(null, new RoutedEventArgs());
-            // try
-            // {
-            //     // Store the current selections
-            //     int sourceIndex = sourceLanguageComboBox.SelectedIndex;
-            //     int targetIndex = targetLanguageComboBox.SelectedIndex;
+            // Get current languages from config (always reliable)
+            string currentSource = ConfigManager.Instance.GetSourceLanguage();
+            string currentTarget = ConfigManager.Instance.GetTargetLanguage();
 
-            //     // Swap the selections
-            //     sourceLanguageComboBox.SelectedIndex = targetIndex;
-            //     targetLanguageComboBox.SelectedIndex = sourceIndex;
+            // Swap in config
+            ConfigManager.Instance.SetSourceLanguage(currentTarget);
+            ConfigManager.Instance.SetTargetLanguage(currentSource);
 
-            //     Console.WriteLine($"Languages swapped via hotkey: {(sourceLanguageComboBox.SelectedItem as ComboBoxItem)?.Content} ⇄ {(targetLanguageComboBox.SelectedItem as ComboBoxItem)?.Content}");
-            // }
-            // catch (Exception ex)
-            // {
-            //     Console.WriteLine($"Error swapping languages: {ex.Message}");
-            // }
+            // Update MainWindow ComboBoxes if they exist
+            if (sourceLanguageComboBox != null && targetLanguageComboBox != null)
+            {
+                // Find and select the new source language
+                foreach (ComboBoxItem item in sourceLanguageComboBox.Items)
+                {
+                    if (item.Content?.ToString() == currentTarget)
+                    {
+                        sourceLanguageComboBox.SelectedItem = item;
+                        break;
+                    }
+                }
+
+                // Find and select the new target language
+                foreach (ComboBoxItem item in targetLanguageComboBox.Items)
+                {
+                    if (item.Content?.ToString() == currentSource)
+                    {
+                        targetLanguageComboBox.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
+
+            // Update SettingsWindow ComboBoxes if visible
+            if (SettingsWindow.Instance.IsVisible)
+            {
+                SettingsWindow.Instance.ReloadSetting();
+            }
+
+            // Clear text objects to force re-translation with new language pair
+            Logic.Instance.ClearAllTextObjects();
+            Logic.Instance.ResetHash();
+
+            // Show notification with new language pair
+            string title = LocalizationManager.Instance["Title_LanguageSwapped"] ?? "Language Swapped";
+            string sourceLabel = LocalizationManager.Instance["Lbl_SourceLanguage"] ?? "Source";
+            string targetLabel = LocalizationManager.Instance["Lbl_TargetLanguage"] ?? "Target";
+            string message = $"{sourceLabel}: {currentTarget}\n{targetLabel}: {currentSource}";
+            ShowFastNotification(title, message);
+
+            Console.WriteLine($"Languages swapped via hotkey: {currentSource} ⇄ {currentTarget}");
         }
 
         private async Task OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
