@@ -1546,7 +1546,7 @@ namespace RSTGameTranslation
         }
 
         // Language swap button handler
-        public void SwapLanguagesButton_Click(object sender, RoutedEventArgs e)
+        public void SwapLanguagesButton_Click(object? sender, RoutedEventArgs e)
         {
             // Store the current selections
             int sourceIndex = sourceLanguageComboBox.SelectedIndex;
