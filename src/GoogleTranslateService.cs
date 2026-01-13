@@ -355,6 +355,8 @@ namespace RSTGameTranslation
                 "traditional chinese" or "ch_tra" => "zh-TW",
                 "croatian" or "hr" => "hr",
                 "turkish" or "tr" => "tr",
+                "sinhala" or "si" => "si",
+                "danish" or "da" => "da",
                 _ => language
             };
         }
