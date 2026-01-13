@@ -2507,6 +2507,8 @@ namespace RSTGameTranslation
                 "th" => "ThaiLand",
                 "tr" => "Turkish",
                 "ch_tra" => "Traditional Chinese",
+                "si" => "Sinhala",
+                "da" => "Danish",
                 _ => language
             };
         }

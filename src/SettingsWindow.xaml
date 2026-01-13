@@ -61,6 +61,8 @@
                                     <ComboBoxItem Content="th"/>
                                     <ComboBoxItem Content="hr"/>
                                     <ComboBoxItem Content="tr"/>
+                                    <ComboBoxItem Content="si"/>
+                                    <ComboBoxItem Content="da"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -98,6 +100,8 @@
                                     <ComboBoxItem Content="th"/>
                                     <ComboBoxItem Content="hr"/>
                                     <ComboBoxItem Content="tr"/>
+                                    <ComboBoxItem Content="si"/>
+                                    <ComboBoxItem Content="da"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -149,6 +153,8 @@
                                 <Run>hi = Hindi</Run>
                                 <LineBreak/>
                                 <Run>tr = Turkish</Run>
+                                <LineBreak/>
+                                <Run>da = Danish</Run>
                             </TextBlock>
                             <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
                                 Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
@@ -173,6 +179,8 @@
                                 <Run>ch_tra = Traditional Chinese</Run>
                                 <LineBreak/>
                                 <Run>hr = Croatian</Run>
+                                <LineBreak/>
+                                <Run>si = Sinhala</Run>
                             </TextBlock>
                             </Grid>
                         </GroupBox>
