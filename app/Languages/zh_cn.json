@@ -178,6 +178,8 @@
   "Lbl_SelectArea3": "选择区域 3",
   "Lbl_SelectArea4": "选择区域 4",
   "Lbl_SelectArea5": "选择区域 5",
+  "Lbl_SwapLanguages": "切换语言",
+  "Cmb_SwapLanguages": "切换语言",
   "Lbl_DeveloperInfo": "开发者信息",
   "Lbl_DevelopedBy": "开发者：",
   "Lbl_Copyright": "Copyright © 2023-2025 版权所有",

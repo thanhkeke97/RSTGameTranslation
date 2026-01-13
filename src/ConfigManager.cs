@@ -58,6 +58,7 @@ namespace RSTGameTranslation
         public const string HOTKEY_AREA_4 = "hotkey_area_4";
         public const string HOTKEY_AREA_5 = "hotkey_area_5";
         public const string HOTKEY_AUDIO_SERVICE = "hotkey_audio_service";
+        public const string HOTKEY_SWAP_LANGUAGES = "hotkey_swap_languages";
 
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
@@ -533,6 +534,7 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_AREA_4] = "ALT+4";
             _configValues[HOTKEY_AREA_5] = "ALT+5";
             _configValues[HOTKEY_AUDIO_SERVICE] = "ALT+K";
+            _configValues[HOTKEY_SWAP_LANGUAGES] = "ALT+V";
             _configValues[SHOW_ICON_SIGNAL] = "true";
             _configValues[SEND_DATA_TO_SERVER] = "false";
             _configValues[WINDOWS_OCR_INTEGRATION] = "false";
@@ -971,6 +973,10 @@ namespace RSTGameTranslation
             {
                 _configValues[HOTKEY_AUDIO_SERVICE] = hotKey;
             }
+            else if (functionName == "Swap Languages")
+            {
+                _configValues[HOTKEY_SWAP_LANGUAGES] = hotKey;
+            }
             SaveConfig();
             Console.WriteLine($"Saving {functionName} to hotkey {hotKey}");
         }
@@ -1037,6 +1043,10 @@ namespace RSTGameTranslation
             else if (functionName == "Audio Service")
             {
                 return GetValue(HOTKEY_AUDIO_SERVICE, "ALT+K");
+            }
+            else if (functionName == "Swap Languages")
+            {
+                return GetValue(HOTKEY_SWAP_LANGUAGES, "ALT+V");
             }
             return GetValue(HOTKEY_START_STOP, "ALT+G");
         }

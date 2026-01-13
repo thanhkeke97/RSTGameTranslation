@@ -1215,7 +1215,8 @@ namespace RSTGameTranslation
             // Check if selected item is a ComboBoxItem
             if (hotKeyFunctionComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
-                functionName = selectedItem.Content.ToString() ?? "Start/Stop";
+                // Use Tag for internal key (not affected by localization)
+                functionName = selectedItem.Tag?.ToString() ?? "Start/Stop";
                 if (combineKey1.SelectedItem is ComboBoxItem selectedItem1)
                 {
                     key1 = selectedItem1.Content.ToString();
@@ -1293,6 +1294,7 @@ namespace RSTGameTranslation
             hotKeyArea4.Text = ConfigManager.Instance.GetHotKey("Area 4");
             hotKeyArea5.Text = ConfigManager.Instance.GetHotKey("Area 5");
             hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
+            hotKeySwapLanguages.Text = ConfigManager.Instance.GetHotKey("Swap Languages");
             // Mainwindows
             MainWindow.Instance.hotKeyStartStop.Text = ConfigManager.Instance.GetHotKey("Start/Stop");
             MainWindow.Instance.hotKeyOverlay.Text = ConfigManager.Instance.GetHotKey("Overlay");
@@ -1309,6 +1311,7 @@ namespace RSTGameTranslation
             MainWindow.Instance.hotKeyArea4.Text = ConfigManager.Instance.GetHotKey("Area 4");
             MainWindow.Instance.hotKeyArea5.Text = ConfigManager.Instance.GetHotKey("Area 5");
             MainWindow.Instance.hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
+            MainWindow.Instance.hotKeySwapLanguages.Text = ConfigManager.Instance.GetHotKey("Swap Languages");
         }
 
         private void HotKeyFunctionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1321,7 +1324,8 @@ namespace RSTGameTranslation
 
             if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
-                string functionName = selectedItem.Content.ToString() ?? "Start/Stop";
+                // Use Tag for internal key (not affected by localization)
+                string functionName = selectedItem.Tag?.ToString() ?? "Start/Stop";
 
                 // Get HotKey from config
                 string hotKey = ConfigManager.Instance.GetHotKey(functionName);
@@ -1542,7 +1546,7 @@ namespace RSTGameTranslation
         }
 
         // Language swap button handler
-        private void SwapLanguagesButton_Click(object sender, RoutedEventArgs e)
+        public void SwapLanguagesButton_Click(object sender, RoutedEventArgs e)
         {
             // Store the current selections
             int sourceIndex = sourceLanguageComboBox.SelectedIndex;

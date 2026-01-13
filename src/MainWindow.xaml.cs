@@ -477,6 +477,18 @@ namespace RSTGameTranslation
                 }
             };
 
+            // Swap languages hotkey
+            KeyboardShortcuts.SwapLanguagesRequested += (s, e) =>
+            {
+                try
+                {
+                    Dispatcher.Invoke(() => SwapLanguages());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error swapping languages via hotkey: {ex.Message}");
+                }
+            };
 
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
@@ -1863,6 +1875,28 @@ namespace RSTGameTranslation
 
             // Reset the OCR hash to force a fresh comparison after changing target language
             Logic.Instance.ClearAllTextObjects();
+        }
+
+        // Swap source and target languages
+        public void SwapLanguages()
+        {
+            SettingsWindow.Instance.SwapLanguagesButton_Click(null, new RoutedEventArgs());
+            // try
+            // {
+            //     // Store the current selections
+            //     int sourceIndex = sourceLanguageComboBox.SelectedIndex;
+            //     int targetIndex = targetLanguageComboBox.SelectedIndex;
+
+            //     // Swap the selections
+            //     sourceLanguageComboBox.SelectedIndex = targetIndex;
+            //     targetLanguageComboBox.SelectedIndex = sourceIndex;
+
+            //     Console.WriteLine($"Languages swapped via hotkey: {(sourceLanguageComboBox.SelectedItem as ComboBoxItem)?.Content} ⇄ {(targetLanguageComboBox.SelectedItem as ComboBoxItem)?.Content}");
+            // }
+            // catch (Exception ex)
+            // {
+            //     Console.WriteLine($"Error swapping languages: {ex.Message}");
+            // }
         }
 
         private async Task OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

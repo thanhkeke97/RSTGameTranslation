@@ -108,6 +108,7 @@ namespace RSTGameTranslation
         private const int HOTKEY_ID_CLEAR_SELECTED_AREA = 13;
         private const int HOTKEY_ID_SHOW_AREA = 14;
         private const int HOTKEY_ID_AUDIO_SERVICE = 15;
+        private const int HOTKEY_ID_SWAP_LANGUAGES = 16;
 
         private static readonly Dictionary<string, EventHandler?> _functionHandlers = new Dictionary<string, EventHandler?>();
         private static readonly Dictionary<string, int> _keyCodeMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -135,6 +136,7 @@ namespace RSTGameTranslation
         public static event EventHandler? SelectArea3Requested;
         public static event EventHandler? SelectArea4Requested;
         public static event EventHandler? SelectArea5Requested;
+        public static event EventHandler? SwapLanguagesRequested;
         
         static KeyboardShortcuts()
         {
@@ -154,6 +156,7 @@ namespace RSTGameTranslation
             _functionHandlers["Area 4"] = SelectArea4Requested;
             _functionHandlers["Area 5"] = SelectArea5Requested;
             _functionHandlers["Audio Service"] = AudioServiceToggleRequested;
+            _functionHandlers["Swap Languages"] = SwapLanguagesRequested;
             
             // Initialize key code map
             for (int i = 0; i < 26; i++) // A-Z
@@ -212,6 +215,7 @@ namespace RSTGameTranslation
             ParseHotkey("Area 4");
             ParseHotkey("Area 5");
             ParseHotkey("Audio Service");
+            ParseHotkey("Swap Languages");
         }
 
         private static void ParseHotkey(string functionName)
@@ -307,7 +311,7 @@ namespace RSTGameTranslation
                 return;
                 
             // Unregister any existing hotkeys first
-            for (int i = 1; i <= 15; i++)
+            for (int i = 1; i <= 16; i++)
             {
                 UnregisterHotKey(_mainWindowHandle, i);
             }
@@ -328,6 +332,7 @@ namespace RSTGameTranslation
             RegisterFunctionHotkey("Area 4", HOTKEY_ID_AREA_4);
             RegisterFunctionHotkey("Area 5", HOTKEY_ID_AREA_5);
             RegisterFunctionHotkey("Audio Service", HOTKEY_ID_AUDIO_SERVICE);
+            RegisterFunctionHotkey("Swap Languages", HOTKEY_ID_SWAP_LANGUAGES);
         }
 
         private static void RegisterFunctionHotkey(string functionName, int hotkeyId)
@@ -433,6 +438,10 @@ namespace RSTGameTranslation
                     Console.WriteLine("Hotkey detected: Audio Service");
                     AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
                     return true;
+                case HOTKEY_ID_SWAP_LANGUAGES:
+                    Console.WriteLine("Hotkey detected: Swap Languages");
+                    SwapLanguagesRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
             }
             
             return false;
@@ -519,6 +528,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Hotkey detected: Audio Service");
                 AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Swap Languages")
+            {
+                Console.WriteLine("Hotkey detected: Swap Languages");
+                SwapLanguagesRequested?.Invoke(null, EventArgs.Empty);
             }
 
         }

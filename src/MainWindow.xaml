@@ -489,6 +489,13 @@
                                                     <TextBlock x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="White" FontSize="13"/>
                                                 </Border>
                                             </Grid>
+                                            <!-- Swap Languages -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeySwapLanguages" Text="ALT + V" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
                                         </StackPanel>
 
                                         <!-- Right Column: Secondary Features & Areas -->

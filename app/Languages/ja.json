@@ -178,6 +178,8 @@
   "Lbl_SelectArea3": "エリア 3 を選択",
   "Lbl_SelectArea4": "エリア 4 を選択",
   "Lbl_SelectArea5": "エリア 5 を選択",
+  "Lbl_SwapLanguages": "言語を入れ替え",
+  "Cmb_SwapLanguages": "言語を入れ替え",
   "Lbl_DeveloperInfo": "開発者情報",
   "Lbl_DevelopedBy": "開発:",
   "Lbl_Copyright": "Copyright © 2023-2025. All rights reserved.",
