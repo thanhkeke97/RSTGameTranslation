@@ -1136,6 +1136,10 @@ namespace RSTGameTranslation
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.RefreshOverlays();
                 MonitorWindow.Instance.HideTranslationStatus();
+                if (ChatBoxWindow.Instance != null && ConfigManager.Instance.IsAutoClearChatboxHistoryEnabled())
+                {
+                    ChatBoxWindow.Instance.chatHistoryText.Document.Blocks.Clear();
+                }
                 if (ConfigManager.Instance.IsTtsEnabled())
                 {
                     // Stop speech queue in ChatBoxWindow first
