@@ -266,6 +266,8 @@
   "ChatBoxOptions_Grp_OriginalText": "原文设置",
   "ChatBoxOptions_Lbl_TextColor": "文本颜色：",
   "ChatBoxOptions_Grp_TranslatedText": "译文设置",
+  "ChatBoxOptions_Grp_TextOutline": "文字边框设置",
+  "ChatBoxOptions_Lbl_OutlineColor": "边框颜色：",
   "ChatBoxOptions_Btn_SetDefaults": "恢复默认",
   "ChatBoxOptions_Tip_SetDefaults": "将所有设置重置为默认值",
   "ChatBoxOptions_Btn_Apply": "应用",

@@ -201,7 +201,11 @@
                          FontFamily="Segoe UI"
                          FontSize="14"
                          Foreground="White"
-                         Block.LineHeight="Auto"/>
+                         Block.LineHeight="Auto">
+                <RichTextBox.Effect>
+                    <DropShadowEffect ShadowDepth="0" BlurRadius="3" Color="Black" Opacity="1"/>
+                </RichTextBox.Effect>
+            </RichTextBox>
         </ScrollViewer>
         
         <!-- Translation in progress indicator -->

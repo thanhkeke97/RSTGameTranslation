@@ -136,6 +136,7 @@ namespace RSTGameTranslation
         public const string CHATBOX_FONT_COLOR = "chatbox_font_color";
         public const string CHATBOX_ORIGINAL_TEXT_COLOR = "chatbox_original_text_color";
         public const string CHATBOX_TRANSLATED_TEXT_COLOR = "chatbox_translated_text_color";
+        public const string CHATBOX_TEXT_OUTLINE_COLOR = "chatbox_text_outline_color";
         public const string CHATBOX_BACKGROUND_COLOR = "chatbox_background_color";
         public const string CHATBOX_BACKGROUND_OPACITY = "chatbox_background_opacity";
         public const string CHATBOX_WINDOW_OPACITY = "chatbox_window_opacity";
@@ -475,6 +476,7 @@ namespace RSTGameTranslation
             _configValues[CHATBOX_OPACITY] = (0).ToString(CultureInfo.InvariantCulture);
             _configValues[CHATBOX_ORIGINAL_TEXT_COLOR] = "#FFFAFAD2";
             _configValues[CHATBOX_TRANSLATED_TEXT_COLOR] = "#FFFFFFFF";
+            _configValues[CHATBOX_TEXT_OUTLINE_COLOR] = "#FF000000";
             _configValues[CHATBOX_BACKGROUND_OPACITY] = (0.35).ToString(CultureInfo.InvariantCulture);
             _configValues[CHATBOX_WINDOW_OPACITY] = "1";
             _configValues[CHATBOX_MIN_TEXT_SIZE] = "2";
@@ -1772,6 +1774,40 @@ namespace RSTGameTranslation
 
             // Return default color if parsing fails
             return System.Windows.Media.Colors.White;
+        }
+
+        // Get Text Outline color
+        public System.Windows.Media.Color GetTextOutlineColor()
+        {
+            string value = GetValue(CHATBOX_TEXT_OUTLINE_COLOR, "#FF000000"); // Default: Black
+            try
+            {
+                if (value.StartsWith("#") && value.Length >= 7)
+                {
+                    byte a = 255; // Default alpha is fully opaque
+
+                    // Parse alpha if provided (#AARRGGBB format)
+                    if (value.Length >= 9)
+                    {
+                        a = byte.Parse(value.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
+                    }
+
+                    // Parse RGB values
+                    int offset = value.Length >= 9 ? 3 : 1;
+                    byte r = byte.Parse(value.Substring(offset, 2), System.Globalization.NumberStyles.HexNumber);
+                    byte g = byte.Parse(value.Substring(offset + 2, 2), System.Globalization.NumberStyles.HexNumber);
+                    byte b = byte.Parse(value.Substring(offset + 4, 2), System.Globalization.NumberStyles.HexNumber);
+
+                    return System.Windows.Media.Color.FromArgb(a, r, g, b);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Text Outline color: {ex.Message}");
+            }
+
+            // Return default color if parsing fails
+            return System.Windows.Media.Colors.Black;
         }
 
         // Get ChatBox history size

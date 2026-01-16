@@ -263,6 +263,8 @@
   "ChatBoxOptions_Grp_OriginalText": "Original Text Settings",
   "ChatBoxOptions_Lbl_TextColor": "Text Color:",
   "ChatBoxOptions_Grp_TranslatedText": "Translated Text Settings",
+  "ChatBoxOptions_Grp_TextOutline": "Text Outline Settings",
+  "ChatBoxOptions_Lbl_OutlineColor": "Outline Color:",
   "ChatBoxOptions_Btn_SetDefaults": "Set Defaults",
   "ChatBoxOptions_Tip_SetDefaults": "Reset all settings to default values",
   "ChatBoxOptions_Btn_Apply": "Apply",

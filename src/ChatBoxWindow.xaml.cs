@@ -570,6 +570,19 @@ namespace RSTGameTranslation
                     headerBar.Background = new SolidColorBrush(headerColor);
                 }
 
+                // Apply text outline color from config
+                var textOutlineColor = ConfigManager.Instance.GetTextOutlineColor();
+                if (chatHistoryText != null)
+                {
+                    chatHistoryText.Effect = new System.Windows.Media.Effects.DropShadowEffect
+                    {
+                        ShadowDepth = 0,
+                        BlurRadius = 5,
+                        Color = textOutlineColor,
+                        Opacity = 1
+                    };
+                }
+
                 // Store values for use when creating text entries
                 this.FontFamily = new FontFamily(fontFamily);
                 ChatFontSize = fontSize;  // Set the chat-specific font size
@@ -578,7 +591,7 @@ namespace RSTGameTranslation
                 // Apply updated styling to existing entries
                 UpdateChatHistory();
 
-                Console.WriteLine($"Applied ChatBox styling: Font={fontFamily}, Size={fontSize}, Color={fontColor}, BG={backgroundColor}, Window Opacity={windowOpacity}, BG Opacity={bgOpacity}");
+                Console.WriteLine($"Applied ChatBox styling: Font={fontFamily}, Size={fontSize}, Color={fontColor}, BG={backgroundColor}, Window Opacity={windowOpacity}, BG Opacity={bgOpacity}, Outline={textOutlineColor}");
             }
             catch (Exception ex)
             {

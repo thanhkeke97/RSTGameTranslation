@@ -263,6 +263,8 @@
   "ChatBoxOptions_Grp_OriginalText": "Cài đặt văn bản gốc",
   "ChatBoxOptions_Lbl_TextColor": "Màu chữ:",
   "ChatBoxOptions_Grp_TranslatedText": "Cài đặt văn bản dịch",
+  "ChatBoxOptions_Grp_TextOutline": "Cài đặt viền chữ",
+  "ChatBoxOptions_Lbl_OutlineColor": "Màu viền:",
   "ChatBoxOptions_Btn_SetDefaults": "Đặt mặc định",
   "ChatBoxOptions_Tip_SetDefaults": "Đặt lại tất cả cài đặt về giá trị mặc định",
   "ChatBoxOptions_Btn_Apply": "Áp dụng",

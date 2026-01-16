@@ -266,6 +266,8 @@
   "ChatBoxOptions_Grp_OriginalText": "Настройки оригинального текста",
   "ChatBoxOptions_Lbl_TextColor": "Цвет текста:",
   "ChatBoxOptions_Grp_TranslatedText": "Настройки переведенного текста",
+  "ChatBoxOptions_Grp_TextOutline": "Настройки контура текста",
+  "ChatBoxOptions_Lbl_OutlineColor": "Цвет контура:",
   "ChatBoxOptions_Btn_SetDefaults": "По умолчанию",
   "ChatBoxOptions_Tip_SetDefaults": "Сбросить все настройки к значениям по умолчанию",
   "ChatBoxOptions_Btn_Apply": "Применить",

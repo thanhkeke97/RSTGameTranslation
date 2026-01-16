@@ -266,6 +266,8 @@
   "ChatBoxOptions_Grp_OriginalText": "원본 텍스트 설정",
   "ChatBoxOptions_Lbl_TextColor": "텍스트 색상:",
   "ChatBoxOptions_Grp_TranslatedText": "번역된 텍스트 설정",
+  "ChatBoxOptions_Grp_TextOutline": "텍스트 윤곽선 설정",
+  "ChatBoxOptions_Lbl_OutlineColor": "윤곽선 색상:",
   "ChatBoxOptions_Btn_SetDefaults": "기본값 설정",
   "ChatBoxOptions_Tip_SetDefaults": "모든 설정을 기본값으로 재설정",
   "ChatBoxOptions_Btn_Apply": "적용",

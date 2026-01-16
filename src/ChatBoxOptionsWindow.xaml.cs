@@ -26,6 +26,7 @@ namespace RSTGameTranslation
         private bool _originalRecreateChatbox = false;
         private Color _originalTextColor;
         private Color _translatedTextColor;
+        private Color _textOutlineColor;
         
         // Store current values for apply operation
         private Color _currentBackgroundColor;
@@ -37,6 +38,7 @@ namespace RSTGameTranslation
         private bool _currentRecreateChatbox = false;
         private Color _currentOriginalTextColor;
         private Color _currentTranslatedTextColor;
+        private Color _currentTextOutlineColor;
         
         // Default values
         private readonly Color DEFAULT_BACKGROUND_COLOR = Color.FromArgb(128, 0, 0, 0); // Dark background
@@ -46,6 +48,7 @@ namespace RSTGameTranslation
         private readonly double DEFAULT_FONT_SIZE = 14;
         private readonly Color DEFAULT_ORIGINAL_TEXT_COLOR = Colors.LightGoldenrodYellow;
         private readonly Color DEFAULT_TRANSLATED_TEXT_COLOR = Colors.White;
+        private readonly Color DEFAULT_TEXT_OUTLINE_COLOR = Colors.Black;
         private readonly bool DEFAULT_AUTO_CLEAR_CHATBOX_HISTORY = false;
         private readonly bool DEFAULT_RECREATE_CHATBOX = false;
 
@@ -92,6 +95,7 @@ namespace RSTGameTranslation
                 _originalFontSize = ConfigManager.Instance.GetChatBoxFontSize();
                 _originalTextColor = ConfigManager.Instance.GetOriginalTextColor();
                 _translatedTextColor = ConfigManager.Instance.GetTranslatedTextColor();
+                _textOutlineColor = ConfigManager.Instance.GetTextOutlineColor();
                 _autoClearChatboxHistory = ConfigManager.Instance.IsAutoClearChatboxHistoryEnabled();
                 autoClearChatboxHistoryCheckBox.IsChecked = _autoClearChatboxHistory;
                 _originalRecreateChatbox = ConfigManager.Instance.IsChatboxRecreateOnShowEnabled();
@@ -106,6 +110,7 @@ namespace RSTGameTranslation
                 _currentFontSize = _originalFontSize;
                 _currentOriginalTextColor = _originalTextColor;
                 _currentTranslatedTextColor = _translatedTextColor;
+                _currentTextOutlineColor = _textOutlineColor;
                 _currentAutoClearChatboxHistory = _autoClearChatboxHistory;
                 _currentRecreateChatbox = _originalRecreateChatbox;
             }
@@ -150,6 +155,10 @@ namespace RSTGameTranslation
                 // Update translated text color
                 translatedTextColorButton.Background = new SolidColorBrush(_currentTranslatedTextColor);
                 translatedTextColorText.Text = ColorToHexString(_currentTranslatedTextColor);
+                
+                // Update text outline color
+                textOutlineColorButton.Background = new SolidColorBrush(_currentTextOutlineColor);
+                textOutlineColorText.Text = ColorToHexString(_currentTextOutlineColor);
             }
             catch (Exception ex)
             {
@@ -309,6 +318,34 @@ namespace RSTGameTranslation
             }
         }
 
+        private void TextOutlineColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Create color dialog
+            var colorDialog = new ColorDialog();
+            
+            // Set the initial color
+            colorDialog.Color = System.Drawing.Color.FromArgb(
+                _currentTextOutlineColor.A, 
+                _currentTextOutlineColor.R, 
+                _currentTextOutlineColor.G, 
+                _currentTextOutlineColor.B);
+            
+            // Show dialog
+            if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                // Get selected color
+                _currentTextOutlineColor = Color.FromArgb(
+                    255, // Always full opacity for outline
+                    colorDialog.Color.R,
+                    colorDialog.Color.G,
+                    colorDialog.Color.B);
+                
+                // Update UI
+                textOutlineColorButton.Background = new SolidColorBrush(_currentTextOutlineColor);
+                textOutlineColorText.Text = ColorToHexString(_currentTextOutlineColor);
+            }
+        }
+
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -324,6 +361,7 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetChatboxRecreateOnShow(_currentRecreateChatbox);
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_ORIGINAL_TEXT_COLOR, ColorToHexString(_currentOriginalTextColor));
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_TRANSLATED_TEXT_COLOR, ColorToHexString(_currentTranslatedTextColor));
+                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_TEXT_OUTLINE_COLOR, ColorToHexString(_currentTextOutlineColor));
                 
                 // Save config to file
                 ConfigManager.Instance.SaveConfig();
@@ -364,6 +402,7 @@ namespace RSTGameTranslation
                 _currentFontSize = DEFAULT_FONT_SIZE;
                 _currentOriginalTextColor = DEFAULT_ORIGINAL_TEXT_COLOR;
                 _currentTranslatedTextColor = DEFAULT_TRANSLATED_TEXT_COLOR;
+                _currentTextOutlineColor = DEFAULT_TEXT_OUTLINE_COLOR;
                 _currentAutoClearChatboxHistory = DEFAULT_AUTO_CLEAR_CHATBOX_HISTORY;
                 _currentRecreateChatbox = DEFAULT_RECREATE_CHATBOX;
                 

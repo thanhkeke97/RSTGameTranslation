@@ -146,6 +146,21 @@
                                    Margin="10,0,0,0"/>
                     </DockPanel>
                 </GroupBox>
+
+                <!-- Text outline color -->
+                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Grp_TextOutline]}" Margin="0,5,0,10" Padding="5">
+                    <DockPanel Margin="0,5">
+                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_OutlineColor]}" VerticalAlignment="Center" Width="120" />
+                        <Button x:Name="textOutlineColorButton" 
+                                Width="30" Height="20" 
+                                Margin="5,0,0,0"
+                                Click="TextOutlineColorButton_Click"/>
+                        <TextBlock x:Name="textOutlineColorText" 
+                                   Text="#FF000000" 
+                                   VerticalAlignment="Center" 
+                                   Margin="10,0,0,0"/>
+                    </DockPanel>
+                </GroupBox>
             </StackPanel>
         </ScrollViewer>
 

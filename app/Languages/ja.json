@@ -266,6 +266,8 @@
   "ChatBoxOptions_Grp_OriginalText": "原文設定",
   "ChatBoxOptions_Lbl_TextColor": "テキスト色:",
   "ChatBoxOptions_Grp_TranslatedText": "翻訳文設定",
+  "ChatBoxOptions_Grp_TextOutline": "文字縁取り設定",
+  "ChatBoxOptions_Lbl_OutlineColor": "縁取り色:",
   "ChatBoxOptions_Btn_SetDefaults": "デフォルトに戻す",
   "ChatBoxOptions_Tip_SetDefaults": "すべての設定をデフォルト値にリセット",
   "ChatBoxOptions_Btn_Apply": "適用",
