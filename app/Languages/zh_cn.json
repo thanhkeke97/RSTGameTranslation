@@ -442,6 +442,8 @@
   "Tip_VolumeThreshold": "检测语音的音量阈值（0.001-0.1）。越低越敏感。",
   "Tip_SilenceDuration": "处理音频前的静音时间（毫秒）（100-2000）。",
   "Tip_MaxBufferSamples": "缓冲的最大音频秒数（1-10）。越高捕获的短语越长。",
+  "Lbl_WhisperThreadCount": "CPU线程数：",
+  "Tip_WhisperThreadCount": "Whisper处理的CPU线程数。0 = 自动（使用所有核心）。越低CPU使用率越少但速度更慢。",
   "Msg_WhisperServiceRunning": "本地Whisper服务正在运行。请在更改音频处理模型之前停止它。",
   "Msg_WhisperRuntimeChangeRequiresRestart": "更改Whisper运行时（CPU/GPU）需要重新启动应用程序才能生效。是否保存此更改？",
   "Tip_AudioModelDownload_Part1": "模型可以在以下位置找到：",

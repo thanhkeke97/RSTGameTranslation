@@ -436,6 +436,8 @@
   "Tip_VolumeThreshold": "Volume threshold to detect voice (0.001-0.1). Lower = more sensitive.",
   "Tip_SilenceDuration": "Milliseconds of silence before processing audio (100-2000).",
   "Tip_MaxBufferSamples": "Maximum seconds of audio to buffer (1-10). Higher = longer phrases captured.",
+  "Lbl_WhisperThreadCount": "CPU Threads:",
+  "Tip_WhisperThreadCount": "Number of CPU threads for Whisper processing. 0 = auto (use all cores). Lower = less CPU usage but slower.",
   "Msg_WhisperServiceRunning": "Local Whisper service is running. Please stop it before changing the audio processing model.",
   "Msg_WhisperRuntimeChangeRequiresRestart": "Changing the Whisper runtime (CPU/GPU) requires restarting the application to take effect. Do you want to save this change?",
   "Tip_AudioModelDownload_Part1": "Models can be found at: ",

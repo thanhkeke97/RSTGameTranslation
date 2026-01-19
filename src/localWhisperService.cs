@@ -33,7 +33,8 @@ namespace RSTGameTranslation
         private ISampleProvider? processedProvider;
         private WaveFileWriter? debugWriter;
         private WaveFileWriter? debugWriterProcessed;
-        int minBytesToProcess = 192000;
+        // Reduced from 192000 to process smaller chunks faster
+        int minBytesToProcess = 96000;
         public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
         private string _lastTranslatedText = "";
         private bool forceProcessing = false;
@@ -46,7 +47,8 @@ namespace RSTGameTranslation
         private int SilenceDurationMs => ConfigManager.Instance.GetSilenceDurationMs();
         private DateTime lastVoiceDetected = DateTime.Now;
         private bool isSpeaking = false;
-        private int MaxBufferSamples => 16000 * ConfigManager.Instance.GetMaxBufferSamples();
+        // Max audio buffer (samples at 16kHz). Smaller = faster processing but may cut long speech
+        private int MaxBufferSamples => 16000 * Math.Min(ConfigManager.Instance.GetMaxBufferSamples(), 10);
         private int voiceFrameCount = 0;
         private const int MinVoiceFrames = 1;
         private static readonly System.Text.RegularExpressions.Regex NoisePattern =
@@ -145,10 +147,20 @@ namespace RSTGameTranslation
                 
                 string current_source_language = MapLanguageToWhisper(ConfigManager.Instance.GetSourceLanguage());
 
+                // Get thread count from config (0 = auto, use all available cores)
+                int configThreadCount = ConfigManager.Instance.GetWhisperThreadCount();
+                int threadCount = configThreadCount > 0 ? configThreadCount : Math.Max(1, Environment.ProcessorCount);
+                Console.WriteLine($"[Whisper] Using {threadCount} threads (config: {configThreadCount}, 0=auto)");
+
                 var processorBuilder = factory.CreateBuilder()
                     .WithLanguage(current_source_language)
-                    .WithBeamSearchSamplingStrategy()
-                    .ParentBuilder;
+                    // Use Greedy sampling - much faster than Beam Search
+                    .WithGreedySamplingStrategy()
+                    .ParentBuilder
+                    // Optimize for speed
+                    .WithThreads(threadCount)
+                    // Disable context between segments for faster processing
+                    .WithNoContext();
 
                 processor = processorBuilder.Build();
 
@@ -371,7 +383,7 @@ namespace RSTGameTranslation
 
         private async Task ProcessLoop(Action<string, string> onResult, CancellationToken cancellationToken)
         {
-            float[] readBuffer = new float[8000]; // Max read ~0.5s @ 16kHz
+            float[] readBuffer = new float[4000]; // Max read ~0.25s @ 16kHz for faster response
             while (loopbackCapture != null && !cancellationToken.IsCancellationRequested && !_isStopping)
             {
                 // 1. Consumer: Read from Resampler & VAD Check

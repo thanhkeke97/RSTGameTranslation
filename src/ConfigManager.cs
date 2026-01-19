@@ -152,6 +152,7 @@ namespace RSTGameTranslation
         public const string SILENT_THRESHOLD = "silent_threshold";
         public const string SILENCE_DURATION_MS = "Silence_Duration_Ms";
         public const string MAX_BUFFER_SAMPLES = "MaxBufferSamples";
+        public const string WHISPER_THREAD_COUNT = "whisper_thread_count";
         public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
 
         public const string TEXTSIMILAR_THRESHOLD = "textsimilar_threshold";
@@ -560,6 +561,7 @@ namespace RSTGameTranslation
             _configValues[SILENT_THRESHOLD] = "0.02f";
             _configValues[SILENCE_DURATION_MS] = "500";
             _configValues[MAX_BUFFER_SAMPLES] = "3";
+            _configValues[WHISPER_THREAD_COUNT] = "0"; // 0 = auto (use all cores)
             _configValues[CLIPBOARD_AUTO_TRANSLATE_ENABLED] = "false";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = "true";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_DEBOUNCE_MS] = "300";
@@ -818,6 +820,31 @@ namespace RSTGameTranslation
             }
             SaveConfig();
             Console.WriteLine($"Max buffer samples set to: {value}");
+        }
+
+        // Get WhisperThreadCount (0 = auto/use all cores)
+        public int GetWhisperThreadCount()
+        {
+            if (int.TryParse(GetValue(WHISPER_THREAD_COUNT, "0"), NumberStyles.Any, CultureInfo.InvariantCulture, out int threadCount))
+            {
+                return threadCount;
+            }
+            return 0; // 0 means auto
+        }
+
+        // Set WhisperThreadCount
+        public void SetWhisperThreadCount(string value)
+        {
+            if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int threadCount))
+            {
+                _configValues[WHISPER_THREAD_COUNT] = threadCount.ToString();
+            }
+            else
+            {
+                _configValues[WHISPER_THREAD_COUNT] = value;
+            }
+            SaveConfig();
+            Console.WriteLine($"Whisper thread count set to: {value}");
         }
 
         // Helper method to parse color from hex string

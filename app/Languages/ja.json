@@ -436,6 +436,8 @@
   "Tip_VolumeThreshold": "音声を検出する音量しきい値（0.001-0.1）。低いほど感度が高くなります。",
   "Tip_SilenceDuration": "音声を処理する前の無音時間（ミリ秒）（100-2000）。",
   "Tip_MaxBufferSamples": "バッファする音声の最大秒数（1-10）。高いほど長いフレーズをキャプチャできます。",
+  "Lbl_WhisperThreadCount": "CPUスレッド数：",
+  "Tip_WhisperThreadCount": "Whisper処理用のCPUスレッド数。0 = 自動（全コア使用）。低いほどCPU使用量は少ないですが遅くなります。",
   "Msg_WhisperServiceRunning": "ローカルWhisperサービスが実行中です。音声処理モデルを変更する前に停止してください。",
   "Msg_WhisperRuntimeChangeRequiresRestart": "Whisperランタイム（CPU/GPU）の変更は、アプリケーションの再起動が必要です。この変更を保存しますか？",
   "Tip_AudioModelDownload_Part1": "モデルは次の場所にあります：",

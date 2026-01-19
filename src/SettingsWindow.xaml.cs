@@ -957,6 +957,7 @@ namespace RSTGameTranslation
             silenceThresholdTextBox.Text = ConfigManager.Instance.GetSilenceThreshold().ToString(CultureInfo.InvariantCulture);
             silenceDurationTextBox.Text = ConfigManager.Instance.GetSilenceDurationMs().ToString(CultureInfo.InvariantCulture);
             maxBufferSamplesTextBox.Text = ConfigManager.Instance.GetMaxBufferSamples().ToString(CultureInfo.InvariantCulture);
+            whisperThreadCountTextBox.Text = ConfigManager.Instance.GetWhisperThreadCount().ToString(CultureInfo.InvariantCulture);
 
             audioProcessingModelComboBox.SelectionChanged -= AudioProcessingModelComboBox_SelectionChanged;
 
@@ -976,6 +977,7 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Found matching audio processing model: '{itemText}'");
                     audioProcessingModelComboBox.SelectedItem = item;
+                    UpdateWhisperThreadCountVisibility(itemText);
                     break;
                 }
             }
@@ -993,6 +995,8 @@ namespace RSTGameTranslation
                     break;
                 }
             }
+            // Set initial visibility for thread count (only show for CPU)
+            UpdateWhisperThreadCountVisibility(savedRuntime);
             whisperRuntimeComboBox.SelectionChanged += WhisperRuntimeComboBox_SelectionChanged;
 
             // Set manga mode
@@ -2805,6 +2809,9 @@ namespace RSTGameTranslation
 
                 string newRuntime = (whisperRuntimeComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "cpu";
                 string currentRuntime = ConfigManager.Instance.GetWhisperRuntime();
+
+                // Update thread count visibility (only show for CPU)
+                UpdateWhisperThreadCountVisibility(newRuntime);
                 
                 // if no change, do nothing
                 if (string.Equals(newRuntime, currentRuntime, StringComparison.OrdinalIgnoreCase))
@@ -2825,6 +2832,9 @@ namespace RSTGameTranslation
                     {
                         _isInitializing = true;
                         whisperRuntimeComboBox.SelectedItem = e.RemovedItems[0];
+                        // Also revert visibility
+                        string revertedRuntime = (e.RemovedItems[0] as ComboBoxItem)?.Tag?.ToString() ?? "cpu";
+                        UpdateWhisperThreadCountVisibility(revertedRuntime);
                         _isInitializing = false;
                     }
                     return;
@@ -2845,6 +2855,20 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error updating Whisper runtime: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Show/hide CPU thread count controls based on runtime selection.
+        /// Thread count only applies to CPU mode, not GPU (CUDA/Vulkan).
+        /// </summary>
+        private void UpdateWhisperThreadCountVisibility(string runtime)
+        {
+            bool isCpu = string.Equals(runtime, "cpu", StringComparison.OrdinalIgnoreCase);
+            Visibility visibility = isCpu ? Visibility.Visible : Visibility.Collapsed;
+            
+            whisperThreadCountLabel.Visibility = visibility;
+            whisperThreadCountTextBox.Visibility = visibility;
+            whisperThreadCountTip.Visibility = visibility;
         }
 
         private void CustomApiModelTextBox_LostFocus(object sender, RoutedEventArgs e)
@@ -4500,6 +4524,64 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating max buffer samples: {ex.Message}");
+            }
+        }
+
+        private void WhisperThreadCountTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                string threadCount = whisperThreadCountTextBox.Text?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(threadCount))
+                {
+                    // Validate: must be 0 or positive integer
+                    if (int.TryParse(threadCount, out int count) && count >= 0)
+                    {
+                        int oldValue = ConfigManager.Instance.GetWhisperThreadCount();
+                        if (oldValue != count)
+                        {
+                            // Check if service is running
+                            if (localWhisperService.Instance.IsRunning)
+                            {
+                                MessageBoxResult result = MessageBox.Show(
+                                    LocalizationManager.Instance.Strings["Msg_WhisperServiceRunning"],
+                                    LocalizationManager.Instance.Strings["Title_Confirm"],
+                                    MessageBoxButton.OKCancel,
+                                    MessageBoxImage.Warning
+                                );
+                                if (result == MessageBoxResult.Cancel)
+                                {
+                                    // Revert to old value
+                                    whisperThreadCountTextBox.Text = oldValue.ToString();
+                                    return;
+                                }
+                                else
+                                {
+                                    localWhisperService.Instance.Stop();
+                                    audioServiceAutoTranslateCheckBox.IsChecked = false;
+                                }
+                            }
+
+                            ConfigManager.Instance.SetWhisperThreadCount(threadCount);
+                            Console.WriteLine($"Whisper thread count set to: {threadCount}");
+                        }
+                    }
+                    else
+                    {
+                        // Reset to default if invalid
+                        whisperThreadCountTextBox.Text = "0";
+                        ConfigManager.Instance.SetWhisperThreadCount("0");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating whisper thread count: {ex.Message}");
             }
         }
 
