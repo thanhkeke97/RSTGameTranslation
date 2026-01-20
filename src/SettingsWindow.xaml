@@ -735,14 +735,14 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <PasswordBox x:Name="microsoftLegacyKeyPasswordBox" Grid.Row="0"
+                                    <PasswordBox x:Name="microsoftLegacyKeyPasswordBox" Grid.Row="0" Visibility="Collapsed"
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
                                              PasswordChanged="MicrosoftLegacyKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
                                              Tag="Microsoft"/>
                                     <Button x:Name="viewMicrosoftKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewKeys]}" Grid.Row="1" HorizontalAlignment="Right"
-                                             Click="ViewApiKeysButton_Click" Tag="Microsoft" Width="70"/>
+                                             Click="ViewApiKeysButton_Click" Tag="Microsoft" Width="70" Visibility="Collapsed"/>
                                     <Button x:Name="SaveMicrosoftKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Microsoft"
-                                            HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
+                                            HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" Visibility="Collapsed" />
                                     <CheckBox x:Name="microsoftLegacyModeCheckBox" Grid.Row="2" Content="Enable Microsoft legacy signature mode" IsChecked="True" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
                                 </Grid>
 

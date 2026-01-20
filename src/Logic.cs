@@ -341,7 +341,7 @@ namespace RSTGameTranslation
                                 if (id == "999")
                                 {
                                     // Split the translated text using the separator
-                                    string[] translatedParts = translatedText.Split("##RST##");
+                                    string[] translatedParts = translatedText.Split("##|||##");
 
                                     // Assign each part to the corresponding text object
                                     for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
@@ -350,11 +350,11 @@ namespace RSTGameTranslation
                                         // Use regex to handle all variations of the separator with different spacing
                                         string cleanTranslatedText = System.Text.RegularExpressions.Regex.Replace(
                                             translatedParts[j],
-                                            @"\#{2}\s*RST\s*\#{2}",
+                                            @"\#{2}\s*\|\|\|\s*\#{2}",
                                             ""
                                         );
                                         // Also clean up any potential fragments
-                                        cleanTranslatedText = cleanTranslatedText.Replace("RST", "");
+                                        cleanTranslatedText = cleanTranslatedText.Replace("|||", "");
                                         cleanTranslatedText = cleanTranslatedText.Replace("##", "");
 
                                         // Apply RTL specific handling if needed
@@ -2288,7 +2288,7 @@ namespace RSTGameTranslation
                                 if (id == "999")
                                 {
                                     // Split the translated text using the separator
-                                    string[] translatedParts = translatedText.Split("##RST##");
+                                    string[] translatedParts = translatedText.Split("##|||##");
 
                                     // Assign each part to the corresponding text object
                                     for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
@@ -2544,7 +2544,7 @@ namespace RSTGameTranslation
 
 
                 // Combine all texts into one string with a separator
-                var combinedText = string.Join("##RST##", _textObjects.Select(obj => obj.Text));
+                var combinedText = string.Join("##|||##", _textObjects.Select(obj => obj.Text));
                 var textsToTranslate = new List<object>();
                 // if(!ConfigManager.Instance.IsMangaModeEnabled())
                 // {

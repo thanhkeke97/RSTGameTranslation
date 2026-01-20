@@ -1895,10 +1895,10 @@ namespace RSTGameTranslation
                 restoreDefaultPromptButton.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Microsoft-specific settings
-                microsoftApiKeyLabel.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
-                microsoftLegacyKeyPasswordBox.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
-                viewMicrosoftKeysButton.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
-                SaveMicrosoftKeysButton.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                // microsoftApiKeyLabel.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                // microsoftLegacyKeyPasswordBox.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                // viewMicrosoftKeysButton.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                // SaveMicrosoftKeysButton.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
                 microsoftLegacyModeCheckBox.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Load service-specific settings if they're being shown
