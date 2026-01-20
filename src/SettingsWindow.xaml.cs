@@ -1778,6 +1778,7 @@ namespace RSTGameTranslation
                 bool isMistralSelected = selectedService == "Mistral";
                 bool isGoogleTranslateSelected = selectedService == "Google Translate";
                 bool isGroqSelected = selectedService == "Groq";
+                bool isMicrosoftSelected = selectedService == "Microsoft";
 
                 // Make sure the window is fully loaded and controls are initialized
                 if (ollamaUrlLabel == null || ollamaUrlTextBox == null ||
@@ -1798,7 +1799,10 @@ namespace RSTGameTranslation
                     chatGptModelLabel == null || chatGptModelGrid == null ||
                     googleTranslateApiKeyLabel == null || googleTranslateApiKeyGrid == null ||
                     googleTranslateServiceTypeLabel == null || googleTranslateServiceTypeComboBox == null ||
-                    googleTranslateMappingLabel == null || googleTranslateMappingCheckBox == null)
+                    googleTranslateMappingLabel == null || googleTranslateMappingCheckBox == null ||
+                    microsoftApiKeyLabel == null || microsoftLegacyKeyPasswordBox == null ||
+                    viewMicrosoftKeysButton == null || SaveMicrosoftKeysButton == null ||
+                    microsoftLegacyModeCheckBox == null)
                 {
                     Console.WriteLine("UI elements not initialized yet. Skipping visibility update.");
                     return;
@@ -1873,8 +1877,8 @@ namespace RSTGameTranslation
                 googleTranslateMappingLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateMappingCheckBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
 
-                // Hide prompt template for Google Translate
-                bool showPromptTemplate = !isGoogleTranslateSelected;
+                // Hide prompt template for Google Translate or Microsoft
+                bool showPromptTemplate = !isGoogleTranslateSelected && !isMicrosoftSelected;
 
                 // API key is only visible for Google Translate if Cloud API is selected
                 bool showGoogleTranslateApiKey = isGoogleTranslateSelected &&
@@ -1889,6 +1893,13 @@ namespace RSTGameTranslation
                 promptTemplateTextBox.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
                 savePromptButton.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
                 restoreDefaultPromptButton.Visibility = showPromptTemplate ? Visibility.Visible : Visibility.Collapsed;
+
+                // Show/hide Microsoft-specific settings
+                microsoftApiKeyLabel.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                microsoftLegacyKeyPasswordBox.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                viewMicrosoftKeysButton.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                SaveMicrosoftKeysButton.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
+                microsoftLegacyModeCheckBox.Visibility = isMicrosoftSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Load service-specific settings if they're being shown
                 if (isGeminiSelected)
@@ -2001,6 +2012,11 @@ namespace RSTGameTranslation
 
                     // Reattach event handler
                     mistralModelComboBox.SelectionChanged += MistralModelComboBox_SelectionChanged;
+                }
+                else if (isMicrosoftSelected)
+                {
+                    microsoftLegacyKeyPasswordBox.Password = ConfigManager.Instance.GetMicrosoftApiKey();
+                    microsoftLegacyModeCheckBox.IsChecked = ConfigManager.Instance.GetMicrosoftLegacySignatureMode();
                 }
                 else if (isOllamaSelected)
                 {
@@ -2304,6 +2320,33 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating Groq API key: {ex.Message}");
+            }
+        }
+
+        // Microsoft legacy key changed
+        private void MicrosoftLegacyKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Console.WriteLine("Microsoft legacy API key updated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Microsoft API key: {ex.Message}");
+            }
+        }
+
+        private void MicrosoftLegacyModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bool enabled = microsoftLegacyModeCheckBox.IsChecked ?? false;
+                ConfigManager.Instance.SetMicrosoftLegacySignatureMode(enabled);
+                Console.WriteLine($"Microsoft legacy signature mode changed: {enabled}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Microsoft legacy mode: {ex.Message}");
             }
         }
 

@@ -326,6 +326,7 @@ namespace RSTGameTranslation
             TranslationServiceComboBox.Items.Add("Mistral");
             TranslationServiceComboBox.Items.Add("Ollama");
             TranslationServiceComboBox.Items.Add("LM Studio");
+            TranslationServiceComboBox.Items.Add("Microsoft");
 
             // Set current selection
             switch (translationService.ToLower())
@@ -350,6 +351,9 @@ namespace RSTGameTranslation
                     break;
                 case "lm studio":
                     TranslationServiceComboBox.SelectedItem = "LM Studio";
+                    break;
+                case "microsoft":
+                    TranslationServiceComboBox.SelectedItem = "Microsoft";
                     break;
                 default:
                     TranslationServiceComboBox.SelectedItem = "Google Translate";

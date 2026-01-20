@@ -675,6 +675,7 @@
                                     <ComboBoxItem Content="Mistral"/>
                                     <ComboBoxItem Content="Google Translate"/>
                                     <ComboBoxItem Content="LM Studio"/>
+                                    <ComboBoxItem Content="Microsoft"/>
                                     <ComboBoxItem Content="Custom API"/>
                                 </ComboBox>
                                 
@@ -722,6 +723,27 @@
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GroqApiLink_Click">https://console.groq.com/keys</Hyperlink>
                                     </TextBlock>
+                                </Grid>
+
+                                <!-- Microsoft Legacy Key - Only visible when Microsoft is selected -->
+                                <TextBlock x:Name="microsoftApiKeyLabel" Text="Microsoft Legacy Key:" Grid.Row="1" Grid.Column="0" 
+                                          VerticalAlignment="Top" Margin="0,8,10,0"/>
+                                <Grid Grid.Row="1" Grid.Column="1" Margin="0,5,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <PasswordBox x:Name="microsoftLegacyKeyPasswordBox" Grid.Row="0"
+                                             VerticalAlignment="Top" Margin="0,0,0,2" 
+                                             PasswordChanged="MicrosoftLegacyKeyPasswordBox_PasswordChanged" KeyDown="ApiKeyPasswordBox_KeyDown" 
+                                             Tag="Microsoft"/>
+                                    <Button x:Name="viewMicrosoftKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ViewKeys]}" Grid.Row="1" HorizontalAlignment="Right"
+                                             Click="ViewApiKeysButton_Click" Tag="Microsoft" Width="70"/>
+                                    <Button x:Name="SaveMicrosoftKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Microsoft"
+                                            HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
+                                    <CheckBox x:Name="microsoftLegacyModeCheckBox" Grid.Row="2" Content="Enable Microsoft legacy signature mode" IsChecked="True" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
                                 </Grid>
 
                                 <!-- Custome API url - Only visible when Custom API is selected -->

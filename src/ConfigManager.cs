@@ -37,6 +37,10 @@ namespace RSTGameTranslation
         public const string CHATGPT_API_KEYS = "chatgpt_api_keys";
         public const string MISTRAL_API_KEYS = "mistral_api_keys";
         public const string GOOGLE_TRANSLATE_API_KEYS = "google_translate_api_keys";
+        public const string MICROSOFT_API_KEYS = "microsoft_api_keys";
+        public const string MICROSOFT_API_KEY = "microsoft_api_key";
+        public const string MICROSOFT_LEGACY_SIGNATURE_KEY = "microsoft_legacy_signature_key";
+        public const string MICROSOFT_LEGACY_SIGNATURE_MODE = "microsoft_legacy_signature_mode";
         public const string ELEVENLABS_API_KEYS = "elevenlabs_api_keys";
         public const string GOOGLE_TTS_API_KEYS = "google_tts_api_keys";
         public const string OPENAI_REALTIME_API_KEYS = "openai_realtime_api_keys";
@@ -1212,7 +1216,7 @@ namespace RSTGameTranslation
         // Set current translation service
         public void SetTranslationService(string service)
         {
-            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio" || service == "Groq" || service == "Custom API")
+            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio" || service == "Microsoft" || service == "Groq" || service == "Custom API")
             {
                 _currentTranslationService = service;
                 _configValues[TRANSLATION_SERVICE] = service;
@@ -2524,6 +2528,9 @@ namespace RSTGameTranslation
                 case "Google Translate":
                     keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
                     break;
+                case "Microsoft":
+                    keysConfigKey = MICROSOFT_API_KEYS;
+                    break;
                 default:
                     return result;
             }
@@ -2593,6 +2600,9 @@ namespace RSTGameTranslation
                 case "Google Translate":
                     keysConfigKey = GOOGLE_TRANSLATE_API_KEYS;
                     break;
+                case "Microsoft":
+                    keysConfigKey = MICROSOFT_API_KEYS;
+                    break;
                 default:
                     return;
             }
@@ -2654,6 +2664,8 @@ namespace RSTGameTranslation
                     return CUSTOM_API_KEY;
                 case "Google Translate":
                     return GOOGLE_TRANSLATE_API_KEY;
+                case "Microsoft":
+                    return MICROSOFT_API_KEY;
                 default:
                     return "";
             }
@@ -2896,6 +2908,45 @@ namespace RSTGameTranslation
             _configValues[GOOGLE_TRANSLATE_API_KEY] = apiKey;
             SaveConfig();
             Console.WriteLine("Google Translate API key updated");
+        }
+
+        // Get Microsoft API key (single)
+        public string GetMicrosoftApiKey()
+        {
+            return GetValue(MICROSOFT_API_KEY, "");
+        }
+
+        // Set Microsoft API key (single)
+        public void SetMicrosoftApiKey(string apiKey)
+        {
+            _configValues[MICROSOFT_API_KEY] = apiKey;
+            SaveConfig();
+            Console.WriteLine("Microsoft API key updated");
+        }
+
+        // Get/Set Microsoft legacy signature key override (hex or base64 string)
+        public string GetMicrosoftLegacySignatureKey()
+        {
+            return GetValue(MICROSOFT_LEGACY_SIGNATURE_KEY, "");
+        }
+
+        public void SetMicrosoftLegacySignatureKey(string key)
+        {
+            _configValues[MICROSOFT_LEGACY_SIGNATURE_KEY] = key;
+            SaveConfig();
+        }
+
+        // Get/Set Microsoft legacy signature mode (bool)
+        public bool GetMicrosoftLegacySignatureMode()
+        {
+            return GetBoolValue(MICROSOFT_LEGACY_SIGNATURE_MODE, true);
+        }
+
+        public void SetMicrosoftLegacySignatureMode(bool enabled)
+        {
+            _configValues[MICROSOFT_LEGACY_SIGNATURE_MODE] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Microsoft legacy signature mode set to: {enabled}");
         }
 
         public string GetAudioProcessingProvider()
