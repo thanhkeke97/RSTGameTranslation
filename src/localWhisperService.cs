@@ -33,8 +33,7 @@ namespace RSTGameTranslation
         private ISampleProvider? processedProvider;
         private WaveFileWriter? debugWriter;
         private WaveFileWriter? debugWriterProcessed;
-        // Reduced from 192000 to process smaller chunks faster
-        int minBytesToProcess = 96000;
+        int minBytesToProcess = 192000;
         public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
         private string _lastTranslatedText = "";
         private bool forceProcessing = false;
