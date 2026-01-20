@@ -31,6 +31,14 @@ namespace RSTGameTranslation
             _singleKey = ConfigManager.Instance.GetMicrosoftApiKey();
         }
 
+        // Concurrency and retry/backoff tuning for rate limit handling
+        private static readonly int MaxConcurrentRequests = 2; // adjust if needed
+        private static readonly SemaphoreSlim _concurrencySemaphore = new SemaphoreSlim(MaxConcurrentRequests);
+        private static readonly Random _jitterRng = new Random();
+        private const int DefaultMaxRetries = 5; // total attempts
+        private const int BaseDelayMs = 500; // base for exponential backoff (ms)
+        private const int MaxDelayMs = 60000; // cap backoff at 60s
+
         /// <summary>
         /// Compute signature following LunaTranslator algorithm
         /// </summary>
@@ -189,15 +197,22 @@ namespace RSTGameTranslation
                         string jsonRequest = JsonSerializer.Serialize(bodyArray);
                         request.Content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
-                        HttpResponseMessage response;
+                        HttpResponseMessage? response = null;
+
                         try
                         {
-                            response = await _httpClient.SendAsync(request);
+                            // Use retry/backoff + concurrency control to send the request
+                            response = await SendWithRetriesAsync(urlForSignature, privateKey, jsonRequest, DefaultMaxRetries);
+                            if (response == null)
+                            {
+                                Console.WriteLine("Microsoft translator failed after retries");
+                                return null;
+                            }
                         }
                         catch (Exception exSend)
                         {
                             // Log send exception
-                            string debug = $"Exception sending request: {exSend}\nURL: https://{urlForSignature}\nSignature: {signature}\nGUID: {guid}\nDate: {utcNow:O}\nBody: {jsonRequest}";
+                            string debug = $"Exception sending request after retries: {exSend}\nURL: https://{urlForSignature}\nRequestBody: {jsonRequest}";
                             try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_request.txt"), debug); } catch { }
                             Console.WriteLine($"Microsoft translator request failed: {exSend.Message}");
                             return null;
@@ -206,7 +221,7 @@ namespace RSTGameTranslation
                         if (!response.IsSuccessStatusCode)
                         {
                             string err = await response.Content.ReadAsStringAsync();
-                            string debug = $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}\nURL: https://{urlForSignature}\nSignature: {signature}\nGUID: {guid}\nDate: {utcNow:O}\nRequestBody: {jsonRequest}\nResponse: {err}";
+                            string debug = $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}\nURL: https://{urlForSignature}\nRequestBody: {jsonRequest}\nResponse: {err}";
 
                             try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_error.txt"), err); } catch { }
                             try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_request.txt"), debug); } catch { }
@@ -265,6 +280,114 @@ namespace RSTGameTranslation
                 catch { }
                 return null;
             }
+        }
+
+        // Send request with retries, exponential backoff, jitter and respecting Retry-After header
+        private async Task<HttpResponseMessage?> SendWithRetriesAsync(string urlForSignature, byte[] privateKey, string jsonRequest, int maxRetries)
+        {
+            await _concurrencySemaphore.WaitAsync();
+            try
+            {
+                for (int attempt = 1; attempt <= maxRetries; attempt++)
+                {
+                    string guid = Guid.NewGuid().ToString("N");
+                    DateTime utcNow = DateTime.UtcNow;
+                    string signature = ComputeSignature(urlForSignature, privateKey, utcNow, guid);
+
+                    var request = new HttpRequestMessage(HttpMethod.Post, $"https://{urlForSignature}");
+                    request.Headers.Remove("X-MT-Signature");
+                    request.Headers.Add("X-MT-Signature", signature);
+                    request.Content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = null!;
+                    try
+                    {
+                        response = await _httpClient.SendAsync(request);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Network error - consider retrying
+                        Console.WriteLine($"Send attempt {attempt} failed: {ex.Message}");
+                        if (attempt == maxRetries)
+                        {
+                            throw; // bubble up to caller to handle logging
+                        }
+                        else
+                        {
+                            int delayMs = CalculateBackoffMs(attempt);
+                            await Task.Delay(delayMs);
+                            continue;
+                        }
+                    }
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return response;
+                    }
+
+                    int status = (int)response.StatusCode;
+                    if (status == 429)
+                    {
+                        // Respect Retry-After if provided
+                        int delayMs = CalculateBackoffMs(attempt);
+                        if (response.Headers.TryGetValues("Retry-After", out var values))
+                        {
+                            var first = values?.FirstOrDefault();
+                            if (int.TryParse(first, out int seconds))
+                            {
+                                delayMs = Math.Max(delayMs, seconds * 1000);
+                            }
+                            else if (DateTime.TryParse(first, out DateTime retryDate))
+                            {
+                                int ms = (int)Math.Max(0, (retryDate - DateTime.UtcNow).TotalMilliseconds);
+                                delayMs = Math.Max(delayMs, Math.Min(ms, MaxDelayMs));
+                            }
+                        }
+
+                        // Log and wait
+                        Console.WriteLine($"Received 429, attempt {attempt}, waiting {delayMs}ms before retry");
+                        if (attempt == maxRetries)
+                        {
+                            // final attempt failed
+                            return response;
+                        }
+                        await Task.Delay(delayMs);
+                        continue;
+                    }
+                    else if (status >= 500 && status < 600)
+                    {
+                        // Server errors - retry with backoff
+                        if (attempt == maxRetries)
+                        {
+                            return response;
+                        }
+                        int delayMs = CalculateBackoffMs(attempt);
+                        Console.WriteLine($"Server error {status}, attempt {attempt}, waiting {delayMs}ms before retry");
+                        await Task.Delay(delayMs);
+                        continue;
+                    }
+                    else
+                    {
+                        // Client error (4xx other than 429) - do not retry
+                        return response;
+                    }
+                }
+
+                return null;
+            }
+            finally
+            {
+                _concurrencySemaphore.Release();
+            }
+        }
+
+        private int CalculateBackoffMs(int attempt)
+        {
+            // exponential backoff with jitter: base * 2^(attempt-1) capped, jitter factor 0.5-1.5
+            double exponential = BaseDelayMs * Math.Pow(2, attempt - 1);
+            double jitterFactor = 0.5 + _jitterRng.NextDouble();
+            int ms = (int)Math.Min(MaxDelayMs, exponential * jitterFactor);
+            return ms;
         }
     }
 }
