@@ -63,6 +63,7 @@
                                     <ComboBoxItem Content="tr"/>
                                     <ComboBoxItem Content="si"/>
                                     <ComboBoxItem Content="da"/>
+                                    <ComboBoxItem Content="uk"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -102,6 +103,7 @@
                                     <ComboBoxItem Content="tr"/>
                                     <ComboBoxItem Content="si"/>
                                     <ComboBoxItem Content="da"/>
+                                    <ComboBoxItem Content="uk"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
