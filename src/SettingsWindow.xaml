@@ -726,7 +726,7 @@
                                 </Grid>
 
                                 <!-- Microsoft Legacy Key - Only visible when Microsoft is selected -->
-                                <TextBlock x:Name="microsoftApiKeyLabel" Text="Microsoft Legacy Key:" Grid.Row="1" Grid.Column="0" 
+                                <TextBlock x:Name="microsoftApiKeyLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MicrosoftLegacyKey]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Top" Margin="0,8,10,0" Visibility="Collapsed"/>
                                 <Grid Grid.Row="1" Grid.Column="1" Margin="0,5,0,0">
                                     <Grid.RowDefinitions>
@@ -743,7 +743,7 @@
                                              Click="ViewApiKeysButton_Click" Tag="Microsoft" Width="70" Visibility="Collapsed"/>
                                     <Button x:Name="SaveMicrosoftKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Microsoft"
                                             HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" Visibility="Collapsed" />
-                                    <CheckBox x:Name="microsoftLegacyModeCheckBox" Grid.Row="2" Content="Enable Microsoft legacy signature mode" IsChecked="True" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
+                                    <CheckBox x:Name="microsoftLegacyModeCheckBox" Grid.Row="2" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_MicrosoftLegacyMode]}" IsChecked="True" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
                                 </Grid>
 
                                 <!-- Custome API url - Only visible when Custom API is selected -->

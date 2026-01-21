@@ -438,12 +438,12 @@
 
                     <!-- Microsoft API Key -->
                     <StackPanel x:Name="MicrosoftApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="Microsoft API Key (legacy) - optional (press Enter to save):" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MicrosoftApiKeyQuickstart]}" FontWeight="Bold" Margin="0,0,0,5"/>
                         <PasswordBox x:Name="MicrosoftApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="MicrosoftApiKeyPasswordBox_PasswordChanged"/>
                         <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: Microsoft legacy translator may require a legacy signature key in Settings if enabled.
+                            {Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_MicrosoftLegacyQuickstartNote]}
                         </TextBlock>
-                        <CheckBox x:Name="MicrosoftLegacyModeCheckBox" Content="Enable Microsoft legacy signature mode" Margin="0,8,0,0" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
+                        <CheckBox x:Name="MicrosoftLegacyModeCheckBox" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_MicrosoftLegacyMode]}" Margin="0,8,0,0" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
                     </StackPanel>
 
                     <!-- Ollama Model -->
