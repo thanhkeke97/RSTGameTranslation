@@ -366,7 +366,9 @@ namespace RSTGameTranslation
             GeminiApiKeyPasswordBox.Password = configManager.GetGeminiApiKey() ?? "";
             GroqApiKeyPasswordBox.Password = configManager.GetGroqApiKey() ?? "";
             MistralApiKeyPasswordBox.Password = configManager.GetMistralApiKey() ?? "";
-
+            // Microsoft
+            MicrosoftApiKeyPasswordBox.Password = configManager.GetMicrosoftApiKey() ?? "";
+            MicrosoftLegacyModeCheckBox.IsChecked = configManager.GetMicrosoftLegacySignatureMode();
             // Load ChatGPT models
             ChatGptModelComboBox.Items.Clear();
             ChatGptModelComboBox.Items.Add("gpt-4.1");
@@ -480,38 +482,56 @@ namespace RSTGameTranslation
             GeminiApiKeyPanel.Visibility = Visibility.Collapsed;
             GroqApiKeyPanel.Visibility = Visibility.Collapsed;
             MistralApiKeyPanel.Visibility = Visibility.Collapsed;
+            MicrosoftApiKeyPanel.Visibility = Visibility.Collapsed; // <-- ensure Microsoft panel is hidden by default
             OllamaModelPanel.Visibility = Visibility.Collapsed;
             LMStudioModelPanel.Visibility = Visibility.Collapsed;
 
             // Show the appropriate API key field based on the selected service
             if (TranslationServiceComboBox.SelectedItem != null)
             {
-                string? selectedService = TranslationServiceComboBox.SelectedItem.ToString();
+                string selectedServiceRaw = TranslationServiceComboBox.SelectedItem.ToString() ?? string.Empty;
+                string selectedLower = selectedServiceRaw.ToLowerInvariant();
+                Console.WriteLine($"Quickstart: selected translation service = '{selectedServiceRaw}'");
 
-                switch (selectedService)
+                // Use contains checks to be tolerant of spacing/casing and ensure Microsoft panel stays hidden for other services
+                if (selectedLower.Contains("google"))
                 {
-                    case "Google Translate":
-                        GoogleTranslateApiKeyPanel.Visibility = Visibility.Visible;
-                        break;
-                    case "ChatGPT":
-                        ChatGptApiKeyPanel.Visibility = Visibility.Visible;
-                        break;
-                    case "Gemini":
-                        GeminiApiKeyPanel.Visibility = Visibility.Visible;
-                        break;
-                    case "Groq":
-                        GroqApiKeyPanel.Visibility = Visibility.Visible;
-                        break;
-                    case "Mistral":
-                        MistralApiKeyPanel.Visibility = Visibility.Visible;
-                        break;
-                    case "Ollama":
-                        OllamaModelPanel.Visibility = Visibility.Visible;
-                        break;
-                    case "LM Studio":
-                        LMStudioModelPanel.Visibility = Visibility.Visible;
-                        break;
+                    GoogleTranslateApiKeyPanel.Visibility = Visibility.Visible;
                 }
+                else if (selectedLower.Contains("chatgpt"))
+                {
+                    ChatGptApiKeyPanel.Visibility = Visibility.Visible;
+                }
+                else if (selectedLower.Contains("gemini"))
+                {
+                    GeminiApiKeyPanel.Visibility = Visibility.Visible;
+                }
+                else if (selectedLower.Contains("groq"))
+                {
+                    GroqApiKeyPanel.Visibility = Visibility.Visible;
+                }
+                else if (selectedLower.Contains("mistral"))
+                {
+                    MistralApiKeyPanel.Visibility = Visibility.Visible;
+                }
+                else if (selectedLower.Contains("ollama"))
+                {
+                    OllamaModelPanel.Visibility = Visibility.Visible;
+                }
+                else if (selectedLower.Contains("lm studio") || selectedLower.Contains("lmstudio"))
+                {
+                    LMStudioModelPanel.Visibility = Visibility.Visible;
+                }
+                else if (selectedLower.Contains("microsoft"))
+                {
+                    MicrosoftApiKeyPanel.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    // default: nothing visible (already collapsed above)
+                }
+
+                Console.WriteLine($"Microsoft panel visibility after update: {MicrosoftApiKeyPanel.Visibility}");
             }
         }
 
@@ -631,6 +651,49 @@ namespace RSTGameTranslation
             }
         }
 
+        // Microsoft API key (Quickstart)
+        private void MicrosoftApiKeyPasswordBox_PasswordChanged(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            configManager.SetMicrosoftApiKey(MicrosoftApiKeyPasswordBox.Password);
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                if (sender is PasswordBox passwordBox)
+                {
+                    string apiKey = passwordBox.Password.Trim();
+                    string? serviceType = TranslationServiceComboBox.SelectedItem.ToString();
+
+                    if (!string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(serviceType))
+                    {
+                        // Add Api key to list
+                        ConfigManager.Instance.AddApiKey(serviceType, apiKey);
+
+                        // Clear textbox content
+                        passwordBox.Password = "";
+
+                        Console.WriteLine($"Added new API key for {serviceType}");
+
+
+                        System.Windows.MessageBox.Show($"API key added for {serviceType}.", "API Key Added",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+        }
+
+        private void MicrosoftLegacyModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bool enabled = MicrosoftLegacyModeCheckBox.IsChecked ?? false;
+                ConfigManager.Instance.SetMicrosoftLegacySignatureMode(enabled);
+                Console.WriteLine($"Microsoft legacy signature mode changed: {enabled}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Microsoft legacy mode: {ex.Message}");
+            }
+        }
+
         private void OllamaModelTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             configManager.SetOllamaModel(OllamaModelTextBox.Text);
@@ -725,6 +788,9 @@ namespace RSTGameTranslation
                     break;
                 case "lm studio":
                     TranslationServiceSummaryText.Text = "LM Studio";
+                    break;
+                case "microsoft":
+                    TranslationServiceSummaryText.Text = "Microsoft";
                     break;
                 default:
                     TranslationServiceSummaryText.Text = "Google Translate";
