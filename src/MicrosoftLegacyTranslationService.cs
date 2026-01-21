@@ -17,7 +17,7 @@ namespace RSTGameTranslation
         private readonly HttpClient _httpClient;
         private readonly string _singleKey;
 
-        // Default private key taken from LunaTranslator microsoft.py (embedded bytes)
+        // Default private key 
         private static readonly byte[] _defaultPrivateKey = new byte[] {
             0xA2,0x29,0x3A,0x3D,0xD0,0xDD,0x32,0x73,0x97,0x7A,0x64,0xDB,0xC2,0xF3,0x27,0xF5,
             0xD7,0xBF,0x87,0xD9,0x45,0x9D,0xF0,0x5A,0x09,0x66,0xC6,0x30,0xC6,0x6A,0xAA,0x84,
@@ -40,7 +40,7 @@ namespace RSTGameTranslation
         private const int MaxDelayMs = 60000; // cap backoff at 60s
 
         /// <summary>
-        /// Compute signature following LunaTranslator algorithm
+        /// Compute signature 
         /// </summary>
         internal static string ComputeSignature(string urlWithoutScheme, byte[] privateKey, DateTime utcNow, string? guid = null)
         {
