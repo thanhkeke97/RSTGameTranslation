@@ -343,6 +343,7 @@
                                                 <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/> <!-- Header -->
+                                <RowDefinition Height="Auto"/> <!-- Donate -->
                                 <RowDefinition Height="Auto"/> <!-- HotKey -->
                                 <RowDefinition Height="Auto"/> <!-- Dev Info -->
                             </Grid.RowDefinitions>
@@ -416,8 +417,24 @@
                                 </Grid>
                             </Border>
 
-                            <!-- HotKey Section -->
+                            <!-- Donate Section -->
                             <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10" >
+                                    <StackPanel Orientation="Vertical" Width="Auto" Margin="0,0,10,0">
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SupportAuthor]}" Foreground="#FF00AAFF" FontWeight="Bold" FontSize="14"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_SupportAuthor]}" TextWrapping="Wrap" Foreground="White" FontSize="12" Width="420"/>
+                                    </StackPanel>
+                                    <Button x:Name="donateButton" Click="DonateButton_Click" Height="36" Background="#FFD9A200" Foreground="#1F1F1F" BorderThickness="0" Padding="12,4" MinWidth="150" VerticalAlignment="Center" FontWeight="Bold">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="☕" FontSize="16" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SupportBuyMeACoffee]}" FontSize="13" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- HotKey Section -->
+                            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                         <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="#FF00AAFF" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -556,7 +573,7 @@
                             </Border>
 
                             <!-- Copyright & Developer Information Section -->
-                            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
                                 <StackPanel>
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_DeveloperInfo]}" Foreground="#FF00AAFF" FontSize="16" 
                                             FontWeight="Bold" Margin="0,0,0,10"/>
@@ -576,6 +593,8 @@
                                     <TextBlock TextWrapping="Wrap" Foreground="#BBFFFFFF" FontStyle="Italic" Margin="0,5,0,0" FontSize="11">
                                     <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_Disclaimer], Mode=OneWay}"/>
                                     </TextBlock>
+
+
                                 </StackPanel>
                             </Border>
                         </Grid>

@@ -3095,6 +3095,16 @@ namespace RSTGameTranslation
             quickstartWindow.ShowDialog();
         }
 
+        private void DonateButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Open donation link in default browser. Change URL to your actual donation page if needed.
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://buymeacoffee.com/thanhkeke97",
+                UseShellExecute = true
+            });
+        }
+
         private void CheckAndShowQuickstart()
         {
             bool showQuickstart = ConfigManager.Instance.IsNeedShowQuickStart();
