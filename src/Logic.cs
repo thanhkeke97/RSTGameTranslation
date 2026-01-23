@@ -2509,6 +2509,7 @@ namespace RSTGameTranslation
                 "ch_tra" => "Traditional Chinese",
                 "si" => "Sinhala",
                 "da" => "Danish",
+                "uk" => "ukrainian",
                 _ => language
             };
         }

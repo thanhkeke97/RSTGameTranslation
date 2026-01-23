@@ -120,6 +120,7 @@ namespace RSTGameTranslation
                 "turkish" or "tr" => "tr",
                 "sinhala" or "si" => "si",
                 "danish" or "da" => "da",
+                "ukrainian" or "uk" => "uk",
                 _ => language
             };
         }
