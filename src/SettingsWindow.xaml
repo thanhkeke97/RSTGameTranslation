@@ -160,7 +160,7 @@
                                 <LineBreak/>
                                 <Run>da = Danish</Run>
                                 <LineBreak/>
-                                <Run>uk = Ukrainian</Run>
+                                <Run>uk = Ukraina</Run>
                             </TextBlock>
                             <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
                                 Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
