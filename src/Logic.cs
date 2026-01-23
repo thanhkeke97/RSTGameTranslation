@@ -2510,6 +2510,7 @@ namespace RSTGameTranslation
                 "si" => "Sinhala",
                 "da" => "Danish",
                 "uk" => "ukrainian",
+                "fi" => "Finnish",
                 _ => language
             };
         }

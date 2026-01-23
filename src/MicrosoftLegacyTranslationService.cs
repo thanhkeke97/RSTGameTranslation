@@ -99,6 +99,8 @@ namespace RSTGameTranslation
                 "czech" or "cs" => "cs",
                 "sinhala" or "si" => "si",
                 "ukrainian" or "uk" => "uk",
+                "danish" or "da" => "da",
+                "finnish" or "fi" => "fi",
                 "auto" or "auto-detect" or "auto_detect" => "auto",
                 _ => language
             };

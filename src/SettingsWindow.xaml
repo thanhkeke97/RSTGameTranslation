@@ -64,6 +64,7 @@
                                     <ComboBoxItem Content="si"/>
                                     <ComboBoxItem Content="da"/>
                                     <ComboBoxItem Content="uk"/>
+                                    <ComboBoxItem Content="fi"/>
                                 </ComboBox>
                                 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -104,6 +105,7 @@
                                     <ComboBoxItem Content="si"/>
                                     <ComboBoxItem Content="da"/>
                                     <ComboBoxItem Content="uk"/>
+                                    <ComboBoxItem Content="fi"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -157,6 +159,8 @@
                                 <Run>tr = Turkish</Run>
                                 <LineBreak/>
                                 <Run>da = Danish</Run>
+                                <LineBreak/>
+                                <Run>uk = Ukrainian</Run>
                             </TextBlock>
                             <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
                                 Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
@@ -183,6 +187,8 @@
                                 <Run>hr = Croatian</Run>
                                 <LineBreak/>
                                 <Run>si = Sinhala</Run>
+                                <LineBreak/>
+                                <Run>fi = Finnish</Run>
                             </TextBlock>
                             </Grid>
                         </GroupBox>

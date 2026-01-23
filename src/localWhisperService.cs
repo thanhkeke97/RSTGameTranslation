@@ -121,6 +121,7 @@ namespace RSTGameTranslation
                 "sinhala" or "si" => "si",
                 "danish" or "da" => "da",
                 "ukrainian" or "uk" => "uk",
+                "finnish" or "fi" => "fi",
                 _ => language
             };
         }
