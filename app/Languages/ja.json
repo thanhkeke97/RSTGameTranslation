@@ -182,6 +182,7 @@
   "Lbl_SelectArea3": "エリア 3 を選択",
   "Lbl_SelectArea4": "エリア 4 を選択",
   "Lbl_SelectArea5": "エリア 5 を選択",
+  "Lbl_TranslationRetry": "翻訳を再試行",
   "Lbl_SwapLanguages": "言語を入れ替え",
   "Cmb_SwapLanguages": "言語を入れ替え",
   "Title_LanguageSwapped": "言語が入れ替わりました",

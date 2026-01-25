@@ -490,6 +490,19 @@ namespace RSTGameTranslation
                 }
             };
 
+            // Retry translation hotkey
+            KeyboardShortcuts.RetryTranslationRequested += (s, e) =>
+            {
+                try
+                {
+                    Logic.Instance.RetryCurrentTranslation();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error retrying translation via hotkey: {ex.Message}");
+                }
+            };
+
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
 
