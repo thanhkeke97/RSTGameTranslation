@@ -7,7 +7,7 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Title]}"
-        Height="700" Width="1100"
+        Height="750" Width="1100"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -560,44 +560,7 @@
                         <!-- Spacer -->
                         <Border Width="Auto" HorizontalAlignment="Stretch"/>
 
-                        <!-- Right side: Quick Actions + Discord -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
-                            <!-- <Button x:Name="donateButton" Style="{StaticResource ProminentGradientButton}"
-                                    Click="DonateButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                <Button.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#fbbf24" Offset="0"/>
-                                        <GradientStop Color="#f59e0b" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Button.Background>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="☕ " FontSize="12"/>
-                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SupportBuyMeACoffee]}" Foreground="Black" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </Button> -->
-                            <Button x:Name="quickStart" Style="{StaticResource ProminentGradientButton}"
-                                    Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                <Button.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#f97316" Offset="0"/>
-                                        <GradientStop Color="#ea580c" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Button.Background>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⚡ " FontSize="12"/>
-                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_QuickStart]}" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="discordButton" Style="{StaticResource ProminentGradientButton}"
-                                    Background="#5865f2" Click="DiscordButton_Click"
-                                    WindowChrome.IsHitTestVisibleInChrome="True">
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="M25.0966 7.25C23.2967 6.43 21.3717 5.84 19.3717 5.5C19.0517 6 18.7867 6.58 18.6017 7.05C16.4568 6.73 14.3192 6.73 12.2217 7.05C12.0367 6.58 11.7642 6 11.5217 5.54C9.44 5.84 7.52 6.43 5.72 7.25C2.1 12.67 1.11 17.94 1.61 23.15C4.12 25.02 6.51 26.15 8.87 26.88C9.54 26.05 10.06 25.2 10.52 24.31C9.64 23.88 8.85 23.5 8.08 23.06C8.21 22.82 8.35 22.71 8.48 22.6C13.4 24.82 18.65 24.82 23.44 22.6C23.64 22.71 23.78 22.82 23.92 22.92C23.15 23.5 22.35 23.88 21.52 24.2C21.94 25.2 22.47 26.05 23.04 26.85C25.49 26.15 27.89 25.02 30.36 23.2C30.99 17.12 29.44 11.89 25.92 7.28L25.0966 7.25Z" 
-                                          Fill="White" Stretch="Uniform" Width="14" Height="14" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Discord" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
+                        <!-- Right side actions moved into Hotkeys header -->
                     </WrapPanel>
                 </Border>
                 
@@ -612,7 +575,8 @@
                                         <Ellipse x:Name="StartStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}" 
                                                    Foreground="{StaticResource MutedBrush}" FontSize="12"/>
-                                        <TextBlock x:Name="StartStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock Text=": " Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="StartStatusText" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Off]}" Foreground="{StaticResource TextBrush}" FontSize="12"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource StatusBadge}">
@@ -620,7 +584,8 @@
                                         <Ellipse x:Name="AudioStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" 
                                                    Foreground="{StaticResource MutedBrush}" FontSize="12"/>
-                                        <TextBlock x:Name="AudioStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock Text=": " Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="AudioStatusText" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Off]}" Foreground="{StaticResource TextBrush}" FontSize="12"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource StatusBadge}">
@@ -628,7 +593,8 @@
                                         <Ellipse x:Name="OCRStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StartOCR]}" 
                                                    Foreground="{StaticResource MutedBrush}" FontSize="12"/>
-                                        <TextBlock x:Name="OCRStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock Text=": " Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="OCRStatusText" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Off]}" Foreground="{StaticResource TextBrush}" FontSize="12"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource StatusBadge}">
@@ -636,7 +602,8 @@
                                         <Ellipse x:Name="OverlayStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}" 
                                                    Foreground="{StaticResource MutedBrush}" FontSize="12"/>
-                                        <TextBlock x:Name="OverlayStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock Text=": " Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="OverlayStatusText" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Off]}" Foreground="{StaticResource TextBrush}" FontSize="12"/>
                                     </StackPanel>
                                 </Border>
                             </WrapPanel>
@@ -644,11 +611,48 @@
                             <!-- Hotkeys Card -->
                             <Border Style="{StaticResource CardStyle}">
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                                        <Border Width="4" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GlobalHotKeys]}" 
-                                                   Foreground="{StaticResource AccentBrush}" FontSize="14" FontWeight="Bold"/>
-                                    </StackPanel>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                            <Border Width="4" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GlobalHotKeys]}" 
+                                                       Foreground="{StaticResource AccentBrush}" FontSize="14" FontWeight="Bold"  TextWrapping="Wrap" MaxWidth="420" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <Border Width="4" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Need_Help_Or_Support]}" 
+                                                       Foreground="{StaticResource AccentBrush}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" MaxWidth="420" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Right"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0">
+                                            <Button x:Name="quickStart" Style="{StaticResource ProminentGradientButton}"
+                                                    Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True" Margin="0,0,8,0">
+                                                <Button.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop Color="#f97316" Offset="0"/>
+                                                        <GradientStop Color="#ea580c" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Button.Background>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="⚡ " FontSize="12"/>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_QuickStart]}" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button x:Name="discordButton" Style="{StaticResource ProminentGradientButton}"
+                                                    Background="#5865f2" Click="DiscordButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="M25.0966 7.25C23.2967 6.43 21.3717 5.84 19.3717 5.5C19.0517 6 18.7867 6.58 18.6017 7.05C16.4568 6.73 14.3192 6.73 12.2217 7.05C12.0367 6.58 11.7642 6 11.5217 5.54C9.44 5.84 7.52 6.43 5.72 7.25C2.1 12.67 1.11 17.94 1.61 23.15C4.12 25.02 6.51 26.15 8.87 26.88C9.54 26.05 10.06 25.2 10.52 24.31C9.64 23.88 8.85 23.5 8.08 23.06C8.21 22.82 8.35 22.71 8.48 22.6C13.4 24.82 18.65 24.82 23.44 22.6C23.64 22.71 23.78 22.82 23.92 22.92C23.15 23.5 22.35 23.88 21.52 24.2C21.94 25.2 22.47 26.05 23.04 26.85C25.49 26.15 27.89 25.02 30.36 23.2C30.99 17.12 29.44 11.89 25.92 7.28L25.0966 7.25Z" 
+                                                          Fill="White" Stretch="Uniform" Width="14" Height="14" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Discord" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
                                     
                                     <WrapPanel>
                                         <!-- Hotkey Items - Left Column -->

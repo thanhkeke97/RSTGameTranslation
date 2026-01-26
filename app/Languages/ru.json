@@ -473,5 +473,6 @@
   "NotificationMessage_ClipboardTranslated": "Текст переведён и скопирован в буфер обмена.",
   "NotificationTitle_ClipboardError": "Ошибка перевода буфера обмена",
   "NotificationMessage_ClipboardError": "Не удалось перевести текст в буфере обмена.",
-  "NotificationMessage_ClipboardTooLong": "Текст превышает максимально допустимую длину."
+  "NotificationMessage_ClipboardTooLong": "Текст превышает максимально допустимую длину.",
+  "Need_Help_Or_Support": "Нужна помощь или поддержка? Присоединяйтесь к нашему сообществу в Discord!"
 }

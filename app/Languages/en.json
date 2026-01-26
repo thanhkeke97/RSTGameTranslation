@@ -473,5 +473,6 @@
   "NotificationMessage_ClipboardTranslated": "Translation has been copied to clipboard.",
   "NotificationTitle_ClipboardError": "Clipboard Translation Error",
   "NotificationMessage_ClipboardError": "Failed to translate clipboard text.",
-  "NotificationMessage_ClipboardTooLong": "Text exceeds maximum character limit."
+  "NotificationMessage_ClipboardTooLong": "Text exceeds maximum character limit.",
+  "Need_Help_Or_Support": "Need help or support? Join our Discord community!"
 }

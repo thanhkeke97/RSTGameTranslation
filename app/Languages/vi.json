@@ -479,5 +479,6 @@
   "NotificationMessage_ClipboardTranslated": "Bản dịch đã được sao chép vào clipboard.",
   "NotificationTitle_ClipboardError": "Lỗi dịch Clipboard",
   "NotificationMessage_ClipboardError": "Không thể dịch văn bản clipboard.",
-  "NotificationMessage_ClipboardTooLong": "Văn bản vượt quá giới hạn ký tự tối đa."
+  "NotificationMessage_ClipboardTooLong": "Văn bản vượt quá giới hạn ký tự tối đa.",
+  "Need_Help_Or_Support": "Cần giúp đỡ hoặc hỗ trợ? Tham gia cộng đồng Discord của chúng tôi!"
 }

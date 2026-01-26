@@ -473,5 +473,6 @@
   "NotificationMessage_ClipboardTranslated": "翻訳結果がクリップボードにコピーされました。",
   "NotificationTitle_ClipboardError": "クリップボード翻訳エラー",
   "NotificationMessage_ClipboardError": "クリップボードテキストの翻訳に失敗しました。",
-  "NotificationMessage_ClipboardTooLong": "テキストが最大文字数を超えています。"
+  "NotificationMessage_ClipboardTooLong": "テキストが最大文字数を超えています。",
+  "Need_Help_Or_Support": "ヘルプやサポートが必要ですか？Discordコミュニティに参加しましょう！"
 }

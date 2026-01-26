@@ -601,7 +601,7 @@ namespace RSTGameTranslation
                         });
                         Console.WriteLine("Local Whisper Service started");
                         AudioStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
-                        AudioStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_On"];
+                        AudioStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                     }
                     catch (Exception ex)
                     {
@@ -613,7 +613,7 @@ namespace RSTGameTranslation
                     localWhisperService.Instance.Stop();
                     Console.WriteLine("Local Whisper Service stopped");
                     AudioStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                    AudioStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_Off"];
+                    AudioStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
             }
             catch (Exception ex)
@@ -934,18 +934,6 @@ namespace RSTGameTranslation
                     break;
                 }
             }
-            // status OCR
-            if(savedOcrMethod == "Windows OCR" || savedOcrMethod == "OneOCR")
-            {
-                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
-                OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_On"];
-            }
-            else
-            {
-                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-                OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_Off"];
-            }
-            // Initialize Audio Service button state and optionally start service
             bool audioEnabled = false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(audioEnabled);
             UpdateAudioServiceButtonUI(audioEnabled);
@@ -962,6 +950,18 @@ namespace RSTGameTranslation
 
             // Load language settings from config
             LoadLanguageSettingsFromConfig();
+
+            // status OCR
+            if(savedOcrMethod == "Windows OCR" || savedOcrMethod == "OneOCR")
+            {
+                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+                OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+            }
+            else
+            {
+                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+            }
 
             // Load auto-translate setting from config
             isAutoTranslateEnabled = ConfigManager.Instance.IsAutoTranslateEnabled();
@@ -1180,7 +1180,7 @@ namespace RSTGameTranslation
                 }
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStopped"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStopped_Details"]);
                 StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                StartStatusText.Text = ": " +LocalizationManager.Instance.Strings["Btn_Off"];
+                StartStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
             }
             else
             {
@@ -1194,7 +1194,7 @@ namespace RSTGameTranslation
                     btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
                     ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStarted"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStarted_Details"]);
                     StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
-                    StartStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_On"];
+                    StartStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                 }
                 else
                 {
@@ -1993,14 +1993,14 @@ namespace RSTGameTranslation
                         // Using Windows OCR, no need for socket connection
                         SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], ocrMethod));
                         OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                        OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_On"];
+                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                     }
                     else
                     {
                         // Using EasyOCR, RapidOCR or PaddleOCR, try to connect to the socket server
                         SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectingToServer"], ocrMethod));
                         OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-                        OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_Off"];
+                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
 
                         _ = OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
                         while (!OcrServerManager.Instance.serverStarted)
@@ -2198,7 +2198,7 @@ namespace RSTGameTranslation
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayHidden"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayHidden_Details"]);
                 OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-                OverlayStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_Off"];
+                OverlayStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
             }
             // else 
             // {
@@ -2255,7 +2255,7 @@ namespace RSTGameTranslation
                     Console.WriteLine("MonitorWindow setup complete");
                     ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayVisible"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayVisible_Details"]);
                     OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                    OverlayStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_On"];
+                    OverlayStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                 }
                 catch (Exception ex)
                 {
@@ -2809,13 +2809,13 @@ namespace RSTGameTranslation
                     // Update socket status
                     await SocketManager.Instance.TryReconnectAsync();
                     OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                    OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_On"];
+                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                 }
                 else
                 {
                     OcrServerManager.Instance.StopOcrServer();
                     OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-                    OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_Off"];
+                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
 
             }
@@ -2848,7 +2848,7 @@ namespace RSTGameTranslation
                     OcrServerManager.Instance.StopOcrServer();
                     SetStatus(LocalizationManager.Instance.Strings["Status_OcrServerStopped"]);
                     OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
-                    OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_Off"];
+                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
                 catch (Exception ex)
                 {
@@ -3217,6 +3217,18 @@ namespace RSTGameTranslation
             {
                 LocalizationManager.Instance.CurrentLanguage = languageCode;
                 ConfigManager.Instance.SetLanguageInterface(languageCode);
+                // status OCR
+                string savedOcrMethod = ConfigManager.Instance.GetOcrMethod();
+                if(savedOcrMethod == "Windows OCR" || savedOcrMethod == "OneOCR")
+                {
+                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+                }
+                else
+                {
+                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+                }
                 AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
             }
         }

@@ -474,5 +474,6 @@
   "NotificationMessage_ClipboardTranslated": "翻译结果已复制到剪贴板。",
   "NotificationTitle_ClipboardError": "剪贴板翻译错误",
   "NotificationMessage_ClipboardError": "翻译剪贴板文本失败。",
-  "NotificationMessage_ClipboardTooLong": "文本超过最大字符限制。"
+  "NotificationMessage_ClipboardTooLong": "文本超过最大字符限制。",
+  "Need_Help_Or_Support": "需要帮助或支持？加入我们的 Discord 社区！"
 }

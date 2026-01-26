@@ -473,5 +473,6 @@
   "NotificationMessage_ClipboardTranslated": "번역 결과가 클립보드에 복사되었습니다.",
   "NotificationTitle_ClipboardError": "클립보드 번역 오류",
   "NotificationMessage_ClipboardError": "클립보드 텍스트 번역에 실패했습니다.",
-  "NotificationMessage_ClipboardTooLong": "텍스트가 최대 문자 제한을 초과했습니다."
+  "NotificationMessage_ClipboardTooLong": "텍스트가 최대 문자 제한을 초과했습니다.",
+  "Need_Help_Or_Support": "도움이나 지원이 필요하신가요? Discord 커뮤니티에 참여하세요!"
 }

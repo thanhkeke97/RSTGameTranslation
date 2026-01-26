@@ -1476,13 +1476,13 @@ namespace RSTGameTranslation
                     {
                         ocrButtonsPanel.Visibility = Visibility.Collapsed;
                         MainWindow.Instance.OCRStatusEllipse.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(69, 176, 105)); // Green
-                        MainWindow.Instance.OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_On"];
+                        MainWindow.Instance.OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                     }
                     else
                     {
                         ocrButtonsPanel.Visibility = Visibility.Visible;
                         MainWindow.Instance.OCRStatusEllipse.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(176, 69, 69)); // Red
-                        MainWindow.Instance.OCRStatusText.Text = ": " + LocalizationManager.Instance.Strings["Btn_Off"];
+                        MainWindow.Instance.OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                     }
 
                 }
