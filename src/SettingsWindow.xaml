@@ -1363,6 +1363,7 @@
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area5]}" Tag="Area 5"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" Tag="Audio Service"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_SwapLanguages]}" Tag="Swap Languages"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}" Tag="Retry Translation"/>
                                 </ComboBox>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CombineKeys]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="combineKey1" Grid.Row="2" Grid.Column="1" Padding="5,3" Margin="0,8,10,10">
@@ -1590,6 +1591,16 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeySwapLanguages" Text="ALT + V" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyRetryTranslate" Text="ALT + T" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                             </StackPanel>
                                         </ScrollViewer>
