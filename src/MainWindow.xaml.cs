@@ -571,7 +571,7 @@ namespace RSTGameTranslation
             selectorWindow.Show();
 
             isSelectingTranslationArea = true;
-            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
         }
 
         // Toggle Audio Service (Start/Stop local Whisper) from main window button
@@ -835,7 +835,7 @@ namespace RSTGameTranslation
             if (!MonitorWindow.Instance.IsVisible)
             {
                 MonitorWindow.Instance.Show();
-                monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
             }
 
             Console.WriteLine($"The position of the MonitorWindow has been updated according to the selected area.: ({selectedTranslationArea.X}, {selectedTranslationArea.Y}, {selectedTranslationArea.Width}, {selectedTranslationArea.Height})");
@@ -959,7 +959,7 @@ namespace RSTGameTranslation
             }
             else
             {
-                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                 OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
             }
 
@@ -1999,7 +1999,7 @@ namespace RSTGameTranslation
                     {
                         // Using EasyOCR, RapidOCR or PaddleOCR, try to connect to the socket server
                         SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectingToServer"], ocrMethod));
-                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                         OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
 
                         _ = OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
@@ -2197,14 +2197,14 @@ namespace RSTGameTranslation
                 Console.WriteLine("Monitor window hidden from MainWindow toggle");
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayHidden"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayHidden_Details"]);
-                OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                 OverlayStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
             }
             // else 
             // {
             //     MonitorWindow.Instance.Show();
             //     Console.WriteLine("Monitor window shown from MainWindow toggle");
-            //     monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+            //     monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
             // }
             else
             {
@@ -2251,7 +2251,7 @@ namespace RSTGameTranslation
                     // Refresh overlays
                     MonitorWindow.Instance.RefreshOverlays();
 
-                    monitorButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                    monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                     Console.WriteLine("MonitorWindow setup complete");
                     ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayVisible"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayVisible_Details"]);
                     OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
@@ -2343,7 +2343,7 @@ namespace RSTGameTranslation
                 // Show existing ChatBox (reuse)
                 chatBoxWindow.Show();
                 isChatBoxVisible = true;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
             }
             else
             {
@@ -2377,7 +2377,7 @@ namespace RSTGameTranslation
 
                         // Set button to red while selector is active
                         isSelectingChatBoxArea = true;
-                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                     }
                     catch (Exception ex)
                     {
@@ -2402,7 +2402,7 @@ namespace RSTGameTranslation
 
                     // Set button to red while selector is active
                     isSelectingChatBoxArea = true;
-                    chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                    chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                 }
             }
         }
@@ -2487,7 +2487,7 @@ namespace RSTGameTranslation
             // Show the ChatBox
             chatBoxWindow.Show();
             isChatBoxVisible = true;
-            chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red when active
+            chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red when active
 
             // The ChatBox will get its data from MainWindow.GetTranslationHistory()
             // No need to manually load entries, just trigger an update
@@ -2814,7 +2814,7 @@ namespace RSTGameTranslation
                 else
                 {
                     OcrServerManager.Instance.StopOcrServer();
-                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                     OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
 
@@ -2847,7 +2847,7 @@ namespace RSTGameTranslation
                     // Stop OCR server
                     OcrServerManager.Instance.StopOcrServer();
                     SetStatus(LocalizationManager.Instance.Strings["Status_OcrServerStopped"]);
-                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                     OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
                 catch (Exception ex)
@@ -3226,7 +3226,7 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(176, 69, 69)); // Red
+                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                     OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
                 AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
