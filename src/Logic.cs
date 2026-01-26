@@ -302,6 +302,46 @@ namespace RSTGameTranslation
             _lastChangeTime = DateTime.Now;
         }
 
+        /// <summary>
+        /// Retry the current translation bypassing similarity checks.
+        /// Clears the last OCR hash/text and triggers translation for the current text objects.
+        /// </summary>
+        public void RetryCurrentTranslation()
+        {
+            // Ensure this runs on the UI thread
+            Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    if (_textObjects == null || _textObjects.Count == 0)
+                    {
+                        Console.WriteLine("No text objects available to retry translation.");
+                        return;
+                    }
+
+                    if (GetWaitingForTranslationToFinish())
+                    {
+                        Console.WriteLine("Translation already in progress; retry request ignored.");
+                        return;
+                    }
+
+                    Console.WriteLine("Retrying current translation (bypassing similarity checks).");
+
+                    // Clear the last-hash / last-text so similarity gating is bypassed
+                    _lastOcrHash = string.Empty;
+                    _lastTextContent = string.Empty;
+                    _lastChangeTime = DateTime.MinValue;
+
+                    // Start translation asynchronously
+                    _ = TranslateTextObjectsAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in RetryCurrentTranslation: {ex.Message}");
+                }
+            });
+        }
+
 
         // Process Google Translate JSON response
         private void ProcessGoogleTranslateJson(JsonElement rootElement)

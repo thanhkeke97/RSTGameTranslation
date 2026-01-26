@@ -63,6 +63,7 @@ namespace RSTGameTranslation
         public const string HOTKEY_AREA_5 = "hotkey_area_5";
         public const string HOTKEY_AUDIO_SERVICE = "hotkey_audio_service";
         public const string HOTKEY_SWAP_LANGUAGES = "hotkey_swap_languages";
+        public const string HOTKEY_RETRY_TRANSLATION = "hotkey_retry_translation";
 
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
@@ -837,7 +838,7 @@ namespace RSTGameTranslation
         }
 
         // Set WhisperThreadCount
-        public void SetWhisperThreadCount(string value)
+        public void SetWhisperThreadCount(String value)
         {
             if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int threadCount))
             {
@@ -1010,6 +1011,10 @@ namespace RSTGameTranslation
             {
                 _configValues[HOTKEY_SWAP_LANGUAGES] = hotKey;
             }
+            else if (functionName == "Retry Translation")
+            {
+                _configValues[HOTKEY_RETRY_TRANSLATION] = hotKey;
+            }
             SaveConfig();
             Console.WriteLine($"Saving {functionName} to hotkey {hotKey}");
         }
@@ -1080,6 +1085,10 @@ namespace RSTGameTranslation
             else if (functionName == "Swap Languages")
             {
                 return GetValue(HOTKEY_SWAP_LANGUAGES, "ALT+V");
+            }
+            else if (functionName == "Retry Translation")
+            {
+                return GetValue(HOTKEY_RETRY_TRANSLATION, "ALT+T");
             }
             return GetValue(HOTKEY_START_STOP, "ALT+G");
         }

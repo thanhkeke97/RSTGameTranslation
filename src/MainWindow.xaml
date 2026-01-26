@@ -435,6 +435,7 @@
 
                             <!-- HotKey Section -->
                             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                                <!--Future consideration: perhaps dynamically generate this rather than hardcode values.-->
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                         <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="#FF00AAFF" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -567,7 +568,13 @@
                                                     <TextBlock x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="White" FontSize="13"/>
                                                 </Border>
                                             </Grid>
-                                        </StackPanel>
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
+                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
+                                                    <TextBlock x:Name="hotKeyRetryTranslate" Text="ALT + T" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                                                </Border>
+                                            </Grid>
+                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
                             </Border>
