@@ -16,6 +16,8 @@
   "Btn_AudioService": "音声翻訳",
   "Btn_AudioService_On": "オン",
   "Btn_AudioService_Off": "オフ",
+  "Btn_On": "オン",
+  "Btn_Off": "オフ",
   "Btn_Log": "ログ",
   "Grp_System": "システム",
   "Btn_SetupOCR": "OCRセットアップ",

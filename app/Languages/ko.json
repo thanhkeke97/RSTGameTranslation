@@ -16,6 +16,8 @@
   "Btn_AudioService": "오디오 번역",
   "Btn_AudioService_On": "켜기",
   "Btn_AudioService_Off": "끄기",
+  "Btn_On": "켜기",
+  "Btn_Off": "끄기",
   "Btn_Log": "로그",
   "Grp_System": "시스템",
   "Btn_SetupOCR": "OCR 설정",

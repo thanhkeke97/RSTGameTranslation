@@ -7,54 +7,61 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Title]}"
-        Height="700" Width="1350"
+        Height="700" Width="1100"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
-        Background="#CC000000"
+        Background="Transparent"
         Topmost="False"
         Icon="/media/AppIcon.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome ResizeBorderThickness="15" CaptionHeight="10" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
       
-        <Window.Resources>
-        <SolidColorBrush x:Key="WindowBackground" Color="#181818"/>
-        <SolidColorBrush x:Key="CardBackground" Color="#252526"/>
-        <SolidColorBrush x:Key="PrimaryText" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="SecondaryText" Color="#AAAAAA"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="#3F3F46"/>
+    <Window.Resources>
+        <!-- Color Palette (light high-contrast) -->
+        <Color x:Key="BgColor">#F7FAFC</Color>
+        <Color x:Key="SurfaceColor">#FFFFFF</Color>
+        <Color x:Key="Surface2Color">#F3F8FD</Color>
+        <Color x:Key="Surface3Color">#EBF4FB</Color>
+        <Color x:Key="AccentColor">#0066CC</Color>
+        <Color x:Key="BorderColor">#E0ECF8</Color>
+        <Color x:Key="NeutralBgColor">#E6EEF3</Color>
+        
+        <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+        <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2Color}"/>
+        <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3Color}"/>
+        <SolidColorBrush x:Key="NeutralBgBrush" Color="{StaticResource NeutralBgColor}"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#0B2545"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#5B6B7A"/>
 
+        <!-- Modern Button Style -->
         <Style x:Key="ModernButton" TargetType="Button">
-            <Setter Property="Background" Value="#333333"/>
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="MinWidth" Value="80"/>
-            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Grid>
-                            <Border x:Name="border" 
-                                    Background="{TemplateBinding Background}" 
-                                    CornerRadius="6"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border x:Name="overlay" Background="White" CornerRadius="6" Opacity="0" IsHitTestVisible="False"/>
-                        </Grid>
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="overlay" Property="Opacity" Value="0.1"/>
-                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.85"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="overlay" Property="Opacity" Value="0.2"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.7"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="border" Property="Opacity" Value="0.5"/>
@@ -65,49 +72,205 @@
             </Setter>
         </Style>
 
-        <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-            <Setter Property="Padding" Value="16"/>
+        <!-- Tool Group Style -->
+        <Style x:Key="ToolGroupStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface2Brush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
-            <Setter Property="Effect">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+
+        <!-- Neutral button used for subtle actions (Clear / Show) -->
+        <Style x:Key="NeutralButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="{StaticResource NeutralBgBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="MinWidth" Value="70"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <DropShadowEffect Color="Black" Direction="270" ShadowDepth="2" BlurRadius="8" Opacity="0.2"/>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Surface2Brush}"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#22000000" BlurRadius="8" ShadowDepth="1" Opacity="0.15"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                                <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- Group Border Style -->
-        <Style x:Key="GroupBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="#0FFFFFFF"/> 
-            <Setter Property="BorderBrush" Value="#33FFFFFF"/> 
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="6,4"/>
-            <Setter Property="Margin" Value="0,0,12,0"/> 
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-
-        <!-- Group Label Style -->
-        <Style x:Key="GroupLabelStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#99FFFFFF"/> 
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,4,0,0"/>
+        <!-- Primary toolbar button (consistent size like Start/Stop) -->
+        <Style x:Key="ToolbarPrimaryButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
-        <!-- Close Button Style -->
-        <Style x:Key="CloseButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="MinWidth" Value="30"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E81123"/>
-                </Trigger>
-            </Style.Triggers>
+        <!-- Accent (solid) button style -->
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ToolbarPrimaryButton}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#330066CC" BlurRadius="12" ShadowDepth="2" Opacity="0.45"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.95"/>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Prominent gradient button: keep custom backgrounds but add drop shadow and consistent sizing -->
+        <Style x:Key="ProminentGradientButton" TargetType="Button" BasedOn="{StaticResource ToolbarPrimaryButton}">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#33000000" BlurRadius="14" ShadowDepth="2" Opacity="0.35"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.95"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tool Group Label Style -->
+        <Style x:Key="ToolGroupLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style> 
+
+        <!-- Card Style -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface2Brush}"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <!-- Status Badge Style -->
+        <Style x:Key="StatusBadge" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+
+        <!-- Hotkey Item Style -->
+        <Style x:Key="HotkeyItem" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+
+        <!-- Hotkey Key Style -->
+        <Style x:Key="HotkeyKey" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface3Brush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,3"/>
+        </Style>
+
+        <!-- Window Control Button Style -->
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Ellipse x:Name="circle" Fill="{TemplateBinding Background}"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="circle" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
     
@@ -128,546 +291,629 @@
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
-        <Border Name="MainBorder" BorderThickness="1" BorderBrush="#33FFFFFF" Background="#F2121212" CornerRadius="10">
-                <Border.Effect>
-                <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
-                </Border.Effect>
+
+        <!-- Main Window Frame -->
+        <Border Name="MainBorder" Background="{StaticResource SurfaceBrush}" CornerRadius="12" 
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="25" ShadowDepth="0" Opacity="0.6" Color="Black"/>
+            </Border.Effect>
+            
             <Grid>
-                <!-- Top control bar with dedicated resize area -->
-                <Grid Height="85" VerticalAlignment="Top">
-                    <!-- Top resize strip - 10px height -->
-                    <Border Height="10" VerticalAlignment="Top" Background="Transparent" Cursor="SizeNS"
-                           WindowChrome.IsHitTestVisibleInChrome="False"/>
-                    
-                    <!-- Actual header with content - shifted down by 10px -->
-                    <Border Name="HeaderBorder" Background="#1E1E1E" Margin="0,10,0,0" CornerRadius="10,10,0,0"
-                            MouseLeftButtonDown="Header_MouseLeftButtonDown"
-                            WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Grid>
-                        <TextBlock Text="Game Translation Tool" Visibility="Collapsed"
-                                  Foreground="White" FontWeight="Bold" FontSize="14"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Title Bar -->
+                    <RowDefinition Height="Auto"/> <!-- Toolbar -->
+                    <RowDefinition Height="*"/>    <!-- Content -->
+                    <RowDefinition Height="Auto"/> <!-- Footer -->
+                </Grid.RowDefinitions>
+
+                <!-- ========== TITLE BAR ========== -->
+                <Border Name="HeaderBorder" Grid.Row="0" Background="{StaticResource Surface2Brush}" 
+                        CornerRadius="12,12,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                        MouseLeftButtonDown="Header_MouseLeftButtonDown"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Grid Height="40" Margin="12,0">
+                        <!-- Left: Logo + Title -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Border Width="24" Height="24" CornerRadius="5" Margin="0,0,10,0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#00aaff" Offset="0"/>
+                                        <GradientStop Color="#00cc88" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Image Source="/media/AppIcon.ico" Width="16" Height="16" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="RST Game Translation" FontSize="13" FontWeight="SemiBold" 
+                                       Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
                         
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
-                                     Margin="10,0" VerticalAlignment="Center" 
-                                     WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">  
-                                <!-- === GROUP 1: MAIN FUNCTIONS === -->
-                                <Border Style="{StaticResource GroupBorderStyle}">
-                                    <StackPanel Orientation="Vertical">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button x:Name="toggleButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FF14B414" FontWeight="Bold" MinWidth="100"
-                                                    Click="OnStartButtonToggleClicked" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                            <!-- Audio Service Toggle Button -->
-                                            <Button x:Name="audioServiceButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" Style="{StaticResource ModernButton}"
-                                                Background="#FF5F5F5F"
-                                                Click="AudioServiceButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                            <!-- hidden controls -->
-                                            <Button x:Name="hideButton" Content="Hide" Visibility="Collapsed" Click="HideButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                            <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Visibility="Collapsed" SelectionChanged="SourceLanguageComboBox_SelectionChanged">
-                                                <ComboBoxItem Content="ja"/><ComboBoxItem Content="en"/><ComboBoxItem Content="ch_sim"/><ComboBoxItem Content="ch_tra"/><ComboBoxItem Content="ko"/><ComboBoxItem Content="vi"/><ComboBoxItem Content="fr"/><ComboBoxItem Content="ru"/><ComboBoxItem Content="de"/><ComboBoxItem Content="es"/><ComboBoxItem Content="it"/><ComboBoxItem Content="hi"/><ComboBoxItem Content="pt"/><ComboBoxItem Content="ar"/><ComboBoxItem Content="nl"/><ComboBoxItem Content="pl"/><ComboBoxItem Content="ro"/><ComboBoxItem Content="fa"/><ComboBoxItem Content="cs"/><ComboBoxItem Content="id"/><ComboBoxItem Content="th"/><ComboBoxItem Content="hr"/><ComboBoxItem Content="tr"/><ComboBoxItem Content="si"/><ComboBoxItem Content="da"/><ComboBoxItem Content="uk"/><ComboBoxItem Content="fi"/>
-                                            </ComboBox>
-                                            <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Visibility="Collapsed" SelectionChanged="TargetLanguageComboBox_SelectionChanged">
-                                                <ComboBoxItem Content="ja"/><ComboBoxItem Content="en"/><ComboBoxItem Content="ch_sim"/><ComboBoxItem Content="ch_tra"/><ComboBoxItem Content="ko"/><ComboBoxItem Content="vi"/><ComboBoxItem Content="fr"/><ComboBoxItem Content="ru"/><ComboBoxItem Content="de"/><ComboBoxItem Content="es"/><ComboBoxItem Content="it"/><ComboBoxItem Content="hi"/><ComboBoxItem Content="pt"/><ComboBoxItem Content="ar"/><ComboBoxItem Content="nl"/><ComboBoxItem Content="pl"/><ComboBoxItem Content="ro"/><ComboBoxItem Content="fa"/><ComboBoxItem Content="cs"/><ComboBoxItem Content="id"/><ComboBoxItem Content="th"/><ComboBoxItem Content="hr"/><ComboBoxItem Content="tr"/><ComboBoxItem Content="si"/><ComboBoxItem Content="da"/><ComboBoxItem Content="uk"/><ComboBoxItem Content="fi"/>
-                                            </ComboBox>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Control]}" Style="{StaticResource GroupLabelStyle}"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- === GROUP 2: ZONE ACTIONS === -->
-                                <Border Style="{StaticResource GroupBorderStyle}">
-                                    <StackPanel Orientation="Vertical">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button x:Name="selectAreaButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectArea]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FFB07D45"
-                                                    Click="SelectAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-
-                                            <Button x:Name="selectWindowButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectWindow]}" Style="{StaticResource ModernButton}"
-                                                    Background="#456BA0"
-                                                    Click="SelectWindowButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-
-                                            <Button x:Name="btnClearSelectionArea" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Clear]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FF5F5F5F" MinWidth="60"
-                                                    Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-
-                                            <Button x:Name="showAreaButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Show]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FF5F5F5F" MinWidth="60"
-                                                    Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_CaptureArea]}" Style="{StaticResource GroupLabelStyle}"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- === GROUP 3: DISPLAY MODE === -->
-                                <Border Style="{StaticResource GroupBorderStyle}">
-                                    <StackPanel Orientation="Vertical">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button x:Name="monitorButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FF4569B0"
-                                                    Click="MonitorButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                                    
-                                            <Button x:Name="chatBoxButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ChatBox]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FF45B069"
-                                                    Click="ChatBoxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_DisplayResults]}" Style="{StaticResource GroupLabelStyle}"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- === GROUP 4: SYSTEM === -->
-                                <Border Style="{StaticResource GroupBorderStyle}">
-                                    <StackPanel Orientation="Vertical">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button x:Name="settingsButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Settings]}" Style="{StaticResource ModernButton}"
-                                                    Background="#6C757D"
-                                                    Click="SettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                                    
-                                            <Button x:Name="logButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Log]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FF9945B0"
-                                                    Click="LogButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_System]}" Style="{StaticResource GroupLabelStyle}"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- === GROUP 5: OCR SERVER === -->
-                                <Border x:Name="OcrServerBorder" Style="{StaticResource GroupBorderStyle}" Margin="0" Visibility="Collapsed">
-                                    <StackPanel x:Name="OcrServerPanel" Orientation="Vertical" Visibility="Collapsed">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                <!-- Setup OCR button moved to Settings window -->
-                                                    
-                                            <Button x:Name="btnStartOcrServer" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StartOCR]}" Style="{StaticResource ModernButton}"
-                                                    Background="#FF4577B0" 
-                                                    Click="btnStartOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                                    
-                                            <Button x:Name="btnStopOcrServer" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StopOCR]}" Style="{StaticResource ModernButton}"
-                                                    Background="#DC3545"
-                                                    Click="btnStopOcrServer_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCREngine]}" Style="{StaticResource GroupLabelStyle}"/>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </ScrollViewer>
-                        
-                        <!-- Window Control Buttons -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">           
-                        <!-- Discord Button -->
-                        <Button x:Name="discordButton" 
-                                Width="30" Height="30" Background="Transparent" Foreground="#7289DA"
-                                BorderThickness="0" Margin="0,0,5,0"
-                                Click="DiscordButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Button.Content>
-                                <!-- Discord Logo (using Path data) -->
-                                <Path Data="M25.0966 7.24999C23.2967 6.42999 21.3717 5.83749 19.3717 5.49999C19.3392 5.49749 19.3067 5.51249 19.2917 5.54249C19.0517 5.99749 18.7867 6.58499 18.6017 7.04749C16.4568 6.73499 14.3192 6.73499 12.2217 7.04749C12.0367 6.57749 11.7642 5.99749 11.5217 5.54249C11.5067 5.51499 11.4742 5.49999 11.4417 5.49999C9.44174 5.83749 7.51674 6.42999 5.71674 7.24999C5.70424 7.25499 5.69424 7.26499 5.68674 7.27749C2.10174 12.6725 1.10924 17.94 1.60674 23.1475C1.60924 23.17 1.62174 23.1925 1.63924 23.205C4.11674 25.0175 6.51174 26.145 8.86674 26.875C8.89924 26.885 8.93424 26.875 8.95174 26.8475C9.53674 26.0475 10.0617 25.2025 10.5167 24.3125C10.5392 24.27 10.5192 24.22 10.4767 24.205C9.64174 23.8825 8.84674 23.4975 8.08174 23.06C8.03424 23.03 8.03174 22.9575 8.07674 22.9225C8.21174 22.82 8.34674 22.7125 8.47674 22.605C8.49674 22.5875 8.52674 22.585 8.55174 22.5975C13.4017 24.8225 18.6467 24.8225 23.4367 22.5975C23.4617 22.585 23.4917 22.5875 23.5142 22.605C23.6442 22.7125 23.7792 22.82 23.9167 22.9225C23.9617 22.9575 23.9617 23.03 23.9142 23.06C23.1492 23.505 22.3542 23.8825 21.5167 24.2025C21.4742 24.2175 21.4567 24.27 21.4792 24.3125C21.9417 25.2025 22.4667 26.0475 23.0442 26.8475C23.0592 26.875 23.0967 26.885 23.1292 26.875C25.4917 26.145 27.8867 25.0175 30.3642 23.205C30.3842 23.1925 30.3942 23.1725 30.3967 23.15C30.9967 17.115 29.4367 11.8875 25.9167 7.27999C25.9117 7.26499 25.9017 7.25499 25.0966 7.24999ZM11.2142 19.6025C9.73674 19.6025 8.52174 18.2425 8.52174 16.5775C8.52174 14.9125 9.71174 13.5525 11.2142 13.5525C12.7292 13.5525 13.9317 14.9275 13.9142 16.5775C13.9142 18.2425 12.7167 19.6025 11.2142 19.6025ZM19.8142 19.6025C18.3367 19.6025 17.1217 18.2425 17.1217 16.5775C17.1217 14.9125 18.3117 13.5525 19.8142 13.5525C21.3292 13.5525 22.5317 14.9275 22.5142 16.5775C22.5142 18.2425 21.3292 19.6025 19.8142 19.6025Z" 
-                                Fill="#7289DA" Stretch="Uniform"/>
-                        </Button.Content>
-                        <Button.Style>
-                                <Style TargetType="Button">
-                                <Setter Property="Template">
-                                        <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}" BorderThickness="0">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="#44FFFFFF"/>
-                                                </Trigger>
-                                                </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                        </Setter.Value>
-                                </Setter>
-                                </Style>
-                        </Button.Style>
-                        </Button>
-                        <Button x:Name="minimizeButton" Content="&#xE949;" FontFamily="Segoe MDL2 Assets"
-                                Width="30" Height="30" Margin="0,0,5,0" Background="Transparent" Foreground="White"
-                                BorderThickness="0" 
-                                Click="MinimizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                <Button.Style>
-                                <Style TargetType="Button">
-                                        <Setter Property="Template">
-                                        <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}" BorderThickness="0">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="#44FFFFFF"/>
-                                                        </Trigger>
-                                                </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                        </Setter.Value>
-                                        </Setter>
-                                </Style>
-                                </Button.Style>
-                        </Button>
-                        
-                        <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" 
-                                Width="30" Height="30" Background="Transparent" Foreground="White"
-                                BorderThickness="0"
-                                Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                <Button.Style>
-                                <Style TargetType="Button">
-                                        <Setter Property="Template">
-                                        <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}" BorderThickness="0">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="#FFE81123"/>
-                                                        </Trigger>
-                                                </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                        </Setter.Value>
-                                        </Setter>
-                                </Style>
-                                </Button.Style>
-                        </Button>
+                        <!-- Right: Window Controls -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button x:Name="minimizeButton" Style="{StaticResource WindowControlButton}"
+                                    Background="#ffbd2e" Click="MinimizeButton_Click" 
+                                    WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize"/>
+                            <Button Style="{StaticResource WindowControlButton}" Background="#ff5f57" 
+                                    Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
+                                    ToolTip="Close"/>
                         </StackPanel>
                     </Grid>
                 </Border>
-                </Grid>
-                
-                <!-- UI elements to hide during capture - HIDDEN DURING SCREENSHOT -->
-                <Grid Name="OverlayContent" Margin="0,70,0,50">
-                <!-- Main content area -->
-                <Border Background="#22FFFFFF" CornerRadius="6" Margin="10">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="10">
-                                                <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/> <!-- Header -->
-                                <RowDefinition Height="Auto"/> <!-- Donate -->
-                                <RowDefinition Height="Auto"/> <!-- HotKey -->
-                                <RowDefinition Height="Auto"/> <!-- Dev Info -->
-                            </Grid.RowDefinitions>
-                            
-                            <!-- Header Section -->
-                            <Border Grid.Row="0" Style="{StaticResource CardStyle}">
-                                <Grid Margin="15">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/> <!-- Discord -->
-                                        <ColumnDefinition Width="Auto"/> <!-- Quick Start -->
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <!-- Logo -->
-                                    <Border Grid.Column="0" Width="64" Height="64" CornerRadius="8">
-                                        <Image Source="/media/AppIcon.ico" Width="48" Height="48" 
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    
-                                    <!-- App Title and Version -->
-                                    <StackPanel Grid.Column="1" Margin="15,0,15,0" VerticalAlignment="Center">
-                                        <TextBlock Text="RSTGameTranslation" FontSize="28" 
-                                                FontWeight="Bold" Foreground="#FF00AAFF"/>
-                                        <TextBlock Name="AppVersion" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Version]}" Foreground="#AAFFFFFF" FontSize="12" Margin="0,5,0,0"/>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Description]}" Foreground="White" 
-                                                FontSize="14" Margin="0,5,0,0" FontStyle="Italic"/>
-                                        
-                                        <!-- Note-->
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_UpdateNote]}" 
-                                                   Foreground="#FFCC00" FontSize="12" Margin="0,8,0,0" 
-                                                   TextWrapping="Wrap" FontWeight="SemiBold"/>
-                                    </StackPanel>
-
-                                    <!-- Discord Button -->
-                                    <Button x:Name="joinDiscordBtn" Grid.Column="2" 
-                                            Style="{StaticResource ModernButton}"
-                                            Height="40" Margin="10,0,0,0" Background="#5865F2"
-                                            Click="DiscordButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <StackPanel Orientation="Horizontal" Margin="10,0">
-                                            <Path Data="M25.0966 7.24999C23.2967 6.42999 21.3717 5.83749 19.3717 5.49999C19.3392 5.49749 19.3067 5.51249 19.2917 5.54249C19.0517 5.99749 18.7867 6.58499 18.6017 7.04749C16.4568 6.73499 14.3192 6.73499 12.2217 7.04749C12.0367 6.57749 11.7642 5.99749 11.5217 5.54249C11.5067 5.51499 11.4742 5.49999 11.4417 5.49999C9.44174 5.83749 7.51674 6.42999 5.71674 7.24999C5.70424 7.25499 5.69424 7.26499 5.68674 7.27749C2.10174 12.6725 1.10924 17.94 1.60674 23.1475C1.60924 23.17 1.62174 23.1925 1.63924 23.205C4.11674 25.0175 6.51174 26.145 8.86674 26.875C8.89924 26.885 8.93424 26.875 8.95174 26.8475C9.53674 26.0475 10.0617 25.2025 10.5167 24.3125C10.5392 24.27 10.5192 24.22 10.4767 24.205C9.64174 23.8825 8.84674 23.4975 8.08174 23.06C8.03424 23.03 8.03174 22.9575 8.07674 22.9225C8.21174 22.82 8.34674 22.7125 8.47674 22.605C8.49674 22.5875 8.52674 22.585 8.55174 22.5975C13.4017 24.8225 18.6467 24.8225 23.4367 22.5975C23.4617 22.585 23.4917 22.5875 23.5142 22.605C23.6442 22.7125 23.7792 22.82 23.9167 22.9225C23.9617 22.9575 23.9617 23.03 23.9142 23.06C23.1492 23.505 22.3542 23.8825 21.5167 24.2025C21.4742 24.2175 21.4567 24.27 21.4792 24.3125C21.9417 25.2025 22.4667 26.0475 23.0442 26.8475C23.0592 26.875 23.0967 26.885 23.1292 26.875C25.4917 26.145 27.8867 25.0175 30.3642 23.205C30.3842 23.1925 30.3942 23.1725 30.3967 23.15C30.9967 17.115 29.4367 11.8875 25.9167 7.27999C25.9117 7.26499 25.9017 7.25499 25.0966 7.24999ZM11.2142 19.6025C9.73674 19.6025 8.52174 18.2425 8.52174 16.5775C8.52174 14.9125 9.71174 13.5525 11.2142 13.5525C12.7292 13.5525 13.9317 14.9275 13.9142 16.5775C13.9142 18.2425 12.7167 19.6025 11.2142 19.6025ZM19.8142 19.6025C18.3367 19.6025 17.1217 18.2425 17.1217 16.5775C17.1217 14.9125 18.3117 13.5525 19.8142 13.5525C21.3292 13.5525 22.5317 14.9275 22.5142 16.5775C22.5142 18.2425 21.3292 19.6025 19.8142 19.6025Z" 
-                                                  Fill="White" Stretch="Uniform" Width="20" Height="20" Margin="0,0,8,0"/>
-                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_JoinDiscord]}" FontWeight="Bold" FontSize="13" 
-                                                       VerticalAlignment="Center" Foreground="White"/>
-                                        </StackPanel>
+                <!-- ========== TOOLBAR ========== -->
+                <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" 
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                    <WrapPanel Margin="12,10" Orientation="Horizontal">
+                        
+                        <!-- GROUP: Control -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="toggleButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}"
+                                            Background="#22c55e" Click="OnStartButtonToggleClicked" 
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="▶ " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
                                     </Button>
-
-                                    <!-- Quick Start Button -->
-                                    <Button x:Name="quickStart" Grid.Column="3" 
-                                            Style="{StaticResource ModernButton}"
-                                            Height="40" Margin="10,0,0,0"
-                                            Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                        
-                                        <Button.Background>
-                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                <GradientStop Color="#FF9900" Offset="0"/>
-                                                <GradientStop Color="#FF5500" Offset="1"/>
-                                            </LinearGradientBrush>
-                                        </Button.Background>
-                                        
-                                        <Button.Effect>
-                                            <DropShadowEffect Color="#FF5500" BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
-                                        </Button.Effect>
-                                        <StackPanel Orientation="Horizontal" Margin="10,0">
-                                            <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" 
-                                                       FontSize="16" VerticalAlignment="Center" Margin="0,1,8,0" Foreground="White"/>
-                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_QuickStart]}" FontWeight="Bold" FontSize="13" 
-                                                       VerticalAlignment="Center" Foreground="White"/>
-                                        </StackPanel>
-                                    </Button>
-                                </Grid>
-                            </Border>
-
-                            <!-- Donate Section -->
-                            <Border Grid.Row="1" Style="{StaticResource CardStyle}">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10" >
-                                    <StackPanel Orientation="Vertical" Width="Auto" Margin="0,0,10,0">
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SupportAuthor]}" Foreground="#FF00AAFF" FontWeight="Bold" FontSize="14"/>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_SupportAuthor]}" TextWrapping="Wrap" Foreground="White" FontSize="12" Width="420"/>
-                                    </StackPanel>
-                                    <Button x:Name="donateButton" Click="DonateButton_Click" Height="36" Background="#FFD9A200" Foreground="#1F1F1F" BorderThickness="0" Padding="12,4" MinWidth="150" VerticalAlignment="Center" FontWeight="Bold">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="☕" FontSize="16" Margin="0,0,8,0"/>
-                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SupportBuyMeACoffee]}" FontSize="13" VerticalAlignment="Center"/>
-                                        </StackPanel>
+                                    <Button x:Name="audioServiceButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"
+                                            Background="#6366f1" Click="AudioServiceButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🎤 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
                                     </Button>
                                 </StackPanel>
-                            </Border>
-
-                            <!-- HotKey Section -->
-                            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
-                                <!--Future consideration: perhaps dynamically generate this rather than hardcode values.-->
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                        <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="#FF00AAFF" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GlobalHotKeys]}" Foreground="#FF00AAFF" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="20"/> 
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- Left Column: Main Features -->
-                                        <StackPanel Grid.Column="0">
-                                            <!-- Start/Stop -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartStopTranslation]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyStartStop" Text="ALT + G" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Select Area -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeySelectArea" Text="ALT + Q" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Overlay -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleOverlay]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyOverlay" Text="ALT + F" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- ChatBox -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Show Area -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowAreaBorder]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Audio -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyAudio" Text="ALT + K" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Settings -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeySetting" Text="ALT + P" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Log -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleLog]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Swap Languages -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeySwapLanguages" Text="ALT + V" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                        </StackPanel>
-
-                                        <!-- Right Column: Secondary Features & Areas -->
-                                        <StackPanel Grid.Column="2">
-                                            <!-- Clear All Areas -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearAllAreas]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyClearAreas" Text="ALT + R" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Clear Last Area -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearSelectedArea]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            
-                                            <!-- Area 1 -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea1]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyArea1" Text="ALT + 1" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Area 2 -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea2]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyArea2" Text="ALT + 2" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Area 3 -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea3]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyArea3" Text="ALT + 3" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Area 4 -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea4]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyArea4" Text="ALT + 4" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <!-- Area 5 -->
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea5]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                            <Grid Margin="0,0,0,12">
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}" VerticalAlignment="Center" Foreground="#DDFFFFFF" FontSize="14"/>
-                                                <Border HorizontalAlignment="Right" Background="#33FFFFFF" CornerRadius="6" Padding="10,4" BorderBrush="#55FFFFFF" BorderThickness="1">
-                                                    <TextBlock x:Name="hotKeyRetryTranslate" Text="ALT + T" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                </Border>
-                                            </Grid>
-                                         </StackPanel>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Copyright & Developer Information Section -->
-                            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_DeveloperInfo]}" Foreground="#FF00AAFF" FontSize="16" 
-                                            FontWeight="Bold" Margin="0,0,0,10"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
-                                    <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_DevelopedBy], Mode=OneWay}" FontWeight="Bold"/>
-                                    <Run Text="thanhkeke97"/>
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
-                                    <Run Text="GitHub:" FontWeight="Bold"/>
-                                    <Hyperlink NavigateUri="https://github.com/thanhkeke97" RequestNavigate="TutorialLink_RequestNavigate">
-                                            <Run Text="https://github.com/thanhkeke97"/>
-                                    </Hyperlink>
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Foreground="White" Margin="0,0,0,5">
-                                    <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Copyright], Mode=OneWay}"/>
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Foreground="#BBFFFFFF" FontStyle="Italic" Margin="0,5,0,0" FontSize="11">
-                                    <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_Disclaimer], Mode=OneWay}"/>
-                                    </TextBlock>
-
-
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                        </ScrollViewer>
-                </Border>
-                </Grid>
-                
-                <!-- Bottom footer bar with shortcut information -->
-                <Grid Height="40" VerticalAlignment="Bottom">
-                <!-- Bottom resize strip - 10px height -->
-                <Border Height="10" VerticalAlignment="Bottom" Background="Transparent" Cursor="SizeNS"
-                        WindowChrome.IsHitTestVisibleInChrome="False"/>
-                
-                <!-- Actual footer with content - shifted up by 10px -->
-                <Border Name="FooterBorder" Background="#1E1E1E" Margin="0,0,0,10" CornerRadius="0,0,10,10"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Grid>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <!-- Language Selector -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Language_Interface], Mode=OneWay}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
-                                        Margin="10,0,0,0" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="languageSelector" Width="100" Height="25" Padding="6,3" Margin="5,0"
-                                        VerticalAlignment="Center"
-                                        SelectionChanged="LanguageSelector_SelectionChanged">
-                                    <ComboBoxItem Content="English" Tag="en"/>
-                                    <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
-                                    <ComboBoxItem Content="中文" Tag="zh_cn"/>
-                                    <ComboBoxItem Content="日本語" Tag="ja"/>
-                                    <ComboBoxItem Content="한국어" Tag="ko"/>
-                                    <ComboBoxItem Content="Русский" Tag="ru"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Control]}" 
+                                           Style="{StaticResource ToolGroupLabel}"/>
+                                <!-- Hidden controls -->
+                                <Button x:Name="hideButton" Content="Hide" Visibility="Collapsed" Click="HideButton_Click"/>
+                                <ComboBox x:Name="sourceLanguageComboBox" Width="0" Height="0" Visibility="Collapsed" SelectionChanged="SourceLanguageComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="ja"/><ComboBoxItem Content="en"/><ComboBoxItem Content="ch_sim"/><ComboBoxItem Content="ch_tra"/><ComboBoxItem Content="ko"/><ComboBoxItem Content="vi"/><ComboBoxItem Content="fr"/><ComboBoxItem Content="ru"/><ComboBoxItem Content="de"/><ComboBoxItem Content="es"/><ComboBoxItem Content="it"/><ComboBoxItem Content="hi"/><ComboBoxItem Content="pt"/><ComboBoxItem Content="ar"/><ComboBoxItem Content="nl"/><ComboBoxItem Content="pl"/><ComboBoxItem Content="ro"/><ComboBoxItem Content="fa"/><ComboBoxItem Content="cs"/><ComboBoxItem Content="id"/><ComboBoxItem Content="th"/><ComboBoxItem Content="hr"/><ComboBoxItem Content="tr"/><ComboBoxItem Content="si"/><ComboBoxItem Content="da"/><ComboBoxItem Content="uk"/><ComboBoxItem Content="fi"/>
                                 </ComboBox>
-                            
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Author], Mode=OneWay}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
-                                        Margin="10,0,0,0" VerticalAlignment="Center"/>
-                                
-                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="Thanh Pham" Foreground="White"/>
-                                </Border>
+                                <ComboBox x:Name="targetLanguageComboBox" Width="0" Height="0" Visibility="Collapsed" SelectionChanged="TargetLanguageComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="ja"/><ComboBoxItem Content="en"/><ComboBoxItem Content="ch_sim"/><ComboBoxItem Content="ch_tra"/><ComboBoxItem Content="ko"/><ComboBoxItem Content="vi"/><ComboBoxItem Content="fr"/><ComboBoxItem Content="ru"/><ComboBoxItem Content="de"/><ComboBoxItem Content="es"/><ComboBoxItem Content="it"/><ComboBoxItem Content="hi"/><ComboBoxItem Content="pt"/><ComboBoxItem Content="ar"/><ComboBoxItem Content="nl"/><ComboBoxItem Content="pl"/><ComboBoxItem Content="ro"/><ComboBoxItem Content="fa"/><ComboBoxItem Content="cs"/><ComboBoxItem Content="id"/><ComboBoxItem Content="th"/><ComboBoxItem Content="hr"/><ComboBoxItem Content="tr"/><ComboBoxItem Content="si"/><ComboBoxItem Content="da"/><ComboBoxItem Content="uk"/><ComboBoxItem Content="fi"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
 
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Email], Mode=OneWay}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
-                                        Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        <!-- GROUP: Capture Area -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="selectAreaButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectArea]}"
+                                            Background="#f59e0b" Foreground="Black" Click="SelectAreaButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="⬚ " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <Button x:Name="selectWindowButton" Style="{StaticResource AccentButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectWindow]}"
+                                            Click="SelectWindowButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🖼 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                            <Button x:Name="btnClearSelectionArea" Style="{StaticResource NeutralButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Clear]}"
+                                            Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="✖ " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                            <Button x:Name="showAreaButton" Style="{StaticResource NeutralButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Show]}"
+                                            Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="👁 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_CaptureArea]}" 
+                                           Style="{StaticResource ToolGroupLabel}"/>
+                            </StackPanel>
+                        </Border>
 
-                                <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="thanhct1507@gmail.com" Foreground="White"/>
-                                </Border>
+                        <!-- GROUP: Display -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="monitorButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}"
+                                            Background="#8b5cf6" Click="MonitorButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="📺 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <Button x:Name="chatBoxButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ChatBox]}"
+                                            Background="#10b981" Click="ChatBoxButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="💬 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_DisplayResults]}" 
+                                           Style="{StaticResource ToolGroupLabel}"/>
+                            </StackPanel>
+                        </Border>
 
-                                <!-- <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Website], Mode=OneWay}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Left"
-                                        Margin="10,0,0,0" VerticalAlignment="Center"/> -->
+                        <!-- GROUP: System -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="settingsButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Settings]}"
+                                            Background="#64748b" Click="SettingsButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="⚙ " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <Button x:Name="logButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Log]}"
+                                            Background="#a855f7" Click="LogButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="📋 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_System]}" 
+                                           Style="{StaticResource ToolGroupLabel}"/>
+                            </StackPanel>
+                        </Border>
 
-                                <!-- <Border Background="#22FFFFFF" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="6,3" Margin="5,0" CornerRadius="3">
-                                        <TextBlock Text="https://thanhkeke97.github.io/RSTGameTranslation" Foreground="White"/>
-                                </Border> -->
+                        <!-- GROUP: OCR Server -->
+                        <Border x:Name="OcrServerBorder" Style="{StaticResource ToolGroupStyle}" Visibility="Collapsed">
+                            <StackPanel x:Name="OcrServerPanel" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="btnStartOcrServer" Style="{StaticResource AccentButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StartOCR]}"
+                                            Click="btnStartOcrServer_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="▶ " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <Button x:Name="btnStopOcrServer" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StopOCR]}"
+                                            Background="#dc2626" Click="btnStopOcrServer_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="■ " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCREngine]}" 
+                                           Style="{StaticResource ToolGroupLabel}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Spacer -->
+                        <Border Width="Auto" HorizontalAlignment="Stretch"/>
+
+                        <!-- Right side: Quick Actions + Discord -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
+                            <!-- <Button x:Name="donateButton" Style="{StaticResource ProminentGradientButton}"
+                                    Click="DonateButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                <Button.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#fbbf24" Offset="0"/>
+                                        <GradientStop Color="#f59e0b" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="☕ " FontSize="12"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SupportBuyMeACoffee]}" Foreground="Black" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button> -->
+                            <Button x:Name="quickStart" Style="{StaticResource ProminentGradientButton}"
+                                    Click="QuickStartButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                <Button.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#f97316" Offset="0"/>
+                                        <GradientStop Color="#ea580c" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚡ " FontSize="12"/>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_QuickStart]}" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="discordButton" Style="{StaticResource ProminentGradientButton}"
+                                    Background="#5865f2" Click="DiscordButton_Click"
+                                    WindowChrome.IsHitTestVisibleInChrome="True">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M25.0966 7.25C23.2967 6.43 21.3717 5.84 19.3717 5.5C19.0517 6 18.7867 6.58 18.6017 7.05C16.4568 6.73 14.3192 6.73 12.2217 7.05C12.0367 6.58 11.7642 6 11.5217 5.54C9.44 5.84 7.52 6.43 5.72 7.25C2.1 12.67 1.11 17.94 1.61 23.15C4.12 25.02 6.51 26.15 8.87 26.88C9.54 26.05 10.06 25.2 10.52 24.31C9.64 23.88 8.85 23.5 8.08 23.06C8.21 22.82 8.35 22.71 8.48 22.6C13.4 24.82 18.65 24.82 23.44 22.6C23.64 22.71 23.78 22.82 23.92 22.92C23.15 23.5 22.35 23.88 21.52 24.2C21.94 25.2 22.47 26.05 23.04 26.85C25.49 26.15 27.89 25.02 30.36 23.2C30.99 17.12 29.44 11.89 25.92 7.28L25.0966 7.25Z" 
+                                          Fill="White" Stretch="Uniform" Width="14" Height="14" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Discord" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
-                        </Grid>
+                    </WrapPanel>
                 </Border>
-                </Grid>
-
-                <!-- Resize grip indicator -->
-                <Path Data="M 0,10 L 10,0 M 0,5 L 5,0 M 0,0 L 0,0" Stroke="#AAFFFFFF" StrokeThickness="1"
-                      Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                      Margin="0,0,5,15" Stretch="Fill"/>
                 
-                <!-- Subtle border indicator -->
-                <Border BorderBrush="#3FFFFFFF" BorderThickness="1" Background="Transparent" 
-                        CornerRadius="6" IsHitTestVisible="False"/>
+                <!-- ========== MAIN CONTENT ========== -->
+                <Grid Name="OverlayContent" Grid.Row="2">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="16">
+                        <StackPanel>
+                            <!-- Status Badges Row -->
+                            <WrapPanel Margin="0,0,0,16">
+                                <Border Style="{StaticResource StatusBadge}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse x:Name="StartStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}" 
+                                                   Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="StartStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource StatusBadge}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse x:Name="AudioStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" 
+                                                   Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="AudioStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource StatusBadge}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse x:Name="OCRStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StartOCR]}" 
+                                                   Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="OCRStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource StatusBadge}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse x:Name="OverlayStatusEllipse" Width="8" Height="8" Fill="#ef4444" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}" 
+                                                   Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="OverlayStatusText" Text=": Off" Foreground="{StaticResource TextBrush}" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+                            </WrapPanel>
+
+                            <!-- Hotkeys Card -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                        <Border Width="4" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GlobalHotKeys]}" 
+                                                   Foreground="{StaticResource AccentBrush}" FontSize="14" FontWeight="Bold"/>
+                                    </StackPanel>
+                                    
+                                    <WrapPanel>
+                                        <!-- Hotkey Items - Left Column -->
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartStopTranslation]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyStartStop" Text="ALT + G" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeySelectArea" Text="ALT + Q" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleOverlay]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyOverlay" Text="ALT + F" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyChatBox" Text="ALT + C" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowAreaBorder]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyShowArea" Text="ALT + B" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyAudio" Text="ALT + K" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeySetting" Text="ALT + P" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleLog]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyLog" Text="ALT + L" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeySwapLanguages" Text="ALT + V" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearAllAreas]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyClearAreas" Text="ALT + R" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearSelectedArea]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyRetryTranslate" Text="ALT + T" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <!-- Area hotkeys -->
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea1]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyArea1" Text="ALT + 1" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea2]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyArea2" Text="ALT + 2" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea3]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyArea3" Text="ALT + 3" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea4]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyArea4" Text="ALT + 4" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea5]}" 
+                                                           Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyArea5" Text="ALT + 5" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Info Section -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- About Box -->
+                                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                            <Border Width="4" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_DeveloperInfo]}" 
+                                                       Foreground="{StaticResource AccentBrush}" FontSize="14" FontWeight="Bold"/>
+                                        </StackPanel>
+                                        <TextBlock Text="RSTGameTranslation" FontSize="16" FontWeight="Bold" 
+                                                   Foreground="{StaticResource TextBrush}" Margin="0,0,0,4"/>
+                                        <TextBlock x:Name="AppVersion" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Version]}" 
+                                                   Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,0,0,8"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Description]}" 
+                                                   Foreground="{StaticResource TextBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                        <TextBlock Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,0,0,4">
+                                            <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_DevelopedBy], Mode=OneWay}"/>
+                                            <Run Text=" thanhkeke97" Foreground="{StaticResource TextBrush}" FontWeight="SemiBold"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="12" Margin="0,0,0,4">
+                                            <Run Text="GitHub: " Foreground="{StaticResource MutedBrush}"/>
+                                            <Hyperlink NavigateUri="https://github.com/thanhkeke97" RequestNavigate="TutorialLink_RequestNavigate" Foreground="{StaticResource AccentBrush}">
+                                                github.com/thanhkeke97
+                                            </Hyperlink>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Copyright], Mode=OneWay}" 
+                                                   Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Support Box -->
+                                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                            <Border Width="4" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SupportAuthor]}" 
+                                                       Foreground="{StaticResource AccentBrush}" FontSize="14" FontWeight="Bold"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_SupportAuthor]}" 
+                                                   Foreground="{StaticResource TextBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                        <!-- Donate Button -->
+                                        <Button x:Name="donateBtn" Style="{StaticResource ModernButton}"
+                                                Background="#fbbf24" Margin="0,0,0,8" HorizontalAlignment="Left"
+                                                Click="DonateButton_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="☕ " FontSize="14" Margin="0,0,8,0"/>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SupportBuyMeACoffee]}" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+                                        
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_Disclaimer], Mode=OneWay}" 
+                                                   Foreground="{StaticResource MutedBrush}" FontSize="11" FontStyle="Italic" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+                
+                <!-- ========== FOOTER ========== -->
+                <Border Name="FooterBorder" Grid.Row="3" Background="{StaticResource Surface2Brush}" 
+                        CornerRadius="0,0,12,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+                    <Grid Height="40" Margin="16,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Language_Interface], Mode=OneWay}" 
+                                       Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox x:Name="languageSelector" Width="110" Height="26" Padding="8,4"
+                                      VerticalAlignment="Center" SelectionChanged="LanguageSelector_SelectionChanged">
+                                <ComboBoxItem Content="English" Tag="en"/>
+                                <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
+                                <ComboBoxItem Content="中文" Tag="zh_cn"/>
+                                <ComboBoxItem Content="日本語" Tag="ja"/>
+                                <ComboBoxItem Content="한국어" Tag="ko"/>
+                                <ComboBoxItem Content="Русский" Tag="ru"/>
+                            </ComboBox>
+
+                            <TextBlock Text="|" Foreground="{StaticResource BorderBrush}" Margin="16,0" VerticalAlignment="Center"/>
+
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Author], Mode=OneWay}" 
+                                       Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Thanh Pham" Foreground="{StaticResource TextBrush}" FontSize="12" VerticalAlignment="Center"/>
+
+                            <TextBlock Text="|" Foreground="{StaticResource BorderBrush}" Margin="16,0" VerticalAlignment="Center"/>
+
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Email], Mode=OneWay}" 
+                                       Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="thanhct1507@gmail.com" Foreground="{StaticResource TextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="|" Foreground="{StaticResource BorderBrush}" Margin="16,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
         </Border>
+        
+        <!-- Resize grip indicator -->
+        <Path Data="M 0,10 L 10,0 M 0,5 L 5,0 M 0,0 L 0,0" Stroke="#44FFFFFF" StrokeThickness="1"
+              Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+              Margin="0,0,5,5" Stretch="Fill"/>
     </Grid>
 </Window>

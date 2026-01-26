@@ -434,6 +434,8 @@
   "Btn_AudioService": "Audio STT",
   "Btn_AudioService_On": "On",
   "Btn_AudioService_Off": "Off",
+  "Btn_On": "On",
+  "Btn_Off": "Off",
   "Lbl_Provider": "Provider:",
   "Lbl_Model": "Model:",
   "Lbl_WhisperRuntime": "Runtime:",

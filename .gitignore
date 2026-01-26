@@ -421,3 +421,4 @@ app/webserver/*.exe
 **/.claude/settings.local.json
 
 *.zip
+mockups/*

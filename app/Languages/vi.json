@@ -440,6 +440,8 @@
   "Btn_AudioService": "Dịch âm thanh",
   "Btn_AudioService_On": "Bật",
   "Btn_AudioService_Off": "Tắt",
+  "Btn_On": "Bật",
+  "Btn_Off": "Tắt",
   "Lbl_Provider": "Nhà cung cấp:",
   "Lbl_Model": "Mô hình:",
   "Lbl_WhisperRuntime": "Runtime:",

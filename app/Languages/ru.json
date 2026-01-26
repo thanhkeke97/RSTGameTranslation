@@ -16,6 +16,8 @@
   "Btn_AudioService": "Аудио STT",
   "Btn_AudioService_On": "Вкл",
   "Btn_AudioService_Off": "Выкл",
+  "Btn_On": "Вкл",
+  "Btn_Off": "Выкл",
   "Btn_Log": "Лог",
   "Grp_System": "Система",
   "Btn_SetupOCR": "Настройка OCR",

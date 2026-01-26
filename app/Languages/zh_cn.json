@@ -16,6 +16,8 @@
   "Btn_AudioService": "音频 STT",
   "Btn_AudioService_On": "开启",
   "Btn_AudioService_Off": "关闭",
+  "Btn_On": "开启",
+  "Btn_Off": "关闭",
   "Btn_Log": "日志",
   "Grp_System": "系统",
   "Btn_SetupOCR": "配置 OCR",
