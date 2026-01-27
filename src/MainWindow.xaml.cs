@@ -112,6 +112,10 @@ namespace RSTGameTranslation
         private ChatBoxWindow? chatBoxWindow;
         private bool isChatBoxVisible = false;
         private bool isSelectingChatBoxArea = false;
+        // Compact view (hotkeys/details) state
+        private bool _isCompactView = true;
+        // Saved window height to restore after expanding from compact view
+        private double _savedWindowHeightForCompact = double.NaN;
         // private bool _chatBoxEventsAttached = false;
 
         // Keep translation history even when ChatBox is closed
@@ -2997,6 +3001,128 @@ namespace RSTGameTranslation
                             "Areas Cleared",
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);
+        }
+
+        // Toggle compact/hotkeys UI (MainWindow) ---------------------------------
+        private void SetCompactView(bool isCompact)
+        {
+            _isCompactView = isCompact;
+            // Always marshal to UI thread for layout/size changes
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(() => SetCompactView(isCompact));
+                return;
+            }
+
+            // If window is not in normal state (maximized/minimized), just toggle visibility and skip resizing
+            if (this.WindowState != WindowState.Normal)
+            {
+                CollapsibleMainContent.Visibility = _isCompactView ? Visibility.Collapsed : Visibility.Visible;
+                if (compactToggleIcon != null) compactToggleIcon.Text = _isCompactView ? "▸" : "▾";
+                if (compactToggleButton != null) compactToggleButton.ToolTip = LocalizationManager.Instance.Strings[_isCompactView ? "Btn_Compact_Show" : "Btn_Compact_Hide"];
+                return;
+            }
+
+            // COLLAPSE: save current height then remove the collapsible content and shrink window height
+            if (_isCompactView)
+            {
+                // ensure layout is up-to-date so ActualHeight is meaningful
+                this.UpdateLayout();
+
+                // Save current window height so we can restore on expand
+                if (!double.IsNaN(this.Height) && this.Height > 0)
+                {
+                    _savedWindowHeightForCompact = this.Height;
+                }
+
+                double contentHeight = CollapsibleMainContent.ActualHeight;
+                // If ActualHeight is zero (rare), try DesiredSize after Measure
+                if (contentHeight <= 0)
+                {
+                    CollapsibleMainContent.Measure(new System.Windows.Size(this.ActualWidth, double.PositiveInfinity));
+                    contentHeight = CollapsibleMainContent.DesiredSize.Height;
+                }
+
+                // Hide the collapsible content and shrink the window (respect MinHeight and screen work area)
+                CollapsibleMainContent.Visibility = Visibility.Collapsed;
+
+                // Ensure InfoSectionGrid remains visible after shrinking. Measure on the dispatcher once layout settles.
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        this.UpdateLayout();
+
+                        // Height of the collapsible content (we already measured above)
+                        double collapseAmount = contentHeight;
+
+                        // Conservative target: reduce by collapseAmount but ensure InfoSectionGrid + footer are visible
+                        double tentative = Math.Max(this.MinHeight, this.ActualHeight - Math.Round(collapseAmount));
+
+                        // Compute required client-space height to fully show InfoSectionGrid + footer
+                        double infoTop = 0;
+                        double infoHeight = 0;
+                        if (InfoSectionGrid != null)
+                        {
+                            var t = InfoSectionGrid.TransformToAncestor(this);
+                            var p = t.Transform(new System.Windows.Point(0, 0));
+                            infoTop = p.Y;
+                            infoHeight = InfoSectionGrid.ActualHeight;
+                        }
+
+                        double footerH = (FooterBorder != null) ? FooterBorder.ActualHeight : 40.0;
+                        double requiredClient = infoTop + infoHeight + footerH + 32; // padding
+
+                        // If tentative would hide the info section, expand to required size
+                        double finalHeight = tentative;
+                        if (this.ActualHeight < requiredClient || tentative < requiredClient)
+                        {
+                            finalHeight = Math.Min(SystemParameters.WorkArea.Height, Math.Max(requiredClient, this.MinHeight));
+                        }
+
+                        this.Height = finalHeight;
+                    }
+                    catch { /* best-effort sizing; ignore errors */ }
+                }), System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+            else // EXPAND: show content and restore previous height if available
+            {
+                CollapsibleMainContent.Visibility = Visibility.Visible;
+
+                // Allow layout to update so sizes are correct, then restore height (prefer saved height)
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    this.UpdateLayout();
+                    if (!double.IsNaN(_savedWindowHeightForCompact) && _savedWindowHeightForCompact > 0)
+                    {
+                        // Clamp to work area
+                        this.Height = Math.Min(_savedWindowHeightForCompact, SystemParameters.WorkArea.Height);
+                        _savedWindowHeightForCompact = double.NaN;
+                    }
+                    else
+                    {
+                        // If no saved height, ensure window is tall enough to show content
+                        CollapsibleMainContent.Measure(new System.Windows.Size(this.ActualWidth, double.PositiveInfinity));
+                        double desired = this.ActualHeight + CollapsibleMainContent.DesiredSize.Height;
+                        this.Height = Math.Min(Math.Max(this.MinHeight, desired), SystemParameters.WorkArea.Height);
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+
+            if (compactToggleIcon != null)
+                compactToggleIcon.Text = _isCompactView ? "▸" : "▾";
+
+            if (compactToggleButton != null)
+                compactToggleButton.ToolTip = LocalizationManager.Instance.Strings[_isCompactView ? "Btn_Compact_Show" : "Btn_Compact_Hide"];
+        }
+
+        private void CompactToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Toggle UI and update state
+            SetCompactView(!_isCompactView);
+
+            // (Optional) persist preference later via ConfigManager
+            // ConfigManager.Instance.SetValue("mainwindow_compact", _isCompactView.ToString());
         }
 
         public void UpdateServerButtonStatus(bool isConnected)

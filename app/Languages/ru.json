@@ -28,6 +28,8 @@
   "Msg_UpdateNote": "Примечание: Пользователи, обновляющиеся с версий ниже 3.5, должны повторно запустить 'Настройка OCR' для обеспечения правильной работы.",
   "Lbl_JoinDiscord": "ПРИСОЕДИНЯЙТЕСЬ К DISCORD ДЛЯ ПОДДЕРЖКИ",
   "Lbl_QuickStart": "БЫСТРЫЙ СТАРТ",
+  "Btn_Compact_Hide": "Скрыть детали",
+  "Btn_Compact_Show": "Показать детали",
   "Settings_Title": "Настройки",
   "Tab_Language": "Язык",
   "Grp_LanguageSettings": "Настройки языка",
@@ -474,5 +476,9 @@
   "NotificationTitle_ClipboardError": "Ошибка перевода буфера обмена",
   "NotificationMessage_ClipboardError": "Не удалось перевести текст в буфере обмена.",
   "NotificationMessage_ClipboardTooLong": "Текст превышает максимально допустимую длину.",
-  "Need_Help_Or_Support": "Нужна помощь или поддержка? Присоединяйтесь к нашему сообществу в Discord!"
+  "Need_Help_Or_Support": "Нужна помощь или поддержка? Присоединяйтесь к нашему сообществу в Discord!",
+  "OverlayOptions_Title": "Параметры оверлея",
+  "OverlayOptions_Header": "Параметры внешнего вида переводного оверлея",
+  "OverlayOptions_Lbl_BackgroundColor": "Цвет фона:",
+  "OverlayOptions_Lbl_TextColor": "Цвет текста:"
 }

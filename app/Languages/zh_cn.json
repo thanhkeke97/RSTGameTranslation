@@ -28,6 +28,8 @@
   "Msg_UpdateNote": "注意：从 3.5 以下版本更新的用户，请重新运行 setupOCR 以确保功能正常。",
   "Lbl_JoinDiscord": "加入 Discord 获取支持",
   "Lbl_QuickStart": "快速开始",
+  "Btn_Compact_Hide": "隐藏详情",
+  "Btn_Compact_Show": "显示详情",
   "Settings_Title": "设置",
   "Tab_Language": "语言",
   "Grp_LanguageSettings": "语言设置",

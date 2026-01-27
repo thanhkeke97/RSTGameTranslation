@@ -298,6 +298,8 @@
   "ChatBox_Header_RecentText": "Văn bản gần đây",
   "ChatBox_Status_WaitingTranslation": "Đang chờ dịch...",
   "ChatBox_Btn_ToggleBorders_Tooltip": "Ẩn/Hiện thanh trạng thái và viền",
+  "Btn_Compact_Hide": "Thu gọn",
+  "Btn_Compact_Show": "Hiện chi tiết",
   "LogWindow_Title": "RSTGameTranslation - Xem nhật ký",
   "LogWindow_Header": "Nhật ký ứng dụng",
   "LogWindow_Chk_AutoScroll": "Tự động cuộn",

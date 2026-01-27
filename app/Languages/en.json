@@ -298,6 +298,8 @@
   "ChatBox_Header_RecentText": "Recent Text",
   "ChatBox_Status_WaitingTranslation": "Waiting for translation...",
   "ChatBox_Btn_ToggleBorders_Tooltip": "Hide/Show status bar and borders",
+  "Btn_Compact_Hide": "Hide details",
+  "Btn_Compact_Show": "Show details",
   "LogWindow_Title": "RSTGameTranslation - Log Viewer",
   "LogWindow_Header": "Application Log",
   "LogWindow_Chk_AutoScroll": "Auto-scroll",
@@ -474,5 +476,9 @@
   "NotificationTitle_ClipboardError": "Clipboard Translation Error",
   "NotificationMessage_ClipboardError": "Failed to translate clipboard text.",
   "NotificationMessage_ClipboardTooLong": "Text exceeds maximum character limit.",
-  "Need_Help_Or_Support": "Need help or support? Join our Discord community!"
+  "Need_Help_Or_Support": "Need help or support? Join our Discord community!",
+  "OverlayOptions_Title": "Overlay Options",
+  "OverlayOptions_Header": "Translation Overlay Appearance Options",
+  "OverlayOptions_Lbl_BackgroundColor": "Background Color:",
+  "OverlayOptions_Lbl_TextColor": "Text Color:"
 }
