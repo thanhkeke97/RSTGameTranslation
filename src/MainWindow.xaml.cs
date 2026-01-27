@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
@@ -885,6 +886,9 @@ namespace RSTGameTranslation
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // Play entrance animations
+            PlayEntranceAnimations();
+            
             // Update capture rectangle
             UpdateCaptureRect();
             SettingsWindow.Instance.ListHotKey_TextChanged();
@@ -3001,6 +3005,114 @@ namespace RSTGameTranslation
                             "Areas Cleared",
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);
+        }
+
+        // ========== ENTRANCE ANIMATIONS ==========
+        private void PlayEntranceAnimations()
+        {
+            var ease = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+
+            // 1. Fade-in the entire window
+            var windowFadeIn = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = ease
+            };
+            this.BeginAnimation(Window.OpacityProperty, windowFadeIn);
+
+            // 2. Slide down + fade in the MainBorder (main content area)
+            if (MainBorder != null)
+            {
+                MainBorder.RenderTransform = new TranslateTransform(0, -20);
+                MainBorder.Opacity = 0;
+
+                var slideDown = new DoubleAnimation
+                {
+                    From = -20,
+                    To = 0,
+                    Duration = TimeSpan.FromMilliseconds(400),
+                    EasingFunction = ease,
+                    BeginTime = TimeSpan.FromMilliseconds(100)
+                };
+                var fadeIn = new DoubleAnimation
+                {
+                    From = 0,
+                    To = 1,
+                    Duration = TimeSpan.FromMilliseconds(400),
+                    EasingFunction = ease,
+                    BeginTime = TimeSpan.FromMilliseconds(100)
+                };
+
+                MainBorder.RenderTransform.BeginAnimation(TranslateTransform.YProperty, slideDown);
+                MainBorder.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+            }
+
+            // 3. Staggered animation for toolbar buttons (tool groups)
+            AnimateToolbarGroups();
+        }
+
+        private void AnimateToolbarGroups()
+        {
+            // Find toolbar WrapPanel
+            var toolbar = FindVisualChild<WrapPanel>(this);
+            if (toolbar == null) return;
+
+            var ease = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+            int index = 0;
+
+            foreach (var child in toolbar.Children)
+            {
+                if (child is Border border && border.Style == (Style)FindResource("ToolGroupStyle"))
+                {
+                    // Set initial state
+                    border.Opacity = 0;
+                    border.RenderTransform = new TranslateTransform(0, 15);
+                    border.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+
+                    // Staggered delay for each group
+                    int delay = 200 + (index * 60);
+
+                    var fadeIn = new DoubleAnimation
+                    {
+                        From = 0,
+                        To = 1,
+                        Duration = TimeSpan.FromMilliseconds(350),
+                        EasingFunction = ease,
+                        BeginTime = TimeSpan.FromMilliseconds(delay)
+                    };
+
+                    var slideUp = new DoubleAnimation
+                    {
+                        From = 15,
+                        To = 0,
+                        Duration = TimeSpan.FromMilliseconds(350),
+                        EasingFunction = ease,
+                        BeginTime = TimeSpan.FromMilliseconds(delay)
+                    };
+
+                    border.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+                    border.RenderTransform.BeginAnimation(TranslateTransform.YProperty, slideUp);
+
+                    index++;
+                }
+            }
+        }
+
+        // Helper to find visual child of specific type
+        private T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                    return result;
+                var childOfChild = FindVisualChild<T>(child);
+                if (childOfChild != null)
+                    return childOfChild;
+            }
+            return null;
         }
 
         // Toggle compact/hotkeys UI (MainWindow) ---------------------------------
