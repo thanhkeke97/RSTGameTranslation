@@ -632,7 +632,7 @@
 
                             <!-- Hotkeys Card -->
                             <!-- Compact toggle is placed *outside* the collapsible panel so it remains visible when content is hidden -->
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,6">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,6,0,6">
                                 <Button x:Name="compactToggleButton" Style="{StaticResource NeutralButton}" Width="34" Height="30" Margin="8,0,0,0" Click="CompactToggleButton_Click" ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Compact_Hide]}">
                                     <TextBlock x:Name="compactToggleIcon" Text="▸" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Button>

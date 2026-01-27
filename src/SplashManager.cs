@@ -54,8 +54,8 @@ namespace RSTGameTranslation
                 _splashWindow = new Window
                 {
                     Title = "Realtime Screen Translator",
-                    Width = 600,
-                    Height = 400,
+                    Width = 420,
+                    Height = 280,
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     WindowStartupLocation = WindowStartupLocation.CenterScreen,
@@ -65,144 +65,129 @@ namespace RSTGameTranslation
                     Opacity = 0 // Start invisible for fade-in animation
                 };
 
-                // Main container with dark glassmorphism effect (Option 1 Style)
+                // Colors matching MainWindow light theme
+                WPFColor surfaceColor = WPFColor.FromRgb(255, 255, 255);      // #FFFFFF
+                WPFColor surface2Color = WPFColor.FromRgb(243, 248, 253);     // #F3F8FD
+                WPFColor borderColor = WPFColor.FromRgb(224, 236, 248);       // #E0ECF8
+                WPFColor textColor = WPFColor.FromRgb(11, 37, 69);            // #0B2545
+                WPFColor mutedColor = WPFColor.FromRgb(91, 107, 122);         // #5B6B7A
+                WPFColor accentColor = WPFColor.FromRgb(0, 102, 204);         // #0066CC
+
+                // Main container - clean light design matching MainWindow
                 Border mainBorder = new Border
                 {
-                    CornerRadius = new CornerRadius(20),
+                    CornerRadius = new CornerRadius(12),
                     BorderThickness = new Thickness(1),
+                    BorderBrush = new SolidColorBrush(borderColor),
+                    Background = new SolidColorBrush(surfaceColor),
                     Padding = new Thickness(30),
+                    Effect = new DropShadowEffect
+                    {
+                        Color = Colors.Black,
+                        Direction = 270,
+                        ShadowDepth = 0,
+                        BlurRadius = 25,
+                        Opacity = 0.15
+                    }
+                };
+                
+                Grid grid = new Grid();
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Logo + Title
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Spacer
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Status
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Loading bar
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Author
+
+                // Top section: Logo + Title (horizontal layout like MainWindow title bar)
+                StackPanel headerPanel = new StackPanel
+                {
+                    Orientation = WPFOrientation.Horizontal,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Margin = new Thickness(0, 10, 0, 0)
+                };
+
+                // Logo with gradient background (matching MainWindow title bar style)
+                Border logoBorder = new Border
+                {
+                    Width = 48,
+                    Height = 48,
+                    CornerRadius = new CornerRadius(10),
+                    Margin = new Thickness(0, 0, 15, 0),
                     Background = new LinearGradientBrush
                     {
                         StartPoint = new WPFPoint(0, 0),
                         EndPoint = new WPFPoint(1, 1),
                         GradientStops = new GradientStopCollection
                         {
-                            new GradientStop(WPFColor.FromArgb(255, 15, 15, 35), 0.0),      // Dark blue-black
-                            new GradientStop(WPFColor.FromArgb(255, 25, 20, 45), 0.5),      // Deep purple
-                            new GradientStop(WPFColor.FromArgb(255, 20, 25, 50), 1.0)       // Dark blue
-                        }
-                    },
-                    Effect = new DropShadowEffect
-                    {
-                        Color = WPFColor.FromRgb(100, 80, 200),
-                        Direction = 315,
-                        ShadowDepth = 0,
-                        BlurRadius = 40,
-                        Opacity = 0.8
-                    }
-                };
-
-                // Gradient border effect
-                Border gradientBorder = new Border
-                {
-                    CornerRadius = new CornerRadius(20),
-                    BorderThickness = new Thickness(2),
-                    BorderBrush = new LinearGradientBrush
-                    {
-                        StartPoint = new WPFPoint(0, 0),
-                        EndPoint = new WPFPoint(1, 1),
-                        GradientStops = new GradientStopCollection
-                        {
-                            new GradientStop(WPFColor.FromRgb(138, 43, 226), 0.0),   // Blue-violet
-                            new GradientStop(WPFColor.FromRgb(75, 0, 130), 0.5),     // Indigo
-                            new GradientStop(WPFColor.FromRgb(147, 112, 219), 1.0)   // Medium purple
+                            new GradientStop(WPFColor.FromRgb(0, 170, 255), 0),   // #00aaff
+                            new GradientStop(WPFColor.FromRgb(0, 204, 136), 1)    // #00cc88
                         }
                     }
                 };
-                
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Icon
-                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Title
-                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Author (Đã thêm lại)
-                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Status
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(40) }); // Loading bar
 
-                // App Icon with glow effect
-                StackPanel iconPanel = new StackPanel
-                {
-                    Orientation = WPFOrientation.Vertical,
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-                
-                // Main icon with enhanced glow
                 System.Windows.Controls.Image appIcon = new System.Windows.Controls.Image
                 {
                     Source = new BitmapImage(new Uri("pack://application:,,,/media/AppIcon.ico")),
-                    Width = 200,
-                    Height = 200,
+                    Width = 32,
+                    Height = 32,
                     VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Effect = new DropShadowEffect
-                    {
-                        Color = WPFColor.FromRgb(138, 43, 226),
-                        Direction = 0,
-                        ShadowDepth = 0,
-                        BlurRadius = 30,
-                        Opacity = 0.9
-                    }
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                 };
-                iconPanel.Children.Add(appIcon);
-                
-                Grid.SetRow(iconPanel, 0);
-                grid.Children.Add(iconPanel);
+                logoBorder.Child = appIcon;
+                headerPanel.Children.Add(logoBorder);
 
-                // Version Text with glow
+                // Title stack
+                StackPanel titleStack = new StackPanel
+                {
+                    Orientation = WPFOrientation.Vertical,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                TextBlock appTitle = new TextBlock
+                {
+                    Text = "RSTGameTranslation",
+                    FontSize = 20,
+                    FontWeight = FontWeights.SemiBold,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    Foreground = new SolidColorBrush(textColor)
+                };
+                titleStack.Children.Add(appTitle);
+
                 _versionTextBlock = new TextBlock
                 {
-                    Text = $"Realtime Screen Translator v{CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}",
-                    FontSize = 22,
-                    FontWeight = FontWeights.Bold,
-                    FontFamily = new FontFamily("Segoe UI"),
-                    Margin = new Thickness(0, 20, 0, 5),
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(Colors.White),
-                    Effect = new DropShadowEffect
-                    {
-                        Color = WPFColor.FromRgb(138, 43, 226),
-                        Direction = 0,
-                        ShadowDepth = 0,
-                        BlurRadius = 20,
-                        Opacity = 0.8
-                    }
-                };
-                Grid.SetRow(_versionTextBlock, 1);
-                grid.Children.Add(_versionTextBlock);
-
-                // Author text 
-                TextBlock authorText = new TextBlock
-                {
-                    Text = "By Thanh Pham",
+                    Text = $"v{CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}",
                     FontSize = 13,
-                    FontStyle = FontStyles.Italic,
-                    Margin = new Thickness(0, 0, 0, 15),
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(WPFColor.FromArgb(180, 200, 200, 255)),
-                    Opacity = 0.7
+                    FontFamily = new FontFamily("Segoe UI"),
+                    Foreground = new SolidColorBrush(mutedColor),
+                    Margin = new Thickness(0, 2, 0, 0)
                 };
-                Grid.SetRow(authorText, 2); // Row riêng
-                grid.Children.Add(authorText);
+                titleStack.Children.Add(_versionTextBlock);
 
-                // Status Text with modern styling
+                headerPanel.Children.Add(titleStack);
+                Grid.SetRow(headerPanel, 0);
+                grid.Children.Add(headerPanel);
+
+                // Status Text - clean and simple
                 _statusTextBlock = new TextBlock
                 {
                     Text = LocalizationManager.Instance.Strings["Splash_CheckingVersion"],
-                    FontSize = 13,
+                    FontSize = 12,
                     FontFamily = new FontFamily("Segoe UI"),
-                    Margin = new Thickness(0, 10, 0, 15),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(WPFColor.FromArgb(200, 180, 180, 255))
+                    Foreground = new SolidColorBrush(mutedColor),
+                    Margin = new Thickness(0, 0, 0, 12)
                 };
-                Grid.SetRow(_statusTextBlock, 3);
+                Grid.SetRow(_statusTextBlock, 2);
                 grid.Children.Add(_statusTextBlock);
 
-                // Modern loading bar
+                // Loading bar - accent color matching MainWindow
                 Border loadingBarContainer = new Border
                 {
                     Height = 4,
-                    Margin = new Thickness(40, 0, 40, 20),
+                    Margin = new Thickness(20, 0, 20, 16),
                     CornerRadius = new CornerRadius(2),
-                    Background = new SolidColorBrush(WPFColor.FromArgb(40, 255, 255, 255)),
+                    Background = new SolidColorBrush(surface2Color),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch
                 };
 
@@ -212,28 +197,28 @@ namespace RSTGameTranslation
                     CornerRadius = new CornerRadius(2),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
                     Width = 0,
-                    Background = new LinearGradientBrush
-                    {
-                        StartPoint = new WPFPoint(0, 0.5),
-                        EndPoint = new WPFPoint(1, 0.5),
-                        GradientStops = new GradientStopCollection
-                        {
-                            new GradientStop(WPFColor.FromRgb(138, 43, 226), 0.0),
-                            new GradientStop(WPFColor.FromRgb(147, 112, 219), 1.0)
-                        }
-                    }
+                    Background = new SolidColorBrush(accentColor)
                 };
 
                 loadingBarContainer.Child = loadingBar;
-                Grid.SetRow(loadingBarContainer, 4);
+                Grid.SetRow(loadingBarContainer, 3);
                 grid.Children.Add(loadingBarContainer);
 
-                // Set the grid as content of borders
+                // Author text - subtle at bottom
+                TextBlock authorText = new TextBlock
+                {
+                    Text = "By Thanh Pham",
+                    FontSize = 11,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                    Foreground = new SolidColorBrush(WPFColor.FromArgb(150, 91, 107, 122)),
+                    Margin = new Thickness(0, 0, 0, 5)
+                };
+                Grid.SetRow(authorText, 4);
+                grid.Children.Add(authorText);
+
                 mainBorder.Child = grid;
-                gradientBorder.Child = mainBorder;
-                
-                // Set the border as content of the window
-                _splashWindow.Content = gradientBorder;
+                _splashWindow.Content = mainBorder;
                 _splashWindow.Show();
 
                 // === ANIMATIONS ===
@@ -243,33 +228,19 @@ namespace RSTGameTranslation
                 {
                     From = 0,
                     To = 1,
-                    Duration = TimeSpan.FromMilliseconds(600),
+                    Duration = TimeSpan.FromMilliseconds(400),
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
                 _splashWindow.BeginAnimation(Window.OpacityProperty, fadeIn);
 
-                // 2. Icon pulse animation (subtle glow effect)
-                DoubleAnimation iconPulse = new DoubleAnimation
-                {
-                    From = 0.7,
-                    To = 1.0,
-                    Duration = TimeSpan.FromMilliseconds(1500),
-                    AutoReverse = true,
-                    RepeatBehavior = RepeatBehavior.Forever,
-                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-                };
-                appIcon.BeginAnimation(UIElement.OpacityProperty, iconPulse);
-
-                // 3. Loading bar animation (FIXED: Chạy trực tiếp)
+                // 2. Loading bar animation
                 DoubleAnimation loadingAnimation = new DoubleAnimation
                 {
                     From = 0,
-                    To = 520, // Ước lượng width (600 - 40*2 padding)
-                    Duration = TimeSpan.FromMilliseconds(2000),
+                    To = 320, // Window width - padding
+                    Duration = TimeSpan.FromMilliseconds(1800),
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
                 };
-                
-                // Fix: Chạy animation ngay lập tức, không chờ Loaded event
                 loadingBar.BeginAnimation(Border.WidthProperty, loadingAnimation);
 
                 CheckForUpdates();
