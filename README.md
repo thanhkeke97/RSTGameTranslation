@@ -152,6 +152,9 @@ BSD-style attribution - see [LICENSE.md](LICENSE.md)
 
 **Acknowledgments**: Includes software developed by Seth A. Robinson - [UGTLive](https://github.com/SethRobinson/UGTLive)
 
+| <img src="https://signpath.org/assets/favicon.png" width="25" height="25" align="center"> | Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/). |
+| :--- | :--- |
+
 <div align="center">
 
 **Made with ❤️ for the gaming community**
