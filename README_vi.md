@@ -151,6 +151,8 @@ Dự án này được xây dựng dựa trên sự đóng góp của cộng đ�
 Giấy phép kiểu BSD - xem chi tiết tại [LICENSE.md](LICENSE.md)
 
 **Ghi nhận**: Bao gồm phần mềm được phát triển bởi Seth A. Robinson - [UGTLive](https://github.com/SethRobinson/UGTLive)
+| <img src="https://signpath.org/assets/favicon.png" width="25" height="25" align="center"> | Chữ ký số được cung cấp miễn phí bới [SignPath.io](https://about.signpath.io/), chứng nhận bởi [SignPath Foundation](https://signpath.org/). |
+| :--- | :--- |
 
 <div align="center">
 
