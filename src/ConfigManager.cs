@@ -577,6 +577,7 @@ namespace RSTGameTranslation
             _configValues[CLIPBOARD_AUTO_TRANSLATE_DEBOUNCE_MS] = "300";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_MAX_CHARS] = "5000";
             _configValues[WHISPER_RUNTIME] = "cpu";
+            _configValues[AUTO_MERGE_OVERLAPPING_TEXT] = "true";
 
             // Save the default configuration
             SaveConfig();
@@ -2123,7 +2124,7 @@ namespace RSTGameTranslation
 
         public bool IsAutoMergeOverlappingTextEnabled()
         {
-            string value = GetValue(AUTO_MERGE_OVERLAPPING_TEXT, "false");
+            string value = GetValue(AUTO_MERGE_OVERLAPPING_TEXT, "true");
             return value.ToLower() == "true";
         }
 

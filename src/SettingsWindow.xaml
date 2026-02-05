@@ -592,7 +592,7 @@
                                           VerticalAlignment="Center" Margin="0,8,10,0" 
                                           ToolTip="Automatically merge text blocks that would overlap when translation is longer than original text"/>
                                 <CheckBox x:Name="autoMergeOverlappingTextCheckBox" Grid.Row="3" Grid.Column="1" 
-                                         Margin="20,8,0,0" IsChecked="False" Padding="5,3"
+                                         Margin="20,8,0,0" IsChecked="True" Padding="5,3"
                                          Checked="AutoMergeOverlappingTextCheckBox_CheckedChanged" 
                                          Unchecked="AutoMergeOverlappingTextCheckBox_CheckedChanged"/>
                             </Grid>

@@ -4569,7 +4569,7 @@ namespace RSTGameTranslation
 
         private void AutoMergeOverlappingTextCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            bool enabled = autoMergeOverlappingTextCheckBox.IsChecked ?? false;
+            bool enabled = autoMergeOverlappingTextCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetAutoMergeOverlappingText(enabled);
             Console.WriteLine($"Auto merge overlapping text set to {enabled}");
         }
