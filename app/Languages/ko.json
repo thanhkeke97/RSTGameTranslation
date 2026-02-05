@@ -93,6 +93,7 @@
   "Lbl_ShowExcludeRegions": "제외 영역 표시",
   "Msg_ExcludeRegionAdded": "제외 영역이 추가되었습니다. 번역 시 표시되지 않습니다.",
   "Func_ToggleExcludeRegions": "제외 영역 전환",
+  "Lbl_AutoMergeOverlappingText": "번역이 길 때 중첩된 텍스트 자동으로 병합",
   "Tab_Translation": "번역",
   "Grp_TranslationService": "번역 서비스 설정",
   "Lbl_TranslationService": "번역 서비스:",

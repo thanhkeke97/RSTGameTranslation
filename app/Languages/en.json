@@ -86,6 +86,7 @@
   "Lbl_ShowExcludeRegions": "Show Exclude Regions",
   "Msg_ExcludeRegionAdded": "Exclude region added. It will not be visible during translation.",
   "Func_ToggleExcludeRegions": "Toggle Exclude Regions",
+  "Lbl_AutoMergeOverlappingText": "Auto merge overlapping text when translation is longer",
   "Tab_Translation": "Translation",
   "Grp_TranslationService": "Translation Service Settings",
   "Lbl_TranslationService": "Translation Service:",

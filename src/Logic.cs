@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -1269,9 +1270,15 @@ namespace RSTGameTranslation
                     // Clear existing text objects before adding new ones
                     ClearAllTextObjects();
 
+                    // Check if auto merge overlapping text is enabled
+                    bool autoMergeEnabled = ConfigManager.Instance.IsAutoMergeOverlappingTextEnabled();
+
                     // Process text blocks that have already been grouped by CharacterBlockDetectionManager
                     int resultCount = resultsElement.GetArrayLength();
 
+                    // If auto merge is enabled, collect all text blocks first
+                    List<TempTextBlock> tempBlocks = new List<TempTextBlock>();
+                    
                     for (int i = 0; i < resultCount; i++)
                     {
                         JsonElement item = resultsElement[i];
@@ -1279,36 +1286,24 @@ namespace RSTGameTranslation
                         if (item.TryGetProperty("text", out JsonElement textElement) &&
                             item.TryGetProperty("confidence", out JsonElement confElement))
                         {
-                            // Get the text and ensure it's properly decoded from Unicode
                             string text = textElement.GetString() ?? "";
 
-                            // Skip if text is smaller than minimum fragment size
                             if (text.Length < minTextFragmentSize)
                             {
                                 continue;
                             }
 
-                            // Note: We no longer need to filter ignore phrases here
-                            // as it's now done earlier in ProcessReceivedTextJsonData before hash generation
-
-
                             double confidence = confElement.GetDouble();
-
-                            // Extract bounding box coordinates if available
                             double x = 0, y = 0, width = 0, height = 0;
 
-                            // Check for "rect" property (polygon points format)
                             if (item.TryGetProperty("rect", out JsonElement boxElement) &&
                                 boxElement.ValueKind == JsonValueKind.Array)
                             {
                                 try
                                 {
-                                    // Format: [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
-                                    // Calculate bounding box from polygon points
                                     double minX = double.MaxValue, minY = double.MaxValue;
                                     double maxX = double.MinValue, maxY = double.MinValue;
 
-                                    // Iterate through each point
                                     for (int p = 0; p < boxElement.GetArrayLength(); p++)
                                     {
                                         if (boxElement[p].ValueKind == JsonValueKind.Array &&
@@ -1324,7 +1319,6 @@ namespace RSTGameTranslation
                                         }
                                     }
 
-                                    // Set coordinates to the calculated bounding box
                                     x = minX;
                                     y = minY;
                                     width = maxX - minX;
@@ -1336,10 +1330,36 @@ namespace RSTGameTranslation
                                 }
                             }
 
-                            // Handle dpiscale for multi monitor
-                            double dpiScale = MonitorWindow.Instance.dpiScale;
-                            CreateTextObjectAtPosition(text, x, y, width / dpiScale, height / dpiScale, confidence, sourceBitmap);
+                            if (autoMergeEnabled)
+                            {
+                                tempBlocks.Add(new TempTextBlock { Text = text, X = x, Y = y, Width = width, Height = height, Confidence = confidence });
+                            }
+                            else
+                            {
+                                double dpiScale = MonitorWindow.Instance.dpiScale;
+                                CreateTextObjectAtPosition(text, x, y, width / dpiScale, height / dpiScale, confidence, sourceBitmap);
+                            }
+                        }
+                    }
 
+                    // If auto merge is enabled, merge overlapping text blocks
+                    if (autoMergeEnabled && tempBlocks.Count > 0)
+                    {
+                        var (mergedBlocks, blockOriginalBounds) = MergeOverlappingTextBlocks(tempBlocks);
+                        double dpiScale = MonitorWindow.Instance.dpiScale;
+
+                        for (int i = 0; i < mergedBlocks.Count; i++)
+                        {
+                            var block = mergedBlocks[i];
+                            var bounds = blockOriginalBounds[i];
+                            // Calculate dimensions from original bounding box to cover all original text
+                            double originalX = bounds.MinX;
+                            double originalY = bounds.MinY;
+                            double originalWidth = bounds.MaxX - bounds.MinX;
+                            double originalHeight = bounds.MaxY - bounds.MinY;
+
+                            CreateTextObjectAtPosition(block.Text, originalX, originalY,
+                                originalWidth / dpiScale, originalHeight / dpiScale, block.Confidence, sourceBitmap);
                         }
                     }
                 }
@@ -3043,5 +3063,154 @@ namespace RSTGameTranslation
                 return response.Trim();
             }
         }
+
+        #region Auto Merge Overlapping Text
+
+        /// <summary>
+        /// Temporary class to hold text block data for merging
+        /// </summary>
+        private class TempTextBlock
+        {
+            public string Text { get; set; } = "";
+            public double X { get; set; }
+            public double Y { get; set; }
+            public double Width { get; set; }
+            public double Height { get; set; }
+            public double Confidence { get; set; }
+        }
+
+        /// <summary>
+        /// Holds original bounding box info for merged blocks
+        /// </summary>
+        private class OriginalBounds
+        {
+            public double MinX { get; set; }
+            public double MinY { get; set; }
+            public double MaxX { get; set; }
+            public double MaxY { get; set; }
+        }
+
+        /// <summary>
+        /// Merges text blocks that physically overlap with each other
+        /// Returns tuple of merged blocks and their original bounding boxes
+        /// </summary>
+        private (List<TempTextBlock> blocks, List<OriginalBounds> originalBounds) MergeOverlappingTextBlocks(List<TempTextBlock> blocks)
+        {
+            if (blocks.Count <= 1)
+            {
+                var bounds = blocks.Select(b => new OriginalBounds
+                {
+                    MinX = b.X,
+                    MinY = b.Y,
+                    MaxX = b.X + b.Width,
+                    MaxY = b.Y + b.Height
+                }).ToList();
+                return (blocks, bounds);
+            }
+
+            var result = new List<TempTextBlock>(blocks);
+            var boundsResult = blocks.Select(b => new OriginalBounds
+            {
+                MinX = b.X,
+                MinY = b.Y,
+                MaxX = b.X + b.Width,
+                MaxY = b.Y + b.Height
+            }).ToList();
+            bool merged;
+
+            do
+            {
+                merged = false;
+                for (int i = 0; i < result.Count; i++)
+                {
+                    for (int j = i + 1; j < result.Count; j++)
+                    {
+                        if (DoBlocksOverlap(result[i], result[j]))
+                        {
+                            // Merge the two blocks
+                            var mergedBlock = MergeTwoBlocks(result[i], result[j]);
+                            // Combine original bounding boxes
+                            var combinedBounds = new OriginalBounds
+                            {
+                                MinX = Math.Min(boundsResult[i].MinX, boundsResult[j].MinX),
+                                MinY = Math.Min(boundsResult[i].MinY, boundsResult[j].MinY),
+                                MaxX = Math.Max(boundsResult[i].MaxX, boundsResult[j].MaxX),
+                                MaxY = Math.Max(boundsResult[i].MaxY, boundsResult[j].MaxY)
+                            };
+
+                            // Remove higher index first to keep lower index valid
+                            result.RemoveAt(j);
+                            boundsResult.RemoveAt(j);
+                            result.RemoveAt(i);
+                            boundsResult.RemoveAt(i);
+
+                            result.Add(mergedBlock);
+                            boundsResult.Add(combinedBounds);
+                            merged = true;
+                            break;
+                        }
+                    }
+                    if (merged) break;
+                }
+            } while (merged);
+
+            return (result, boundsResult);
+        }
+
+        /// <summary>
+        /// Checks if two text blocks physically overlap (intersect) with each other
+        /// </summary>
+        private bool DoBlocksOverlap(TempTextBlock a, TempTextBlock b)
+        {
+            // Skip if either block has zero dimensions
+            if (a.Width <= 0 || a.Height <= 0 || b.Width <= 0 || b.Height <= 0)
+                return false;
+
+            // Larger threshold to better detect adjacent/overlapping text blocks
+            double overlapThreshold = 5.0; // pixels
+
+            // Calculate the intersection rectangle
+            double leftA = a.X;
+            double rightA = a.X + a.Width;
+            double topA = a.Y;
+            double bottomA = a.Y + a.Height;
+
+            double leftB = b.X;
+            double rightB = b.X + b.Width;
+            double topB = b.Y;
+            double bottomB = b.Y + b.Height;
+
+            // Check if rectangles overlap (with threshold for adjacent blocks)
+            bool xOverlap = (rightA + overlapThreshold >= leftB) && (leftA - overlapThreshold <= rightB);
+            bool yOverlap = (bottomA + overlapThreshold >= topB) && (topA - overlapThreshold <= bottomB);
+
+            return xOverlap && yOverlap;
+        }
+
+        /// <summary>
+        /// Merges two text blocks into one
+        /// </summary>
+        private TempTextBlock MergeTwoBlocks(TempTextBlock a, TempTextBlock b)
+        {
+            // Determine merge order based on Y position
+            if (a.Y > b.Y)
+            {
+                var temp = a;
+                a = b;
+                b = temp;
+            }
+
+            return new TempTextBlock
+            {
+                Text = a.Text + " " + b.Text,
+                X = Math.Min(a.X, b.X),
+                Y = Math.Min(a.Y, b.Y),
+                Width = Math.Max(a.X + a.Width, b.X + b.Width) - Math.Min(a.X, b.X),
+                Height = Math.Max(a.Y + a.Height, b.Y + b.Height) - Math.Min(a.Y, b.Y),
+                Confidence = Math.Min(a.Confidence, b.Confidence)
+            };
+        }
+
+        #endregion
     }
 }

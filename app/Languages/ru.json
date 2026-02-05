@@ -93,6 +93,7 @@
   "Lbl_ShowExcludeRegions": "Показать области исключения",
   "Msg_ExcludeRegionAdded": "Область исключения добавлена. Она не будет отображаться при переводе.",
   "Func_ToggleExcludeRegions": "Переключить области исключения",
+  "Lbl_AutoMergeOverlappingText": "Автоматически объединять перекрывающийся текст при длинном переводе",
   "Tab_Translation": "Перевод",
   "Grp_TranslationService": "Настройки сервиса перевода",
   "Lbl_TranslationService": "Сервис перевода:",

@@ -137,7 +137,10 @@ namespace RSTGameTranslation
 
             if (Height > 0)
             {
-                Border.MaxHeight = Height;
+                // Set MinHeight to ensure background covers original area
+                Border.MinHeight = Height;
+                // Allow Border to grow taller if text wraps to multiple lines
+                Border.MaxHeight = double.PositiveInfinity;
             }
 
             // Add the text block to the border
@@ -199,7 +202,8 @@ namespace RSTGameTranslation
 
                 if (Height > 0)
                 {
-                    Border.MaxHeight = Height;
+                    Border.MinHeight = Height;
+                    Border.MaxHeight = double.PositiveInfinity;
                 }
                 if(ConfigManager.Instance.IsLanguageFontOverrideEnabled())
                 {
@@ -327,17 +331,9 @@ namespace RSTGameTranslation
                     }
                 }
 
-                // Adjust border height logic (giữ nguyên)
-                if (needsMoreHeight && fitWidth)
-                {
-                    double requiredHeight = Math.Max(Height * 2, textBlock.DesiredSize.Height + 10);
-                    Border.MaxHeight = requiredHeight;
-                    textBlock.VerticalAlignment = VerticalAlignment.Top;
-                }
-                else if (fitWidth)
-                {
-                    Border.MaxHeight = Math.Max(Height, textBlock.DesiredSize.Height + 5);
-                }
+                // Adjust border height logic - Border will auto-expand due to MinHeight and Infinity MaxHeight
+                // Text will stretch to fill Border height
+                textBlock.VerticalAlignment = VerticalAlignment.Stretch;
 
                 // Finalize
                 double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));

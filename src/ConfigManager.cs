@@ -179,6 +179,7 @@ namespace RSTGameTranslation
         public const string OVERLAY_BACKGROUND_COLOR = "OverlayBackgroundColor";
         public const string OVERLAY_TEXT_COLOR = "OverlayTextColor";
         public const string IS_AUTO_SET_OVERLAY_BACKGROUND = "IsAutoSetOverlayBackground";
+        public const string AUTO_MERGE_OVERLAPPING_TEXT = "AutoMergeOverlappingText";
 
         // Constants for screen selection
         private const string SELECTED_SCREEN_INDEX = "SelectedScreenIndex";
@@ -2118,6 +2119,19 @@ namespace RSTGameTranslation
             _configValues[IS_AUTO_SET_OVERLAY_BACKGROUND] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Auto Set Overlay Background enabled: {enabled}");
+        }
+
+        public bool IsAutoMergeOverlappingTextEnabled()
+        {
+            string value = GetValue(AUTO_MERGE_OVERLAPPING_TEXT, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetAutoMergeOverlappingText(bool enabled)
+        {
+            _configValues[AUTO_MERGE_OVERLAPPING_TEXT] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Auto Merge Overlapping Text enabled: {enabled}");
         }
 
         public bool IsSendDataToServerEnabled()

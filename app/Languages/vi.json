@@ -86,6 +86,7 @@
   "Lbl_ShowExcludeRegions": "Hiện vùng loại trừ",
   "Msg_ExcludeRegionAdded": "Đã thêm vùng loại trừ. Vùng này sẽ không hiển thị khi dịch.",
   "Func_ToggleExcludeRegions": "Bật/Tắt vùng loại trừ",
+  "Lbl_AutoMergeOverlappingText": "Tự động gộp văn bản chồng chéo khi bản dịch dài hơn",
   "Tab_Translation": "Dịch thuật",
   "Grp_TranslationService": "Cài đặt dịch vụ dịch",
   "Lbl_TranslationService": "Dịch vụ dịch:",

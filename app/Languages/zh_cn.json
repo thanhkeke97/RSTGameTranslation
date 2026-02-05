@@ -93,6 +93,7 @@
   "Lbl_ShowExcludeRegions": "显示排除区域",
   "Msg_ExcludeRegionAdded": "已添加排除区域。该区域在翻译时不会显示。",
   "Func_ToggleExcludeRegions": "切换排除区域",
+  "Lbl_AutoMergeOverlappingText": "当翻译较长时自动合并重叠文本",
   "Tab_Translation": "翻译",
   "Grp_TranslationService": "翻译服务设置",
   "Lbl_TranslationService": "翻译服务：",
