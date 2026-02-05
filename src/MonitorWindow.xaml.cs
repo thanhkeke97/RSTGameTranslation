@@ -590,6 +590,9 @@ namespace RSTGameTranslation
                         CreateMonitorOverlayFromTextObject(this, textObj);
                     }
                 }
+
+                // Draw exclude regions if enabled
+                DrawExcludeRegions();
                 
                 //UpdateStatus("Text overlays refreshed");
                 //Console.WriteLine($"Monitor window refreshed {textOverlayCanvas.Children.Count} text overlays");
@@ -597,6 +600,50 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error refreshing overlays: {ex.Message}");
+            }
+        }
+
+        // Draw exclude regions on the overlay
+        private void DrawExcludeRegions()
+        {
+            try
+            {
+                // Check if show exclude regions is enabled
+                if (!MainWindow.Instance.GetShowExcludeRegions())
+                    return;
+
+                // Get exclude regions from MainWindow
+                var excludeRegions = MainWindow.Instance.excludeRegions;
+                if (excludeRegions == null || excludeRegions.Count == 0)
+                    return;
+
+                // Draw each exclude region
+                foreach (Rect region in excludeRegions)
+                {
+                    // Create a border for the exclude region
+                    System.Windows.Shapes.Rectangle excludeRect = new System.Windows.Shapes.Rectangle
+                    {
+                        Width = region.Width,
+                        Height = region.Height,
+                        Stroke = System.Windows.Media.Brushes.LimeGreen,
+                        StrokeThickness = 2,
+                        Fill = System.Windows.Media.Brushes.Transparent,
+                        Opacity = 0.5
+                    };
+
+                    // Position the rectangle
+                    Canvas.SetLeft(excludeRect, region.X);
+                    Canvas.SetTop(excludeRect, region.Y);
+
+                    // Add to canvas
+                    textOverlayCanvas.Children.Add(excludeRect);
+                }
+
+                Console.WriteLine($"Drew {excludeRegions.Count} exclude regions on overlay");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error drawing exclude regions: {ex.Message}");
             }
         }
         

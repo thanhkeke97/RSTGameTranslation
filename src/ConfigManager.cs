@@ -135,6 +135,10 @@ namespace RSTGameTranslation
         public const string WINDOWS_TTS_VOICE = "windows_tts_voice";
         public const string EXCLUDE_CHARACTER_NAME = "exclude_character_name";
 
+        // Exclude regions configuration keys
+        public const string EXCLUDE_REGIONS = "exclude_regions";
+        public const string SHOW_EXCLUDE_REGIONS = "show_exclude_regions";
+
         // ChatBox configuration keys
         public const string CHATBOX_FONT_FAMILY = "chatbox_font_family";
         public const string CHATBOX_FONT_SIZE = "chatbox_font_size";
@@ -3079,6 +3083,84 @@ namespace RSTGameTranslation
             }
 
             return areas;
+        }
+
+        // Get exclude regions from config
+        public List<Rect> GetExcludeRegions()
+        {
+            List<Rect> regions = new List<Rect>();
+            try
+            {
+                string value = GetValue(EXCLUDE_REGIONS, "");
+
+                if (!string.IsNullOrEmpty(value))
+                {
+                    string[] regionStrings = value.Split(new[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (string regionString in regionStrings)
+                    {
+                        string[] parts = regionString.Split(',');
+
+                        if (parts.Length == 4)
+                        {
+                            if (double.TryParse(parts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out double x) &&
+                                double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out double y) &&
+                                double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out double width) &&
+                                double.TryParse(parts[3], NumberStyles.Any, CultureInfo.InvariantCulture, out double height))
+                            {
+                                regions.Add(new Rect(x, y, width, height));
+                            }
+                        }
+                    }
+                }
+
+                Console.WriteLine($"Loaded {regions.Count} exclude regions from config");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading exclude regions: {ex.Message}");
+            }
+
+            return regions;
+        }
+
+        // Save exclude regions to config
+        public void SaveExcludeRegions(List<Rect> regions)
+        {
+            try
+            {
+                if (regions.Count == 0)
+                {
+                    _configValues[EXCLUDE_REGIONS] = "";
+                }
+                else
+                {
+                    string value = string.Join("+", regions.Select(r =>
+                        string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3}", r.X, r.Y, r.Width, r.Height)));
+                    _configValues[EXCLUDE_REGIONS] = value;
+                }
+                SaveConfig();
+                Console.WriteLine($"Saved {regions.Count} exclude regions to config");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving exclude regions: {ex.Message}");
+            }
+        }
+
+        // Get/Set show exclude regions
+        public bool GetShowExcludeRegions()
+        {
+            string value = GetValue(SHOW_EXCLUDE_REGIONS, "true");
+            // return bool.TryParse(value, out bool result) && result;
+            return false;
+        }
+
+        public void SetShowExcludeRegions(bool show)
+        {
+            _configValues[SHOW_EXCLUDE_REGIONS] = show.ToString();
+            SaveConfig();
+            Console.WriteLine($"Show exclude regions set to: {show}");
         }
     }
 }

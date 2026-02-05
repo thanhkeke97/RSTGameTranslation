@@ -25,6 +25,7 @@ namespace RSTGameTranslation
         public static event EventHandler? SelectTranslationRegion;
         public static event EventHandler? ClearAreasRequested;
         public static event EventHandler? RetryTranslationRequested;
+        public static event EventHandler? ToggleExcludeRegionsRequested;
         
         #endregion
         
@@ -160,6 +161,7 @@ namespace RSTGameTranslation
             _functionHandlers["Audio Service"] = AudioServiceToggleRequested;
             _functionHandlers["Swap Languages"] = SwapLanguagesRequested;
             _functionHandlers["Retry Translation"] = RetryTranslationRequested;
+            _functionHandlers["Toggle Exclude Regions"] = ToggleExcludeRegionsRequested;
             
             // Initialize key code map
             for (int i = 0; i < 26; i++) // A-Z
@@ -547,6 +549,11 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Hotkey detected: Retry Translation");
                 RetryTranslationRequested?.Invoke(null, EventArgs.Empty);
+            }
+            else if (function == "Toggle Exclude Regions")
+            {
+                Console.WriteLine("Hotkey detected: Toggle Exclude Regions");
+                ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty);
             }
 
         }

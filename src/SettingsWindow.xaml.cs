@@ -1189,6 +1189,9 @@ namespace RSTGameTranslation
             // Load ignore phrases
             LoadIgnorePhrases();
 
+            // Load exclude regions
+            LoadExcludeRegions();
+
             // Audio Processing settings
             audioProcessingProviderComboBox.SelectedIndex = 0; // Only one for now
             // openAiRealtimeApiKeyPasswordBox.Password = ConfigManager.Instance.GetOpenAiRealtimeApiKey();
@@ -4162,6 +4165,74 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error updating ignore phrase: {ex.Message}");
             }
+        }
+
+        // Load exclude regions from ConfigManager
+        private void LoadExcludeRegions()
+        {
+            try
+            {
+                // Get regions from MainWindow (which loads from ConfigManager)
+                var regions = MainWindow.Instance.excludeRegions;
+                
+                // Populate the list view
+                excludeRegionsListView.ItemsSource = regions;
+                
+                // Set the show exclude regions checkbox
+                showExcludeRegionsCheckBox.IsChecked = MainWindow.Instance.GetShowExcludeRegions();
+                
+                Console.WriteLine($"Loaded {regions.Count} exclude regions from config");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading exclude regions: {ex.Message}");
+            }
+        }
+
+        // Add a new exclude region
+        private void AddExcludeRegionButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide settings window
+            this.Hide();
+            
+            // Trigger exclude region selection
+            MainWindow.Instance.ToggleExcludeRegionSelector();
+            
+            
+            // Reload to show the new region
+            LoadExcludeRegions();
+        }
+
+        // Clear all exclude regions
+        private void ClearExcludeRegionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                MainWindow.Instance.ClearExcludeRegions();
+                excludeRegionsListView.ItemsSource = null;
+                excludeRegionsListView.ItemsSource = MainWindow.Instance.excludeRegions;
+                Console.WriteLine("All exclude regions cleared from settings");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error clearing exclude regions: {ex.Message}");
+            }
+        }
+
+        // Show exclude regions checkbox checked
+        private void ShowExcludeRegionsCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            bool show = showExcludeRegionsCheckBox.IsChecked ?? true;
+            MainWindow.Instance.SetShowExcludeRegions(show);
+        }
+
+        // Show exclude regions checkbox unchecked
+        private void ShowExcludeRegionsCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            bool show = showExcludeRegionsCheckBox.IsChecked ?? true;
+            MainWindow.Instance.SetShowExcludeRegions(show);
         }
 
         private void ShowIconSignal_CheckedChanged(object sender, RoutedEventArgs e)

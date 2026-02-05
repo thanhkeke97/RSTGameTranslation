@@ -93,6 +93,12 @@ namespace RSTGameTranslation
         public List<Rect> savedTranslationAreas = new List<Rect>();
         public int currentAreaIndex = 0;
 
+        // Exclude regions for masking
+        public List<Rect> excludeRegions = new List<Rect>();
+        private bool isSelectingExcludeRegion = false;
+        private Rect selectedExcludeRegion;
+        private bool _showExcludeRegions = true;
+
         // Force update prompt
         private int isForceUpdatePrompt = 8; //increase to force update prompt
 
@@ -508,8 +514,26 @@ namespace RSTGameTranslation
                 }
             };
 
+            // Toggle exclude regions hotkey
+            KeyboardShortcuts.ToggleExcludeRegionsRequested += (s, e) =>
+            {
+                try
+                {
+                    bool current = GetShowExcludeRegions();
+                    SetShowExcludeRegions(!current);
+                    Console.WriteLine($"Exclude regions visibility toggled to: {!current}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error toggling exclude regions via hotkey: {ex.Message}");
+                }
+            };
+
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
+
+            // Load exclude regions from config
+            LoadExcludeRegions();
 
             // Update audio button label when localization strings change
             LocalizationManager.Instance.PropertyChanged += (s, args) =>
@@ -526,6 +550,178 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Error updating localized audio button: {ex.Message}");
                 }
             };
+        }
+
+        // Load exclude regions from config
+        private void LoadExcludeRegions()
+        {
+            excludeRegions = ConfigManager.Instance.GetExcludeRegions();
+            _showExcludeRegions = ConfigManager.Instance.GetShowExcludeRegions();
+            Console.WriteLine($"Loaded {excludeRegions.Count} exclude regions from config");
+        }
+
+        // Save exclude regions to config
+        public void SaveExcludeRegions()
+        {
+            ConfigManager.Instance.SaveExcludeRegions(excludeRegions);
+            ConfigManager.Instance.SetShowExcludeRegions(_showExcludeRegions);
+        }
+
+        // Toggle exclude region selector
+        public void ToggleExcludeRegionSelector()
+        {
+            if (this.WindowState != WindowState.Minimized)
+            {
+                this.WindowState = WindowState.Minimized;
+            }
+            if (isSelectingExcludeRegion)
+            {
+                isSelectingExcludeRegion = false;
+                return;
+            }
+
+            TranslationAreaSelectorWindow selectorWindow = TranslationAreaSelectorWindow.GetInstance();
+            selectorWindow.SelectionComplete += ExcludeAreaSelector_SelectionComplete;
+            selectorWindow.Closed += (s, e) =>
+            {
+                isSelectingExcludeRegion = false;
+            };
+            selectorWindow.Show();
+
+            isSelectingExcludeRegion = true;
+        }
+
+        // Handle exclude region selection complete
+        private void ExcludeAreaSelector_SelectionComplete(object? sender, Rect area)
+        {
+            isSelectingExcludeRegion = false;
+
+            // Add the selected area to exclude regions
+            excludeRegions.Add(area);
+
+            // Limit to 5 exclude regions
+            if (excludeRegions.Count > 5)
+            {
+                excludeRegions = excludeRegions.Skip(excludeRegions.Count - 5).Take(5).ToList();
+            }
+
+            // Save to config
+            SaveExcludeRegions();
+
+            // Update MonitorWindow to show exclude regions
+            MonitorWindow.Instance.RefreshOverlays();
+
+            Console.WriteLine($"Exclude region added: X={area.X}, Y={area.Y}, Width={area.Width}, Height={area.Height}");
+            Console.WriteLine($"Total exclude regions: {excludeRegions.Count}");
+        }
+
+        // Clear all exclude regions
+        public void ClearExcludeRegions()
+        {
+            excludeRegions.Clear();
+            SaveExcludeRegions();
+            MonitorWindow.Instance.RefreshOverlays();
+            Console.WriteLine("All exclude regions cleared");
+        }
+
+        // Apply mask to bitmap for exclude regions
+        public Bitmap ApplyExcludeMask(Bitmap bitmap)
+        {
+            if (excludeRegions.Count == 0)
+                return bitmap;
+
+            try
+            {
+                Bitmap result = new Bitmap(bitmap.Width, bitmap.Height);
+                using (Graphics g = Graphics.FromImage(result))
+                {
+                    // Draw the original image
+                    g.DrawImage(bitmap, 0, 0, bitmap.Width, bitmap.Height);
+
+                    // Fill each exclude region with black
+                    using (SolidBrush brush = new SolidBrush(System.Drawing.Color.Black))
+                    {
+                        foreach (Rect region in excludeRegions)
+                        {
+                            // Check if region is within bounds
+                            if (region.X >= 0 && region.Y >= 0 &&
+                                region.X + region.Width <= bitmap.Width &&
+                                region.Y + region.Height <= bitmap.Height)
+                            {
+                                g.FillRectangle(brush, (float)region.X, (float)region.Y, (float)region.Width, (float)region.Height);
+                            }
+                        }
+                    }
+                }
+                bitmap.Dispose();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error applying exclude mask: {ex.Message}");
+                return bitmap;
+            }
+        }
+
+        // Get/Set show exclude regions
+        public bool GetShowExcludeRegions()
+        {
+            return _showExcludeRegions;
+        }
+
+        public void SetShowExcludeRegions(bool show=false)
+        {
+            _showExcludeRegions = show;
+            SaveExcludeRegions();
+            MonitorWindow.Instance.RefreshOverlays();
+        }
+
+        // Apply mask to bitmap for exclude regions (with adjusted coordinates)
+        private Bitmap ApplyExcludeRegionsMask(Bitmap bitmap, List<Rect> adjustedRegions)
+        {
+            try
+            {
+                Bitmap result = new Bitmap(bitmap.Width, bitmap.Height);
+                using (Graphics g = Graphics.FromImage(result))
+                {
+                    // Draw the original image
+                    g.DrawImage(bitmap, 0, 0, bitmap.Width, bitmap.Height);
+
+                    // Fill each exclude region with black
+                    using (SolidBrush brush = new SolidBrush(System.Drawing.Color.Black))
+                    {
+                        foreach (Rect region in adjustedRegions)
+                        {
+                            // Check if region is within bounds
+                            if (region.X >= 0 && region.Y >= 0 &&
+                                region.X + region.Width <= bitmap.Width &&
+                                region.Y + region.Height <= bitmap.Height)
+                            {
+                                g.FillRectangle(brush, (float)region.X, (float)region.Y, (float)region.Width, (float)region.Height);
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error applying exclude mask: {ex.Message}");
+                return new Bitmap(bitmap);
+            }
+        }
+
+        // Save masked bitmap to file
+        private void SaveMaskedBitmapToFile(Bitmap bitmap, string path)
+        {
+            try
+            {
+                bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving masked bitmap: {ex.Message}");
+            }
         }
 
         private void SelectAreaButton_Click(object sender, RoutedEventArgs e)
@@ -1797,6 +1993,58 @@ namespace RSTGameTranslation
                     // }
                     // Store the current capture coordinates for use with OCR results
                     Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
+
+                    // Apply exclude regions mask (convert screen coordinates to bitmap coordinates)
+                    if (excludeRegions.Count > 0)
+                    {
+                        // Adjust exclude regions to bitmap coordinates
+                        List<Rect> adjustedRegions = new List<Rect>();
+                        foreach (Rect region in excludeRegions)
+                        {
+                            double offsetX = region.X - captureRect.Left;
+                            double offsetY = region.Y - captureRect.Top;
+                            adjustedRegions.Add(new Rect(offsetX, offsetY, region.Width, region.Height));
+                        }
+
+                        // Apply mask to bitmap
+                        using (Bitmap maskedBitmap = ApplyExcludeRegionsMask(bitmap, adjustedRegions))
+                        {
+                            // Save the masked bitmap
+                            SaveMaskedBitmapToFile(maskedBitmap, outputPath);
+
+                            // Perform OCR with the masked bitmap
+                            bool shouldProcessOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
+                                                (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
+
+                            if (shouldProcessOcr)
+                            {
+                                Stopwatch stopwatch = new Stopwatch();
+                                stopwatch.Start();
+
+                                SetOCRCheckIsWanted(false);
+
+                                string ocrMethod = GetSelectedOcrMethod();
+                                if (ocrMethod == "Windows OCR")
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithWindowsOCR(maskedBitmap, sourceLanguage);
+                                }
+                                else if (ocrMethod == "OneOCR")
+                                {
+                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                    Logic.Instance.ProcessWithOneOCR(maskedBitmap, sourceLanguage);
+                                }
+                                else
+                                {
+                                    Logic.Instance.SendImageToServerOCR(outputPath);
+                                }
+
+                                stopwatch.Stop();
+                                Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
+                            }
+                        }
+                        return; // Skip the normal processing below
+                    }
 
                     // Update Monitor window with the copy (without saving to file)
                     if (MonitorWindow.Instance.IsVisible)
