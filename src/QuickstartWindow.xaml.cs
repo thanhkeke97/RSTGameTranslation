@@ -945,15 +945,17 @@ namespace RSTGameTranslation
 
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ButtonState == MouseButtonState.Pressed)
+            // Standard header drag functionality
+            if (e.ClickCount == 1)
             {
                 this.DragMove();
+                e.Handled = true;
             }
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            this.WindowState = WindowState.Minimized;
+            this.Hide();
         }
 
         private void MaximizeButton_Click(object sender, RoutedEventArgs e)

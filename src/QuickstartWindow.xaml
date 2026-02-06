@@ -332,12 +332,24 @@
                                     Click="SkipButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
                             
                             <!-- Window Control Buttons -->
-                            <Button Style="{StaticResource WindowControlButton}" Background="#FFBD2E" 
-                                    Click="MinimizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                            <Button Style="{StaticResource WindowControlButton}" Background="#27C93F" 
-                                    Click="MaximizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                            <Button Style="{StaticResource WindowControlButton}" Background="#FF5F57" 
-                                    Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            <Button Style="{StaticResource WindowControlButton}" Background="#FFBD2E"
+                                    Click="MinimizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
+                                    ToolTip="Minimize">
+                                <TextBlock Text="−" FontSize="10" FontWeight="Bold" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
+                            </Button>
+                            <Button Style="{StaticResource WindowControlButton}" Background="#27C93F"
+                                    Click="MaximizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
+                                    ToolTip="Maximize">
+                                <TextBlock Text="□" FontSize="9" FontWeight="Bold" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
+                            </Button>
+                            <Button Style="{StaticResource WindowControlButton}" Background="#FF5F57"
+                                    Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
+                                    ToolTip="Close">
+                                <TextBlock Text="×" FontSize="12" FontWeight="Bold" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
