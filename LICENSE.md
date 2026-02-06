@@ -1,6 +1,3 @@
-Copyright (C) 2025 thanhkeke97  
-SPDX-License-Identifier: GPL-3.0-only
-
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
