@@ -40,6 +40,9 @@
             --text-color: #333;
             --card-bg: #fff;
             --border-color: #ddd;
+            --accent-green: #27ae60;
+            --accent-orange: #f39c12;
+            --accent-red: #e74c3c;
         }
 
         body {
@@ -89,6 +92,16 @@
             margin-top: 40px;
         }
 
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 25px;
+        }
+
+        h4 {
+            color: #555;
+            margin-top: 20px;
+        }
+
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -116,6 +129,30 @@
         }
 
         .important-note {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background-color: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
             background-color: #fff3cd;
             border-left: 5px solid #ffc107;
             padding: 15px;
@@ -176,6 +213,14 @@
             background-color: var(--secondary-color);
         }
 
+        .btn-success {
+            background-color: var(--accent-green);
+        }
+
+        .btn-success:hover {
+            background-color: #219a52;
+        }
+
         footer {
             text-align: center;
             padding: 20px;
@@ -227,6 +272,7 @@
         .language-switch a.active {
             text-decoration: underline;
         }
+        
         .bmc-btn {
             display: inline-block;
             background: #FFDD00;
@@ -239,6 +285,146 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
         .bmc-btn:hover { opacity: 0.95 }
+
+        /* Doc Section Styles */
+        .doc-section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .workflow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .workflow-step {
+            text-align: center;
+            padding: 15px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .workflow-arrow {
+            font-size: 24px;
+            color: var(--secondary-color);
+        }
+
+        .settings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .settings-table th, .settings-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .settings-table th {
+            background-color: var(--primary-color);
+            color: white;
+            width: 200px;
+        }
+
+        .settings-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .settings-table tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .settings-group {
+            background-color: #e3f2fd;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .ocr-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .ocr-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .ocr-card.recommended {
+            border-color: var(--accent-green);
+            background-color: #d4edda;
+        }
+
+        .ocr-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .badge-fast { background-color: #28a745; color: white; }
+        .badge-medium { background-color: #ffc107; color: #333; }
+        .badge-slow { background-color: #dc3545; color: white; }
+        .badge-builtin { background-color: #17a2b8; color: white; }
+        .badge-external { background-color: #6c757d; color: white; }
+
+        .toc {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 10px 0;
+        }
+
+        .toc a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .toc ul ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+
+        .toc ul ul li {
+            font-size: 14px;
+            color: #666;
+        }
     </style>
     <!-- Schema.org markup for Google -->
     <script type="application/ld+json">
@@ -289,14 +475,14 @@
             <ul>
                 <li><a href="#features">✨ Features</a></li>
                 <li><a href="#important-notes">⚠️ Important Notes</a></li>
-                <li><a href="#installation">🚀 Installation</a></li>
+                <li><a href="#quick-start">🚀 Quick Start</a></li>
+                <li><a href="#doc">📖 Documentation</a></li>
+                <li><a href="#installation">💾 Installation</a></li>
                 <li><a href="#updates">🔄 Updates</a></li>
-                <!-- Shortcuts removed: application displays hotkeys in-app -->
-                <li><a href="#advanced-settings">⚙️ Advanced Settings</a></li>
-                <li><a href="#settings">⚙️ All Settings</a></li>
                 <li><a href="#faq">❓ FAQ</a></li>
             </ul>
         </nav>
+        
         <section id="features">
             <h2>✨ Features</h2>
             <div class="feature-grid">
@@ -328,6 +514,10 @@
                     <h3>🎮 Game Optimized</h3>
                     <p>By providing information about the game being translated and previous context, translations are more accurate than other methods.</p>
                 </div>
+                <div class="feature-card">
+                    <h3>⚡ Multiple OCR Options</h3>
+                    <p>Choose from 5 OCR engines: Windows OCR (built-in), OneOCR, RapidOCR, EasyOCR, or PaddleOCR based on your hardware.</p>
+                </div>
             </div>
         </section>
 
@@ -336,16 +526,619 @@
             <div class="important-note">
                 <ul>
                     <li><strong>System Requirements:</strong> Windows 10 or higher. Game needs to be in windowed, fullscreen borderless, or windowed borderless mode.</li>
-                    <li><strong>Recommended Hardware:</strong> NVIDIA GPU for best performance.</li>
+                    <li><strong>Recommended Hardware:</strong> NVIDIA GPU for best performance with EasyOCR/PaddleOCR.</li>
                     <li><strong>CPU Performance:</strong> Without an NVIDIA GPU, you'll use 30-50% CPU capacity (if choosing EasyOCR or PaddleOCR).</li>
                     <li><strong>OCR Selection:</strong> RapidOCR, OneOCR, WindowsOCR (recommended for AMD and Intel GPUs), RapidOCR, EasyOCR and PaddleOCR for NVIDIA</li>
                     <li><strong>Translation Area:</strong> Smaller translation area = faster translation speed.</li>
+                    <li><strong>API Keys:</strong> Some translation services require API keys. Google Translate works without keys, but AI services need keys.</li>
                 </ul>
             </div>
         </section>
 
+        <section id="quick-start">
+            <h2>🚀 Quick Start</h2>
+            <div class="installation-steps">
+                <h3>For Immediate Use (No Setup Required)</h3>
+                <ol>
+                    <li>Run <code>rst.exe</code></li>
+                    <li>Go to <strong>Settings</strong> → <strong>OCR</strong>: Select <strong>OneOCR</strong> or <strong>Windows OCR</strong></li>
+                    <li>Go to <strong>Settings</strong> → <strong>Language</strong>: Choose source and target languages</li>
+                    <li>Go to <strong>Settings</strong> → <strong>Translation</strong>: Select <strong>Google Translate</strong></li>
+                    <li>Close settings and press <strong>Select Window</strong> button</li>
+                    <li>Press <strong>Alt+Q</strong> to select translation area</li>
+                    <li>Press <strong>Alt+F</strong> to enable overlay display</li>
+                    <li>Press <strong>Alt+G</strong> to start translation</li>
+                </ol>
+                
+                <h3>For Best Quality (Requires API Key)</h3>
+                <ol>
+                    <li>Get a <strong>Gemini API Key</strong> from <a href="https://ai.google.dev" target="_blank" rel="noopener">Google AI Studio</a></li>
+                    <li>Go to <strong>Settings</strong> → <strong>Translation</strong></li>
+                    <li>Select <strong>Gemini</strong> and enter your API key</li>
+                    <li>Select <strong>PaddleOCR</strong> or <strong>RapidOCR</strong> in OCR settings</li>
+                    <li>Enter your <strong>Game Info</strong> for better context-aware translations</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="doc">
+            <h2>📖 Documentation</h2>
+            
+            <div class="toc doc-section">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#ocr-guide">OCR Engine Guide</a></li>
+                    <li><a href="#translation-guide">Translation Services Guide</a></li>
+                    <li><a href="#settings-detail">Detailed Settings Reference</a></li>
+                    <li><a href="#hotkeys">Keyboard Shortcuts</a></li>
+                    <li><a href="#use-cases">Use Cases & Examples</a></li>
+                </ul>
+            </div>
+
+            <div id="how-it-works" class="doc-section">
+                <h3>🔄 How It Works</h3>
+                
+                <h4>Translation Workflow</h4>
+                <div class="workflow-diagram">
+                    <div class="workflow-step">📷 Capture Screen</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">🔤 OCR Detection</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">🤖 AI Translation</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">📱 Display Result</div>
+                </div>
+
+                <h4>Step-by-Step Process</h4>
+                <ol>
+                    <li><strong>Capture Screen:</strong> The application captures the selected area of your game screen at regular intervals or when text changes.</li>
+                    <li><strong>OCR Detection:</strong> The selected OCR engine (Windows OCR, OneOCR, RapidOCR, EasyOCR, or PaddleOCR) extracts text from the captured image.</li>
+                    <li><strong>Text Processing:</strong> The extracted text is filtered, deduplicated, and analyzed for context.</li>
+                    <li><strong>AI Translation:</strong> The text is sent to your selected translation service (Gemini, ChatGPT, Google Translate, Ollama, etc.)</li>
+                    <li><strong>Context Enhancement:</strong> Previous translations and game information are used to improve accuracy.</li>
+                    <li><strong>Display Result:</strong> Translated text appears in the overlay or chat window.</li>
+                </ol>
+
+                <h4>Key Concepts</h4>
+                <ul>
+                    <li><strong>Translation Area:</strong> The rectangular region you select on screen. Smaller areas = faster processing.</li>
+                    <li><strong>Context:</strong> Previous text pieces that help the AI understand the conversation flow.</li>
+                    <li><strong>Game Info:</strong> Description of the game that helps AI translate character names and terminology correctly.</li>
+                    <li><strong>Block Detection:</strong> How OCR groups text elements together. Higher power = more text grouped together.</li>
+                </ul>
+            </div>
+
+            <div id="ocr-guide" class="doc-section">
+                <h3>🔤 OCR Engine Guide</h3>
+                
+                <h4>OCR Engine Comparison</h4>
+                <div class="ocr-comparison">
+                    <div class="ocr-card recommended">
+                        <span class="ocr-badge badge-builtin">Built-in</span>
+                        <span class="ocr-badge badge-fast">Fast</span>
+                        <h4>Windows OCR</h4>
+                        <p><strong>Resources:</strong> ~2% CPU</p>
+                        <p><strong>Accuracy:</strong> Medium</p>
+                        <p><strong>Setup:</strong> None</p>
+                        <p><strong>Best for:</strong> AMD/Intel GPUs, quick setup</p>
+                    </div>
+                    <div class="ocr-card recommended">
+                        <span class="ocr-badge badge-builtin">Built-in</span>
+                        <span class="ocr-badge badge-fast">Fast</span>
+                        <h4>OneOCR</h4>
+                        <p><strong>Resources:</strong> ~10% CPU</p>
+                        <p><strong>Accuracy:</strong> High</p>
+                        <p><strong>Setup:</strong> None</p>
+                        <p><strong>Best for:</strong> All users, manga support</p>
+                    </div>
+                    <div class="ocr-card">
+                        <span class="ocr-badge badge-external">External</span>
+                        <span class="ocr-badge badge-fast">Fast</span>
+                        <h4>RapidOCR</h4>
+                        <p><strong>Resources:</strong> ~10% GPU</p>
+                        <p><strong>Accuracy:</strong> Very High</p>
+                        <p><strong>Setup:</strong> 5-15 min</p>
+                        <p><strong>Best for:</strong> NVIDIA GPUs, Western languages</p>
+                    </div>
+                    <div class="ocr-card">
+                        <span class="ocr-badge badge-external">External</span>
+                        <span class="ocr-badge badge-medium">Medium</span>
+                        <h4>EasyOCR</h4>
+                        <p><strong>Resources:</strong> ~20% GPU</p>
+                        <p><strong>Accuracy:</strong> Good</p>
+                        <p><strong>Setup:</strong> 5-15 min</p>
+                        <p><strong>Best for:</strong> NVIDIA GPUs, many languages</p>
+                    </div>
+                    <div class="ocr-card">
+                        <span class="ocr-badge badge-external">External</span>
+                        <span class="ocr-badge badge-fast">Fast</span>
+                        <h4>PaddleOCR</h4>
+                        <p><strong>Resources:</strong> ~15% GPU</p>
+                        <p><strong>Accuracy:</strong> Very High</p>
+                        <p><strong>Setup:</strong> 5-15 min</p>
+                        <p><strong>Best for:</strong> NVIDIA GPUs, Asian languages</p>
+                    </div>
+                </div>
+
+                <h4>OCR Settings Explained</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                        <th>Recommended Value</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Block Detection Power</strong></td>
+                        <td>Controls how text blocks are grouped. Higher values merge more text together.</td>
+                        <td>5 (default) - Adjust lower for small text, higher for paragraphs</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Settle Time</strong></td>
+                        <td>Seconds to wait for text to stabilize before capturing.</td>
+                        <td>0.5s - Increase if text flickers or updates slowly</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Text Similarity Threshold</strong></td>
+                        <td>Skips OCR if new text is similar to previous (0.5-1.0).</td>
+                        <td>0.75 - Lower to skip more duplicates</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Character Level OCR</strong></td>
+                        <td>Splits results into individual characters for better spacing handling.</td>
+                        <td>Enabled - Recommended for tightly spaced text</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Min Fragment Size</strong></td>
+                        <td>Ignores text fragments smaller than this many characters.</td>
+                        <td>2 - Filters out noise and small UI elements</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Min Letter/Line Confidence</strong></td>
+                        <td>Filters OCR output by confidence score (0.0-1.0).</td>
+                        <td>0.1 / 0.2 - Lower to accept more results</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Multi-Selection Area</strong></td>
+                        <td>Allows selecting multiple translation regions simultaneously.</td>
+                        <td>Optional - Useful for HUD + chat translation</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="translation-guide" class="doc-section">
+                <h3>🤖 Translation Services Guide</h3>
+                
+                <h4>Service Comparison</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Service</th>
+                        <th>API Key Required</th>
+                        <th>Quality</th>
+                        <th>Speed</th>
+                        <th>Privacy</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Google Translate</strong></td>
+                        <td>Optional (Free tier available)</td>
+                        <td>Good</td>
+                        <td>Fast</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gemini</strong></td>
+                        <td>Yes (free tier available)</td>
+                        <td>Excellent</td>
+                        <td>Fast</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ChatGPT</strong></td>
+                        <td>Yes (paid)</td>
+                        <td>Excellent</td>
+                        <td>Fast</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Groq</strong></td>
+                        <td>Yes</td>
+                        <td>Excellent</td>
+                        <td>Very Fast</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ollama</strong></td>
+                        <td>No</td>
+                        <td>Good-Very Good</td>
+                        <td>Depends on hardware</td>
+                        <td>100% Local</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LM Studio</strong></td>
+                        <td>No</td>
+                        <td>Good-Very Good</td>
+                        <td>Depends on hardware</td>
+                        <td>100% Local</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mistral</strong></td>
+                        <td>Yes</td>
+                        <td>Excellent</td>
+                        <td>Fast</td>
+                        <td>Cloud</td>
+                    </tr>
+                </table>
+
+                <h4>Context Settings</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                        <th>Recommended Value</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Max Context Pieces</strong></td>
+                        <td>Number of previous translations to include as context.</td>
+                        <td>3 - Provides good context without overwhelming</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Min Context Size</strong></td>
+                        <td>Minimum characters for text to be included as context.</td>
+                        <td>20 - Filters out menu labels and buttons</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Game Info</strong></td>
+                        <td>Description of the game for better terminology handling.</td>
+                        <td>Brief description of genre, setting, characters</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Leave Translation Onscreen</strong></td>
+                        <td>Always show translation instead of original text.</td>
+                        <td>Personal preference</td>
+                    </tr>
+                </table>
+
+                <div class="info-box">
+                    <strong>💡 Tip:</strong> Using context significantly improves translation quality, especially for conversations. The AI can understand character relationships and story flow better.
+                </div>
+            </div>
+
+            <div id="settings-detail" class="doc-section">
+                <h3>⚙️ Detailed Settings Reference</h3>
+                
+                <h4>Language Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Source Language</strong></td>
+                        <td>The language of text in the game (e.g., ja for Japanese, ko for Korean).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Target Language</strong></td>
+                        <td>The language you want translations in (e.g., en for English, vi for Vietnamese).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Swap Languages</strong></td>
+                        <td>Quickly swap source and target languages.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Check Language Pack</strong></td>
+                        <td>Verify Windows OCR language pack is installed for your source language.</td>
+                    </tr>
+                </table>
+
+                <h4>OCR & Screen Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>OCR Method</strong></td>
+                        <td>Select OCR engine: EasyOCR, Windows OCR, PaddleOCR, RapidOCR, or OneOCR.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Select Screen</strong></td>
+                        <td>Choose which monitor to capture if using multiple displays.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auto OCR</strong></td>
+                        <td>Enable automatic continuous translation. Disable for manual control.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>HDR Support</strong></td>
+                        <td>Enable for HDR games (may affect text detection accuracy).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Remove OCR Data</strong></td>
+                        <td>Delete downloaded OCR models to free disk space.</td>
+                    </tr>
+                </table>
+
+                <h4>Ignore Phrases Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Phrases to Ignore</strong></td>
+                        <td>List of text patterns to skip during translation. Useful for removing UI elements, watermarks, or repetitive text.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exact Match</strong></td>
+                        <td>When enabled, ignores entire text if it matches. When disabled, removes the phrase from text.</td>
+                    </tr>
+                </table>
+
+                <h4>Exclude Regions Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Exclude Regions</strong></td>
+                        <td>Define rectangular areas within the translation area that should never be captured or translated.</td>
+                    </tr>
+                </table>
+
+                <h4>Text-to-Speech (TTS) Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Enable TTS</strong></td>
+                        <td>Read translated text aloud using synthesized voice.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TTS Service</strong></td>
+                        <td>Select: ElevenLabs (best quality), Google Cloud TTS, or Windows TTS.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Voice Selection</strong></td>
+                        <td>Choose voice for TTS output.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exclude Character Names</strong></td>
+                        <td>Skip reading character names in dialogue.</td>
+                    </tr>
+                </table>
+
+                <h4>Hot Keys Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Enable Hot Keys</strong></td>
+                        <td>Master switch for keyboard shortcuts.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Function Selection</strong></td>
+                        <td>Choose which action to assign a hotkey to.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Combine Keys</strong></td>
+                        <td>Set modifier key (CTRL, SHIFT, ALT) + letter/number.</td>
+                    </tr>
+                </table>
+
+                <h4>Audio Processing Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Auto-Translate Audio</strong></td>
+                        <td>Start Whisper service for speech-to-text translation from game audio.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Model Selection</strong></td>
+                        <td>Choose local Whisper model size (larger = better accuracy, slower).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Silence Threshold</strong></td>
+                        <td>Audio level below which is considered silence (0.0-1.0).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Max Buffer Samples</strong></td>
+                        <td>Maximum audio buffer size for processing.</td>
+                    </tr>
+                </table>
+
+                <h4>Server Controls Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Install/Start/Remove Server</strong></td>
+                        <td>Manage OCR backend servers (EasyOCR, PaddleOCR, RapidOCR).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Send Data to Server</strong></td>
+                        <td>Allow diagnostic data posting to remote servers (used by some OCR engines).</td>
+                    </tr>
+                </table>
+
+                <h4>Game Profiles Tab</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Create/Load Profiles</strong></td>
+                        <td>Save translation area rectangles and settings as named profiles for different games.</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="hotkeys" class="doc-section">
+                <h3>⌨️ Keyboard Shortcuts</h3>
+                
+                <table class="shortcut-table">
+                    <thead>
+                        <tr>
+                            <th>Shortcut</th>
+                            <th>Action</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Alt + Q</code></td>
+                            <td>Select Area</td>
+                            <td>Select translation area on screen</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + F</code></td>
+                            <td>Toggle Overlay</td>
+                            <td>Show/hide translation overlay</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + G</code></td>
+                            <td>Start/Stop</td>
+                            <td>Start or stop translation</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + C</code></td>
+                            <td>ChatBox</td>
+                            <td>Open translation history window</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + S</code></td>
+                            <td>Settings</td>
+                            <td>Open settings window</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + L</code></td>
+                            <td>Log</td>
+                            <td>Open log window</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + A</code></td>
+                            <td>Audio Service</td>
+                            <td>Toggle Whisper audio service</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + X</code></td>
+                            <td>Clear Areas</td>
+                            <td>Clear all selected translation areas</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + 1-5</code></td>
+                            <td>Select Area N</td>
+                            <td>Quick switch to area 1-5</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + R</code></td>
+                            <td>Retry</td>
+                            <td>Retry last failed translation</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + W</code></td>
+                            <td>Swap Languages</td>
+                            <td>Swap source and target languages</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="use-cases" class="doc-section">
+                <h3>📚 Use Cases & Examples</h3>
+                
+                <h4>Case 1: Visual Novel Translation</h4>
+                <div class="success-box">
+                    <strong>Recommended Setup:</strong><br>
+                    OCR: OneOCR or Windows OCR<br>
+                    Translation: Gemini with context enabled<br>
+                    Display: ChatBox mode<br>
+                    Settings: Enable "Leave Translation Onscreen" for easy reading
+                </div>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Select the dialogue box area using Alt+Q</li>
+                    <li>Set Max Context to 3-5 pieces for conversation flow</li>
+                    <li>Enter game info: "Visual novel, Japanese school setting"</li>
+                    <li>Start translation with Alt+G</li>
+                </ol>
+
+                <h4>Case 2: Action RPG Game HUD Translation</h4>
+                <div class="info-box">
+                    <strong>Recommended Setup:</strong><br>
+                    OCR: RapidOCR (if NVIDIA) or OneOCR (if AMD/Intel)<br>
+                    Translation: Google Translate (fast) or Gemini (accurate)<br>
+                    Display: Overlay mode with auto background
+                </div>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Select the HUD area containing item names, quest text, etc.</li>
+                    <li>Set Block Detection Power lower (3-4) for individual text elements</li>
+                    <li>Enable "Auto Set Overlay Background Color"</li>
+                    <li>Use Alt+F to toggle overlay as needed during gameplay</li>
+                </ol>
+
+                <h4>Case 3: Manga/Comic Translation</h4>
+                <div class="warning-box">
+                    <strong>Recommended Setup:</strong><br>
+                    OCR: OneOCR (has manga support)<br>
+                    Translation: Gemini for best quality<br>
+                    Display: ChatBox mode<br>
+                    Settings: Lower Text Similarity Threshold (0.6) for speech bubbles
+                </div>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Select the speech bubble area</li>
+                    <li>Disable Character Level OCR for connected text</li>
+                    <li>Enable "Leave Translation Onscreen"</li>
+                    <li>Use Multi-Selection Area if manga has multiple text boxes</li>
+                </ol>
+
+                <h4>Case 4: Audio-Only Games (Speech-to-Text)</h4>
+                <div class="success-box">
+                    <strong>Recommended Setup:</strong><br>
+                    OCR: Not needed<br>
+                    Translation: Gemini or Ollama (local)<br>
+                    Audio: Whisper with "base" or "small" model<br>
+                    Display: ChatBox mode
+                </div>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Enable "Auto-Translate Audio" in Audio Processing tab</li>
+                    <li>Select Whisper model (ggml-small for balance, ggml-base for speed)</li>
+                    <li>Adjust silence threshold to avoid processing background noise</li>
+                    <li>Translations appear in ChatBox as audio is recognized</li>
+                </ol>
+
+                <h4>Case 5: 100% Offline Translation</h4>
+                <div class="success-box">
+                    <strong>Recommended Setup:</strong><br>
+                    OCR: OneOCR or Windows OCR (both work offline)<br>
+                    Translation: Ollama or LM Studio (100% local)<br>
+                    No internet connection required after initial setup
+                </div>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Install <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> or <a href="https://lmstudio.ai" target="_blank" rel="noopener">LM Studio</a></li>
+                    <li>Download a model (llama3, phi3, or mistral)</li>
+                    <li>Enter URL and model name in Translation settings</li>
+                    <li>All translations stay on your computer</li>
+                </ol>
+            </div>
+        </section>
+
         <section id="installation">
-            <h2>🚀 Installation & Usage (Windows)</h2>
+            <h2>💾 Installation & Usage (Windows)</h2>
             <div class="installation-steps">
                 <h3>Prerequisites:</h3>
                 <ol>
@@ -406,8 +1199,6 @@
             </ul>
         </section>
 
-        <!-- Shortcuts section removed — hotkeys displayed in-app -->
-
         <section id="advanced-settings">
             <h2>⚙️ Advanced Settings</h2>
             <h3>Recommended Settings</h3>
@@ -427,114 +1218,134 @@
             </ul>
         </section>
 
-        <section id="settings">
-            <h2>⚙️ All Settings — detailed usage</h2>
-            <div class="installation-steps">
-                <p>Detailed descriptions and quick usage notes for each settings group (from Setting Window):</p>
-                <h3>Language</h3>
-                <ul>
-                    <li>Source / Target language: choose language codes (e.g. ja, en, vi). Swap with the ⇄ button.</li>
-                    <li>Windows OCR language pack: click Check to verify/install required language when using Windows OCR.</li>
-                </ul>
-                <h3>OCR & Screen</h3>
-                <ul>
-                    <li>OCR Method: pick EasyOCR, Windows OCR, PaddleOCR, RapidOCR or OneOCR. Non-built-in engines may require server setup.</li>
-                    <li>Select Screen: choose which display to capture if multiple monitors are connected.</li>
-                    <li>Auto OCR: enable realtime auto-capture; disable to manually run OCR.</li>
-                    <li>HDR support: enable if your game uses HDR (may affect detection).</li>
-                    <li>Remove OCR Data: deletes downloaded OCR model/data for external engines if you need to reclaim space.</li>
-                </ul>
-                <h3>OCR Settings</h3>
-                <ul>
-                    <li>Block detection power & settle time: tune how text blocks are grouped and how long to wait for text to settle before capture.</li>
-                    <li>Text similarity threshold: skip near-duplicate captures (0.5–1.0). Lower = stricter deduplication.</li>
-                    <li>Char-level OCR: enable to split results into characters (useful for tightly spaced text).</li>
-                    <li>Minimum fragment / letter / line confidence: filter noisy OCR output by confidence scores.</li>
-                    <li>Multi-selection area: allow selecting multiple translation regions (useful for HUD + chat simultaneously).</li>
-                </ul>
-                <h3>Translation Context & Overlay</h3>
-                <ul>
-                    <li>Max/Min context pieces and size: control how much previous text is sent as context to the LLM for better continuity.</li>
-                    <li>Game info: enter brief game description to help LLM produce context-aware translations.</li>
-                    <li>Overlay config & auto background: adjust overlay colors and enable automatic background selection.</li>
-                    <li>Leave translation onscreen: keep translated text visible instead of showing source text.</li>
-                </ul>
-                <h3>Ignore Phrases</h3>
-                <ul>
-                    <li>Add phrases to be ignored or stripped from OCR results. Toggle Exact Match to ignore whole texts or remove occurrences.</li>
-                </ul>
-                <h3>Translation Service (LLMs)</h3>
-                <ul>
-                    <li>Select service (Gemini, Groq, ChatGPT, Ollama, LM Studio, Google Translate, Custom API).</li>
-                    <li>API keys: enter keys in the password fields and press Enter (or use Save Keys). Multiple keys supported for failover.</li>
-                    <li>Model selection: choose service-specific models. Use View Models links to open docs.</li>
-                    <li>Prompt editor: customize the prompt template per-service, Save / Restore Default are available.</li>
-                </ul>
-                <h3>Text-to-Speech (TTS)</h3>
-                <ul>
-                    <li>Enable TTS and pick service: ElevenLabs, Google Cloud TTS or Windows TTS.</li>
-                    <li>Provide API keys for cloud services; choose voice from the list (system voices are auto-detected).</li>
-                    <li>Exclude character names: toggle to avoid speaking character names in TTS output.</li>
-                </ul>
-                <!-- Hotkeys subsection removed — hotkeys are shown in-app -->
-                <h3>Audio Processing</h3>
-                <ul>
-                    <li>Auto-translate audio: starts/stops local Whisper service for live speech-to-text translation.</li>
-                    <li>Model selection: choose a local audio model (ggml .bin); use the download link if missing.</li>
-                    <li>Silence threshold/duration and max buffer samples: tune detection sensitivity for audio capture.</li>
-                </ul>
-                <h3>Server Controls</h3>
-                <ul>
-                    <li>Install / Start / Remove server: runs bundled batch scripts to setup or control OCR backends that require a server.</li>
-                    <li>Send data to server: toggle whether OCR/diagnostic data may be posted to a remote server (used by some engines).</li>
-                </ul>
-                <h3>Game Profiles</h3>
-                <ul>
-                    <li>Create, update, load and remove named profiles that store translation area rectangles and related settings per game.</li>
-                </ul>
-                <p>Tip: when changing OCR engine, model or translation service, use Clear Context and Reset Hash (app will do this automatically) to force fresh OCR & translations.</p>
-            </div>
-        </section>
         <section id="faq">
             <h2>❓ Frequently Asked Questions (FAQ)</h2>
             <div class="installation-steps">
-                <h3>What languages can RSTGameTranslation translate?</h3>
-                <p>The software can translate most languages, but it's primarily tested with Japanese to English and English to Vietnamese translations.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: Why is the translation slow?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Possible causes and solutions:</strong></p>
+                        <ul>
+                            <li><strong>Large translation area:</strong> Reduce the area size for faster processing</li>
+                            <li><strong>OCR engine:</strong> Try OneOCR or Windows OCR for faster speeds</li>
+                            <li><strong>API response time:</strong> Google Translate is fastest, followed by Gemini</li>
+                            <li><strong>CPU/GPU load:</strong> Close other resource-heavy applications</li>
+                        </ul>
+                    </div>
+                </details>
                 
-                <h3>I don't have an NVIDIA GPU, can I still use it?</h3>
-                <p>Yes, but performance will be much lower as it will use CPU (30-50% capacity). You can try using Windows OCR for lighter performance.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: OCR is not detecting text correctly</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Troubleshooting steps:</strong></p>
+                        <ul>
+                            <li><strong>Check language selection:</strong> Make sure source language matches the game</li>
+                            <li><strong>Adjust OCR settings:</strong> Lower the confidence thresholds</li>
+                            <li><strong>Try different OCR:</strong> Some engines work better with certain text styles</li>
+                            <li><strong>Clear context:</strong> Sometimes old context can interfere</li>
+                            <li><strong>Check game mode:</strong> Ensure game is in windowed or borderless mode</li>
+                        </ul>
+                    </div>
+                </details>
                 
-                <h3>Can I use RSTGameTranslation without an internet connection?</h3>
-                <p>Yes, you can use Ollama or LM Studio to run 100% offline. You'll need to download the LLM models to your machine first.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: How do I get an API key?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>For different services:</strong></p>
+                        <ul>
+                            <li><strong>Google Translate:</strong> Optional. Works without key (free tier limits apply)</li>
+                            <li><strong>Gemini:</strong> Get free key from <a href="https://ai.google.dev" target="_blank" rel="noopener">Google AI Studio</a></li>
+                            <li><strong>ChatGPT:</strong> Get key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI Platform</a></li>
+                            <li><strong>Groq:</strong> Get key from <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Groq Console</a></li>
+                        </ul>
+                    </div>
+                </details>
                 
-                <h3>How do I get a Gemini API key?</h3>
-                <p>You can sign up for a free Gemini API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>. After logging in, you can create an API key in the settings section.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: Can I use this offline?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Yes! Options for offline use:</strong></p>
+                        <ul>
+                            <li><strong>Windows OCR / OneOCR:</strong> Built-in, works without internet</li>
+                            <li><strong>Ollama:</strong> Download from <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a> for 100% local AI</li>
+                            <li><strong>LM Studio:</strong> Download from <a href="https://lmstudio.ai" target="_blank" rel="noopener">lmstudio.ai</a> for local models</li>
+                        </ul>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: How to translate multiple areas at once?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Multi-selection setup:</strong></p>
+                        <ol>
+                            <li>Go to Settings → OCR Settings</li>
+                            <li>Enable "Multi-selection area"</li>
+                            <li>Select your first area with Alt+Q</li>
+                            <li>Press Alt+Q again to add another area</li>
+                            <li>Repeat for up to 5 areas</li>
+                        </ol>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: The overlay covers game UI</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Solutions:</strong></p>
+                        <ul>
+                            <li>Make your translation area more precise</li>
+                            <li>Use "Exclude Regions" to avoid capturing UI elements</li>
+                            <li>Toggle overlay with Alt+F when not needed</li>
+                            <li>Try ChatBox mode instead of overlay</li>
+                        </ul>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: Can I save different settings for different games?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Yes! Use Game Profiles:</strong></p>
+                        <ol>
+                            <li>Configure settings for your first game</li>
+                            <li>Go to Settings → Game Profiles</li>
+                            <li>Click "Create Profile" and name it</li>
+                            <li>Repeat for other games</li>
+                            <li>Load profiles quickly when switching games</li>
+                        </ol>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: Why does translation quality vary?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Factors affecting quality:</strong></p>
+                        <ul>
+                            <li><strong>Context:</strong> Enable context for better conversation flow</li>
+                            <li><strong>Game Info:</strong> Enter game description for terminology accuracy</li>
+                            <li><strong>OCR quality:</strong> Clearer text = better translations</li>
+                            <li><strong>AI model:</strong> Gemini and GPT-4 provide best results</li>
+                        </ul>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">Q: How to report bugs or get help?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Support channels:</strong></p>
+                        <ul>
+                            <li><strong>GitHub Issues:</strong> <a href="https://github.com/thanhkeke97/RSTGameTranslation/issues" target="_blank" rel="noopener">Report bugs here</a></li>
+                            <li><strong>Discord:</strong> Join our <a href="https://discord.gg/FusrDU5tdn" target="_blank" rel="noopener">Discord community</a></li>
+                            <li><strong>Check logs:</strong> Open Log window (Alt+L) and include relevant entries</li>
+                        </ul>
+                    </div>
+                </details>
             </div>
         </section>
-
-        <section id="community">
-            <h2>💬 Community</h2>
-            <div class="installation-steps">
-                <p>Join our Discord community for support, discussions, and updates:</p>
-                <div style="text-align: center; margin: 20px 0;">
-                    <a href="https://discord.gg/FusrDU5tdn" class="btn" target="_blank" rel="noopener" title="Join Discord"><i class="fab fa-discord" aria-hidden="true"></i> Join our Discord</a>
-                </div>
-            </div>
-        </section>
-
-        <div style="text-align: center; margin: 40px 0;">
-            <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" class="btn" target="_blank" rel="noopener" title="Download RSTGameTranslation"><i class="fas fa-download" aria-hidden="true"></i> Download Now</a>
-            <a href="https://github.com/thanhkeke97/RSTGameTranslation" class="btn" target="_blank" rel="noopener" title="View source code on GitHub"><i class="fab fa-github" aria-hidden="true"></i> View on GitHub</a>
-        </div>
-        
     </div>
 
     <footer>
-        <div class="container">
-            <p>RSTGameTranslation &copy; 2025 | License: BSD-style attribution, see <a href="LICENSE.md" style="color: white;" title="License">LICENSE.md</a></p>
-            <p>This project includes software developed by Seth A. Robinson - <a href="https://github.com/SethRobinson/UGTLive" style="color: white;" title="UGTLive GitHub Repository">UGTLive</a></p>
-            <p>Made with ❤️ for the gaming community</p>
-        </div>
+        <p>RSTGameTranslation - Made with ❤️ for the gaming community</p>
+        <p><a href="https://github.com/thanhkeke97/RSTGameTranslation" target="_blank" rel="noopener" style="color: white;">GitHub</a> | <a href="https://discord.gg/FusrDU5tdn" target="_blank" rel="noopener" style="color: white;">Discord</a></p>
+        <p>Version 4.3 | License: BSD</p>
     </footer>
 </body>
 </html>

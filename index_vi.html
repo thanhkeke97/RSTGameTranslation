@@ -46,6 +46,9 @@
             --text-color: #333;
             --card-bg: #fff;
             --border-color: #ddd;
+            --accent-green: #27ae60;
+            --accent-orange: #f39c12;
+            --accent-red: #e74c3c;
         }
 
         body {
@@ -95,6 +98,16 @@
             margin-top: 40px;
         }
 
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 25px;
+        }
+
+        h4 {
+            color: #555;
+            margin-top: 20px;
+        }
+
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -122,6 +135,30 @@
         }
 
         .important-note {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background-color: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
             background-color: #fff3cd;
             border-left: 5px solid #ffc107;
             padding: 15px;
@@ -183,6 +220,14 @@
             background-color: var(--secondary-color);
         }
 
+        .btn-success {
+            background-color: var(--accent-green);
+        }
+
+        .btn-success:hover {
+            background-color: #219a52;
+        }
+
         footer {
             text-align: center;
             padding: 20px;
@@ -234,6 +279,7 @@
         .language-switch a.active {
             text-decoration: underline;
         }
+
         .bmc-btn {
             display: inline-block;
             background: #FFDD00;
@@ -245,7 +291,170 @@
             margin: 8px 0 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
-        .bmc-btn:hover { opacity: 0.95 }
+
+        .bmc-btn:hover {
+            opacity: 0.95
+        }
+
+        /* Doc Section Styles */
+        .doc-section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .workflow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .workflow-step {
+            text-align: center;
+            padding: 15px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .workflow-arrow {
+            font-size: 24px;
+            color: var(--secondary-color);
+        }
+
+        .settings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .settings-table th,
+        .settings-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .settings-table th {
+            background-color: var(--primary-color);
+            color: white;
+            width: 200px;
+        }
+
+        .settings-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .settings-table tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .settings-group {
+            background-color: #e3f2fd;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .ocr-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .ocr-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .ocr-card.recommended {
+            border-color: var(--accent-green);
+            background-color: #d4edda;
+        }
+
+        .ocr-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .badge-fast {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .badge-medium {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .badge-slow {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .badge-builtin {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .badge-external {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .toc {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 10px 0;
+        }
+
+        .toc a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .toc ul ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+
+        .toc ul ul li {
+            font-size: 14px;
+            color: #666;
+        }
     </style>
     <!-- Schema.org markup for Google -->
     <script type="application/ld+json">
@@ -295,17 +504,17 @@
         <nav>
             <h2>Điều hướng nhanh</h2>
             <ul>
-                <li><a href="#tinh-nang">✨ Tính năng chính</a></li>
-                <li><a href="#luu-y">⚠️ Lưu ý quan trọng</a></li>
-                <li><a href="#cai-dat">🚀 Cách cài đặt</a></li>
-                <li><a href="#cap-nhat">🔄 Cách cập nhật</a></li>
-                <!-- Phím tắt removed: ứng dụng hiển thị phím tắt -->
-                <li><a href="#cai-dat-nang-cao">⚙️ Cài đặt nâng cao</a></li>
-                <li><a href="#settings">⚙️ Tất cả cài đặt</a></li>
+                <li><a href="#features">✨ Tính năng chính</a></li>
+                <li><a href="#important-notes">⚠️ Lưu ý quan trọng</a></li>
+                <li><a href="#quick-start">🚀 Bắt đầu nhanh</a></li>
+                <li><a href="#doc">📖 Tài liệu hướng dẫn</a></li>
+                <li><a href="#installation">💾 Cài đặt</a></li>
+                <li><a href="#updates">🔄 Cập nhật</a></li>
                 <li><a href="#faq">❓ Câu hỏi thường gặp</a></li>
             </ul>
         </nav>
-        <section id="tinh-nang">
+
+        <section id="features">
             <h2>✨ Tính năng chính</h2>
             <div class="feature-grid">
                 <div class="feature-card">
@@ -341,27 +550,650 @@
                     <p>Bằng cách cung cấp thông tin về game đang dịch và ngữ cảnh trước đó, bản dịch chính xác hơn các
                         phương pháp khác.</p>
                 </div>
+                <div class="feature-card">
+                    <h3>⚡ Nhiều tùy chọn OCR</h3>
+                    <p>Lựa chọn từ 5 engine OCR: Windows OCR (tích hợp sẵn), OneOCR, RapidOCR, EasyOCR hoặc PaddleOCR
+                        tùy theo phần cứng của bạn.</p>
+                </div>
             </div>
         </section>
 
-        <section id="luu-y">
+        <section id="important-notes">
             <h2>⚠️ Lưu ý quan trọng</h2>
             <div class="important-note">
                 <ul>
-                    <li><strong>Yêu cầu hệ thống:</strong> Windows 10 trở lên. Game cần để ở chế độ windowed, fullscreen
+                    <li><strong>Yêu cầu hệ thống:</strong> Windows 10 trở lên. Game cần để ở chế độ cửa sổ, fullscreen
                         borderless hoặc windowed borderless.</li>
-                    <li><strong>Phần cứng khuyến nghị:</strong> GPU NVIDIA để có hiệu suất tốt nhất.</li>
+                    <li><strong>Phần cứng khuyến nghị:</strong> GPU NVIDIA để có hiệu suất tốt nhất với EasyOCR/PaddleOCR.</li>
                     <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU NVIDIA, bạn sẽ mất 30-50% công suất CPU (nếu
                         chọn EasyOCR hoặc PaddleOCR).</li>
                     <li><strong>Lựa chọn OCR:</strong> RapidOCR, OneOCR, WindowsOCR (khuyến nghị cho VGA AMD và Intel),
                         RapidOCR, EasyOCR và PaddleOCR cho NVIDIA</li>
                     <li><strong>Vùng dịch:</strong> Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh.</li>
+                    <li><strong>Khóa API:</strong> Một số dịch vụ dịch thuật yêu cầu khóa API. Google Translate hoạt động
+                        không cần khóa, nhưng các dịch vụ AI cần khóa.</li>
                 </ul>
             </div>
         </section>
 
-        <section id="cai-dat">
-            <h2>🚀 Cách cài đặt và sử dụng (Windows)</h2>
+        <section id="quick-start">
+            <h2>🚀 Bắt đầu nhanh</h2>
+            <div class="installation-steps">
+                <h3>Sử dụng ngay (Không cần cài đặt)</h3>
+                <ol>
+                    <li>Chạy <code>rst.exe</code></li>
+                    <li>Vào <strong>Cài đặt</strong> → <strong>OCR</strong>: Chọn <strong>OneOCR</strong> hoặc
+                        <strong>Windows OCR</strong></li>
+                    <li>Vào <strong>Cài đặt</strong> → <strong>Ngôn ngữ</strong>: Chọn ngôn ngữ nguồn và đích</li>
+                    <li>Vào <strong>Cài đặt</strong> → <strong>Dịch thuật</strong>: Chọn <strong>Google Translate</strong>
+                    </li>
+                    <li>Đóng cài đặt và nhấn nút <strong>Chọn Cửa sổ</strong></li>
+                    <li>Nhấn <strong>Alt+Q</strong> để chọn vùng dịch</li>
+                    <li>Nhấn <strong>Alt+F</strong> để bật hiển thị overlay</li>
+                    <li>Nhấn <strong>Alt+G</strong> để bắt đầu dịch</li>
+                </ol>
+
+                <h3>Chất lượng cao (Cần khóa API)</h3>
+                <ol>
+                    <li>Lấy <strong>Khóa API Gemini</strong> miễn phí từ <a href="https://ai.google.dev"
+                            target="_blank" rel="noopener">Google AI Studio</a></li>
+                    <li>Vào <strong>Cài đặt</strong> → <strong>Dịch thuật</strong></li>
+                    <li>Chọn <strong>Gemini</strong> và nhập khóa API của bạn</li>
+                    <li>Chọn <strong>PaddleOCR</strong> hoặc <strong>RapidOCR</strong> trong cài đặt OCR</li>
+                    <li>Nhập <strong>Thông tin Game</strong> để dịch tốt hơn theo ngữ cảnh</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="doc">
+            <h2>📖 Tài liệu hướng dẫn</h2>
+
+            <div class="toc doc-section">
+                <h3>Mục lục</h3>
+                <ul>
+                    <li><a href="#how-it-works">Cách hoạt động</a></li>
+                    <li><a href="#ocr-guide">Hướng dẫn Engine OCR</a></li>
+                    <li><a href="#translation-guide">Hướng dẫn Dịch vụ Dịch thuật</a></li>
+                    <li><a href="#settings-detail">Tham khảo Cài đặt Chi tiết</a></li>
+                    <li><a href="#hotkeys">Phím tắt</a></li>
+                    <li><a href="#use-cases">Trường hợp sử dụng & Ví dụ</a></li>
+                </ul>
+            </div>
+
+            <div id="how-it-works" class="doc-section">
+                <h3>🔄 Cách hoạt động</h3>
+
+                <h4>Quy trình dịch thuật</h4>
+                <div class="workflow-diagram">
+                    <div class="workflow-step">📷 Chụp màn hình</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">🔤 Nhận dạng OCR</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">🤖 Dịch AI</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">📱 Hiển thị kết quả</div>
+                </div>
+
+                <h4>Quy trình từng bước</h4>
+                <ol>
+                    <li><strong>Chụp màn hình:</strong> Ứng dụng chụp vùng màn hình game đã chọn theo chu kỳ hoặc khi text
+                        thay đổi.</li>
+                    <li><strong>Nhận dạng OCR:</strong> Engine OCR được chọn (Windows OCR, OneOCR, RapidOCR, EasyOCR, hoặc
+                        PaddleOCR) trích xuất text từ hình ảnh chụp.</li>
+                    <li><strong>Xử lý text:</strong> Text được trích xuất được lọc, loại bỏ trùng lặp và phân tích ngữ
+                        cảnh.</li>
+                    <li><strong>Dịch AI:</strong> Text được gửi đến dịch vụ dịch thuật được chọn (Gemini, ChatGPT, Google
+                        Translate, Ollama, v.v.)</li>
+                    <li><strong>Tăng cường ngữ cảnh:</strong> Các bản dịch trước đó và thông tin game được sử dụng để cải
+                        thiện độ chính xác.</li>
+                    <li><strong>Hiển thị kết quả:</strong> Text dịch xuất hiện trong overlay hoặc cửa sổ chat.</li>
+                </ol>
+
+                <h4>Khái niệm quan trọng</h4>
+                <ul>
+                    <li><strong>Vùng dịch:</strong> Vùng hình chữ nhật bạn chọn trên màn hình. Vùng nhỏ hơn = xử lý nhanh hơn.
+                    </li>
+                    <li><strong>Ngữ cảnh:</strong> Các đoạn text trước đó giúp AI hiểu luồng hội thoại.</li>
+                    <li><strong>Thông tin Game:</strong> Mô tả về game giúp AI dịch đúng tên nhân vật và thuật ngữ.</li>
+                    <li><strong>Phát hiện khối:</strong> Cách OCR nhóm các phần tử text lại với nhau. Công suất cao hơn =
+                        nhiều text được nhóm hơn.</li>
+                </ul>
+            </div>
+
+            <div id="ocr-guide" class="doc-section">
+                <h3>🔤 Hướng dẫn Engine OCR</h3>
+
+                <h4>So sánh Engine OCR</h4>
+                <div class="ocr-comparison">
+                    <div class="ocr-card recommended">
+                        <span class="ocr-badge badge-builtin">Tích hợp sẵn</span>
+                        <span class="ocr-badge badge-fast">Nhanh</span>
+                        <h4>Windows OCR</h4>
+                        <p><strong>Tài nguyên:</strong> ~2% CPU</p>
+                        <p><strong>Độ chính xác:</strong> Trung bình</p>
+                        <p><strong>Cài đặt:</strong> Không cần</p>
+                        <p><strong>Phù hợp với:</strong> VGA AMD/Intel, cài đặt nhanh</p>
+                    </div>
+                    <div class="ocr-card recommended">
+                        <span class="ocr-badge badge-builtin">Tích hợp sẵn</span>
+                        <span class="ocr-badge badge-fast">Nhanh</span>
+                        <h4>OneOCR</h4>
+                        <p><strong>Tài nguyên:</strong> ~10% CPU</p>
+                        <p><strong>Độ chính xác:</strong> Cao</p>
+                        <p><strong>Cài đặt:</strong> Không cần</p>
+                        <p><strong>Phù hợp với:</strong> Mọi người dùng, hỗ trợ manga</p>
+                    </div>
+                    <div class="ocr-card">
+                        <span class="ocr-badge badge-external">Bên ngoài</span>
+                        <span class="ocr-badge badge-fast">Nhanh</span>
+                        <h4>RapidOCR</h4>
+                        <p><strong>Tài nguyên:</strong> ~10% GPU</p>
+                        <p><strong>Độ chính xác:</strong> Rất cao</p>
+                        <p><strong>Cài đặt:</strong> 5-15 phút</p>
+                        <p><strong>Phù hợp với:</strong> VGA NVIDIA, ngôn ngữ phương Tây</p>
+                    </div>
+                    <div class="ocr-card">
+                        <span class="ocr-badge badge-external">Bên ngoài</span>
+                        <span class="ocr-badge badge-medium">Trung bình</span>
+                        <h4>EasyOCR</h4>
+                        <p><strong>Tài nguyên:</strong> ~20% GPU</p>
+                        <p><strong>Độ chính xác:</strong> Tốt</p>
+                        <p><strong>Cài đặt:</strong> 5-15 phút</p>
+                        <p><strong>Phù hợp với:</strong> VGA NVIDIA, nhiều ngôn ngữ</p>
+                    </div>
+                    <div class="ocr-card">
+                        <span class="ocr-badge badge-external">Bên ngoài</span>
+                        <span class="ocr-badge badge-fast">Nhanh</span>
+                        <h4>PaddleOCR</h4>
+                        <p><strong>Tài nguyên:</strong> ~15% GPU</p>
+                        <p><strong>Độ chính xác:</strong> Rất cao</p>
+                        <p><strong>Cài đặt:</strong> 5-15 phút</p>
+                        <p><strong>Phù hợp với:</strong> VGA NVIDIA, ngôn ngữ Châu Á</p>
+                    </div>
+                </div>
+
+                <h4>Giải thích cài đặt OCR</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                        <th>Giá trị khuyến nghị</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Công suất phát hiện khối</strong></td>
+                        <td>Điều khiển cách nhóm các khối text. Giá trị cao hơn gộp nhiều text hơn.</td>
+                        <td>5 (mặc định) - Điều chỉnh thấp hơn cho text nhỏ, cao hơn cho đoạn văn</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Thời gian ổn định</strong></td>
+                        <td>Giây để chờ text ổn định trước khi chụp.</td>
+                        <td>0.5s - Tăng lên nếu text nhấp nháy hoặc cập nhật chậm</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ngưỡng tương tự text</strong></td>
+                        <td>Bỏ qua OCR nếu text mới tương tự text trước (0.5-1.0).</td>
+                        <td>0.75 - Thấp hơn để bỏ qua nhiều bản sao hơn</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OCR cấp ký tự</strong></td>
+                        <td>Tách kết quả thành từng ký tự riêng lẻ để xử lý khoảng cách tốt hơn.</td>
+                        <td>Bật - Khuyến nghị cho text có khoảng cách chặt</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kích thước fragment tối thiểu</strong></td>
+                        <td>Bỏ qua các fragment text nhỏ hơn số ký tự này.</td>
+                        <td>2 - Lọc nhiễu và các phần tử UI nhỏ</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Độ tin cậy ký tự/dòng tối thiểu</td>
+                        <td>Lọc đầu ra OCR theo điểm tin cậy (0.0-1.0).</td>
+                        <td>0.1 / 0.2 - Thấp hơn để chấp nhận nhiều kết quả hơn</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vùng đa chọn</strong></td>
+                        <td>Cho phép chọn nhiều vùng dịch cùng lúc.</td>
+                        <td>Tùy chọn - Hữu ích cho HUD + dịch chat</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="translation-guide" class="doc-section">
+                <h3>🤖 Hướng dẫn Dịch vụ Dịch thuật</h3>
+
+                <h4>So sánh dịch vụ</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Dịch vụ</th>
+                        <th>Cần khóa API</th>
+                        <th>Chất lượng</th>
+                        <th>Tốc độ</th>
+                        <th>Bảo mật</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Google Translate</strong></td>
+                        <td>Tùy chọn (có gói miễn phí)</td>
+                        <td>Tốt</td>
+                        <td>Nhanh</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gemini</strong></td>
+                        <td>Có (có gói miễn phí)</td>
+                        <td>Xuất sắc</td>
+                        <td>Nhanh</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ChatGPT</strong></td>
+                        <td>Có (trả phí)</td>
+                        <td>Xuất sắc</td>
+                        <td>Nhanh</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Groq</strong></td>
+                        <td>Có</td>
+                        <td>Xuất sắc</td>
+                        <td>Rất nhanh</td>
+                        <td>Cloud</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ollama</strong></td>
+                        <td>Không</td>
+                        <td>Tốt-Rất tốt</td>
+                        <td>Phụ thuộc phần cứng</td>
+                        <td>100% Cục bộ</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LM Studio</strong></td>
+                        <td>Không</td>
+                        <td>Tốt-Rất tốt</td>
+                        <td>Phụ thuộc phần cứng</td>
+                        <td>100% Cục bộ</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mistral</strong></td>
+                        <td>Có</td>
+                        <td>Xuất sắc</td>
+                        <td>Nhanh</td>
+                        <td>Cloud</td>
+                    </tr>
+                </table>
+
+                <h4>Cài đặt Ngữ cảnh</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                        <th>Giá trị khuyến nghị</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Số mảnh ngữ cảnh tối đa</strong></td>
+                        <td>Số bản dịch trước đó để bao gồm làm ngữ cảnh.</td>
+                        <td>3 - Cung cấp ngữ cảnh tốt mà không quá tải</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kích thước ngữ cảnh tối thiểu</strong></td>
+                        <td>Số ký tự tối thiểu để text được bao gồm làm ngữ cảnh.</td>
+                        <td>20 - Lọc nhãn menu và nút</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Thông tin Game</strong></td>
+                        <td>Mô tả về game để xử lý thuật ngữ tốt hơn.</td>
+                        <td>Mô tả ngắn về thể loại, bối cảnh, nhân vật</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Giữ bản dịch trên màn hình</strong></td>
+                        <td>Luôn hiển thị bản dịch thay vì text gốc.</td>
+                        <td>Tùy sở thích cá nhân</td>
+                    </tr>
+                </table>
+
+                <div class="info-box">
+                    <strong>💡 Mẹo:</strong> Sử dụng ngữ cảnh cải thiện đáng kể chất lượng dịch, đặc biệt cho hội thoại. AI
+                    có thể hiểu mối quan hệ nhân vật và luồng câu chuyện tốt hơn.
+                </div>
+            </div>
+
+            <div id="settings-detail" class="doc-section">
+                <h3>⚙️ Tham khảo Cài đặt Chi tiết</h3>
+
+                <h4>Tab Ngôn ngữ</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Ngôn ngữ nguồn</strong></td>
+                        <td>Ngôn ngữ của text trong game (ví dụ: ja cho Tiếng Nhật, ko cho Tiếng Hàn).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ngôn ngữ đích</strong></td>
+                        <td>Ngôn ngữ bạn muốn dịch sang (ví dụ: en cho Tiếng Anh, vi cho Tiếng Việt).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Đổi ngôn ngữ</strong></td>
+                        <td>Nhanh chóng hoán đổi ngôn ngữ nguồn và đích.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kiểm tra gói ngôn ngữ</strong></td>
+                        <td>Xác minh gói ngôn ngữ Windows OCR được cài đặt cho ngôn ngữ nguồn của bạn.</td>
+                    </tr>
+                </table>
+
+                <h4>Tab OCR & Màn hình</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Phương pháp OCR</strong></td>
+                        <td>Chọn engine OCR: EasyOCR, Windows OCR, PaddleOCR, RapidOCR hoặc OneOCR.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chọn màn hình</strong></td>
+                        <td>Chọn màn hình nào để chụp nếu sử dụng nhiều màn hình.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OCR tự động</strong></td>
+                        <td>Bật dịch liên tục tự động. Tắt để điều khiển thủ công.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hỗ trợ HDR</strong></td>
+                        <td>Bật cho game HDR (có thể ảnh hưởng đến độ chính xác nhận dạng text).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Xóa dữ liệu OCR</strong></td>
+                        <td>Xóa các mô hình OCR đã tải xuống để giải phóng dung lượng đĩa.</td>
+                    </tr>
+                </table>
+
+                <h4>Tab Bỏ qua cụm từ</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Cụm từ cần bỏ qua</strong></td>
+                        <td>Danh sách các mẫu text để bỏ qua trong quá trình dịch. Hữu ích để loại bỏ các phần tử UI,
+                            watermark hoặc text lặp lại.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Khớp chính xác</strong></td>
+                        <td>Khi bật, bỏ qua toàn bộ text nếu nó khớp. Khi tắt, loại bỏ cụm từ khỏi text.</td>
+                    </tr>
+                </table>
+
+                <h4>Tab Loại trừ vùng</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Vùng loại trừ</strong></td>
+                        <td>Xác định các vùng hình chữ nhật trong vùng dịch không bao giờ được chụp hoặc dịch.</td>
+                    </tr>
+                </table>
+
+                <h4>Tab Text-to-Speech (TTS)</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Bật TTS</strong></td>
+                        <td>Đọc to text dịch bằng giọng nói tổng hợp.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dịch vụ TTS</strong></td>
+                        <td>Chọn: ElevenLabs (chất lượng tốt nhất), Google Cloud TTS hoặc Windows TTS.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chọn giọng</strong></td>
+                        <td>Chọn giọng cho đầu ra TTS.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loại trừ tên nhân vật</strong></td>
+                        <td>Bỏ qua việc đọc tên nhân vật trong hội thoại.</td>
+                    </tr>
+                </table>
+
+                <h4>Tab Phím tắt</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Bật phím tắt</strong></td>
+                        <td>Công tắc chính cho phím tắt bàn phím.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chọn chức năng</strong></td>
+                        <td>Chọn hành động nào để gán phím tắt.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kết hợp phím</strong></td>
+                        <td>Đặt phím bổ trợ (CTRL, SHIFT, ALT) + chữ/số.</td>
+                    </tr>
+                </table>
+
+                <h4>Tab Xử lý Âm thanh</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Dịch tự động âm thanh</strong></td>
+                        <td>Khởi động dịch vụ Whisper để dịch giọng nói thành text từ âm thanh game.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chọn mô hình</strong></td>
+                        <td>Chọn kích thước mô hình Whisper cục bộ (lớn hơn = chính xác hơn, chậm hơn).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ngưỡng im lặng</strong></td>
+                        <td>Mức âm thanh dưới đó được coi là im lặng (0.0-1.0).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mẫu buffer tối đa</td>
+                        <td>Kích thước buffer âm thanh tối đa để xử lý.</td>
+                    </tr>
+                </table>
+
+                <h4>Tab Điều khiển Server</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Cài đặt/Khởi động/Xóa Server</strong></td>
+                        <td>Quản lý server backend OCR (EasyOCR, PaddleOCR, RapidOCR).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gửi dữ liệu đến Server</strong></td>
+                        <td>Cho phép gửi dữ liệu chẩn đoán đến server từ xa (được sử dụng bởi một số engine OCR).</td>
+                    </tr>
+                </table>
+
+                <h4>Tab Hồ sơ Game</h4>
+                <table class="settings-table">
+                    <tr>
+                        <th>Cài đặt</th>
+                        <th>Mô tả</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Tạo/Tải Hồ sơ</strong></td>
+                        <td>Lưu các hình chữ nhật vùng dịch và cài đặt dưới dạng hồ sơ có tên cho các game khác nhau.
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="hotkeys" class="doc-section">
+                <h3>⌨️ Phím tắt</h3>
+
+                <table class="shortcut-table">
+                    <thead>
+                        <tr>
+                            <th>Phím tắt</th>
+                            <th>Hành động</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Alt + Q</code></td>
+                            <td>Chọn vùng</td>
+                            <td>Chọn vùng dịch trên màn hình</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + F</code></td>
+                            <td>Bật/Tắt Overlay</td>
+                            <td>Hiển thị/Ẩn overlay dịch thuật</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + G</code></td>
+                            <td>Bắt đầu/Dừng</td>
+                            <td>Bắt đầu hoặc dừng dịch</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + C</code></td>
+                            <td>ChatBox</td>
+                            <td>Mở cửa sổ lịch sử dịch</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + S</code></td>
+                            <td>Cài đặt</td>
+                            <td>Mở cửa sổ cài đặt</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + L</code></td>
+                            <td>Log</td>
+                            <td>Mở cửa sổ log</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + A</code></td>
+                            <td>Dịch vụ âm thanh</td>
+                            <td>Bật/Tắt dịch vụ Whisper</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + X</code></td>
+                            <td>Xóa vùng</td>
+                            <td>Xóa tất cả vùng dịch đã chọn</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + 1-5</code></td>
+                            <td>Chọn vùng N</td>
+                            <td>Chuyển nhanh sang vùng 1-5</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + R</code></td>
+                            <td>Thử lại</td>
+                            <td>Thử lại dịch thuật bị lỗi lần cuối</td>
+                        </tr>
+                        <tr>
+                            <td><code>Alt + W</code></td>
+                            <td>Đổi ngôn ngữ</td>
+                            <td>Hoán đổi ngôn ngữ nguồn và đích</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="use-cases" class="doc-section">
+                <h3>📚 Trường hợp sử dụng & Ví dụ</h3>
+
+                <h4>Trường hợp 1: Visual Novel</h4>
+                <div class="success-box">
+                    <strong>Cài đặt khuyến nghị:</strong><br>
+                    OCR: OneOCR hoặc Windows OCR<br>
+                    Dịch thuật: Gemini với ngữ cảnh được bật<br>
+                    Hiển thị: Chế độ ChatBox<br>
+                    Cài đặt: Bật "Giữ bản dịch trên màn hình" để đọc dễ dàng
+                </div>
+                <p><strong>Các bước:</strong></p>
+                <ol>
+                    <li>Chọn vùng hộp thoại bằng Alt+Q</li>
+                    <li>Đặt Ngữ cảnh tối đa thành 3-5 mảnh cho luồng hội thoại</li>
+                    <li>Nhập thông tin game: "Visual novel, bối cảnh trường học Nhật Bản"</li>
+                    <li>Bắt đầu dịch với Alt+G</li>
+                </ol>
+
+                <h4>Trường hợp 2: Game Action RPG HUD</h4>
+                <div class="info-box">
+                    <strong>Cài đặt khuyến nghị:</strong><br>
+                    OCR: RapidOCR (nếu có NVIDIA) hoặc OneOCR (nếu có AMD/Intel)<br>
+                    Dịch thuật: Google Translate (nhanh) hoặc Gemini (chính xác)<br>
+                    Hiển thị: Chế độ Overlay với màu nền tự động
+                </div>
+                <p><strong>Các bước:</strong></p>
+                <ol>
+                    <li>Chọn vùng HUD chứa tên vật phẩm, text nhiệm vụ, v.v.</li>
+                    <li>Đặt Công suất phát hiện khối thấp hơn (3-4) cho các phần tử text riêng lẻ</li>
+                    <li>Bật "Tự động đặt màu nền Overlay"</li>
+                    <li>Sử dụng Alt+F để bật/tắt overlay khi cần trong gameplay</li>
+                </ol>
+
+                <h4>Trường hợp 3: Manga/Comic</h4>
+                <div class="warning-box">
+                    <strong>Cài đặt khuyến nghị:</strong><br>
+                    OCR: OneOCR (có hỗ trợ manga)<br>
+                    Dịch thuật: Gemini để có chất lượng tốt nhất<br>
+                    Hiển thị: Chế độ ChatBox<br>
+                    Cài đặt: Giảm Ngưỡng tương tự text (0.6) cho bong bóng thoại
+                </div>
+                <p><strong>Các bước:</strong></p>
+                <ol>
+                    <li>Chọn vùng bong bóng thoại</li>
+                    <li>Tắt OCR cấp ký tự cho text được kết nối</li>
+                    <li>Bật "Giữ bản dịch trên màn hình"</li>
+                    <li>Sử dụng Vùng đa chọn nếu manga có nhiều hộp text</li>
+                </ol>
+
+                <h4>Trường hợp 4: Game chỉ có âm thanh (Speech-to-Text)</h4>
+                <div class="success-box">
+                    <strong>Cài đặt khuyến nghị:</strong><br>
+                    OCR: Không cần<br>
+                    Dịch thuật: Gemini hoặc Ollama (cục bộ)<br>
+                    Âm thanh: Whisper với mô hình "base" hoặc "small"<br>
+                    Hiển thị: Chế độ ChatBox
+                </div>
+                <p><strong>Các bước:</strong></p>
+                <ol>
+                    <li>Bật "Dịch tự động âm thanh" trong tab Xử lý Âm thanh</li>
+                    <li>Chọn mô hình Whisper (ggml-small để cân bằng, ggml-base để nhanh)</li>
+                    <li>Điều chỉnh ngưỡng im lặng để tránh xử lý tiếng ồn nền</li>
+                    <li>Bản dịch xuất hiện trong ChatBox khi âm thanh được nhận dạng</li>
+                </ol>
+
+                <h4>Trường hợp 5: Dịch 100% Offline</h4>
+                <div class="success-box">
+                    <strong>Cài đặt khuyến nghị:</strong><br>
+                    OCR: OneOCR hoặc Windows OCR (đều hoạt động offline)<br>
+                    Dịch thuật: Ollama hoặc LM Studio (100% cục bộ)<br>
+                    Không cần kết nối internet sau khi cài đặt ban đầu
+                </div>
+                <p><strong>Các bước:</strong></p>
+                <ol>
+                    <li>Cài đặt <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> hoặc <a
+                            href="https://lmstudio.ai" target="_blank" rel="noopener">LM Studio</a></li>
+                    <li>Tải một mô hình (llama3, phi3 hoặc mistral)</li>
+                    <li>Nhập URL và tên mô hình trong cài đặt Dịch thuật</li>
+                    <li>Tất cả bản dịch đều ở trên máy của bạn</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2>💾 Cài đặt và sử dụng (Windows)</h2>
             <div class="installation-steps">
 
                 <h3>Điều kiện tiên quyết:</h3>
@@ -376,12 +1208,12 @@
                 <ol>
                     <li>Chạy `rst.exe`</li>
                     <li>Vào <strong>Cài đặt</strong> → <strong>OCR</strong>: Chọn <strong>OneOCR</strong></li>
-                    <li>Vào <strong>Cài đặt</strong> → <strong>Language</strong>: Chọn ngôn ngữ nguồn và đích</li>
-                    <li>Trong tab Language, nếu bạn đang sử dụng Windows OCR hãy bấm vào nút "Check" để kiểm tra cài đặt
+                    <li>Vào <strong>Cài đặt</strong> → <strong>Ngôn ngữ</strong>: Chọn ngôn ngữ nguồn và đích</li>
+                    <li>Trong tab Ngôn ngữ, nếu bạn đang sử dụng Windows OCR hãy bấm vào nút "Kiểm tra" để xác minh cài đặt
                         gói ngôn ngữ trước khi bắt đầu</li>
-                    <li>Vào tab Translation, chọn dịch vụ dịch thuật bạn muốn sử dụng</li>
+                    <li>Vào tab Dịch thuật, chọn dịch vụ dịch thuật bạn muốn sử dụng</li>
                     <li>Bây giờ bạn có thể đóng cửa sổ cài đặt</li>
-                    <li>Nhấn nút <strong>Select Window</strong>: Chọn cửa sổ bạn muốn chụp</li>
+                    <li>Nhấn nút <strong>Chọn Cửa sổ</strong>: Chọn cửa sổ bạn muốn chụp</li>
                     <li>Nhấn <strong>Alt+Q</strong> để chọn vùng, sau đó <strong>Alt+F</strong> để bật Overlay</li>
                     <li>Nhấn <strong>Alt+G</strong> để bắt đầu/dừng dịch</li>
                 </ol>
@@ -390,7 +1222,7 @@
                 <ol>
                     <li><strong>Thiết lập máy chủ (Chỉ làm một lần cho mỗi phương pháp OCR):</strong>
                         <ul>
-                            <li>Nhấp vào nút SetupOCR để bắt đầu thiết lập máy chủ dựa trên phương pháp OCR bạn đã chọn
+                            <li>Nhấp vào nút Thiết lập OCR để bắt đầu thiết lập máy chủ dựa trên phương pháp OCR bạn đã chọn
                                 trong cài đặt (Nếu bạn chọn Windows OCR, bạn có thể bỏ qua bước này)</li>
                             <li>Thiết lập có thể mất 5-15 phút, tùy thuộc vào tốc độ internet và sức mạnh máy tính của
                                 bạn</li>
@@ -400,11 +1232,11 @@
                     </li>
                     <li><strong>Bắt đầu dịch:</strong>
                         <ul>
-                            <li>Nhấp vào nút StartOCR và đợi cho đến khi bạn thấy thông báo "Successfully connected to
+                            <li>Nhấp vào nút Bắt đầu OCR và đợi cho đến khi bạn thấy thông báo "Successfully connected to
                                 .... server" (Nếu bạn chọn Windows OCR, bạn có thể bỏ qua bước này)</li>
-                            <li>Bây giờ bạn có thể bắt đầu dịch bằng cách chọn vùng dịch (ALT+Q hoặc click button
-                                SelectArea)</li>
-                            <li>Click Start (ALT+G) để bắt đầu dịch</li>
+                            <li>Bây giờ bạn có thể bắt đầu dịch bằng cách chọn vùng dịch (ALT+Q hoặc click nút
+                                ChọnVùng)</li>
+                            <li>Click Bắt đầu (ALT+G) để bắt đầu dịch</li>
                             <li>Kết quả dịch hiển thị trong cửa sổ chat (nút ChatBox, ALT+C) hoặc trong Overlay (nút
                                 Overlay, ALT+F)</li>
                         </ul>
@@ -426,7 +1258,7 @@
             </div>
         </section>
 
-        <section id="cap-nhat">
+        <section id="updates">
             <h2>🔄 Cách cập nhật phiên bản</h2>
             <p>RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi động. Nếu có phiên bản mới, bạn sẽ thấy
                 thông báo hỏi xem bạn có muốn tải xuống không. Để cập nhật:</p>
@@ -440,9 +1272,7 @@
             </ul>
         </section>
 
-        <!-- Phím tắt section removed — ứng dụng hiển thị phím tắt -->
-
-        <section id="cai-dat-nang-cao">
+        <section id="advanced-settings">
             <h2>⚙️ Cài đặt nâng cao</h2>
             <h3>Cài đặt khuyến nghị</h3>
             <ul>
@@ -460,129 +1290,138 @@
                 <li>Vùng chọn nhỏ hơn = xử lý nhanh hơn</li>
                 <li>Thêm nhiều khóa API để dự phòng</li>
                 <li>Tải ngôn ngữ lần đầu mất 1-2 phút (OCR bên ngoài)</li>
-                <li>Hệ thống sẽ tự chuyển đổi API key khi 1 API key bị giới hạn</li>
+                <li>Hệ thống sẽ tự chuyển đổi API key khi 1 API key bị giới hạn rate</li>
             </ul>
         </section>
 
-        <section id="settings">
-            <h2>⚙️ Tất cả cài đặt — mô tả chi tiết</h2>
-            <div class="installation-steps">
-                <p>Mô tả ngắn và hướng dẫn sử dụng cho các nhóm cài đặt trong cửa sổ cài đặt:</p>
-                <h3>Ngôn ngữ</h3>
-                <ul>
-                    <li>Chọn ngôn ngữ nguồn/đích (ví dụ: ja, en, vi). Dùng nút ⇄ để hoán đổi nhanh.</li>
-                    <li>Windows OCR: bấm "Check" để kiểm tra/cài gói ngôn ngữ nếu dùng Windows OCR.</li>
-                </ul>
-                <h3>OCR & Màn hình</h3>
-                <ul>
-                    <li>Phương pháp OCR: chọn EasyOCR, Windows OCR, PaddleOCR, RapidOCR hoặc OneOCR. Các engine ngoài có thể cần cài server.</li>
-                    <li>Chọn màn hình: xác định màn hình để chụp khi có nhiều monitor.</li>
-                    <li>Auto OCR: bật để tự động chụp và dịch thời gian thực; tắt để chạy thủ công.</li>
-                    <li>HDR support: bật nếu game sử dụng HDR (có thể ảnh hưởng tới phát hiện văn bản).</li>
-                    <li>Remove OCR Data: xóa dữ liệu/mô hình đã tải cho các engine không tích hợp để giải phóng dung lượng.</li>
-                </ul>
-                <h3>Cài đặt OCR</h3>
-                <ul>
-                    <li>Block detection power & settle time: điều chỉnh cách gom khối văn bản và thời gian chờ để văn bản ổn định trước khi chụp.</li>
-                    <li>Text similarity threshold: bỏ qua các capture gần giống nhau (0.5–1.0). Giá trị thấp hơn = bỏ nhiều hơn.</li>
-                    <li>Char-level OCR: bật để tách kết quả thành ký tự (hữu ích cho text nhỏ).</li>
-                    <li>Giới hạn kích thước fragment / độ tin cậy ký tự/dòng: lọc kết quả OCR nhiễu.</li>
-                    <li>Multi-selection area: cho phép chọn nhiều vùng dịch cùng lúc (ví dụ HUD + chat).</li>
-                </ul>
-                <h3>Ngữ cảnh & Overlay</h3>
-                <ul>
-                    <li>Max/Min context và kích thước: điều khiển lượng ngữ cảnh gửi cho LLM để giữ liên tục ngữ nghĩa.</li>
-                    <li>Game info: nhập mô tả ngắn về game để LLM dịch sát ngữ cảnh.</li>
-                    <li>Overlay config & auto background: tinh chỉnh màu nền overlay và bật lựa chọn màu tự động.</li>
-                    <li>Leave translation onscreen: luôn giữ bản dịch hiển thị thay vì hiện text nguồn.</li>
-                </ul>
-                <h3>Bỏ qua cụm từ (Ignore Phrases)</h3>
-                <ul>
-                    <li>Thêm các cụm cần bỏ qua hoặc loại bỏ khỏi kết quả OCR. Chọn Exact Match để bỏ cả dòng nếu trùng khớp.</li>
-                </ul>
-                <h3>Dịch / LLM</h3>
-                <ul>
-                    <li>Chọn dịch vụ (Gemini, Groq, ChatGPT, Ollama, LM Studio, Google Translate, Custom API).</li>
-                    <li>API keys: nhập vào ô mật khẩu và nhấn Enter hoặc Save Keys; hỗ trợ nhiều key để dự phòng.</li>
-                    <li>Chọn model: dùng View Models để mở tài liệu hướng dẫn nếu cần.</li>
-                    <li>Prompt editor: tuỳ chỉnh mẫu prompt cho dịch vụ hiện tại, Save / Restore Default có sẵn.</li>
-                </ul>
-                <h3>Text-to-Speech (TTS)</h3>
-                <ul>
-                    <li>Bật TTS và chọn dịch vụ: ElevenLabs, Google Cloud TTS hoặc Windows TTS.</li>
-                    <li>Nhập API key cho dịch vụ cloud, chọn giọng từ danh sách (giọng hệ thống sẽ được load tự động).</li>
-                    <li>Exclude character name: bật để tránh đọc tên nhân vật trong TTS.</li>
-                </ul>
-                <!-- Phím tắt subsection removed — ứng dụng hiển thị phím tắt -->
-                <h3>Xử lý âm thanh</h3>
-                <ul>
-                    <li>Audio auto-translate: khởi động/dừng dịch âm thanh bằng local Whisper khi bật.</li>
-                    <li>Chọn mô hình âm thanh (file .bin) và điều chỉnh silence threshold / duration để nhận tiếng nói chính xác.</li>
-                </ul>
-                <h3>Máy chủ (Server)</h3>
-                <ul>
-                    <li>Install / Start / Remove server: chạy các script kèm theo để thiết lập hoặc điều khiển backend OCR cần server.</li>
-                    <li>Gửi dữ liệu lên server: bật/tắt tuỳ chọn gửi dữ liệu OCR/diagnostic cho server (một số engine cần).</li>
-                </ul>
-                <h3>Profiles</h3>
-                <ul>
-                    <li>Tạo, cập nhật, tải và xoá profile để lưu vùng dịch và tùy chỉnh theo từng game.</li>
-                </ul>
-                <p>Mẹo: khi đổi OCR, model hoặc dịch vụ, hãy Clear Context/Reset Hash (ứng dụng có xử lý tự động) để buộc OCR và dịch mới.</p>
-            </div>
-        </section>
         <section id="faq">
             <h2>❓ Câu hỏi thường gặp (FAQ)</h2>
             <div class="installation-steps">
-                <h3>RSTGameTranslation có thể dịch những ngôn ngữ nào?</h3>
-                <p>Phần mềm có thể dịch hầu hết các ngôn ngữ, nhưng được thử nghiệm chủ yếu với dịch từ tiếng Nhật sang
-                    tiếng Anh và tiếng Anh sang tiếng Việt.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Tại sao dịch chậm?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Nguyên nhân và giải pháp có thể:</strong></p>
+                        <ul>
+                            <li><strong>Vùng dịch lớn:</strong> Giảm kích thước vùng để xử lý nhanh hơn</li>
+                            <li><strong>Engine OCR:</strong> Thử OneOCR hoặc Windows OCR để có tốc độ nhanh hơn</li>
+                            <li><strong>Thời gian phản hồi API:</strong> Google Translate nhanh nhất, tiếp theo là Gemini</li>
+                            <li><strong>Tải CPU/GPU:</strong> Đóng các ứng dụng khác sử dụng nhiều tài nguyên</li>
+                        </ul>
+                    </div>
+                </details>
 
-                <h3>Tôi không có GPU NVIDIA, tôi vẫn có thể sử dụng không?</h3>
-                <p>Có, nhưng hiệu suất sẽ kém hơn nhiều vì phải sử dụng CPU (30-50% công suất). Bạn có thể thử dùng
-                    Windows OCR cho hiệu suất nhẹ hơn.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: OCR không nhận dạng text đúng</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Các bước khắc phục:</strong></p>
+                        <ul>
+                            <li><strong>Kiểm tra ngôn ngữ:</strong> Đảm bảo ngôn ngữ nguồn khớp với game</li>
+                            <li><strong>Điều chỉnh cài đặt OCR:</strong> Giảm ngưỡng tin cậy</li>
+                            <li><strong>Thử OCR khác:</strong> Một số engine hoạt động tốt hơn với một số kiểu text</li>
+                            <li><strong>Xóa ngữ cảnh:</strong> Đôi khi ngữ cảnh cũ có thể can thiệp</li>
+                            <li><strong>Kiểm tra chế độ game:</strong> Đảm bảo game đang ở chế độ windowed hoặc borderless</li>
+                        </ul>
+                    </div>
+                </details>
 
-                <h3>Tôi có thể dùng RSTGameTranslation mà không cần kết nối internet không?</h3>
-                <p>Có, bạn có thể sử dụng Ollama hoặc LM Studio để chạy 100% offline. Bạn sẽ cần tải mô hình LLM về máy
-                    trước.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Làm sao để lấy khóa API?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Cho các dịch vụ khác nhau:</strong></p>
+                        <ul>
+                            <li><strong>Google Translate:</strong> Tùy chọn. Hoạt động không cần khóa (giới hạn gói miễn phí)</li>
+                            <li><strong>Gemini:</strong> Lấy khóa miễn phí từ <a href="https://ai.google.dev" target="_blank" rel="noopener">Google AI Studio</a></li>
+                            <li><strong>ChatGPT:</strong> Lấy khóa từ <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">Nền tảng OpenAI</a></li>
+                            <li><strong>Groq:</strong> Lấy khóa từ <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Bảng điều khiển Groq</a></li>
+                        </ul>
+                    </div>
+                </details>
 
-                <h3>Làm thế nào để có API key của Gemini?</h3>
-                <p>Bạn có thể đăng ký API key Gemini miễn phí tại <a href="https://aistudio.google.com/app/apikey"
-                        target="_blank" rel="noopener">Google AI Studio</a>. Sau khi đăng nhập, bạn có thể tạo API key
-                    trong phần cài đặt.</p>
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Tôi có thể sử dụng offline không?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Có! Các tùy chọn cho sử dụng offline:</strong></p>
+                        <ul>
+                            <li><strong>Windows OCR / OneOCR:</strong> Tích hợp sẵn, hoạt động không cần internet</li>
+                            <li><strong>Ollama:</strong> Tải từ <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a> để có AI 100% cục bộ</li>
+                            <li><strong>LM Studio:</strong> Tải từ <a href="https://lmstudio.ai" target="_blank" rel="noopener">lmstudio.ai</a> cho mô hình cục bộ</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Làm sao dịch nhiều vùng cùng lúc?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Thiết lập đa chọn:</strong></p>
+                        <ol>
+                            <li>Vào Cài đặt → Cài đặt OCR</li>
+                            <li>Bật "Vùng đa chọn"</li>
+                            <li>Chọn vùng đầu tiên với Alt+Q</li>
+                            <li>Nhấn Alt+Q lần nữa để thêm vùng khác</li>
+                            <li>Lặp lại cho tối đa 5 vùng</li>
+                        </ol>
+                    </div>
+                </details>
+
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Overlay che UI game</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Giải pháp:</strong></p>
+                        <ul>
+                            <li>Làm cho vùng dịch chính xác hơn</li>
+                            <li>Sử dụng "Vùng loại trừ" để tránh chụp các phần tử UI</li>
+                            <li>Bật/tắt overlay với Alt+F khi không cần</li>
+                            <li>Thử chế độ ChatBox thay vì overlay</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Tôi có thể lưu cài đặt khác nhau cho các game khác không?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Có! Sử dụng Hồ sơ Game:</strong></p>
+                        <ol>
+                            <li>Cấu hình cài đặt cho game đầu tiên</li>
+                            <li>Vào Cài đặt → Hồ sơ Game</li>
+                            <li>Nhấn "Tạo Hồ sơ" và đặt tên</li>
+                            <li>Lặp lại cho các game khác</li>
+                            <li>Tải hồ sơ nhanh khi chuyển game</li>
+                        </ol>
+                    </div>
+                </details>
+
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Tại sao chất lượng dịch thay đổi?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Các yếu tố ảnh hưởng đến chất lượng:</strong></p>
+                        <ul>
+                            <li><strong>Ngữ cảnh:</strong> Bật ngữ cảnh để có luồng hội thoại tốt hơn</li>
+                            <li><strong>Thông tin Game:</strong> Nhập mô tả game để có độ chính xác thuật ngữ</li>
+                            <li><strong>Chất lượng OCR:</strong> Text càng rõ = bản dịch càng tốt</li>
+                            <li><strong>Mô hình AI:</strong> Gemini và GPT-4 cung cấp kết quả tốt nhất</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary style="cursor: pointer; padding: 10px; font-weight: bold;">H: Làm sao báo lỗi hoặc xin hỗ trợ?</summary>
+                    <div style="padding: 15px;">
+                        <p><strong>Kênh hỗ trợ:</strong></p>
+                        <ul>
+                            <li><strong>GitHub Issues:</strong> <a href="https://github.com/thanhkeke97/RSTGameTranslation/issues" target="_blank" rel="noopener">Báo lỗi tại đây</a></li>
+                            <li><strong>Discord:</strong> Tham gia <a href="https://discord.gg/FusrDU5tdn" target="_blank" rel="noopener">cộng đồng Discord</a></li>
+                            <li><strong>Kiểm tra logs:</strong> Mở cửa sổ Log (Alt+L) và bao gồm các mục liên quan</li>
+                        </ul>
+                    </div>
+                </details>
             </div>
         </section>
-
-        <section id="community">
-            <h2>💬 Cộng đồng</h2>
-            <div class="installation-steps">
-                <p>Tham gia cộng đồng Discord của chúng tôi để được hỗ trợ, thảo luận và cập nhật:</p>
-                <div style="text-align: center; margin: 20px 0;">
-                    <a href="https://discord.gg/FusrDU5tdn" class="btn" target="_blank" rel="noopener"
-                        title="Tham gia Discord"><i class="fab fa-discord" aria-hidden="true"></i> Tham gia Discord</a>
-                </div>
-            </div>
-        </section>
-
-        <div style="text-align: center; margin: 40px 0;">
-            <a href="https://github.com/thanhkeke97/RSTGameTranslation/releases" class="btn" target="_blank"
-                rel="noopener" title="Tải xuống RSTGameTranslation"><i class="fas fa-download" aria-hidden="true"></i>
-                Tải xuống ngay</a>
-            <a href="https://github.com/thanhkeke97/RSTGameTranslation" class="btn" target="_blank" rel="noopener"
-                title="Xem mã nguồn trên GitHub"><i class="fab fa-github" aria-hidden="true"></i> Xem trên GitHub</a>
-        </div>
-
     </div>
 
     <footer>
-        <div class="container">
-            <p>RSTGameTranslation &copy; 2025 | Giấy phép: BSD-style attribution, xem <a href="LICENSE.md"
-                    style="color: white;" title="Giấy phép">LICENSE.md</a></p>
-            <p>Dự án này bao gồm phần mềm được phát triển bởi Seth A. Robinson - <a
-                    href="https://github.com/SethRobinson/UGTLive" style="color: white;"
-                    title="UGTLive GitHub Repository">UGTLive</a></p>
-            <p>Made with ❤️ for the gaming community</p>
-        </div>
+        <p>RSTGameTranslation - Tạo ra với ❤️ dành cho cộng đồng game</p>
+        <p><a href="https://github.com/thanhkeke97/RSTGameTranslation" target="_blank" rel="noopener" style="color: white;">GitHub</a> | <a href="https://discord.gg/FusrDU5tdn" target="_blank" rel="noopener" style="color: white;">Discord</a></p>
+        <p>Phiên bản 4.3 | Giấy phép: BSD</p>
     </footer>
 </body>
 
