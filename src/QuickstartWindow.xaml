@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
-        Title="RST Game Translation - Quick Start Guide" 
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Title]}"
         Height="600" Width="800"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
@@ -328,25 +328,25 @@
                         <!-- Right: Window Controls -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <!-- Skip Button -->
-                            <Button Content="Skip" Style="{StaticResource NeutralButton}" Height="30" Margin="0,0,8,0" 
+                            <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Btn_Skip]}" Style="{StaticResource NeutralButton}" Height="30" Margin="0,0,8,0"
                                     Click="SkipButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                            
+
                             <!-- Window Control Buttons -->
                             <Button Style="{StaticResource WindowControlButton}" Background="#FFBD2E"
                                     Click="MinimizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
-                                    ToolTip="Minimize">
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Tooltip_Minimize]}">
                                 <TextBlock Text="−" FontSize="10" FontWeight="Bold" Foreground="White"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
                             </Button>
                             <Button Style="{StaticResource WindowControlButton}" Background="#27C93F"
                                     Click="MaximizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
-                                    ToolTip="Maximize">
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Tooltip_Maximize]}">
                                 <TextBlock Text="□" FontSize="9" FontWeight="Bold" Foreground="White"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
                             </Button>
                             <Button Style="{StaticResource WindowControlButton}" Background="#FF5F57"
                                     Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
-                                    ToolTip="Close">
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Tooltip_Close]}">
                                 <TextBlock Text="×" FontSize="12" FontWeight="Bold" Foreground="White"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
                             </Button>
@@ -398,17 +398,16 @@
                         <Grid Margin="20">
                             <!-- Welcome Panel -->
                             <StackPanel x:Name="WelcomePanel" Visibility="Visible">
-                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
-                                    Welcome to RSTGameTranslation!
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Title]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    This quick start guide will help you set up the essential features to start translating games.
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Desc]}"/>
 
                                 <Border Style="{StaticResource CardStyle}">
                                     <StackPanel>
-                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">How RST Game Translation Works:</TextBlock>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_HowItWorks]}"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -422,46 +421,44 @@
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="1." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Select an area on your screen containing text to translate" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Step1]}"/>
 
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="2." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
-                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="OCR technology recognizes the text in the selected area" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Step2]}"/>
 
                                             <TextBlock Grid.Row="2" Grid.Column="0" Text="3." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
-                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="The text is translated using your selected translation service" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Step3]}"/>
 
                                             <TextBlock Grid.Row="3" Grid.Column="0" Text="4." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
-                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="The translated text is displayed on your screen (overlay) or on chatbox" TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Step4]}"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,10">
-                                    This guide will help you configure:
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Configure]}"/>
 
                                 <StackPanel Margin="20,0,0,0">
-                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}">
-                                        • Language settings for source and target languages
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}">
-                                        • OCR method for text recognition
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}">
-                                        • Translation service selection
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Configure1]}"/>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Configure2]}"/>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Welcome_Configure3]}"/>
                                 </StackPanel>
                             </StackPanel>
 
                             <!-- Language Settings Panel -->
                             <StackPanel x:Name="LanguagePanel" Visibility="Collapsed">
-                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
-                                    Language Settings
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Language_Title]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    Select the source language (the language in your game) and the target language (the language you want to translate to).
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Language_Desc]}"/>
 
                                 <Grid Margin="0,0,0,20">
                                     <Grid.ColumnDefinitions>
@@ -476,20 +473,23 @@
 
                                     <!-- Source Language -->
                                     <StackPanel Grid.Column="0" Grid.Row="0">
-                                        <TextBlock Text="Source Language:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                        <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Language_Source]}"/>
                                         <ComboBox x:Name="SourceLanguageComboBox" Width="200" HorizontalAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Target Language -->
                                     <StackPanel Grid.Column="2" Grid.Row="0">
-                                        <TextBlock Text="Target Language:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                        <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Language_Target]}"/>
                                         <ComboBox x:Name="TargetLanguageComboBox" Width="200" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
 
                                 <Border Style="{StaticResource CardStyle}">
                                     <StackPanel>
-                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">Common Language Pairs:</TextBlock>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Language_CommonPairs]}"/>
                                         <WrapPanel>
                                             <Button Content="Japanese → English" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ja,en"/>
                                             <Button Content="Japanese → Vietnamese" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ja,vi"/>
@@ -501,10 +501,9 @@
                                     </StackPanel>
                                 </Border>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}">
-                                    Note: You can change these settings later in the Settings menu -> Language tab
-                                </TextBlock>
-                                <GroupBox Header="Language Mapping" Margin="0,0,0,15" Padding="10" Foreground="{StaticResource TextBrush}">
+                                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Language_Note]}"/>
+                                <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Language_Mapping]}" Margin="0,0,0,15" Padding="10" Foreground="{StaticResource TextBrush}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
@@ -515,7 +514,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                                                 Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource TextBrush}">
                                             <Run>ja = Japanese</Run>
                                             <LineBreak/>
@@ -541,7 +540,7 @@
                                             <LineBreak/>
                                             <Run>da = Danish</Run>
                                         </TextBlock>
-                                        <TextBlock Grid.Row="0" Grid.Column="2" 
+                                        <TextBlock Grid.Row="0" Grid.Column="2"
                                             Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource TextBrush}">
                                             <Run>pt = Portuguese</Run>
                                             <LineBreak/>
@@ -573,19 +572,14 @@
 
                             <!-- OCR Settings Panel -->
                             <StackPanel x:Name="OcrPanel" Visibility="Collapsed">
-                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
-                                    OCR Method
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Title]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    Select an OCR (Optical Character Recognition) method to recognize text in your games. 
-                                    (Setting > OCR tab)
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Desc]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    For advanced OCR methods (EasyOCR, PaddleOCR, RapidOCR), you'll need to install and start the OCR server. 
-                                    This can be done through the SetupOCR button on the main screen or button Setup OCR server below after completing this guide.
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Desc2]}"/>
                                 <Grid Margin="0,0,0,20">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -596,87 +590,74 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="OCR Method:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,10,0"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,10,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Method]}"/>
                                     <ComboBox Grid.Row="0" Grid.Column="1" x:Name="OcrMethodComboBox" Width="200" HorizontalAlignment="Left" SelectionChanged="OcrMethodComboBox_SelectionChanged"/>
-                                    <Button x:Name="setupOCR" Grid.Row="0" Grid.Column="2" Content="Setup OCR Server" Style="{StaticResource NeutralButton}" Margin="0,5,0,0" Click="SetupOcrServer_Click"/>
+                                    <Button x:Name="setupOCR" Grid.Row="0" Grid.Column="2" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Setup]}" Style="{StaticResource NeutralButton}" Margin="0,5,0,0" Click="SetupOcrServer_Click"/>
                                 </Grid>
 
                                 <Border Style="{StaticResource CardStyle}">
                                     <StackPanel>
-                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">OCR Methods Comparison:</TextBlock>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Comparison]}"/>
 
                                         <!-- Windows OCR -->
-                                        <Expander Header="Windows OCR (Recommended for beginners)" IsExpanded="True" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Windows_Title]}" IsExpanded="True" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
                                             <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Pros:</Run> Built-in, no additional setup required, works well for most Latin scripts
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Cons:</Run> May be less accurate for some Asian languages. Requires installing the corresponding language pack in Windows
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Recommendation:</Run> Best choice for beginners or if you don't have a dedicated GPU
-                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Windows_Pros]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Windows_Cons]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_Windows_Rec]}"/>
                                             </StackPanel>
                                         </Expander>
 
                                         <!-- OneOCR -->
-                                        <Expander Header="OneOCR (Recommended for beginners)" IsExpanded="True" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_OneOCR_Title]}" IsExpanded="True" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
                                             <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Pros:</Run> Built-in, no additional setup required, works well for most Language. Better Windows OCR
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Cons:</Run> May be less accurate for some Asian languages.
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Recommendation:</Run> Best choice for beginners or if you don't have a dedicated GPU
-                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_OneOCR_Pros]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_OneOCR_Cons]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_OneOCR_Rec]}"/>
                                             </StackPanel>
                                         </Expander>
 
                                         <!-- RapidOCR -->
-                                        <Expander Header="RapidOCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Title]}" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
                                             <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Pros:</Run> Good accuracy for Chinese, Japanese, and English language. It is inferior to PaddleOCR for other languages. Support all GPUs, including iGPU
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Cons:</Run> Requires additional setup, more resource-intensive, slower than Windows OCR without GPU. Consumes GPU resources (5-10%)
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Recommendation:</Run> AMD, INTEL or NVDIA
-                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Pros]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Cons]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Rec]}"/>
                                             </StackPanel>
                                         </Expander>
 
                                         <!-- EasyOCR -->
-                                        <Expander Header="EasyOCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Title]}" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
                                             <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Pros:</Run> Good accuracy for many languages, supports GPU acceleration
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Cons:</Run> Requires additional setup, slower than Windows OCR without GPU. Consumes a lot of GPU resources (20-30%)
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Recommendation:</Run> NVIDIA RTX 4000 series and below
-                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Pros]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Cons]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Rec]}"/>
                                             </StackPanel>
                                         </Expander>
 
                                         <!-- PaddleOCR -->
-                                        <Expander Header="PaddleOCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Title]}" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
                                             <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Pros:</Run> High accuracy with many languages
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Cons:</Run> Requires additional setup, more resource-intensive. Consumes a lot of GPU resources (5-15%)
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                                    <Run FontWeight="Bold">Recommendation:</Run> NVIDIA RTX 2000 series and above
-                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Pros]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Cons]}"/>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Rec]}"/>
                                             </StackPanel>
                                         </Expander>
                                     </StackPanel>
@@ -685,13 +666,11 @@
 
                             <!-- Translation Service Panel -->
                             <StackPanel x:Name="TranslationPanel" Visibility="Collapsed">
-                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
-                                    Translation Service
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Title]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    Select a translation service to translate the recognized text.
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Desc]}"/>
 
                                 <Grid Margin="0,0,0,20">
                                     <Grid.RowDefinitions>
@@ -702,150 +681,146 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Translation Service:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,10,0"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,10,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Service]}"/>
                                     <ComboBox Grid.Row="0" Grid.Column="1" x:Name="TranslationServiceComboBox" Width="200" HorizontalAlignment="Left" SelectionChanged="TranslationServiceComboBox_SelectionChanged"/>
                                 </Grid>
 
                                 <!-- Google Translate API Key -->
                                 <StackPanel x:Name="GoogleTranslateApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <TextBlock Text="Google Translate API Key (optional, After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GoogleKey]}"/>
                                     <PasswordBox x:Name="GoogleTranslateApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GoogleTranslateApiKeyPasswordBox_PasswordChanged"/>
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        Note: Google Translate works without an API key, but using one provides better service.
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GoogleKeyNote]}"/>
                                 </StackPanel>
 
                                 <!-- ChatGPT API Key -->
                                 <StackPanel x:Name="ChatGptApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <TextBlock Text="ChatGPT API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_ChatGPTKey]}"/>
                                     <PasswordBox x:Name="ChatGptApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="ChatGptApiKeyPasswordBox_PasswordChanged"/>
 
-                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_ChatGPTModel]}"/>
                                     <ComboBox x:Name="ChatGptModelComboBox" Width="300" HorizontalAlignment="Left"/>
 
-                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://platform.openai.com/api-keys"/>
+                                    <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_ChatGPTKeyBtn]}" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://platform.openai.com/api-keys"/>
 
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        Note: ChatGPT provides high-quality translations but requires an API key with payment method.
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_ChatGPTNote]}"/>
                                 </StackPanel>
 
                                 <!-- Gemini API Key -->
                                 <StackPanel x:Name="GeminiApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <TextBlock Text="Gemini API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GeminiKey]}"/>
                                     <PasswordBox x:Name="GeminiApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GeminiApiKeyPasswordBox_PasswordChanged"/>
 
-                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GeminiModel]}"/>
                                     <ComboBox x:Name="GeminiModelComboBox" Width="300" HorizontalAlignment="Left"/>
 
-                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ai.google.dev/"/>
+                                    <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GeminiKeyBtn]}" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ai.google.dev/"/>
 
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        Note: Gemini provides good translations with a free tier available.
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GeminiNote]}"/>
                                 </StackPanel>
 
                                 <!-- Groq API Key -->
                                 <StackPanel x:Name="GroqApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <TextBlock Text="Groq API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GroqKey]}"/>
                                     <PasswordBox x:Name="GroqApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GroqApiKeyPasswordBox_PasswordChanged"/>
 
-                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GroqModel]}"/>
                                     <ComboBox x:Name="GroqModelComboBox" Width="300" HorizontalAlignment="Left"/>
 
-                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.groq.com/keys"/>
+                                    <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GroqKeyBtn]}" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.groq.com/keys"/>
 
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        Note: Groq provides good translations with a free tier available.
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_GroqNote]}"/>
                                 </StackPanel>
 
                                 <!-- Mistral API Key -->
                                 <StackPanel x:Name="MistralApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <TextBlock Text="Mistral API Key:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_MistralKey]}"/>
                                     <PasswordBox x:Name="MistralApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="MistralApiKeyPasswordBox_PasswordChanged"/>
-                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_MistralModel]}"/>
                                     <ComboBox x:Name="MistralModelComboBox" Width="300" HorizontalAlignment="Left"/>
-                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.mistral.ai/"/>
+                                    <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_MistralKeyBtn]}" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.mistral.ai/"/>
 
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        Note: Mistral provides efficient translations but requires an API key.
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_MistralNote]}"/>
                                 </StackPanel>
 
                                 <!-- Microsoft API Key -->
                                 <StackPanel x:Name="MicrosoftApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MicrosoftApiKeyQuickstart]}" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
                                     <PasswordBox x:Name="MicrosoftApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="MicrosoftApiKeyPasswordBox_PasswordChanged"/>
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        {Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_MicrosoftLegacyQuickstartNote]}
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_MicrosoftLegacyQuickstartNote]}"/>
                                     <CheckBox x:Name="MicrosoftLegacyModeCheckBox" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_MicrosoftLegacyMode]}" Margin="0,8,0,0" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
                                 </StackPanel>
 
                                 <!-- Ollama Model -->
                                 <StackPanel x:Name="OllamaModelPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <TextBlock Text="Ollama Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_OllamaModel]}"/>
                                     <TextBox x:Name="OllamaModelTextBox" Width="300" HorizontalAlignment="Left" TextChanged="OllamaModelTextBox_TextChanged"/>
 
-                                    <Button Content="Download Ollama" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ollama.com/download"/>
+                                    <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_OllamaDownload]}" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ollama.com/download"/>
 
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        Note: Ollama runs locally on your PC and doesn't require internet access, but needs good hardware.
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_OllamaNote]}"/>
                                 </StackPanel>
 
                                 <!-- LM Studio Model -->
                                 <StackPanel x:Name="LMStudioModelPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <TextBlock Text="LM Studio Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_LMStudioModel]}"/>
                                     <TextBox x:Name="LMStudioModelTextBox" Width="300" HorizontalAlignment="Left" TextChanged="LMStudioModelTextBox_TextChanged"/>
 
-                                    <Button Content="Download LMStudio" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://lmstudio.ai/download"/>
+                                    <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_LMStudioDownload]}" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://lmstudio.ai/download"/>
 
-                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
-                                        Note: LM Studio runs locally on your PC and doesn't require internet access, but needs good hardware.
-                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                               Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_LMStudioNote]}"/>
                                 </StackPanel>
 
                                 <Border Style="{StaticResource CardStyle}">
                                     <StackPanel>
-                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">Translation Service Recommendations:</TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold">Speed:</Run> The translation speed depends on the LLM model, try different models to find the most suitable one.
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold">For beginners:</Run> Google Translate (free, no setup required)
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold">For best quality:</Run> ChatGPT (requires paid API key)
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold">For offline use:</Run> Ollama, LM Studio (requires local installation)
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold">For balance of quality/cost:</Run> Gemini, Groq, Mistral (free tier available)
-                                        </TextBlock>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Recs]}"/>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Speed]}"/>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Beginner]}"/>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Quality]}"/>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Offline]}"/>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Translation_Balance]}"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
 
                             <!-- Complete Panel -->
                             <StackPanel x:Name="CompletePanel" Visibility="Collapsed">
-                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
-                                    Setup Complete! 
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Title]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    If you want to review this setup, click the quick setup button on the main screen
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Review]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    You've successfully configured the basic settings for RST Game Translation. Your changes will be saved after you click the finish button.
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Success]}"/>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
-                                    Here's a summary of your settings:
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Summary]}"/>
 
                                 <Border Style="{StaticResource CardStyle}">
                                     <Grid>
@@ -859,58 +834,62 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Languages:" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Languages]}"/>
                                         <TextBlock Grid.Row="0" Grid.Column="1" x:Name="LanguagesSummaryText" Text="Japanese → English" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="OCR Method:" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_OCR]}"/>
                                         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="OcrMethodSummaryText" Text="Windows OCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
 
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Translation Service:" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_TranslationService]}"/>
                                         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TranslationServiceSummaryText" Text="Google Translate" Foreground="{StaticResource TextBrush}"/>
                                     </Grid>
                                 </Border>
 
-                                <TextBlock TextWrapping="Wrap" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,10">
-                                    Next Steps:
-                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_NextSteps]}"/>
 
                                 <Border Style="{StaticResource CardStyle}">
                                     <StackPanel>
                                         <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">1. Select Translation Area</Run>
+                                            <TextBlock FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step1Title]}"/>
                                             <LineBreak/>
-                                            Click the "Select Area" button in the main window to choose the area of your screen containing text to translate.
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step1Desc]}"/>
                                         </TextBlock>
 
                                         <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">2. Start Translation</Run>
+                                            <TextBlock FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step2Title]}"/>
                                             <LineBreak/>
-                                            Click the "Start" button to begin the translation process. The translation is in real time.
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step2Desc]}"/>
                                         </TextBlock>
 
                                         <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">3. View Translation History</Run>
+                                            <TextBlock FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step3Title]}"/>
                                             <LineBreak/>
-                                            Click the "Chat Box" button to view your translation history and manage translated text.
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step3Desc]}"/>
                                         </TextBlock>
 
                                         <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">4. View Translation Overlay</Run>
+                                            <TextBlock FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
+                                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step4Title]}"/>
                                             <LineBreak/>
-                                            Click the "Overlay" button to display the translation over the original text position on the screen.
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_Step4Desc]}"/>
                                         </TextBlock>
                                     </StackPanel>
                                 </Border>
 
                                 <Border Background="{StaticResource Surface3Brush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="10" Padding="15" Margin="0,0,0,20">
                                     <StackPanel>
-                                        <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">
-                                            Need Help?
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
-                                            Join our Discord community for support, tips, and to connect with other users.
-                                        </TextBlock>
-                                        <Button Content="Join Discord" Style="{StaticResource AccentButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="10,5" Click="JoinDiscord_Click"/>
+                                        <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_HelpTitle]}"/>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_HelpDesc]}"/>
+                                        <Button Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Complete_JoinDiscord]}" Style="{StaticResource AccentButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="10,5" Click="JoinDiscord_Click"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -932,13 +911,14 @@
                         <CheckBox Grid.Column="0" x:Name="DontShowAgainCheckBox" VerticalAlignment="Center"
                             Checked="DontShowAgainCheckBox_CheckedChanged"
                             Unchecked="DontShowAgainCheckBox_CheckedChanged">
-                            <TextBlock Text="Don't show this guide again" Foreground="#FF5F57" FontWeight="SemiBold"/>
+                            <TextBlock Foreground="#FF5F57" FontWeight="SemiBold"
+                                      Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Footer_DontShow]}"/>
                         </CheckBox>
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button x:Name="PrevButton" Content="Previous" Style="{StaticResource NeutralButton}" Width="80" Margin="0,0,10,0" Click="PrevButton_Click"/>
-                            <Button x:Name="NextButton" Content="Next" Style="{StaticResource AccentButton}" Width="80" Click="NextButton_Click"/>
-                            <Button x:Name="FinishButton" Content="Finish" Style="{StaticResource AccentButton}" Width="80" Visibility="Collapsed" Click="FinishButton_Click"/>
+                            <Button x:Name="PrevButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Footer_Previous]}" Style="{StaticResource NeutralButton}" Width="80" Margin="0,0,10,0" Click="PrevButton_Click"/>
+                            <Button x:Name="NextButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Footer_Next]}" Style="{StaticResource AccentButton}" Width="80" Click="NextButton_Click"/>
+                            <Button x:Name="FinishButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_Footer_Finish]}" Style="{StaticResource AccentButton}" Width="80" Visibility="Collapsed" Click="FinishButton_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
