@@ -7,600 +7,930 @@
         mc:Ignorable="d"
         Title="RST Game Translation - Quick Start Guide" 
         Height="600" Width="800"
-        Background="#1E1E1E"
-        Foreground="White"
-        WindowStartupLocation="CenterScreen">
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        Icon="/media/AppIcon.ico">
+    <WindowChrome.WindowChrome>
+        <WindowChrome ResizeBorderThickness="15" CaptionHeight="10" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <!-- Color Palette (light high-contrast) -->
+        <Color x:Key="BgColor">#F7FAFC</Color>
+        <Color x:Key="SurfaceColor">#FFFFFF</Color>
+        <Color x:Key="Surface2Color">#F3F8FD</Color>
+        <Color x:Key="Surface3Color">#EBF4FB</Color>
+        <Color x:Key="AccentColor">#0066CC</Color>
+        <Color x:Key="BorderColor">#E0ECF8</Color>
+        <Color x:Key="NeutralBgColor">#E6EEF3</Color>
+        
+        <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+        <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2Color}"/>
+        <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3Color}"/>
+        <SolidColorBrush x:Key="NeutralBgBrush" Color="{StaticResource NeutralBgColor}"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#0B2545"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#5B6B7A"/>
 
-        <!-- Header with progress indicator -->
-        <Grid Grid.Row="0" Margin="20,15,20,5">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- Modern Button Style with Smooth Animations -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="borderScale" ScaleX="1" ScaleY="1"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="borderScale" 
+                                                           Storyboard.TargetProperty="ScaleX" 
+                                                           To="1.03" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="borderScale" 
+                                                           Storyboard.TargetProperty="ScaleY" 
+                                                           To="1.03" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="borderScale" 
+                                                           Storyboard.TargetProperty="ScaleX" 
+                                                           To="1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="borderScale" 
+                                                           Storyboard.TargetProperty="ScaleY" 
+                                                           To="1" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="borderScale" 
+                                                           Storyboard.TargetProperty="ScaleX" 
+                                                           To="0.97" Duration="0:0:0.08"/>
+                                            <DoubleAnimation Storyboard.TargetName="borderScale" 
+                                                           Storyboard.TargetProperty="ScaleY" 
+                                                           To="0.97" Duration="0:0:0.08"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <TextBlock Grid.Column="0" Text="Quick Start Guide" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Foreground="#3498db"/>
+        <!-- Neutral button used for subtle actions -->
+        <Style x:Key="NeutralButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="{StaticResource NeutralBgBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="MinWidth" Value="70"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="neutralBorderScale" ScaleX="1" ScaleY="1"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Surface2Brush}"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#22000000" BlurRadius="8" ShadowDepth="1" Opacity="0.15"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="neutralBorderScale" Storyboard.TargetProperty="ScaleX" To="1.03" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="neutralBorderScale" Storyboard.TargetProperty="ScaleY" To="1.03" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="neutralBorderScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="neutralBorderScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                                <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="neutralBorderScale" Storyboard.TargetProperty="ScaleX" To="0.97" Duration="0:0:0.06"/>
+                                            <DoubleAnimation Storyboard.TargetName="neutralBorderScale" Storyboard.TargetProperty="ScaleY" To="0.97" Duration="0:0:0.06"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <!-- Step indicators -->
-            <Border Grid.Column="1" x:Name="Step1Indicator" Width="20" Height="20" CornerRadius="10" Background="#646464" Margin="0,0,5,0">
-                <TextBlock Text="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="White"/>
-            </Border>
-            <Border Grid.Column="2" x:Name="Step2Indicator" Width="20" Height="20" CornerRadius="10" Background="#646464" Margin="0,0,5,0">
-                <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="White"/>
-            </Border>
-            <Border Grid.Column="3" x:Name="Step3Indicator" Width="20" CornerRadius="10" Background="#646464" Margin="5,2,5,0" Height="20" VerticalAlignment="Top">
-                <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="12" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
-            </Border>
-            <Border Grid.Column="4" x:Name="Step4Indicator" Width="20" Height="20" CornerRadius="10" Background="#646464" Margin="5,0">
-                <TextBlock Text="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="White"/>
-            </Border>
-            <Border Grid.Column="5" x:Name="Step5Indicator" Width="20" Height="20" CornerRadius="10" Background="#646464" Margin="5,0,0,0">
-                <TextBlock Text="5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="White"/>
-            </Border>
+        <!-- Accent (solid) button style with Animation -->
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#330066CC" BlurRadius="12" ShadowDepth="2" Opacity="0.45"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="accentBorderScale" ScaleX="1" ScaleY="1"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.95"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="accentBorderScale" Storyboard.TargetProperty="ScaleX" To="1.04" Duration="0:0:0.15">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="accentBorderScale" Storyboard.TargetProperty="ScaleY" To="1.04" Duration="0:0:0.15">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="accentBorderScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="accentBorderScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="accentBorderScale" Storyboard.TargetProperty="ScaleX" To="0.96" Duration="0:0:0.08"/>
+                                            <DoubleAnimation Storyboard.TargetName="accentBorderScale" Storyboard.TargetProperty="ScaleY" To="0.96" Duration="0:0:0.08"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <Button Grid.Column="6" Content="Skip" HorizontalAlignment="Right" Padding="10,3" Click="SkipButton_Click"/>
-        </Grid>
+        <!-- Card Style -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface2Brush}"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
 
-        <Rectangle Grid.Row="0" Height="1" Fill="#333333" VerticalAlignment="Bottom"/>
+        <!-- Window Control Button Style -->
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Ellipse x:Name="circle" Fill="{TemplateBinding Background}"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="circle" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
-        <!-- Content area -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Grid Margin="20">
-                <!-- Welcome Panel -->
-                <StackPanel x:Name="WelcomePanel" Visibility="Visible">
-                    <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="#3498db" Margin="0,0,0,20">
-                        Welcome to RSTGameTranslation!
-                    </TextBlock>
+    <Grid Background="Transparent">
+        <!-- Main Window Frame -->
+        <Border Name="MainBorder" Background="{StaticResource SurfaceBrush}" CornerRadius="12" 
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="25" ShadowDepth="0" Opacity="0.6" Color="Black"/>
+            </Border.Effect>
+            
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Title Bar -->
+                    <RowDefinition Height="*"/>    <!-- Content -->
+                    <RowDefinition Height="Auto"/> <!-- Footer -->
+                </Grid.RowDefinitions>
 
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        This quick start guide will help you set up the essential features to start translating games.
-                    </TextBlock>
-
-                    <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,0,20">
-                        <StackPanel>
-                            <TextBlock FontWeight="Bold" FontSize="16" Foreground="#3498db" Margin="0,0,0,10">How RST Game Translation Works:</TextBlock>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="1." FontWeight="Bold" Foreground="#3498db" Margin="0,0,10,10"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Select an area on your screen containing text to translate" TextWrapping="Wrap" Margin="0,0,0,10"/>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="2." FontWeight="Bold" Foreground="#3498db" Margin="0,0,10,10"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="OCR technology recognizes the text in the selected area" TextWrapping="Wrap" Margin="0,0,0,10"/>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="3." FontWeight="Bold" Foreground="#3498db" Margin="0,0,10,10"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="The text is translated using your selected translation service" TextWrapping="Wrap" Margin="0,0,0,10"/>
-
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="4." FontWeight="Bold" Foreground="#3498db" Margin="0,0,10,10"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Text="The translated text is displayed on your screen (overlay) or on chatbox" TextWrapping="Wrap"/>
-                            </Grid>
+                <!-- ========== TITLE BAR ========== -->
+                <Border Name="HeaderBorder" Grid.Row="0" Background="{StaticResource Surface2Brush}" 
+                        CornerRadius="12,12,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                        MouseLeftButtonDown="Header_MouseLeftButtonDown"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Grid Height="40" Margin="12,0">
+                        <!-- Left: Logo + Title -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Border Width="24" Height="24" CornerRadius="5" Margin="0,0,10,0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#00aaff" Offset="0"/>
+                                        <GradientStop Color="#00cc88" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Image Source="/media/AppIcon.ico" Width="16" Height="16" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Quick Start Guide" FontSize="13" FontWeight="SemiBold" 
+                                       Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                    </Border>
+                        
+                        <!-- Right: Window Controls -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <!-- Skip Button -->
+                            <Button Content="Skip" Style="{StaticResource NeutralButton}" Height="30" Margin="0,0,8,0" 
+                                    Click="SkipButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            
+                            <!-- Window Control Buttons -->
+                            <Button Style="{StaticResource WindowControlButton}" Background="#FFBD2E" 
+                                    Click="MinimizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            <Button Style="{StaticResource WindowControlButton}" Background="#27C93F" 
+                                    Click="MaximizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                            <Button Style="{StaticResource WindowControlButton}" Background="#FF5F57" 
+                                    Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,10">
-                        This guide will help you configure:
-                    </TextBlock>
+                <!-- ========== CONTENT AREA ========== -->
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                    <StackPanel Margin="20,0,0,0">
-                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
-                            • Language settings for source and target languages
-                        </TextBlock>
-                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
-                            • OCR method for text recognition
-                        </TextBlock>
-                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
-                            • Translation service selection
-                        </TextBlock>
-                    </StackPanel>
-                </StackPanel>
-
-                <!-- Language Settings Panel -->
-                <StackPanel x:Name="LanguagePanel" Visibility="Collapsed">
-                    <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="#3498db" Margin="0,0,0,20">
-                        Language Settings
-                    </TextBlock>
-
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        Select the source language (the language in your game) and the target language (the language you want to translate to).
-                    </TextBlock>
-
-                    <Grid Margin="0,0,0,20">
+                    <!-- Progress Indicator -->
+                    <Grid Grid.Row="0" Margin="20,15,20,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Source Language -->
-                        <StackPanel Grid.Column="0" Grid.Row="0">
-                            <TextBlock Text="Source Language:" FontWeight="Bold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="SourceLanguageComboBox" Width="200" HorizontalAlignment="Center"/>
-                        </StackPanel>
-
-                        <!-- Target Language -->
-                        <StackPanel Grid.Column="2" Grid.Row="0">
-                            <TextBlock Text="Target Language:" FontWeight="Bold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="TargetLanguageComboBox" Width="200" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,0,20">
-                        <StackPanel>
-                            <TextBlock FontWeight="Bold" FontSize="16" Foreground="#3498db" Margin="0,0,0,10">Common Language Pairs:</TextBlock>
-                            <WrapPanel>
-                                <Button Content="Japanese → English" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ja,en"/>
-                                <Button Content="Japanese → Vietnamese" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ja,vi"/>
-                                <Button Content="Korean → English" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ko,en"/>
-                                <Button Content="Korean → Vietnamese" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ko,vi"/>
-                                <Button Content="Chinese → English" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ch_sim,en"/>
-                                <Button Content="Chinese → Vietnamese" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ch_sim,vi"/>
-                            </WrapPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray">
-                        Note: You can change these settings later in the Settings menu -> Language tab
-                    </TextBlock>
-                    <GroupBox Header="Language Mapping" Margin="0,0,0,15" Padding="10">
-                            <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
-                                    Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
-                                <Run>ja = Japanese</Run>
-                                <LineBreak/>
-                                <Run>en = English</Run>
-                                <LineBreak/>
-                                <Run>ch_sim = Chinese (Simplified)</Run>
-                                <LineBreak/>
-                                <Run>ko = Korean</Run>
-                                <LineBreak/>
-                                <Run>vi = Vietnamese</Run>
-                                <LineBreak/>
-                                <Run>fr = French</Run>
-                                <LineBreak/>
-                                <Run>ru = Russian</Run>
-                                <LineBreak/>
-                                <Run>de = German</Run>
-                                <LineBreak/>
-                                <Run>es = Spanish</Run>
-                                <LineBreak/>
-                                <Run>it = Italian</Run>
-                                <LineBreak/>
-                                <Run>hi = Hindi</Run>
-                                <LineBreak/>
-                                <Run>da = Danish</Run>
-                            </TextBlock>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
-                                Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
-                                <Run>pt = Portuguese</Run>
-                                <LineBreak/>
-                                <Run>ar = Arabic</Run>
-                                <LineBreak/>
-                                <Run>nl = Dutch</Run>
-                                <LineBreak/>
-                                <Run>pl = Polish</Run>
-                                <LineBreak/>
-                                <Run>ro = Romanian</Run>
-                                <LineBreak/>
-                                <Run>fa = Farsi</Run>
-                                <LineBreak/>
-                                <Run>cs = Czech</Run>
-                                <LineBreak/>
-                                <Run>id = Indonesian</Run>
-                                <LineBreak/>
-                                <Run>th = ThaiLand</Run>
-                                <LineBreak/>
-                                <Run>ch_tra = Traditional Chinese</Run>
-                                <LineBreak/>
-                                <Run>tr = Turkish</Run>
-                                <LineBreak/>
-                                <Run>si = Sinhala</Run>
-                            </TextBlock>
-                            </Grid>
-                        </GroupBox>
-                </StackPanel>
-
-                <!-- OCR Settings Panel -->
-                <StackPanel x:Name="OcrPanel" Visibility="Collapsed">
-                    <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="#3498db" Margin="0,0,0,20">
-                        OCR Method
-                    </TextBlock>
-
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        Select an OCR (Optical Character Recognition) method to recognize text in your games. 
-                        (Setting > OCR tab)
-                    </TextBlock>
-
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        For advanced OCR methods (EasyOCR, PaddleOCR, RapidOCR), you'll need to install and start the OCR server. 
-                        This can be done through the SetupOCR button on the main screen or button Setup OCR server below after completing this guide.
-                    </TextBlock>
-                    <Grid Margin="0,0,0,20">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="OCR Method:" FontWeight="Bold" Margin="0,5,10,0"/>
-                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="OcrMethodComboBox" Width="200" HorizontalAlignment="Left" SelectionChanged="OcrMethodComboBox_SelectionChanged"/>
-                        <Button x:Name="setupOCR" Grid.Row="0" Grid.Column="2" Content="Setup OCR Server" Margin="0,5,0,0" Click="SetupOcrServer_Click"/>
-                    </Grid>
-
-                    <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,0,20">
-                        <StackPanel>
-                            <TextBlock FontWeight="Bold" FontSize="16" Foreground="#3498db" Margin="0,0,0,10">OCR Methods Comparison:</TextBlock>
-
-                            <!-- Windows OCR -->
-                            <Expander Header="Windows OCR (Recommended for beginners)" IsExpanded="True" Margin="0,0,0,10" Foreground="White">
-                                <StackPanel Margin="10,5,0,0">
-                                    <TextBlock TextWrapping="Wrap" Foreground="White">
-                                        <Run FontWeight="Bold">Pros:</Run> Built-in, no additional setup required, works well for most Latin scripts
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Cons:</Run> May be less accurate for some Asian languages. Requires installing the corresponding language pack in Windows
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Recommendation:</Run> Best choice for beginners or if you don't have a dedicated GPU
-                                    </TextBlock>
-                                </StackPanel>
-                            </Expander>
-
-                            <!-- OneOCR -->
-                            <Expander Header="OneOCR (Recommended for beginners)" IsExpanded="True" Margin="0,0,0,10" Foreground="White">
-                                <StackPanel Margin="10,5,0,0">
-                                    <TextBlock TextWrapping="Wrap" Foreground="White">
-                                        <Run FontWeight="Bold">Pros:</Run> Built-in, no additional setup required, works well for most Language. Better Windows OCR
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Cons:</Run> May be less accurate for some Asian languages.
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Recommendation:</Run> Best choice for beginners or if you don't have a dedicated GPU
-                                    </TextBlock>
-                                </StackPanel>
-                            </Expander>
-
-                            <!-- RapidOCR -->
-                            <Expander Header="RapidOCR" Margin="0,0,0,10" Foreground="White">
-                                <StackPanel Margin="10,5,0,0">
-                                    <TextBlock TextWrapping="Wrap" Foreground="White">
-                                        <Run FontWeight="Bold">Pros:</Run> Good accuracy for Chinese, Japanese, and English language. It is inferior to PaddleOCR for other languages. Support all GPUs, including iGPU
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Cons:</Run> Requires additional setup, more resource-intensive, slower than Windows OCR without GPU. Consumes GPU resources (5-10%)
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Recommendation:</Run> AMD, INTEL or NVDIA
-                                    </TextBlock>
-                                </StackPanel>
-                            </Expander>
-
-                            <!-- EasyOCR -->
-                            <Expander Header="EasyOCR" Margin="0,0,0,10" Foreground="White">
-                                <StackPanel Margin="10,5,0,0">
-                                    <TextBlock TextWrapping="Wrap" Foreground="White">
-                                        <Run FontWeight="Bold">Pros:</Run> Good accuracy for many languages, supports GPU acceleration
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Cons:</Run> Requires additional setup, slower than Windows OCR without GPU. Consumes a lot of GPU resources (20-30%)
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Recommendation:</Run> NVIDIA RTX 4000 series and below
-                                    </TextBlock>
-                                </StackPanel>
-                            </Expander>
-
-                            <!-- PaddleOCR -->
-                            <Expander Header="PaddleOCR" Margin="0,0,0,10" Foreground="White">
-                                <StackPanel Margin="10,5,0,0">
-                                    <TextBlock TextWrapping="Wrap" Foreground="White">
-                                        <Run FontWeight="Bold">Pros:</Run> High accuracy with many languages
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Cons:</Run> Requires additional setup, more resource-intensive. Consumes a lot of GPU resources (5-15%)
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="White">
-                                        <Run FontWeight="Bold">Recommendation:</Run> NVIDIA RTX 2000 series and above
-                                    </TextBlock>
-                                </StackPanel>
-                            </Expander>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-
-                <!-- Translation Service Panel -->
-                <StackPanel x:Name="TranslationPanel" Visibility="Collapsed">
-                    <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="#3498db" Margin="0,0,0,20">
-                        Translation Service
-                    </TextBlock>
-
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        Select a translation service to translate the recognized text.
-                    </TextBlock>
-
-                    <Grid Margin="0,0,0,20">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Translation Service:" FontWeight="Bold" Margin="0,5,10,0"/>
-                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="TranslationServiceComboBox" Width="200" HorizontalAlignment="Left" SelectionChanged="TranslationServiceComboBox_SelectionChanged"/>
+                        <!-- Step indicators -->
+                        <Border Grid.Column="1" x:Name="Step1Indicator" Width="20" Height="20" CornerRadius="10" Background="{StaticResource NeutralBgBrush}" Margin="0,0,5,0">
+                            <TextBlock Text="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                        </Border>
+                        <Border Grid.Column="2" x:Name="Step2Indicator" Width="20" Height="20" CornerRadius="10" Background="{StaticResource NeutralBgBrush}" Margin="0,0,5,0">
+                            <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                        </Border>
+                        <Border Grid.Column="3" x:Name="Step3Indicator" Width="20" CornerRadius="10" Background="{StaticResource NeutralBgBrush}" Margin="5,2,5,0" Height="20" VerticalAlignment="Top">
+                            <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,2,0,0"/>
+                        </Border>
+                        <Border Grid.Column="4" x:Name="Step4Indicator" Width="20" Height="20" CornerRadius="10" Background="{StaticResource NeutralBgBrush}" Margin="5,0">
+                            <TextBlock Text="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                        </Border>
+                        <Border Grid.Column="5" x:Name="Step5Indicator" Width="20" Height="20" CornerRadius="10" Background="{StaticResource NeutralBgBrush}" Margin="5,0,0,0">
+                            <TextBlock Text="5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                        </Border>
                     </Grid>
 
-                    <!-- Google Translate API Key -->
-                    <StackPanel x:Name="GoogleTranslateApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="Google Translate API Key (optional, After entering the API key, press Enter to save):" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <PasswordBox x:Name="GoogleTranslateApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GoogleTranslateApiKeyPasswordBox_PasswordChanged"/>
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: Google Translate works without an API key, but using one provides better service.
-                        </TextBlock>
-                    </StackPanel>
+                    <Rectangle Grid.Row="0" Height="1" Fill="{StaticResource BorderBrush}" VerticalAlignment="Bottom" Margin="20,0"/>
 
-                    <!-- ChatGPT API Key -->
-                    <StackPanel x:Name="ChatGptApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="ChatGPT API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <PasswordBox x:Name="ChatGptApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="ChatGptApiKeyPasswordBox_PasswordChanged"/>
+                    <!-- Content area -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <Grid Margin="20">
+                            <!-- Welcome Panel -->
+                            <StackPanel x:Name="WelcomePanel" Visibility="Visible">
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
+                                    Welcome to RSTGameTranslation!
+                                </TextBlock>
 
-                        <TextBlock Text="Model:" FontWeight="Bold" Margin="0,10,0,5"/>
-                        <ComboBox x:Name="ChatGptModelComboBox" Width="300" HorizontalAlignment="Left"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    This quick start guide will help you set up the essential features to start translating games.
+                                </TextBlock>
 
-                        <Button Content="Get API Key" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://platform.openai.com/api-keys"/>
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">How RST Game Translation Works:</TextBlock>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: ChatGPT provides high-quality translations but requires an API key with payment method.
-                        </TextBlock>
-                    </StackPanel>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="1." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Select an area on your screen containing text to translate" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
 
-                    <!-- Gemini API Key -->
-                    <StackPanel x:Name="GeminiApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="Gemini API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <PasswordBox x:Name="GeminiApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GeminiApiKeyPasswordBox_PasswordChanged"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="2." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="OCR technology recognizes the text in the selected area" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
 
-                        <TextBlock Text="Model:" FontWeight="Bold" Margin="0,10,0,5"/>
-                        <ComboBox x:Name="GeminiModelComboBox" Width="300" HorizontalAlignment="Left"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="3." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="The text is translated using your selected translation service" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
 
-                        <Button Content="Get API Key" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ai.google.dev/"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="4." FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="The translated text is displayed on your screen (overlay) or on chatbox" TextWrapping="Wrap" Foreground="{StaticResource TextBrush}"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
 
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: Gemini provides good translations with a free tier available.
-                        </TextBlock>
-                    </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,10">
+                                    This guide will help you configure:
+                                </TextBlock>
 
-                    <!-- Groq API Key -->
-                    <StackPanel x:Name="GroqApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="Groq API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <PasswordBox x:Name="GroqApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GroqApiKeyPasswordBox_PasswordChanged"/>
+                                <StackPanel Margin="20,0,0,0">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}">
+                                        • Language settings for source and target languages
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}">
+                                        • OCR method for text recognition
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5" Foreground="{StaticResource TextBrush}">
+                                        • Translation service selection
+                                    </TextBlock>
+                                </StackPanel>
+                            </StackPanel>
 
-                        <TextBlock Text="Model:" FontWeight="Bold" Margin="0,10,0,5"/>
-                        <ComboBox x:Name="GroqModelComboBox" Width="300" HorizontalAlignment="Left"/>
+                            <!-- Language Settings Panel -->
+                            <StackPanel x:Name="LanguagePanel" Visibility="Collapsed">
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
+                                    Language Settings
+                                </TextBlock>
 
-                        <Button Content="Get API Key" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.groq.com/keys"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    Select the source language (the language in your game) and the target language (the language you want to translate to).
+                                </TextBlock>
 
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: Groq provides good translations with a free tier available.
-                        </TextBlock>
-                    </StackPanel>
+                                <Grid Margin="0,0,0,20">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                    <!-- Mistral API Key -->
-                    <StackPanel x:Name="MistralApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="Mistral API Key:" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <PasswordBox x:Name="MistralApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="MistralApiKeyPasswordBox_PasswordChanged"/>
-                        <TextBlock Text="Model:" FontWeight="Bold" Margin="0,10,0,5"/>
-                        <ComboBox x:Name="MistralModelComboBox" Width="300" HorizontalAlignment="Left"/>
-                        <Button Content="Get API Key" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.mistral.ai/"/>
+                                    <!-- Source Language -->
+                                    <StackPanel Grid.Column="0" Grid.Row="0">
+                                        <TextBlock Text="Source Language:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                        <ComboBox x:Name="SourceLanguageComboBox" Width="200" HorizontalAlignment="Center"/>
+                                    </StackPanel>
 
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: Mistral provides efficient translations but requires an API key.
-                        </TextBlock>
-                    </StackPanel>
+                                    <!-- Target Language -->
+                                    <StackPanel Grid.Column="2" Grid.Row="0">
+                                        <TextBlock Text="Target Language:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                        <ComboBox x:Name="TargetLanguageComboBox" Width="200" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
 
-                    <!-- Microsoft API Key -->
-                    <StackPanel x:Name="MicrosoftApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MicrosoftApiKeyQuickstart]}" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <PasswordBox x:Name="MicrosoftApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="MicrosoftApiKeyPasswordBox_PasswordChanged"/>
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            {Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_MicrosoftLegacyQuickstartNote]}
-                        </TextBlock>
-                        <CheckBox x:Name="MicrosoftLegacyModeCheckBox" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_MicrosoftLegacyMode]}" Margin="0,8,0,0" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
-                    </StackPanel>
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">Common Language Pairs:</TextBlock>
+                                        <WrapPanel>
+                                            <Button Content="Japanese → English" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ja,en"/>
+                                            <Button Content="Japanese → Vietnamese" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ja,vi"/>
+                                            <Button Content="Korean → English" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ko,en"/>
+                                            <Button Content="Korean → Vietnamese" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ko,vi"/>
+                                            <Button Content="Chinese → English" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ch_sim,en"/>
+                                            <Button Content="Chinese → Vietnamese" Style="{StaticResource NeutralButton}" Margin="5" Padding="8,3" Click="CommonPair_Click" Tag="ch_sim,vi"/>
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
 
-                    <!-- Ollama Model -->
-                    <StackPanel x:Name="OllamaModelPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="Ollama Model:" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBox x:Name="OllamaModelTextBox" Width="300" HorizontalAlignment="Left" TextChanged="OllamaModelTextBox_TextChanged"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}">
+                                    Note: You can change these settings later in the Settings menu -> Language tab
+                                </TextBlock>
+                                <GroupBox Header="Language Mapping" Margin="0,0,0,15" Padding="10" Foreground="{StaticResource TextBrush}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+                                                Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource TextBrush}">
+                                            <Run>ja = Japanese</Run>
+                                            <LineBreak/>
+                                            <Run>en = English</Run>
+                                            <LineBreak/>
+                                            <Run>ch_sim = Chinese (Simplified)</Run>
+                                            <LineBreak/>
+                                            <Run>ko = Korean</Run>
+                                            <LineBreak/>
+                                            <Run>vi = Vietnamese</Run>
+                                            <LineBreak/>
+                                            <Run>fr = French</Run>
+                                            <LineBreak/>
+                                            <Run>ru = Russian</Run>
+                                            <LineBreak/>
+                                            <Run>de = German</Run>
+                                            <LineBreak/>
+                                            <Run>es = Spanish</Run>
+                                            <LineBreak/>
+                                            <Run>it = Italian</Run>
+                                            <LineBreak/>
+                                            <Run>hi = Hindi</Run>
+                                            <LineBreak/>
+                                            <Run>da = Danish</Run>
+                                        </TextBlock>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" 
+                                            Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource TextBrush}">
+                                            <Run>pt = Portuguese</Run>
+                                            <LineBreak/>
+                                            <Run>ar = Arabic</Run>
+                                            <LineBreak/>
+                                            <Run>nl = Dutch</Run>
+                                            <LineBreak/>
+                                            <Run>pl = Polish</Run>
+                                            <LineBreak/>
+                                            <Run>ro = Romanian</Run>
+                                            <LineBreak/>
+                                            <Run>fa = Farsi</Run>
+                                            <LineBreak/>
+                                            <Run>cs = Czech</Run>
+                                            <LineBreak/>
+                                            <Run>id = Indonesian</Run>
+                                            <LineBreak/>
+                                            <Run>th = ThaiLand</Run>
+                                            <LineBreak/>
+                                            <Run>ch_tra = Traditional Chinese</Run>
+                                            <LineBreak/>
+                                            <Run>tr = Turkish</Run>
+                                            <LineBreak/>
+                                            <Run>si = Sinhala</Run>
+                                        </TextBlock>
+                                    </Grid>
+                                </GroupBox>
+                            </StackPanel>
 
-                        <Button Content="Download Ollama" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ollama.com/download"/>
+                            <!-- OCR Settings Panel -->
+                            <StackPanel x:Name="OcrPanel" Visibility="Collapsed">
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
+                                    OCR Method
+                                </TextBlock>
 
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: Ollama runs locally on your PC and doesn't require internet access, but needs good hardware.
-                        </TextBlock>
-                    </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    Select an OCR (Optical Character Recognition) method to recognize text in your games. 
+                                    (Setting > OCR tab)
+                                </TextBlock>
 
-                    <!-- LM Studio Model -->
-                    <StackPanel x:Name="LMStudioModelPanel" Visibility="Collapsed" Margin="0,0,0,10">
-                        <TextBlock Text="LM Studio Model:" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBox x:Name="LMStudioModelTextBox" Width="300" HorizontalAlignment="Left" TextChanged="LMStudioModelTextBox_TextChanged"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    For advanced OCR methods (EasyOCR, PaddleOCR, RapidOCR), you'll need to install and start the OCR server. 
+                                    This can be done through the SetupOCR button on the main screen or button Setup OCR server below after completing this guide.
+                                </TextBlock>
+                                <Grid Margin="0,0,0,20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                        <Button Content="Download LMStudio" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://lmstudio.ai/download"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="OCR Method:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,10,0"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="OcrMethodComboBox" Width="200" HorizontalAlignment="Left" SelectionChanged="OcrMethodComboBox_SelectionChanged"/>
+                                    <Button x:Name="setupOCR" Grid.Row="0" Grid.Column="2" Content="Setup OCR Server" Style="{StaticResource NeutralButton}" Margin="0,5,0,0" Click="SetupOcrServer_Click"/>
+                                </Grid>
 
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="LightGray" Margin="0,5,0,0">
-                            Note: LM Studio runs locally on your PC and doesn't require internet access, but needs good hardware.
-                        </TextBlock>
-                    </StackPanel>
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">OCR Methods Comparison:</TextBlock>
 
-                    <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,10,0,20">
-                        <StackPanel>
-                            <TextBlock FontWeight="Bold" FontSize="16" Foreground="#3498db" Margin="0,0,0,10">Translation Service Recommendations:</TextBlock>
-                            <TextBlock TextWrapping="Wrap">
-                                <Run FontWeight="Bold">Speed:</Run> The translation speed depends on the LLM model, try different models to find the most suitable one.
-                            </TextBlock>
-                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
-                                <Run FontWeight="Bold">For beginners:</Run> Google Translate (free, no setup required)
-                            </TextBlock>
-                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
-                                <Run FontWeight="Bold">For best quality:</Run> ChatGPT (requires paid API key)
-                            </TextBlock>
-                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
-                                <Run FontWeight="Bold">For offline use:</Run> Ollama, LM Studio (requires local installation)
-                            </TextBlock>
-                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
-                                <Run FontWeight="Bold">For balance of quality/cost:</Run> Gemini, Groq, Mistral (free tier available)
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
+                                        <!-- Windows OCR -->
+                                        <Expander Header="Windows OCR (Recommended for beginners)" IsExpanded="True" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <StackPanel Margin="10,5,0,0">
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Pros:</Run> Built-in, no additional setup required, works well for most Latin scripts
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Cons:</Run> May be less accurate for some Asian languages. Requires installing the corresponding language pack in Windows
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Recommendation:</Run> Best choice for beginners or if you don't have a dedicated GPU
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Expander>
 
-                <!-- Complete Panel -->
-                <StackPanel x:Name="CompletePanel" Visibility="Collapsed">
-                    <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="#3498db" Margin="0,0,0,20">
-                        Setup Complete! 
-                    </TextBlock>
+                                        <!-- OneOCR -->
+                                        <Expander Header="OneOCR (Recommended for beginners)" IsExpanded="True" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <StackPanel Margin="10,5,0,0">
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Pros:</Run> Built-in, no additional setup required, works well for most Language. Better Windows OCR
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Cons:</Run> May be less accurate for some Asian languages.
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Recommendation:</Run> Best choice for beginners or if you don't have a dedicated GPU
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Expander>
 
-                    <TextBlock TextWrapping="Wrap" FontSize="14" FontWeight="Bold" Margin="0,0,0,20">
-                        If you want to review this setup, click the quick setup button on the main screen
-                    </TextBlock>
+                                        <!-- RapidOCR -->
+                                        <Expander Header="RapidOCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <StackPanel Margin="10,5,0,0">
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Pros:</Run> Good accuracy for Chinese, Japanese, and English language. It is inferior to PaddleOCR for other languages. Support all GPUs, including iGPU
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Cons:</Run> Requires additional setup, more resource-intensive, slower than Windows OCR without GPU. Consumes GPU resources (5-10%)
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Recommendation:</Run> AMD, INTEL or NVDIA
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Expander>
 
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        You've successfully configured the basic settings for RST Game Translation. Your changes will be saved after you click the finish button.
-                    </TextBlock>
+                                        <!-- EasyOCR -->
+                                        <Expander Header="EasyOCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <StackPanel Margin="10,5,0,0">
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Pros:</Run> Good accuracy for many languages, supports GPU acceleration
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Cons:</Run> Requires additional setup, slower than Windows OCR without GPU. Consumes a lot of GPU resources (20-30%)
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Recommendation:</Run> NVIDIA RTX 4000 series and below
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Expander>
 
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,0,0,20">
-                        Here's a summary of your settings:
-                    </TextBlock>
+                                        <!-- PaddleOCR -->
+                                        <Expander Header="PaddleOCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <StackPanel Margin="10,5,0,0">
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Pros:</Run> High accuracy with many languages
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Cons:</Run> Requires additional setup, more resource-intensive. Consumes a lot of GPU resources (5-15%)
+                                                </TextBlock>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                                    <Run FontWeight="Bold">Recommendation:</Run> NVIDIA RTX 2000 series and above
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Expander>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
 
-                    <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,0,20">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                            <!-- Translation Service Panel -->
+                            <StackPanel x:Name="TranslationPanel" Visibility="Collapsed">
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
+                                    Translation Service
+                                </TextBlock>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Languages:" FontWeight="Bold" Foreground="#3498db" Margin="0,0,10,10"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="LanguagesSummaryText" Text="Japanese → English" Margin="0,0,0,10"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    Select a translation service to translate the recognized text.
+                                </TextBlock>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="OCR Method:" FontWeight="Bold" Foreground="#3498db" Margin="0,0,10,10"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="OcrMethodSummaryText" Text="Windows OCR" Margin="0,0,0,10"/>
+                                <Grid Margin="0,0,0,20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Translation Service:" FontWeight="Bold" Foreground="#3498db" Margin="0,0,10,10"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TranslationServiceSummaryText" Text="Google Translate"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Translation Service:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,10,0"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="TranslationServiceComboBox" Width="200" HorizontalAlignment="Left" SelectionChanged="TranslationServiceComboBox_SelectionChanged"/>
+                                </Grid>
+
+                                <!-- Google Translate API Key -->
+                                <StackPanel x:Name="GoogleTranslateApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="Google Translate API Key (optional, After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <PasswordBox x:Name="GoogleTranslateApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GoogleTranslateApiKeyPasswordBox_PasswordChanged"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        Note: Google Translate works without an API key, but using one provides better service.
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- ChatGPT API Key -->
+                                <StackPanel x:Name="ChatGptApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="ChatGPT API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <PasswordBox x:Name="ChatGptApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="ChatGptApiKeyPasswordBox_PasswordChanged"/>
+
+                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <ComboBox x:Name="ChatGptModelComboBox" Width="300" HorizontalAlignment="Left"/>
+
+                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://platform.openai.com/api-keys"/>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        Note: ChatGPT provides high-quality translations but requires an API key with payment method.
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Gemini API Key -->
+                                <StackPanel x:Name="GeminiApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="Gemini API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <PasswordBox x:Name="GeminiApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GeminiApiKeyPasswordBox_PasswordChanged"/>
+
+                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <ComboBox x:Name="GeminiModelComboBox" Width="300" HorizontalAlignment="Left"/>
+
+                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ai.google.dev/"/>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        Note: Gemini provides good translations with a free tier available.
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Groq API Key -->
+                                <StackPanel x:Name="GroqApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="Groq API Key (After entering the API key, press Enter to save):" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <PasswordBox x:Name="GroqApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="GroqApiKeyPasswordBox_PasswordChanged"/>
+
+                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <ComboBox x:Name="GroqModelComboBox" Width="300" HorizontalAlignment="Left"/>
+
+                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.groq.com/keys"/>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        Note: Groq provides good translations with a free tier available.
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Mistral API Key -->
+                                <StackPanel x:Name="MistralApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="Mistral API Key:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <PasswordBox x:Name="MistralApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="MistralApiKeyPasswordBox_PasswordChanged"/>
+                                    <TextBlock Text="Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                                    <ComboBox x:Name="MistralModelComboBox" Width="300" HorizontalAlignment="Left"/>
+                                    <Button Content="Get API Key" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://console.mistral.ai/"/>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        Note: Mistral provides efficient translations but requires an API key.
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Microsoft API Key -->
+                                <StackPanel x:Name="MicrosoftApiKeyPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MicrosoftApiKeyQuickstart]}" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <PasswordBox x:Name="MicrosoftApiKeyPasswordBox" Width="300" HorizontalAlignment="Left" KeyDown="MicrosoftApiKeyPasswordBox_PasswordChanged"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        {Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_MicrosoftLegacyQuickstartNote]}
+                                    </TextBlock>
+                                    <CheckBox x:Name="MicrosoftLegacyModeCheckBox" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_MicrosoftLegacyMode]}" Margin="0,8,0,0" Checked="MicrosoftLegacyModeCheckBox_CheckedChanged" Unchecked="MicrosoftLegacyModeCheckBox_CheckedChanged" />
+                                </StackPanel>
+
+                                <!-- Ollama Model -->
+                                <StackPanel x:Name="OllamaModelPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="Ollama Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox x:Name="OllamaModelTextBox" Width="300" HorizontalAlignment="Left" TextChanged="OllamaModelTextBox_TextChanged"/>
+
+                                    <Button Content="Download Ollama" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://ollama.com/download"/>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        Note: Ollama runs locally on your PC and doesn't require internet access, but needs good hardware.
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- LM Studio Model -->
+                                <StackPanel x:Name="LMStudioModelPanel" Visibility="Collapsed" Margin="0,0,0,10">
+                                    <TextBlock Text="LM Studio Model:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox x:Name="LMStudioModelTextBox" Width="300" HorizontalAlignment="Left" TextChanged="LMStudioModelTextBox_TextChanged"/>
+
+                                    <Button Content="Download LMStudio" Style="{StaticResource NeutralButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="8,3" Click="GetApiKey_Click" Tag="https://lmstudio.ai/download"/>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0">
+                                        Note: LM Studio runs locally on your PC and doesn't require internet access, but needs good hardware.
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">Translation Service Recommendations:</TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold">Speed:</Run> The translation speed depends on the LLM model, try different models to find the most suitable one.
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold">For beginners:</Run> Google Translate (free, no setup required)
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold">For best quality:</Run> ChatGPT (requires paid API key)
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold">For offline use:</Run> Ollama, LM Studio (requires local installation)
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold">For balance of quality/cost:</Run> Gemini, Groq, Mistral (free tier available)
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Complete Panel -->
+                            <StackPanel x:Name="CompletePanel" Visibility="Collapsed">
+                                <TextBlock TextWrapping="Wrap" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20">
+                                    Setup Complete! 
+                                </TextBlock>
+
+                                <TextBlock TextWrapping="Wrap" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    If you want to review this setup, click the quick setup button on the main screen
+                                </TextBlock>
+
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    You've successfully configured the basic settings for RST Game Translation. Your changes will be saved after you click the finish button.
+                                </TextBlock>
+
+                                <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                                    Here's a summary of your settings:
+                                </TextBlock>
+
+                                <Border Style="{StaticResource CardStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Languages:" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="LanguagesSummaryText" Text="Japanese → English" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="OCR Method:" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="OcrMethodSummaryText" Text="Windows OCR" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}"/>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Translation Service:" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,10"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TranslationServiceSummaryText" Text="Google Translate" Foreground="{StaticResource TextBrush}"/>
+                                    </Grid>
+                                </Border>
+
+                                <TextBlock TextWrapping="Wrap" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,10">
+                                    Next Steps:
+                                </TextBlock>
+
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">1. Select Translation Area</Run>
+                                            <LineBreak/>
+                                            Click the "Select Area" button in the main window to choose the area of your screen containing text to translate.
+                                        </TextBlock>
+
+                                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">2. Start Translation</Run>
+                                            <LineBreak/>
+                                            Click the "Start" button to begin the translation process. The translation is in real time.
+                                        </TextBlock>
+
+                                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">3. View Translation History</Run>
+                                            <LineBreak/>
+                                            Click the "Chat Box" button to view your translation history and manage translated text.
+                                        </TextBlock>
+
+                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                            <Run FontWeight="Bold" Foreground="{StaticResource AccentBrush}">4. View Translation Overlay</Run>
+                                            <LineBreak/>
+                                            Click the "Overlay" button to display the translation over the original text position on the screen.
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="{StaticResource Surface3Brush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="10" Padding="15" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10">
+                                            Need Help?
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextBrush}">
+                                            Join our Discord community for support, tips, and to connect with other users.
+                                        </TextBlock>
+                                        <Button Content="Join Discord" Style="{StaticResource AccentButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="10,5" Click="JoinDiscord_Click"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </Grid>
-                    </Border>
+                    </ScrollViewer>
+                </Grid>
 
-                    <TextBlock TextWrapping="Wrap" FontSize="16" FontWeight="Bold" Margin="0,0,0,10">
-                        Next Steps:
-                    </TextBlock>
+                <!-- ========== FOOTER ========== -->
+                <Border Grid.Row="2" Background="{StaticResource Surface2Brush}" 
+                        CornerRadius="0,0,12,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                        Padding="20,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                    <Border Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,0,20">
-                        <StackPanel>
-                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                                <Run FontWeight="Bold" Foreground="#3498db">1. Select Translation Area</Run>
-                                <LineBreak/>
-                                Click the "Select Area" button in the main window to choose the area of your screen containing text to translate.
-                            </TextBlock>
+                        <CheckBox Grid.Column="0" x:Name="DontShowAgainCheckBox" VerticalAlignment="Center"
+                            Checked="DontShowAgainCheckBox_CheckedChanged"
+                            Unchecked="DontShowAgainCheckBox_CheckedChanged">
+                            <TextBlock Text="Don't show this guide again" Foreground="#FF5F57" FontWeight="SemiBold"/>
+                        </CheckBox>
 
-                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                                <Run FontWeight="Bold" Foreground="#3498db">2. Start Translation</Run>
-                                <LineBreak/>
-                                Click the "Start" button to begin the translation process. The translation is in real time.
-                            </TextBlock>
-
-                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                                <Run FontWeight="Bold" Foreground="#3498db">3. View Translation History</Run>
-                                <LineBreak/>
-                                Click the "Chat Box" button to view your translation history and manage translated text.
-                            </TextBlock>
-
-                            <TextBlock TextWrapping="Wrap">
-                                <Run FontWeight="Bold" Foreground="#3498db">4. View Translation Overlay</Run>
-                                <LineBreak/>
-                                Click the "Overlay" button to display the translation over the original text position on the screen.
-                            </TextBlock>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="PrevButton" Content="Previous" Style="{StaticResource NeutralButton}" Width="80" Margin="0,0,10,0" Click="PrevButton_Click"/>
+                            <Button x:Name="NextButton" Content="Next" Style="{StaticResource AccentButton}" Width="80" Click="NextButton_Click"/>
+                            <Button x:Name="FinishButton" Content="Finish" Style="{StaticResource AccentButton}" Width="80" Visibility="Collapsed" Click="FinishButton_Click"/>
                         </StackPanel>
-                    </Border>
-
-                    <Border Background="#1E1E1E" BorderBrush="#3498db" BorderThickness="1" CornerRadius="5" Padding="15">
-                        <StackPanel>
-                            <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="#3498db" Margin="0,0,0,10">
-                                Need Help?
-                            </TextBlock>
-                            <TextBlock TextWrapping="Wrap">
-                                Join our Discord community for support, tips, and to connect with other users.
-                            </TextBlock>
-                            <Button Content="Join Discord" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="10,5" Click="JoinDiscord_Click"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
-        </ScrollViewer>
-
-        <Rectangle Grid.Row="1" Height="1" Fill="#333333" VerticalAlignment="Bottom"/>
-
-        <!-- Footer with navigation buttons -->
-        <Grid Grid.Row="2" Margin="20,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <CheckBox Grid.Column="0" x:Name="DontShowAgainCheckBox" VerticalAlignment="Center"
-                Checked="DontShowAgainCheckBox_CheckedChanged"
-                Unchecked="DontShowAgainCheckBox_CheckedChanged">
-                <TextBlock Text="Don't show this guide again" Foreground="Red"/>
-            </CheckBox>
-
-            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="PrevButton" Content="Previous" Width="80" Margin="0,0,10,0" Click="PrevButton_Click"/>
-                <Button x:Name="NextButton" Content="Next" Width="80" Click="NextButton_Click"/>
-                <Button x:Name="FinishButton" Content="Finish" Width="80" Visibility="Collapsed" Click="FinishButton_Click"/>
-            </StackPanel>
-        </Grid>
+        </Border>
     </Grid>
 </Window>

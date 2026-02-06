@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Color = System.Windows.Media.Color;
@@ -93,30 +94,34 @@ namespace RSTGameTranslation
 
         private void UpdateProgressIndicator()
         {
+            // Define colors
+            Color neutralColor = Color.FromRgb(230, 238, 243); // #E6EEF3
+            Color accentColor = Color.FromRgb(0, 102, 204); // #0066CC
+
             // Reset all step indicators
-            Step1Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
-            Step2Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
-            Step3Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
-            Step4Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
-            Step5Indicator.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
+            Step1Indicator.Background = new SolidColorBrush(neutralColor);
+            Step2Indicator.Background = new SolidColorBrush(neutralColor);
+            Step3Indicator.Background = new SolidColorBrush(neutralColor);
+            Step4Indicator.Background = new SolidColorBrush(neutralColor);
+            Step5Indicator.Background = new SolidColorBrush(neutralColor);
 
             // Highlight current step
             switch (currentStep)
             {
                 case 1:
-                    Step1Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
+                    Step1Indicator.Background = new SolidColorBrush(accentColor);
                     break;
                 case 2:
-                    Step2Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
+                    Step2Indicator.Background = new SolidColorBrush(accentColor);
                     break;
                 case 3:
-                    Step3Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
+                    Step3Indicator.Background = new SolidColorBrush(accentColor);
                     break;
                 case 4:
-                    Step4Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
+                    Step4Indicator.Background = new SolidColorBrush(accentColor);
                     break;
                 case 5:
-                    Step5Indicator.Background = new SolidColorBrush(Color.FromRgb(52, 152, 219)); // Blue
+                    Step5Indicator.Background = new SolidColorBrush(accentColor);
                     break;
             }
         }
@@ -933,6 +938,40 @@ namespace RSTGameTranslation
         //         System.Windows.MessageBox.Show($"Error installing OCR server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         //     }
         // }
+
+        #endregion
+
+        #region Window Control Handlers
+
+        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                this.WindowState = WindowState.Maximized;
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
 
         #endregion
     }
