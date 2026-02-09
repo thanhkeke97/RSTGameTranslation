@@ -283,6 +283,8 @@
   "ChatBoxOptions_Lbl_FontSize": "フォントサイズ:",
   "ChatBoxOptions_Lbl_AutoClear": "履歴自動クリア",
   "ChatBoxOptions_Tip_AutoClear": "新しい翻訳テキストを受信したときにチャットボックスの履歴を自動的にクリアする",
+  "ChatBoxOptions_Lbl_AutoClearTimeout": "クリア間隔（秒）：",
+  "ChatBoxOptions_Tip_AutoClearTimeout": "この秒数の間に新しいテキストがない場合、チャットボックスをクリアします",
   "ChatBoxOptions_Lbl_RecreateOnShow": "表示するたびに再作成",
   "ChatBoxOptions_Tip_RecreateOnShow": "チャットボックスを表示するたびに新しいウィンドウを作成します。無効にすると既存のウィンドウを再利用します。",
   "ChatBoxOptions_Grp_OriginalText": "原文設定",

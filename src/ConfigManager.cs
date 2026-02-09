@@ -163,6 +163,7 @@ namespace RSTGameTranslation
         public const string MAX_BUFFER_SAMPLES = "MaxBufferSamples";
         public const string WHISPER_THREAD_COUNT = "whisper_thread_count";
         public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
+        public const string AUTO_CLEAR_CHAT_TIMEOUT = "auto_clear_chat_timeout";
 
         public const string TEXTSIMILAR_THRESHOLD = "textsimilar_threshold";
 
@@ -556,6 +557,7 @@ namespace RSTGameTranslation
             _configValues[SHOW_QUICK_START] = "true";
             _configValues[FORCE_UPDATE_PROMPT] = (0).ToString(CultureInfo.InvariantCulture);
             _configValues[AUTO_CLEAR_CHAT_HISTORY] = "true";
+            _configValues[AUTO_CLEAR_CHAT_TIMEOUT] = "30"; // Default 30 seconds, 0 = disabled
             _configValues[MANGA_MODE] = "false";
             _configValues[LANGUAGE_FONT_FAMILY] = "Arial";
             _configValues[LANGUAGE_FONT_OVERRIDE] = "false";
@@ -2216,6 +2218,25 @@ namespace RSTGameTranslation
             _configValues[AUTO_CLEAR_CHAT_HISTORY] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Auto clear chatbox history enabled: {enabled}");
+        }
+
+        // Get/Set auto clear chat timeout (in seconds, 0 = disabled)
+        public int GetAutoClearChatTimeout()
+        {
+            string value = GetValue(AUTO_CLEAR_CHAT_TIMEOUT, "30");
+            if (int.TryParse(value, out int result))
+            {
+                return Math.Max(0, Math.Min(60, result));
+            }
+            return 30; // Default to 30 seconds
+        }
+
+        public void SetAutoClearChatTimeout(int seconds)
+        {
+            int clampedValue = Math.Max(0, Math.Min(60, seconds));
+            _configValues[AUTO_CLEAR_CHAT_TIMEOUT] = clampedValue.ToString();
+            SaveConfig();
+            Console.WriteLine($"Auto clear chat timeout set to: {clampedValue} seconds");
         }
 
         // Get/Set chatbox recreate-on-show behavior

@@ -101,12 +101,28 @@
 
                         <DockPanel Margin="0,5">
                             <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_AutoClear]}" VerticalAlignment="Center" Width="120" />
-                            <CheckBox x:Name="autoClearChatboxHistoryCheckBox" Grid.Row="3" Grid.Column="1" 
+                            <CheckBox x:Name="autoClearChatboxHistoryCheckBox" Grid.Row="3" Grid.Column="1"
                                          Margin="0,5" ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Tip_AutoClear]}"
-                                         Checked="autoClearChatboxHistoryCheckBox_CheckedChanged" 
+                                         Checked="autoClearChatboxHistoryCheckBox_CheckedChanged"
                                          Unchecked="autoClearChatboxHistoryCheckBox_CheckedChanged"/>
                         </DockPanel>
-                        
+
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_AutoClearTimeout]}" VerticalAlignment="Center" Width="120" />
+                            <Slider x:Name="autoClearTimeoutSlider"
+                                    Minimum="0" Maximum="60"
+                                    Value="30"
+                                    Width="120"
+                                    TickPlacement="BottomRight"
+                                    TickFrequency="5"
+                                    IsSnapToTickEnabled="True"
+                                    ValueChanged="AutoClearTimeoutSlider_ValueChanged"/>
+                            <TextBlock x:Name="autoClearTimeoutText"
+                                       Text="30s"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0"/>
+                        </DockPanel>
+
                         <DockPanel Margin="0,5">
                             <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Lbl_RecreateOnShow]}" VerticalAlignment="Center" Width="120" TextWrapping="Wrap" />
                             <CheckBox x:Name="recreateChatboxCheckBox" Grid.Row="4" Grid.Column="1"

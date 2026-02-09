@@ -39,6 +39,10 @@ namespace RSTGameTranslation
         // Animation timer for translation status
         private DispatcherTimer? _animationTimer;
 
+        // Auto-clear timer for clearing chatbox after inactivity
+        private DispatcherTimer? _autoClearTimer;
+        private DateTime _lastTranslationTime = DateTime.MinValue;
+
         // Flag used to allow a forced close (different from normal hide-on-close behavior)
         private bool _forceClose = false;
 
@@ -102,6 +106,14 @@ namespace RSTGameTranslation
                 Interval = TimeSpan.FromMilliseconds(300)
             };
             _animationTimer.Tick += AnimationTimer_Tick;
+
+            // Set up auto-clear timer (checks every second)
+            _autoClearTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _autoClearTimer.Tick += AutoClearTimer_Tick;
+            _autoClearTimer.Start();
 
             // Subscribe to events
             this.Loaded += ChatBoxWindow_Loaded;
@@ -429,6 +441,9 @@ namespace RSTGameTranslation
 
                 // Stop animation timer
                 try { _animationTimer?.Stop(); } catch { }
+
+                // Stop auto-clear timer
+                try { _autoClearTimer?.Stop(); } catch { }
 
                 // Cancel any pending speech processing
                 try
@@ -834,6 +849,9 @@ namespace RSTGameTranslation
             // Hide translation status indicator if it was visible
             HideTranslationStatus();
 
+            // Reset the auto-clear timer since we have a new translation
+            ResetAutoClearTimer();
+
             // Update UI with existing history
             UpdateChatHistory();
             if (fromClipboard)
@@ -914,6 +932,46 @@ namespace RSTGameTranslation
                         break;
                 }
             }
+        }
+
+        // Auto-clear timer tick - clears chatbox after inactivity
+        private void AutoClearTimer_Tick(object? sender, EventArgs e)
+        {
+            int timeout = ConfigManager.Instance.GetAutoClearChatTimeout();
+
+            // If timeout is 0 or disabled, don't auto-clear
+            if (timeout <= 0)
+                return;
+
+            // If no translations yet, don't clear
+            if (_lastTranslationTime == DateTime.MinValue)
+                return;
+
+            // Check if enough time has passed since last translation
+            TimeSpan elapsed = DateTime.Now - _lastTranslationTime;
+            if (elapsed.TotalSeconds >= timeout)
+            {
+                // Clear the chatbox
+                ClearChatboxInternal();
+            }
+        }
+
+        // Internal method to clear chatbox (used by both button click and auto-clear timer)
+        private void ClearChatboxInternal()
+        {
+            // Clear the translation history queue in MainWindow
+            MainWindow.Instance.ClearTranslationHistory();
+
+            // Update the UI to show empty history
+            UpdateChatHistory();
+
+            Console.WriteLine("Chatbox auto-cleared due to inactivity");
+        }
+
+        // Reset the auto-clear timer (called when new translation is added)
+        private void ResetAutoClearTimer()
+        {
+            _lastTranslationTime = DateTime.Now;
         }
 
         // Show translation status indicator with animation

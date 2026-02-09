@@ -276,6 +276,8 @@
   "ChatBoxOptions_Lbl_FontSize": "Font Size:",
   "ChatBoxOptions_Lbl_AutoClear": "Auto Clear History",
   "ChatBoxOptions_Tip_AutoClear": "Auto Clear Chatbox History When Received New Translated Text",
+  "ChatBoxOptions_Lbl_AutoClearTimeout": "Clear after (s):",
+  "ChatBoxOptions_Tip_AutoClearTimeout": "Clear chatbox if no new text appears after this many seconds",
   "ChatBoxOptions_Lbl_RecreateOnShow": "Recreate ChatBox on each open",
   "ChatBoxOptions_Tip_RecreateOnShow": "If enabled, a new ChatBox window is created each time you open ChatBox; when disabled, the same window is reused.",
   "ChatBoxOptions_Grp_OriginalText": "Original Text Settings",

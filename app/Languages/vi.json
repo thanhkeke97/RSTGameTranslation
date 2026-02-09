@@ -276,6 +276,8 @@
   "ChatBoxOptions_Lbl_FontSize": "Cỡ chữ:",
   "ChatBoxOptions_Lbl_AutoClear": "Tự động xóa lịch sử",
   "ChatBoxOptions_Tip_AutoClear": "Tự động xóa lịch sử hộp thoại khi nhận văn bản dịch mới",
+  "ChatBoxOptions_Lbl_AutoClearTimeout": "Xóa sau (giây):",
+  "ChatBoxOptions_Tip_AutoClearTimeout": "Xóa hộp thoại nếu không có văn bản mới sau số giây này",
   "ChatBoxOptions_Lbl_RecreateOnShow": "Tạo mới ChatBox mỗi lần mở",
   "ChatBoxOptions_Tip_RecreateOnShow": "Nếu bật, sẽ tạo cửa sổ ChatBox mới mỗi lần mở; nếu tắt, sẽ dùng lại cửa sổ hiện tại.",
   "ChatBoxOptions_Grp_OriginalText": "Cài đặt văn bản gốc",
