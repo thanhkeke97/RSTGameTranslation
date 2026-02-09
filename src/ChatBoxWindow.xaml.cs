@@ -15,6 +15,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Media;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using Color = System.Windows.Media.Color;
 using Colors = System.Windows.Media.Colors;
 using FontFamily = System.Windows.Media.FontFamily;
@@ -27,6 +28,59 @@ namespace RSTGameTranslation
 {
     public partial class ChatBoxWindow : Window
     {
+        // Windows API imports for click-through functionality
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool UpdateLayeredWindow(IntPtr hWnd, IntPtr hdcDst, ref POINT pptDst, ref SIZE pSize, IntPtr hdcSrc, ref POINT pprSrc, uint crKey, ref BLENDFUNCTION pBlend, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleDC(IntPtr hDC);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteDC(IntPtr hDC);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteObject(IntPtr hObject);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateEllipticRgn(int x1, int y1, int x2, int y2);
+
+        [DllImport("gdi32.dll")]
+        private static extern int CombineRgn(IntPtr hrgnDest, IntPtr hrgnSrc1, IntPtr hrgnSrc2, int fnCombineMode);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool bRedraw);
+
+        private const int GWL_EXSTYLE = -20;
+        private const int WS_EX_LAYERED = 0x80000;
+        private const int WS_EX_TRANSPARENT = 0x20;
+        private const uint LWA_COLORKEY = 0x1;
+        private const uint LWA_ALPHA = 0x2;
+
+        private struct POINT { public int x; public int y; }
+        private struct SIZE { public int cx; public int cy; }
+        private struct BLENDFUNCTION { public byte BlendOp; public byte BlendFlags; public byte SourceConstantAlpha; public byte AlphaFormat; }
+
         // Constants
         private const int MAX_CONTEXT_HISTORY_SIZE = 100; // Max entries to keep for context purposes
 
@@ -57,6 +111,11 @@ namespace RSTGameTranslation
         
         // Cancellation token source for speech processing
         private static CancellationTokenSource? _speechCancellationTokenSource;
+
+        // Click-through overlay for toggle button
+        private IntPtr _clickThroughOverlayHandle = IntPtr.Zero;
+        private bool _isClickThroughMode = false;
+        private Window? _clickThroughOverlayWindow = null;
 
         private int _animationStep = 0;
 
@@ -457,6 +516,9 @@ namespace RSTGameTranslation
                 // Unsubscribe from Logic events
                 try { Logic.Instance.TranslationCompleted -= OnTranslationCompleted; } catch { }
 
+                // Cleanup click-through overlay
+                CleanupClickThroughOverlay();
+
                 // Clear the static Instance reference so a new one can be created
                 Instance = null;
 
@@ -661,6 +723,168 @@ namespace RSTGameTranslation
 
             // Add SizeChanged event handler for reflowing text when window is resized
             this.SizeChanged += ChatBoxWindow_SizeChanged;
+
+            // Create the click-through overlay window for the toggle button
+            CreateClickThroughOverlay();
+        }
+
+        /// <summary>
+        /// Creates a transparent overlay window for the toggle button that remains clickable
+        /// even when the main chatbox window is in click-through mode
+        /// </summary>
+        private void CreateClickThroughOverlay()
+        {
+            // Create a transparent window that will sit on top of the toggle button
+            _clickThroughOverlayWindow = new Window
+            {
+                WindowStyle = WindowStyle.None,
+                ResizeMode = ResizeMode.NoResize,
+                AllowsTransparency = true,
+                ShowInTaskbar = false,
+                Topmost = true,
+                Background = Brushes.Transparent,
+                Width = 24,
+                Height = 24,
+                ShowActivated = false
+            };
+
+            // Add click handler to the overlay window (not needed with SetWindowRgn but kept for visual toggle)
+            _clickThroughOverlayWindow.MouseLeftButtonDown += (s, e) =>
+            {
+                // When clicked, toggle the borders
+                ToggleBordersButton_Click(this, e);
+                e.Handled = true;
+            };
+
+            // Position the overlay over the toggle button
+            UpdateOverlayPosition();
+
+            // Subscribe to position changes to keep overlay synced
+            this.LocationChanged += (s, args) => UpdateOverlayPosition();
+            this.StateChanged += (s, args) => UpdateOverlayPosition();
+        }
+
+        /// <summary>
+        /// Updates the overlay window position to match the toggle button position
+        /// </summary>
+        private void UpdateOverlayPosition()
+        {
+            if (_clickThroughOverlayWindow == null || toggleBordersButton == null)
+                return;
+
+            try
+            {
+                // Get the toggle button's position in screen coordinates
+                var buttonTransform = toggleBordersButton.TransformToAncestor(this);
+                var buttonLocation = buttonTransform.Transform(new System.Windows.Point(0, 0));
+                var buttonSize = new System.Windows.Size(toggleBordersButton.ActualWidth, toggleBordersButton.ActualHeight);
+
+                // Position the overlay window
+                _clickThroughOverlayWindow.Left = this.Left + buttonLocation.X - 2;
+                _clickThroughOverlayWindow.Top = this.Top + buttonLocation.Y - 2;
+                _clickThroughOverlayWindow.Width = buttonSize.Width + 4;
+                _clickThroughOverlayWindow.Height = buttonSize.Height + 4;
+
+                // If in click-through mode, update the window region too
+                if (_isClickThroughMode)
+                {
+                    var windowInterop = new System.Windows.Interop.WindowInteropHelper(this);
+                    IntPtr hWnd = windowInterop.Handle;
+                    if (hWnd != IntPtr.Zero)
+                    {
+                        int left = (int)(buttonLocation.X - 2);
+                        int top = (int)(buttonLocation.Y - 2);
+                        int right = (int)(left + buttonSize.Width + 4);
+                        int bottom = (int)(top + buttonSize.Height + 4);
+
+                        IntPtr toggleRgn = CreateRectRgn(left, top, right, bottom);
+                        SetWindowRgn(hWnd, toggleRgn, true);
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore positioning errors
+            }
+        }
+
+        /// <summary>
+        /// Enables click-through mode - clicks pass through the window except for the toggle button area
+        /// </summary>
+        private void EnableClickThroughMode()
+        {
+            if (_isClickThroughMode)
+                return;
+
+            _isClickThroughMode = true;
+
+            // Get the window handle
+            var windowInterop = new System.Windows.Interop.WindowInteropHelper(this);
+            IntPtr hWnd = windowInterop.Handle;
+
+            if (hWnd != IntPtr.Zero)
+            {
+                // Create a rectangular region for just the toggle button area
+                // Get toggle button position in screen coordinates
+                var buttonTransform = toggleBordersButton.TransformToAncestor(this);
+                var buttonLocation = buttonTransform.Transform(new System.Windows.Point(0, 0));
+                var buttonSize = new System.Windows.Size(toggleBordersButton.ActualWidth, toggleBordersButton.ActualHeight);
+
+                int left = (int)(buttonLocation.X - 2);
+                int top = (int)(buttonLocation.Y - 2);
+                int right = (int)(left + buttonSize.Width + 4);
+                int bottom = (int)(top + buttonSize.Height + 4);
+
+                // Create region for just the toggle button area
+                IntPtr toggleRgn = CreateRectRgn(left, top, right, bottom);
+
+                // Set the window region - only this area will receive clicks
+                SetWindowRgn(hWnd, toggleRgn, true);
+            }
+
+            // Show the overlay window for visual feedback (transparent)
+            if (_clickThroughOverlayWindow != null)
+            {
+                _clickThroughOverlayWindow.Show();
+                UpdateOverlayPosition();
+            }
+        }
+
+        /// <summary>
+        /// Disables click-through mode - normal window interaction
+        /// </summary>
+        private void DisableClickThroughMode()
+        {
+            if (!_isClickThroughMode)
+                return;
+
+            _isClickThroughMode = false;
+
+            // Get the window handle
+            var windowInterop = new System.Windows.Interop.WindowInteropHelper(this);
+            IntPtr hWnd = windowInterop.Handle;
+
+            if (hWnd != IntPtr.Zero)
+            {
+                // Remove the region - full window is clickable again
+                SetWindowRgn(hWnd, IntPtr.Zero, true);
+            }
+
+            // Hide the overlay window
+            _clickThroughOverlayWindow?.Hide();
+        }
+
+        /// <summary>
+        /// Cleanup the click-through overlay window
+        /// </summary>
+        private void CleanupClickThroughOverlay()
+        {
+            if (_clickThroughOverlayWindow != null)
+            {
+                _clickThroughOverlayWindow.Close();
+                _clickThroughOverlayWindow = null;
+            }
+            _clickThroughOverlayHandle = IntPtr.Zero;
         }
 
         // Handler for application-level keyboard shortcuts
@@ -1165,6 +1389,9 @@ namespace RSTGameTranslation
                 resizeGrip.IsHitTestVisible = true;
                 resizeGrip.Visibility = Visibility.Visible;
                 this.ResizeMode = ResizeMode.CanResizeWithGrip;
+
+                // Disable click-through mode
+                DisableClickThroughMode();
             }
             else
             {
@@ -1187,6 +1414,9 @@ namespace RSTGameTranslation
                 resizeGrip.IsHitTestVisible = false;
                 resizeGrip.Visibility = Visibility.Collapsed;
                 this.ResizeMode = ResizeMode.NoResize;
+
+                // Enable click-through mode
+                EnableClickThroughMode();
             }
         }
 
