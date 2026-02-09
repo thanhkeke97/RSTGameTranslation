@@ -617,29 +617,59 @@ namespace RSTGameTranslation
                 if (excludeRegions == null || excludeRegions.Count == 0)
                     return;
 
+                // Check if we're in Select Window mode
+                bool isSelectingWindow = MainWindow.Instance.GetIsCapturingWindow();
+
+                // Get MonitorWindow's screen position and DPI scale
+                double monitorLeft = this.Left * this.dpiScale;
+                double monitorTop = this.Top * this.dpiScale;
+                double monitorWidth = this.Width * this.dpiScale;
+                double monitorHeight = this.Height * this.dpiScale;
+
+                Console.WriteLine($"=== DrawExcludeRegions ===");
+                Console.WriteLine($"isSelectingWindow: {isSelectingWindow}");
+                Console.WriteLine($"MonitorWindow: Left={monitorLeft}, Top={monitorTop}, W={monitorWidth}, H={monitorHeight}, dpiScale={this.dpiScale}");
+
                 // Draw each exclude region
+                int regionIndex = 0;
                 foreach (Rect region in excludeRegions)
                 {
+                    Console.WriteLine($"Region[{regionIndex}]: Screen X={region.X}, Y={region.Y}, W={region.Width}, H={region.Height}");
+
+                    // Check if region is within MonitorWindow bounds
+                    bool isInBounds = region.X >= monitorLeft && 
+                                     region.Y >= monitorTop &&
+                                     (region.X + region.Width) <= (monitorLeft + monitorWidth) &&
+                                     (region.Y + region.Height) <= (monitorTop + monitorHeight);
+                    Console.WriteLine($"  -> In bounds: {isInBounds}");
+
                     // Create a border for the exclude region
                     System.Windows.Shapes.Rectangle excludeRect = new System.Windows.Shapes.Rectangle
                     {
-                        Width = region.Width,
-                        Height = region.Height,
-                        Stroke = System.Windows.Media.Brushes.LimeGreen,
-                        StrokeThickness = 2,
+                        Width = region.Width / this.dpiScale,  // Scale to canvas coordinates
+                        Height = region.Height / this.dpiScale,
+                        Stroke = System.Windows.Media.Brushes.Red,  // Changed to Red for visibility
+                        StrokeThickness = 3,
                         Fill = System.Windows.Media.Brushes.Transparent,
-                        Opacity = 0.5
+                        Opacity = 1.0
                     };
 
-                    // Position the rectangle
-                    Canvas.SetLeft(excludeRect, region.X);
-                    Canvas.SetTop(excludeRect, region.Y);
+                    // Calculate position - convert from screen coordinates to canvas coordinates
+                    double canvasX = (region.X - monitorLeft) / this.dpiScale;
+                    double canvasY = (region.Y - monitorTop) / this.dpiScale;
+
+                    Console.WriteLine($"  -> Canvas: X={canvasX}, Y={canvasY}");
+
+                    // Position the rectangle on the canvas
+                    Canvas.SetLeft(excludeRect, canvasX);
+                    Canvas.SetTop(excludeRect, canvasY);
 
                     // Add to canvas
                     textOverlayCanvas.Children.Add(excludeRect);
+                    regionIndex++;
                 }
 
-                Console.WriteLine($"Drew {excludeRegions.Count} exclude regions on overlay");
+                Console.WriteLine($"Drew {excludeRegions.Count} exclude regions on overlay (Select Window mode: {isSelectingWindow})");
             }
             catch (Exception ex)
             {

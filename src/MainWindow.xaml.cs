@@ -676,11 +676,20 @@ namespace RSTGameTranslation
             MonitorWindow.Instance.RefreshOverlays();
         }
 
+        public bool GetIsCapturingWindow()
+        {
+            return isCapturingWindow;
+        }
+
         // Apply mask to bitmap for exclude regions (with adjusted coordinates)
         private Bitmap ApplyExcludeRegionsMask(Bitmap bitmap, List<Rect> adjustedRegions)
         {
             try
             {
+                Console.WriteLine($"=== ApplyExcludeRegionsMask ===");
+                Console.WriteLine($"Bitmap size: {bitmap.Width}x{bitmap.Height}");
+                Console.WriteLine($"Number of regions: {adjustedRegions.Count}");
+
                 Bitmap result = new Bitmap(bitmap.Width, bitmap.Height);
                 using (Graphics g = Graphics.FromImage(result))
                 {
@@ -690,15 +699,23 @@ namespace RSTGameTranslation
                     // Fill each exclude region with black
                     using (SolidBrush brush = new SolidBrush(System.Drawing.Color.Black))
                     {
+                        int regionIndex = 0;
                         foreach (Rect region in adjustedRegions)
                         {
+                            Console.WriteLine($"Masking region[{regionIndex}]: X={region.X}, Y={region.Y}, W={region.Width}, H={region.Height}");
+
                             // Check if region is within bounds
-                            if (region.X >= 0 && region.Y >= 0 &&
-                                region.X + region.Width <= bitmap.Width &&
-                                region.Y + region.Height <= bitmap.Height)
+                            bool isInBounds = region.X >= 0 && region.Y >= 0 &&
+                                              (region.X + region.Width) <= bitmap.Width &&
+                                              (region.Y + region.Height) <= bitmap.Height;
+                            Console.WriteLine($"  -> In bounds: {isInBounds}");
+
+                            if (isInBounds)
                             {
                                 g.FillRectangle(brush, (float)region.X, (float)region.Y, (float)region.Width, (float)region.Height);
+                                Console.WriteLine($"  -> Applied mask!");
                             }
+                            regionIndex++;
                         }
                     }
                 }
@@ -1860,50 +1877,113 @@ namespace RSTGameTranslation
 
                         using (Bitmap bitmap = CaptureWindow(capturedWindowHandle))
                         {
-
-                            bitmap.Save(outputPath, ImageFormat.Png);
-
-
-                            if (MonitorWindow.Instance.IsVisible)
+                            // Apply exclude regions mask if any exist
+                            if (excludeRegions.Count > 0)
                             {
-                                MonitorWindow.Instance.UpdateScreenshotFromBitmap();
+                                // Use captureRect coordinates directly (already calculated)
+                                // captureRect is already in screen coordinates from UpdateCaptureRect()
+                                double windowLeft = captureRect.Left;
+                                double windowTop = captureRect.Top;
+                                
+                                Console.WriteLine($"Exclude mask: Using captureRect for conversion: ({windowLeft}, {windowTop})");
+                                
+                                // Convert exclude regions from screen coordinates to bitmap coordinates
+                                // Since bitmap is cropped from window, we need to offset by window position
+                                List<Rect> bitmapAdjustedRegions = new List<Rect>();
+                                int adjIndex = 0;
+                                foreach (Rect region in excludeRegions)
+                                {
+                                    double offsetX = region.X - windowLeft;
+                                    double offsetY = region.Y - windowTop;
+                                    Rect adjusted = new Rect(offsetX, offsetY, region.Width, region.Height);
+                                    bitmapAdjustedRegions.Add(adjusted);
+                                    
+                                    Console.WriteLine($"Converted exclude region[{adjIndex}]: Screen=({region.X},{region.Y},{region.Width},{region.Height}) -> Bitmap=({offsetX},{offsetY},{region.Width},{region.Height})");
+                                    adjIndex++;
+                                }
+
+                                // Apply mask to bitmap using adjusted coordinates
+                                Console.WriteLine($"Bitmap size: {bitmap.Width}x{bitmap.Height}");
+                                using (Bitmap maskedBitmap = ApplyExcludeRegionsMask(bitmap, bitmapAdjustedRegions))
+                                {
+                                    // Save the masked bitmap
+                                    maskedBitmap.Save(outputPath, ImageFormat.Png);
+
+                                    if (MonitorWindow.Instance.IsVisible)
+                                    {
+                                        MonitorWindow.Instance.UpdateScreenshotFromBitmap();
+                                    }
+
+                                    bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
+                                        (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
+
+                                    if (shouldPerformOcr)
+                                    {
+                                        Stopwatch stopwatch = new Stopwatch();
+                                        stopwatch.Start();
+
+                                        SetOCRCheckIsWanted(false);
+
+                                        string ocrMethod = GetSelectedOcrMethod();
+                                        if (ocrMethod == "Windows OCR")
+                                        {
+                                            string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                            Logic.Instance.ProcessWithWindowsOCR(maskedBitmap, sourceLanguage);
+                                        }
+                                        else if (ocrMethod == "OneOCR")
+                                        {
+                                            string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                            Logic.Instance.ProcessWithOneOCR(maskedBitmap, sourceLanguage);
+                                        }
+                                        else
+                                        {
+                                            Logic.Instance.SendImageToServerOCR(outputPath);
+                                        }
+
+                                        stopwatch.Stop();
+                                        Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
+                                    }
+                                }
                             }
-
-
-                            bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
-                                                (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
-
-                            if (shouldPerformOcr)
+                            else
                             {
-                                Stopwatch stopwatch = new Stopwatch();
-                                stopwatch.Start();
+                                // No exclude regions - original behavior
+                                bitmap.Save(outputPath, ImageFormat.Png);
 
-                                SetOCRCheckIsWanted(false);
-
-
-                                string ocrMethod = GetSelectedOcrMethod();
-                                if (ocrMethod == "Windows OCR")
+                                if (MonitorWindow.Instance.IsVisible)
                                 {
-                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                                    Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
-                                }
-                                // else if (ocrMethod != "Windows OCR" && ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
-                                // {
-                                //     string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                                //     Logic.Instance.ProcessWithWindowsOCRIntegration(bitmap, sourceLanguage, outputPath);
-                                // }
-                                else if (ocrMethod == "OneOCR")
-                                {
-                                    string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-                                    Logic.Instance.ProcessWithOneOCR(bitmap, sourceLanguage);
-                                }
-                                else
-                                {
-                                    Logic.Instance.SendImageToServerOCR(outputPath);
+                                    MonitorWindow.Instance.UpdateScreenshotFromBitmap();
                                 }
 
-                                stopwatch.Stop();
-                                Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
+                                bool shouldPerformOcr = GetIsStarted() && GetOCRCheckIsWanted() &&
+                                    (!isStopOCR || ConfigManager.Instance.IsAutoOCREnabled());
+
+                                if (shouldPerformOcr)
+                                {
+                                    Stopwatch stopwatch = new Stopwatch();
+                                    stopwatch.Start();
+
+                                    SetOCRCheckIsWanted(false);
+
+                                    string ocrMethod = GetSelectedOcrMethod();
+                                    if (ocrMethod == "Windows OCR")
+                                    {
+                                        string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                        Logic.Instance.ProcessWithWindowsOCR(bitmap, sourceLanguage);
+                                    }
+                                    else if (ocrMethod == "OneOCR")
+                                    {
+                                        string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
+                                        Logic.Instance.ProcessWithOneOCR(bitmap, sourceLanguage);
+                                    }
+                                    else
+                                    {
+                                        Logic.Instance.SendImageToServerOCR(outputPath);
+                                    }
+
+                                    stopwatch.Stop();
+                                    Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
+                                }
                             }
                         }
 
