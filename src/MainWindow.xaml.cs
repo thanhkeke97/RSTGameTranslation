@@ -1890,20 +1890,14 @@ namespace RSTGameTranslation
                                 // Convert exclude regions from screen coordinates to bitmap coordinates
                                 // Since bitmap is cropped from window, we need to offset by window position
                                 List<Rect> bitmapAdjustedRegions = new List<Rect>();
-                                int adjIndex = 0;
                                 foreach (Rect region in excludeRegions)
                                 {
                                     double offsetX = region.X - windowLeft;
                                     double offsetY = region.Y - windowTop;
                                     Rect adjusted = new Rect(offsetX, offsetY, region.Width, region.Height);
                                     bitmapAdjustedRegions.Add(adjusted);
-                                    
-                                    Console.WriteLine($"Converted exclude region[{adjIndex}]: Screen=({region.X},{region.Y},{region.Width},{region.Height}) -> Bitmap=({offsetX},{offsetY},{region.Width},{region.Height})");
-                                    adjIndex++;
                                 }
 
-                                // Apply mask to bitmap using adjusted coordinates
-                                Console.WriteLine($"Bitmap size: {bitmap.Width}x{bitmap.Height}");
                                 using (Bitmap maskedBitmap = ApplyExcludeRegionsMask(bitmap, bitmapAdjustedRegions))
                                 {
                                     // Save the masked bitmap

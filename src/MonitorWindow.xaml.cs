@@ -668,8 +668,6 @@ namespace RSTGameTranslation
                     textOverlayCanvas.Children.Add(excludeRect);
                     regionIndex++;
                 }
-
-                Console.WriteLine($"Drew {excludeRegions.Count} exclude regions on overlay (Select Window mode: {isSelectingWindow})");
             }
             catch (Exception ex)
             {
