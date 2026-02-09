@@ -39,9 +39,6 @@ namespace RSTGameTranslation
         private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
 
         [DllImport("user32.dll")]
-        private static extern bool UpdateLayeredWindow(IntPtr hWnd, IntPtr hdcDst, ref POINT pptDst, ref SIZE pSize, IntPtr hdcSrc, ref POINT pprSrc, uint crKey, ref BLENDFUNCTION pBlend, uint dwFlags);
-
-        [DllImport("user32.dll")]
         private static extern IntPtr GetDC(IntPtr hWnd);
 
         [DllImport("user32.dll")]
@@ -59,8 +56,8 @@ namespace RSTGameTranslation
         [DllImport("gdi32.dll")]
         private static extern bool DeleteObject(IntPtr hObject);
 
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
+        [DllImport("gdi32.dll", EntryPoint = "CreateRectRgn")]
+        private static extern IntPtr CreateRectRgnDirect(int x1, int y1, int x2, int y2);
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr CreateEllipticRgn(int x1, int y1, int x2, int y2);
@@ -70,16 +67,6 @@ namespace RSTGameTranslation
 
         [DllImport("user32.dll")]
         private static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool bRedraw);
-
-        private const int GWL_EXSTYLE = -20;
-        private const int WS_EX_LAYERED = 0x80000;
-        private const int WS_EX_TRANSPARENT = 0x20;
-        private const uint LWA_COLORKEY = 0x1;
-        private const uint LWA_ALPHA = 0x2;
-
-        private struct POINT { public int x; public int y; }
-        private struct SIZE { public int cx; public int cy; }
-        private struct BLENDFUNCTION { public byte BlendOp; public byte BlendFlags; public byte SourceConstantAlpha; public byte AlphaFormat; }
 
         // Constants
         private const int MAX_CONTEXT_HISTORY_SIZE = 100; // Max entries to keep for context purposes
@@ -797,7 +784,7 @@ namespace RSTGameTranslation
                         int right = (int)(left + buttonSize.Width + 4);
                         int bottom = (int)(top + buttonSize.Height + 4);
 
-                        IntPtr toggleRgn = CreateRectRgn(left, top, right, bottom);
+                        IntPtr toggleRgn = CreateRectRgnDirect(left, top, right, bottom);
                         SetWindowRgn(hWnd, toggleRgn, true);
                     }
                 }
@@ -836,7 +823,7 @@ namespace RSTGameTranslation
                 int bottom = (int)(top + buttonSize.Height + 4);
 
                 // Create region for just the toggle button area
-                IntPtr toggleRgn = CreateRectRgn(left, top, right, bottom);
+                        IntPtr toggleRgn = CreateRectRgnDirect(left, top, right, bottom);
 
                 // Set the window region - only this area will receive clicks
                 SetWindowRgn(hWnd, toggleRgn, true);
