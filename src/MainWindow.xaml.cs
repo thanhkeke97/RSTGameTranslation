@@ -96,7 +96,6 @@ namespace RSTGameTranslation
         // Exclude regions for masking
         public List<Rect> excludeRegions = new List<Rect>();
         private bool isSelectingExcludeRegion = false;
-        private Rect selectedExcludeRegion;
         private bool _showExcludeRegions = true;
 
         // Force update prompt

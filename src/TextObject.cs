@@ -283,7 +283,6 @@ namespace RSTGameTranslation
                 
                 int maxIterations = 8;
                 double lastDiff = double.MaxValue;
-                bool needsMoreHeight = false;
                 bool fitWidth = true;
 
                 for (int i = 0; i < maxIterations; i++)
@@ -292,11 +291,10 @@ namespace RSTGameTranslation
                     textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
 
                     double minRequiredHeight = Height;
-                    needsMoreHeight = false;
-                    
+
                     if (textBlock.DesiredSize.Width >= Width * 0.9)
                     {
-                        needsMoreHeight = true;
+                        _ = true; // Width too large, will adjust
                     }
 
                     double heightDiff = Math.Abs(textBlock.DesiredSize.Height - minRequiredHeight);

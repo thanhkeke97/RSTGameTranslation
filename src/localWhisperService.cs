@@ -126,7 +126,7 @@ namespace RSTGameTranslation
             };
         }
 
-        public async Task StartServiceAsync(Action<string, string> onResult)
+        public Task StartServiceAsync(Action<string, string> onResult)
         {
             // Ensure previous run is stopped
             Stop();
@@ -203,6 +203,8 @@ namespace RSTGameTranslation
                 Console.WriteLine($"[Whisper] Stack trace: {ex.StackTrace}");
                 try { Stop(); } catch { }
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
