@@ -99,29 +99,20 @@ namespace RSTGameTranslation
 
     public class OneOCRManager
     {
-        private static OneOCRManager? _instance;
+        private static readonly Lazy<OneOCRManager> _instance = new Lazy<OneOCRManager>(() => new OneOCRManager());
         private long Context { get; set; }
         private bool _initialized;
+        private bool _initializing;
         
         private long _pipeline;
         private long _processOptions;
         private bool _pipelineInitialized;
 
         // Singleton instance
-        public static OneOCRManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new OneOCRManager();
-                }
-                return _instance;
-            }
-        }
+        public static OneOCRManager Instance => _instance.Value;
 
         // Constructor
-        public OneOCRManager()
+        private OneOCRManager()
         {
             _pipelineInitialized = false;
         }
@@ -134,17 +125,30 @@ namespace RSTGameTranslation
                 return ValueTask.CompletedTask;
             }
 
-            long res = NativeMethods.CreateOcrInitOptions(out long ctx);
-            if (res == 0)
+            if (_initializing)
             {
-                Context = ctx;
-                res = NativeMethods.OcrInitOptionsSetUseModelDelayLoad(ctx, 1);
+                return ValueTask.CompletedTask;
+            }
+
+            _initializing = true;
+            try
+            {
+                long res = NativeMethods.CreateOcrInitOptions(out long ctx);
                 if (res == 0)
                 {
-                    _initialized = true;
-                    
-                    InitializePipeline();
+                    Context = ctx;
+                    res = NativeMethods.OcrInitOptionsSetUseModelDelayLoad(ctx, 1);
+                    if (res == 0)
+                    {
+                        _initialized = true;
+                        
+                        InitializePipeline();
+                    }
                 }
+            }
+            finally
+            {
+                _initializing = false;
             }
             
             return ValueTask.CompletedTask;
@@ -455,26 +459,51 @@ namespace RSTGameTranslation
             }
         }
 
-        // Fast brightness analysis
+        // Fast brightness analysis using LockBits for better performance
         private float AnalyzeBrightness(System.Drawing.Bitmap bitmap)
         {
             try
             {
                 int sampleSize = Math.Max(1, Math.Min(bitmap.Width, bitmap.Height) / 20);
-                float totalBrightness = 0;
-                int samples = 0;
                 
-                for (int y = 0; y < bitmap.Height; y += sampleSize)
+                BitmapData? bitmapData = null;
+                try
                 {
-                    for (int x = 0; x < bitmap.Width; x += sampleSize)
+                    bitmapData = bitmap.LockBits(
+                        new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                        ImageLockMode.ReadOnly,
+                        PixelFormat.Format24bppRgb);
+                    
+                    unsafe
                     {
-                        var pixel = bitmap.GetPixel(x, y);
-                        totalBrightness += 0.299f * pixel.R + 0.587f * pixel.G + 0.114f * pixel.B;
-                        samples++;
+                        int bytesPerPixel = Image.GetPixelFormatSize(bitmapData.PixelFormat) / 8;
+                        int stride = bitmapData.Stride;
+                        byte* ptr = (byte*)bitmapData.Scan0;
+                        
+                        float totalBrightness = 0;
+                        int samples = 0;
+                        
+                        for (int y = 0; y < bitmap.Height; y += sampleSize)
+                        {
+                            for (int x = 0; x < bitmap.Width; x += sampleSize)
+                            {
+                                int pixelIndex = y * stride + x * bytesPerPixel;
+                                float brightness = 0.299f * ptr[pixelIndex + 2] + 0.587f * ptr[pixelIndex + 1] + 0.114f * ptr[pixelIndex];
+                                totalBrightness += brightness;
+                                samples++;
+                            }
+                        }
+                        
+                        return samples > 0 ? totalBrightness / samples : 128f;
                     }
                 }
-                
-                return samples > 0 ? totalBrightness / samples : 128f;
+                finally
+                {
+                    if (bitmapData != null)
+                    {
+                        bitmap?.UnlockBits(bitmapData);
+                    }
+                }
             }
             catch
             {
