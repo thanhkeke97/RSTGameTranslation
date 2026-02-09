@@ -686,9 +686,9 @@ namespace RSTGameTranslation
         {
             try
             {
-                Console.WriteLine($"=== ApplyExcludeRegionsMask ===");
-                Console.WriteLine($"Bitmap size: {bitmap.Width}x{bitmap.Height}");
-                Console.WriteLine($"Number of regions: {adjustedRegions.Count}");
+                // Console.WriteLine($"=== ApplyExcludeRegionsMask ===");
+                // Console.WriteLine($"Bitmap size: {bitmap.Width}x{bitmap.Height}");
+                // Console.WriteLine($"Number of regions: {adjustedRegions.Count}");
 
                 Bitmap result = new Bitmap(bitmap.Width, bitmap.Height);
                 using (Graphics g = Graphics.FromImage(result))
@@ -702,18 +702,18 @@ namespace RSTGameTranslation
                         int regionIndex = 0;
                         foreach (Rect region in adjustedRegions)
                         {
-                            Console.WriteLine($"Masking region[{regionIndex}]: X={region.X}, Y={region.Y}, W={region.Width}, H={region.Height}");
+                            // Console.WriteLine($"Masking region[{regionIndex}]: X={region.X}, Y={region.Y}, W={region.Width}, H={region.Height}");
 
                             // Check if region is within bounds
                             bool isInBounds = region.X >= 0 && region.Y >= 0 &&
                                               (region.X + region.Width) <= bitmap.Width &&
                                               (region.Y + region.Height) <= bitmap.Height;
-                            Console.WriteLine($"  -> In bounds: {isInBounds}");
+                            // Console.WriteLine($"  -> In bounds: {isInBounds}");
 
                             if (isInBounds)
                             {
                                 g.FillRectangle(brush, (float)region.X, (float)region.Y, (float)region.Width, (float)region.Height);
-                                Console.WriteLine($"  -> Applied mask!");
+                                // Console.WriteLine($"  -> Applied mask!");
                             }
                             regionIndex++;
                         }
