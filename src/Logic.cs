@@ -1445,7 +1445,7 @@ namespace RSTGameTranslation
                     }
 
 
-                    fontSize = Math.Max(10, Math.Min(36, (int)(height * fontSizeRatio)));
+                    fontSize = Math.Max(10, (int)(height * fontSizeRatio));
 
 
                     if (width > 0 && text.Length > 0)
