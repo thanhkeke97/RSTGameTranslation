@@ -359,17 +359,17 @@ namespace RSTGameTranslation
             _mistralConfigFilePath = Path.Combine(appDirectory, "mistral_config.txt");
             _googleTranslateConfigFilePath = Path.Combine(appDirectory, "google_translate_config.txt");
 
-            Console.WriteLine($"Config file path: {_configFilePath}");
-            Console.WriteLine($"Profile folder path: {_profileFolderPath}");
-            Console.WriteLine($"AudioProcessingModels folder path: {_audioProcessingModelFolderPath}");
-            Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
-            Console.WriteLine($"Custom API config file path: {_customApiConfigFilePath}");
-            Console.WriteLine($"Groq config file path: {_groqConfigFilePath}");
-            Console.WriteLine($"Ollama config file path: {_ollamaConfigFilePath}");
-            Console.WriteLine($"LMStudio config file path: {_lmstudioConfigFilePath}");
-            Console.WriteLine($"ChatGPT config file path: {_chatgptConfigFilePath}");
-            Console.WriteLine($"Mistral config file path: {_mistralConfigFilePath}");
-            Console.WriteLine($"Google Translate config file path: {_googleTranslateConfigFilePath}");
+            // Console.WriteLine($"Config file path: {_configFilePath}");
+            // Console.WriteLine($"Profile folder path: {_profileFolderPath}");
+            // Console.WriteLine($"AudioProcessingModels folder path: {_audioProcessingModelFolderPath}");
+            // Console.WriteLine($"Gemini config file path: {_geminiConfigFilePath}");
+            // Console.WriteLine($"Custom API config file path: {_customApiConfigFilePath}");
+            // Console.WriteLine($"Groq config file path: {_groqConfigFilePath}");
+            // Console.WriteLine($"Ollama config file path: {_ollamaConfigFilePath}");
+            // Console.WriteLine($"LMStudio config file path: {_lmstudioConfigFilePath}");
+            // Console.WriteLine($"ChatGPT config file path: {_chatgptConfigFilePath}");
+            // Console.WriteLine($"Mistral config file path: {_mistralConfigFilePath}");
+            // Console.WriteLine($"Google Translate config file path: {_googleTranslateConfigFilePath}");
 
             // Load main config values
             LoadConfig();
@@ -441,12 +441,12 @@ namespace RSTGameTranslation
             }
 
             // Debug output: dump all loaded config values
-            Console.WriteLine("=== All Loaded Config Values ===");
-            foreach (var entry in _configValues)
-            {
-                Console.WriteLine($"  {entry.Key} = {(entry.Key.Contains("api_key") ? "***" : entry.Value)}");
-            }
-            Console.WriteLine("===============================");
+            // Console.WriteLine("=== All Loaded Config Values ===");
+            // foreach (var entry in _configValues)
+            // {
+            //     Console.WriteLine($"  {entry.Key} = {(entry.Key.Contains("api_key") ? "***" : entry.Value)}");
+            // }
+            // Console.WriteLine("===============================");
         }
 
         public bool GetGoogleTranslateUseCloudApi()
@@ -607,7 +607,7 @@ namespace RSTGameTranslation
                         // Store the value
                         _configValues[key] = value;
 
-                        Console.WriteLine($"Loaded multiline config: {key} ({value.Length} chars)");
+                        // Console.WriteLine($"Loaded multiline config: {key} ({value.Length} chars)");
                     }
                 }
             }
@@ -654,7 +654,7 @@ namespace RSTGameTranslation
                                 phraseValue = phraseValue.Substring(0, phraseValue.Length - 1);
 
                             _configValues[key] = phraseValue;
-                            Console.WriteLine($"Loaded ignore phrases config: {key}");
+                            // Console.WriteLine($"Loaded ignore phrases config: {key}");
                             continue;
                         }
 
@@ -665,7 +665,7 @@ namespace RSTGameTranslation
                         if (!_configValues.ContainsKey(key) || key != "TRANSLATION_AREAS")
                         {
                             _configValues[key] = value;
-                            Console.WriteLine($"Loaded config: {key}={value}");
+                            // Console.WriteLine($"Loaded config: {key}={value}");
                         }
                     }
                 }
@@ -1245,11 +1245,11 @@ namespace RSTGameTranslation
         // Get current OCR method
         public string GetOcrMethod()
         {
-            Console.WriteLine("Checking contents of _configValues in GetOcrMethod:");
-            foreach (var key in _configValues.Keys)
-            {
-                Console.WriteLine($"  Config key: '{key}'");
-            }
+            // Console.WriteLine("Checking contents of _configValues in GetOcrMethod:");
+            // foreach (var key in _configValues.Keys)
+            // {
+            //     Console.WriteLine($"  Config key: '{key}'");
+            // }
 
             string ocrMethod = GetValue(OCR_METHOD, "Windows OCR"); // Default to Windows OCR if not set
             Console.WriteLine($"ConfigManager.GetOcrMethod() returning: '{ocrMethod}'");
@@ -1319,7 +1319,7 @@ namespace RSTGameTranslation
                 {
                     string geminiContent = $"<llm_prompt_multi_start>\n{defaultGeminiPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_geminiConfigFilePath, geminiContent);
-                    Console.WriteLine("Created default Gemini config file");
+                    // Console.WriteLine("Created default Gemini config file");
                 }
 
                 // Check and create Gemini config file
@@ -1327,7 +1327,7 @@ namespace RSTGameTranslation
                 {
                     string groqContent = $"<llm_prompt_multi_start>\n{defaultGroqPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_groqConfigFilePath, groqContent);
-                    Console.WriteLine("Created default Groq config file");
+                    // Console.WriteLine("Created default Groq config file");
                 }
 
                 // Check and create Mistral config file
@@ -1335,7 +1335,7 @@ namespace RSTGameTranslation
                 {
                     string mistralContent = $"<llm_prompt_multi_start>\n{defaultMistralPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_mistralConfigFilePath, mistralContent);
-                    Console.WriteLine("Created default Mistral config file");
+                    // Console.WriteLine("Created default Mistral config file");
                 }
 
                 // Check and create Ollama config file
@@ -1343,14 +1343,14 @@ namespace RSTGameTranslation
                 {
                     string ollamaContent = $"<llm_prompt_multi_start>\n{defaultOllamaPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_ollamaConfigFilePath, ollamaContent);
-                    Console.WriteLine("Created default Ollama config file");
+                    // Console.WriteLine("Created default Ollama config file");
                 }
 
                 if (!File.Exists(_lmstudioConfigFilePath))
                 {
                     string lmstudioContent = $"<llm_prompt_multi_start>\n{defaultLMStudioPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_lmstudioConfigFilePath, lmstudioContent);
-                    Console.WriteLine("Created default LM Studio config file");
+                    // Console.WriteLine("Created default LM Studio config file");
                 }
 
                 // Check and create ChatGPT config file
@@ -1358,7 +1358,7 @@ namespace RSTGameTranslation
                 {
                     string chatgptContent = $"<llm_prompt_multi_start>\n{defaultChatGptPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_chatgptConfigFilePath, chatgptContent);
-                    Console.WriteLine("Created default ChatGPT config file");
+                    // Console.WriteLine("Created default ChatGPT config file");
                 }
 
                 // Check and create Custom Api config file
@@ -1366,7 +1366,7 @@ namespace RSTGameTranslation
                 {
                     string customApiContent = $"<llm_prompt_multi_start>\n{defaultCustomApiPrompt}\n<llm_prompt_multi_end>";
                     File.WriteAllText(_customApiConfigFilePath, customApiContent);
-                    Console.WriteLine("Created default Custom Api config file");
+                    // Console.WriteLine("Created default Custom Api config file");
                 }
 
                 // Google Translate doesn't use prompts, so no need to create config file
