@@ -636,6 +636,34 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- GROUP: Screen Selection -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <ComboBox x:Name="screenSelectionComboBox" 
+                                              Width="160" Height="32"
+                                              VerticalContentAlignment="Center"
+                                              Padding="8,0"
+                                              FontSize="12"
+                                              SelectionChanged="ScreenSelectionComboBox_SelectionChanged"
+                                              WindowChrome.IsHitTestVisibleInChrome="True"
+                                              Background="{StaticResource SurfaceBrush}"
+                                              BorderBrush="{StaticResource BorderBrush}"
+                                              BorderThickness="1">
+                                        <ComboBox.Resources>
+                                            <Style TargetType="ComboBox">
+                                                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                                <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                                            </Style>
+                                        </ComboBox.Resources>
+                                    </ComboBox>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Screen]}" 
+                                           Style="{StaticResource ToolGroupLabel}"/>
+                            </StackPanel>
+                        </Border>
+
                         <!-- GROUP: Display -->
                         <Border Style="{StaticResource ToolGroupStyle}">
                             <StackPanel>

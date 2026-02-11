@@ -1192,6 +1192,9 @@ namespace RSTGameTranslation
             this.LocationChanged += MainWindow_LocationChanged;
             // ToggleMonitorWindow();
             CheckAndShowQuickstart();
+
+            // Load screen selection list
+            LoadScreenList();
         }
 
         // The LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
@@ -2617,6 +2620,105 @@ namespace RSTGameTranslation
                     : new Thickness(1);
         }
 
+        // Load available screens into the screen selection ComboBox
+        private void LoadScreenList()
+        {
+            try
+            {
+                // Clear existing items
+                screenSelectionComboBox.Items.Clear();
+
+                // Get all screens
+                var screens = System.Windows.Forms.Screen.AllScreens;
+
+                // Add each screen to the combo box
+                for (int i = 0; i < screens.Length; i++)
+                {
+                    var screen = screens[i];
+
+                    // Get native resolution
+                    int width = screen.Bounds.Width;
+                    int height = screen.Bounds.Height;
+
+                    // Create simple display info (Screen N - Resolution)
+                    string screenLabel = LocalizationManager.Instance.Strings["Grp_Screen"];
+                    string screenInfo = $"{screenLabel} {i + 1} ({width}x{height})";
+                    if (screen.Primary)
+                    {
+                        string primaryLabel = LocalizationManager.Instance.Strings["Lbl_Primary"];
+                        screenInfo += $" - {primaryLabel}";
+                    }
+
+                    // Create combo box item
+                    ComboBoxItem item = new ComboBoxItem
+                    {
+                        Content = screenInfo,
+                        Tag = i  // Store screen index as Tag
+                    };
+
+                    screenSelectionComboBox.Items.Add(item);
+                    Console.WriteLine($"Added screen {i}: {screenInfo}");
+                }
+
+                // Select the saved screen from config
+                int selectedScreenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                if (selectedScreenIndex >= 0 && selectedScreenIndex < screenSelectionComboBox.Items.Count)
+                {
+                    screenSelectionComboBox.SelectedIndex = selectedScreenIndex;
+                }
+                else if (screenSelectionComboBox.Items.Count > 0)
+                {
+                    // Default to first screen if saved index is invalid
+                    screenSelectionComboBox.SelectedIndex = 0;
+                }
+
+                Console.WriteLine($"Screen list loaded. Selected index: {screenSelectionComboBox.SelectedIndex}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading screen list: {ex.Message}");
+            }
+        }
+
+        // Screen selection ComboBox changed handler
+        private void ScreenSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                // Skip if initializing
+                if (_isInitializing)
+                    return;
+
+                if (screenSelectionComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    // Get the screen index from the Tag
+                    if (selectedItem.Tag is int screenIndex)
+                    {
+                        // Save to config
+                        ConfigManager.Instance.SetSelectedScreenIndex(screenIndex);
+                        Console.WriteLine($"Screen selection changed to index: {screenIndex}");
+
+                        // Invalidate DPI cache since we changed screens
+                        DpiHelper.InvalidateCache();
+
+                        // Update capture rectangle for the new screen
+                        UpdateCaptureRect();
+
+                        // Clear translation areas since they may be on a different screen
+                        if (savedTranslationAreas.Count > 0)
+                        {
+                            // Optionally clear areas or show warning
+                            Console.WriteLine("Warning: Translation areas were selected on a different screen. Consider re-selecting areas.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error handling screen selection change: {ex.Message}");
+            }
+        }
+
         // ChatBox Button click handler
         private void ChatBoxButton_Click(object sender, RoutedEventArgs e)
         {
@@ -3797,6 +3899,9 @@ namespace RSTGameTranslation
                     OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
                 AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+
+                // Reload screen list to update localized text
+                LoadScreenList();
             }
         }
 
