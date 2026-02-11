@@ -91,6 +91,13 @@ namespace RSTGameTranslation
             Console.WriteLine($"DpiHelper: Set known DPI scale: {dpiScaleX:F2}x, {dpiScaleY:F2}y");
         }
         
+        public static void InvalidateCache()
+        {
+            _cachedDpiScaleX = -1;
+            _cachedDpiScaleY = -1;
+            Console.WriteLine("DpiHelper: DPI cache invalidated");
+        }
+        
         public static Point PhysicalToLogical(Point physicalPoint)
         {
             GetCurrentScreenDpi(out double scaleX, out double scaleY);

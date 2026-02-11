@@ -1337,7 +1337,7 @@ namespace RSTGameTranslation
                             else
                             {
                                 double dpiScale = MonitorWindow.Instance.dpiScale;
-                                CreateTextObjectAtPosition(text, x, y, width / dpiScale, height / dpiScale, confidence, sourceBitmap);
+                                CreateTextObjectAtPosition(text, x / dpiScale, y / dpiScale, width / dpiScale, height / dpiScale, confidence, sourceBitmap);
                             }
                         }
                     }
@@ -1358,7 +1358,7 @@ namespace RSTGameTranslation
                             double originalWidth = bounds.MaxX - bounds.MinX;
                             double originalHeight = bounds.MaxY - bounds.MinY;
 
-                            CreateTextObjectAtPosition(block.Text, originalX, originalY,
+                            CreateTextObjectAtPosition(block.Text, originalX / dpiScale, originalY / dpiScale,
                                 originalWidth / dpiScale, originalHeight / dpiScale, block.Confidence, sourceBitmap);
                         }
                     }

@@ -490,11 +490,9 @@ namespace RSTGameTranslation
                     // Reset margin to zero - we'll position with Canvas instead
                     textObject.Border.Margin = new Thickness(0);
                     
-                    System.Windows.Point logicalPoint = DpiHelper.PhysicalToLogical(new System.Windows.Point(textObject.X, textObject.Y));
-                    
                     // Position the element on the canvas using Canvas.SetLeft/Top
-                    Canvas.SetLeft(textObject.Border, logicalPoint.X);
-                    Canvas.SetTop(textObject.Border, logicalPoint.Y);
+                    Canvas.SetLeft(textObject.Border, textObject.X);
+                    Canvas.SetTop(textObject.Border, textObject.Y);
 
                     // Add to canvas
                     textOverlayCanvas.Children.Add(textObject.Border);

@@ -3785,7 +3785,7 @@ namespace RSTGameTranslation
                         else
                         {
                             // Clear saved areas in config if we have none
-                            ConfigManager.Instance.SaveTranslationAreas(new List<Rect>(), selectedText);
+                            ConfigManager.Instance.SaveTranslationAreas(new List<TranslationAreaInfo>(), selectedText);
                             Console.WriteLine("Cleared translation areas in config");
                         }
                         // Show status
@@ -3839,7 +3839,7 @@ namespace RSTGameTranslation
                 if (File.Exists(filePath))
                 {
                     // Get saved areas from config
-                    List<Rect> areas = ConfigManager.Instance.GetTranslationAreas(filePath);
+                    List<TranslationAreaInfo> areas = ConfigManager.Instance.GetTranslationAreas(filePath);
                     if (areas.Count > 0)
                     {
                         // Update our areas list

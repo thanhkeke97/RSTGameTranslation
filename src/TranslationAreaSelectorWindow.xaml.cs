@@ -21,8 +21,8 @@ namespace RSTGameTranslation
         private Point startPoint;
         private bool isDrawing = false;
         
-        // Event to notify when selection is complete
-        public event EventHandler<Rect>? SelectionComplete;
+        // Event to notify when selection is complete - now includes metadata
+        public event EventHandler<TranslationAreaInfo>? SelectionComplete;
 
         public static TranslationAreaSelectorWindow? _currentInstance;
         
@@ -498,8 +498,12 @@ namespace RSTGameTranslation
                 
                 DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY);
                 
+                // Get current screen index for metadata
+                int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
+                
                 // Notify listeners
-                SelectionComplete?.Invoke(this, selectionRect);
+                SelectionComplete?.Invoke(this, areaInfo);
             }
             catch (Exception ex)
             {
@@ -539,27 +543,33 @@ namespace RSTGameTranslation
                         
                         // Create rectangle with adjusted coordinates
                         Rect selectionRect = new Rect(
-                            adjustedX, 
-                            adjustedY, 
-                            screenWidth, 
+                            adjustedX,
+                            adjustedY,
+                            screenWidth,
                             screenHeight
                         );
                         
+                        int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                        var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
+                        
                         // Notify listeners
-                        SelectionComplete?.Invoke(this, selectionRect);
+                        SelectionComplete?.Invoke(this, areaInfo);
                     }
                     else
                     {
                         // Create rectangle without DPI adjustment
                         Rect selectionRect = new Rect(
-                            screenPoint.X, 
-                            screenPoint.Y, 
-                            screenWidth, 
+                            screenPoint.X,
+                            screenPoint.Y,
+                            screenWidth,
                             screenHeight
                         );
                         
+                        int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                        var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
+                        
                         // Notify listeners
-                        SelectionComplete?.Invoke(this, selectionRect);
+                        SelectionComplete?.Invoke(this, areaInfo);
                     }
                 }
                 catch (Exception ex2)
@@ -574,8 +584,11 @@ namespace RSTGameTranslation
                         height
                     );
                     
+                    int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                    var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
+                    
                     // Notify listeners
-                    SelectionComplete?.Invoke(this, selectionRect);
+                    SelectionComplete?.Invoke(this, areaInfo);
                 }
             }
 

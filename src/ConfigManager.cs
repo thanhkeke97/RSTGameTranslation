@@ -3044,11 +3044,11 @@ namespace RSTGameTranslation
         }
 
         // Save translation areas to config
-        public void SaveTranslationAreas(List<Rect> areas, string profileName)
+        public void SaveTranslationAreas(List<TranslationAreaInfo> areas, string profileName)
         {
             try
             {
-                // Format: X1,Y1,Width1,Height1|X2,Y2,Width2,Height2|...
+                // Format: X,Y,Width,Height,ScreenIndex,DpiScaleX,DpiScaleY|...
                 StringBuilder sb = new StringBuilder();
 
                 foreach (var area in areas)
@@ -3061,6 +3061,12 @@ namespace RSTGameTranslation
                     sb.Append(area.Width.ToString(CultureInfo.InvariantCulture));
                     sb.Append(',');
                     sb.Append(area.Height.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(',');
+                    sb.Append(area.ScreenIndex.ToString());
+                    sb.Append(',');
+                    sb.Append(area.DpiScaleX.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(',');
+                    sb.Append(area.DpiScaleY.ToString(CultureInfo.InvariantCulture));
                     sb.Append('+');
                 }
 
@@ -3081,9 +3087,9 @@ namespace RSTGameTranslation
 
 
         // Get translation areas from config
-        public List<Rect> GetTranslationAreas(string filePath)
+        public List<TranslationAreaInfo> GetTranslationAreas(string filePath)
         {
-            List<Rect> areas = new List<Rect>();
+            List<TranslationAreaInfo> areas = new List<TranslationAreaInfo>();
             LoadConfig(filePath);
             try
             {
@@ -3097,7 +3103,8 @@ namespace RSTGameTranslation
                     {
                         string[] parts = areaString.Split(',');
 
-                        if (parts.Length == 4)
+                        // Support old format (4 parts) and new format (7 parts)
+                        if (parts.Length >= 4)
                         {
                             // Parse using invariant culture to handle different decimal separators
                             if (double.TryParse(parts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out double x) &&
@@ -3105,7 +3112,19 @@ namespace RSTGameTranslation
                                 double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out double width) &&
                                 double.TryParse(parts[3], NumberStyles.Any, CultureInfo.InvariantCulture, out double height))
                             {
-                                areas.Add(new Rect(x, y, width, height));
+                                int screenIndex = 0;
+                                double dpiScaleX = 1.0;
+                                double dpiScaleY = 1.0;
+                                
+                                // Parse new fields if available
+                                if (parts.Length >= 7)
+                                {
+                                    int.TryParse(parts[4], out screenIndex);
+                                    double.TryParse(parts[5], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleX);
+                                    double.TryParse(parts[6], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleY);
+                                }
+                                
+                                areas.Add(new TranslationAreaInfo(new Rect(x, y, width, height), screenIndex, dpiScaleX, dpiScaleY));
                             }
                         }
                     }

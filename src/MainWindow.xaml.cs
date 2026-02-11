@@ -88,9 +88,9 @@ namespace RSTGameTranslation
 
         // Store translate area information
         private bool isSelectingTranslationArea = false;
-        private Rect selectedTranslationArea;
+        private TranslationAreaInfo selectedTranslationArea;
         public bool hasSelectedTranslationArea = false;
-        public List<Rect> savedTranslationAreas = new List<Rect>();
+        public List<TranslationAreaInfo> savedTranslationAreas = new List<TranslationAreaInfo>();
         public int currentAreaIndex = 0;
 
         // Exclude regions for masking
@@ -591,12 +591,12 @@ namespace RSTGameTranslation
         }
 
         // Handle exclude region selection complete
-        private void ExcludeAreaSelector_SelectionComplete(object? sender, Rect area)
+        private void ExcludeAreaSelector_SelectionComplete(object? sender, TranslationAreaInfo areaInfo)
         {
             isSelectingExcludeRegion = false;
 
-            // Add the selected area to exclude regions
-            excludeRegions.Add(area);
+            // Add the selected area to exclude regions (chỉ dùng Bounds)
+            excludeRegions.Add(areaInfo.Bounds);
 
             // Limit to 5 exclude regions
             if (excludeRegions.Count > 5)
@@ -610,7 +610,7 @@ namespace RSTGameTranslation
             // Update MonitorWindow to show exclude regions
             MonitorWindow.Instance.RefreshOverlays();
 
-            Console.WriteLine($"Exclude region added: X={area.X}, Y={area.Y}, Width={area.Width}, Height={area.Height}");
+            Console.WriteLine($"Exclude region added: X={areaInfo.X}, Y={areaInfo.Y}, Width={areaInfo.Width}, Height={areaInfo.Height}");
             Console.WriteLine($"Total exclude regions: {excludeRegions.Count}");
         }
 
@@ -869,19 +869,18 @@ namespace RSTGameTranslation
         }
 
         // Handle the event when translation region is selected
-        private void TranslationAreaSelector_SelectionComplete(object? sender, Rect selectionRect)
+        private void TranslationAreaSelector_SelectionComplete(object? sender, TranslationAreaInfo areaInfo)
         {
             // Check if multiple areas are allowed
             bool allowMultipleAreas = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
 
             if (allowMultipleAreas)
             {
-
                 if (savedTranslationAreas == null)
-                    savedTranslationAreas = new List<Rect>();
+                    savedTranslationAreas = new List<TranslationAreaInfo>();
 
                 // Add new selection area to the list
-                savedTranslationAreas.Add(selectionRect);
+                savedTranslationAreas.Add(areaInfo);
 
                 // Limit selection area = 5
                 if (savedTranslationAreas.Count > 5)
@@ -898,20 +897,20 @@ namespace RSTGameTranslation
             else
             {
                 // Save lastest selection area if multiple areas are not allowed
-                savedTranslationAreas = new List<Rect> { selectionRect };
+                savedTranslationAreas = new List<TranslationAreaInfo> { areaInfo };
             }
 
             // Default using lastest selection area
             currentAreaIndex = savedTranslationAreas.Count - 1;
 
             // Current selection area
-            Rect currentRect = savedTranslationAreas[currentAreaIndex];
+            TranslationAreaInfo currentArea = savedTranslationAreas[currentAreaIndex];
 
             // Save current selection area
-            selectedTranslationArea = currentRect;
+            selectedTranslationArea = currentArea;
             hasSelectedTranslationArea = true;
 
-            Console.WriteLine($"The translation area has been selected: X={currentRect.X}, Y={currentRect.Y}, Width={currentRect.Width}, Height={currentRect.Height}");
+            Console.WriteLine($"The translation area has been selected: X={currentArea.X}, Y={currentArea.Y}, Width={currentArea.Width}, Height={currentArea.Height}, Screen={currentArea.ScreenIndex}, DPI={currentArea.DpiScaleX:F2}x/{currentArea.DpiScaleY:F2}y");
             Console.WriteLine($"Total saved areas: {savedTranslationAreas.Count}, Current index: {currentAreaIndex + 1}");
 
             // Update capture for new selection area
@@ -943,13 +942,13 @@ namespace RSTGameTranslation
             // Update current index
             currentAreaIndex = index;
 
-            Rect selectedRect = savedTranslationAreas[currentAreaIndex];
+            TranslationAreaInfo selectedArea = savedTranslationAreas[currentAreaIndex];
 
             // Update select area
-            selectedTranslationArea = selectedRect;
+            selectedTranslationArea = selectedArea;
             hasSelectedTranslationArea = true;
 
-            Console.WriteLine($"Switched to translation area {currentAreaIndex + 1}: X={selectedRect.X}, Y={selectedRect.Y}, Width={selectedRect.Width}, Height={selectedRect.Height}");
+            Console.WriteLine($"Switched to translation area {currentAreaIndex + 1}: X={selectedArea.X}, Y={selectedArea.Y}, Width={selectedArea.Width}, Height={selectedArea.Height}, Screen={selectedArea.ScreenIndex}, DPI={selectedArea.DpiScaleX:F2}x/{selectedArea.DpiScaleY:F2}y");
 
             // Update capture area for new selection area
             UpdateCustomCaptureRect();
@@ -1692,6 +1691,15 @@ namespace RSTGameTranslation
                 if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
                 {
                     var selectedArea = savedTranslationAreas[currentAreaIndex];
+                    
+                    DpiHelper.GetCurrentScreenDpi(out double currentDpiX, out double currentDpiY);
+                    if (Math.Abs(selectedArea.DpiScaleX - currentDpiX) > 0.01 || Math.Abs(selectedArea.DpiScaleY - currentDpiY) > 0.01)
+                    {
+                        Console.WriteLine($"WARNING: DPI mismatch detected! Area was captured at DPI {selectedArea.DpiScaleX:F2}x/{selectedArea.DpiScaleY:F2}y, current DPI is {currentDpiX:F2}x/{currentDpiY:F2}y");
+                        double adjustScaleX = currentDpiX / selectedArea.DpiScaleX;
+                        double adjustScaleY = currentDpiY / selectedArea.DpiScaleY;
+                        Console.WriteLine($"Adjusting coordinates by scale: {adjustScaleX:F2}x/{adjustScaleY:F2}y");
+                    }
 
                     captureX = (int)selectedArea.X - rect.Left;
                     captureY = (int)selectedArea.Y - rect.Top;

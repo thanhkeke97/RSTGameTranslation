@@ -18,6 +18,27 @@ using FontFamily = System.Windows.Media.FontFamily;
 
 namespace RSTGameTranslation
 {
+    public struct TranslationAreaInfo
+    {
+        public Rect Bounds { get; set; }
+        public int ScreenIndex { get; set; }
+        public double DpiScaleX { get; set; }
+        public double DpiScaleY { get; set; }
+        
+        public TranslationAreaInfo(Rect bounds, int screenIndex, double dpiScaleX, double dpiScaleY)
+        {
+            Bounds = bounds;
+            ScreenIndex = screenIndex;
+            DpiScaleX = dpiScaleX;
+            DpiScaleY = dpiScaleY;
+        }
+        
+        public double X => Bounds.X;
+        public double Y => Bounds.Y;
+        public double Width => Bounds.Width;
+        public double Height => Bounds.Height;
+    }
+    
     public class TextObject
     {
         // Properties
