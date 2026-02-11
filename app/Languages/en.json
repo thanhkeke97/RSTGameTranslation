@@ -344,6 +344,7 @@
   "Msg_CustomApiError": "Custom API error: {0}\n\nPlease check your API key and settings.",
   "Title_CustomApiError": "Custom API Translation Error",
   "Msg_CustomApiErrorStatus": "Custom API error: {0}\n{1}\n\nPlease check your API key and settings.",
+  "Msg_CustomApiNote": "Note: Custom API only supports OpenAI-compatible response format. Your API endpoint must return responses in the same format as OpenAI's chat/completions API.",
   "Msg_GeminiApiError": "Gemini API error: {0}\n\nPlease check your API key and settings.",
   "Msg_GeminiApiErrorStatus": "Gemini API error: {0}\n{1}\n\nPlease check your API key and settings.",
   "Msg_GeminiApiException": "Gemini API error: {0}\n\nPlease check your network connection and API key.",

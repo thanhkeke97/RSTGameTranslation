@@ -1840,6 +1840,7 @@ namespace RSTGameTranslation
                 customApiUrlTextBox.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
                 customApiModelLabel.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
                 customApiModelGrid.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
+                customApiNoteTextBlock.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Groq-specific settings
                 groqApiKeyLabel.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;

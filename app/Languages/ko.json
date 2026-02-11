@@ -349,6 +349,7 @@
   "Msg_CustomApiError": "Custom API 오류: {0}\\n\\nAPI 키와 설정을 확인하세요.",
   "Title_CustomApiError": "Custom API 번역 오류",
   "Msg_CustomApiErrorStatus": "Custom API 오류: {0}\\n{1}\\n\\nAPI 키와 설정을 확인하세요.",
+  "Msg_CustomApiNote": "참고: Custom API는 OpenAI 호환 응답 형식만 지원합니다. API 엔드포인트는 OpenAI의 chat/completions API와 동일한 형식으로 응답을 반환해야 합니다.",
   "Msg_GeminiApiError": "Gemini API 오류: {0}\\n\\nAPI 키와 설정을 확인하세요.",
   "Msg_GeminiApiErrorStatus": "Gemini API 오류: {0}\\n{1}\\n\\nAPI 키와 설정을 확인하세요.",
   "Msg_GeminiApiException": "Gemini API 오류: {0}\\n\\n네트워크 연결과 API 키를 확인하세요.",

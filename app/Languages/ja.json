@@ -349,6 +349,7 @@
   "Msg_CustomApiError": "Custom APIエラー: {0}\\n\\nAPIキーと設定を確認してください。",
   "Title_CustomApiError": "Custom API翻訳エラー",
   "Msg_CustomApiErrorStatus": "Custom APIエラー: {0}\\n{1}\\n\\nAPIキーと設定を確認してください。",
+  "Msg_CustomApiNote": "注: Custom APIはOpenAI互換の応答形式のみをサポートしています。APIエンドポイントはOpenAIのchat/completions APIと同じ形式で応答を返す必要があります。",
   "Msg_GeminiApiError": "Gemini APIエラー: {0}\\n\\nAPIキーと設定を確認してください。",
   "Msg_GeminiApiErrorStatus": "Gemini APIエラー: {0}\\n{1}\\n\\nAPIキーと設定を確認してください。",
   "Msg_GeminiApiException": "Gemini APIエラー: {0}\\n\\nネットワーク接続とAPIキーを確認してください。",

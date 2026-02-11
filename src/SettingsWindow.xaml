@@ -736,6 +736,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Translation Service -->
@@ -908,7 +910,7 @@
                                 </Grid>
 
                                 <!-- Custom Api Model - Only visible when Custom Api is selected -->
-                                <TextBlock x:Name="customApiModelLabel" Text="Custom Api Model:" Grid.Row="3" Grid.Column="0" 
+                                <TextBlock x:Name="customApiModelLabel" Text="Custom Api Model:" Grid.Row="3" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,5,10,0"/>
                                 <Grid Grid.Row="3" Grid.Column="1" Margin="0,5" x:Name="customApiModelGrid">
                                     <Grid.ColumnDefinitions>
@@ -919,6 +921,14 @@
                                             VerticalAlignment="Top" Margin="0,0,0,2" LostFocus="CustomApiModelTextBox_LostFocus"
                                             TextChanged="CustomApiModelTextBox_TextChanged"/>
                                 </Grid>
+
+                                <!-- Custom API Note - Only visible when Custom API is selected -->
+                                <TextBlock x:Name="customApiNoteTextBlock" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
+                                          Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CustomApiNote]}"
+                                          VerticalAlignment="Top" Margin="0,8,0,0"
+                                          TextWrapping="Wrap"
+                                          Foreground="#FFA0A0A0"
+                                          FontSize="11"/>
                                 
                                 <!-- Mistral Model - Only visible when Mistral is selected -->
                                 <TextBlock x:Name="mistralModelLabel" Text="Mistral Model:" Grid.Row="2" Grid.Column="0" 
@@ -1139,28 +1149,28 @@
                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplateToolTip]}"/>
                                 
                                 <!-- Prompt Label -->
-                                <TextBlock x:Name="promptLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplate]}" Grid.Row="4" Grid.Column="0" 
+                                <TextBlock x:Name="promptLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplate]}" Grid.Row="5" Grid.Column="0" 
                                           VerticalAlignment="Top" Margin="0,10,10,0"/>
                                 
                                 <!-- Prompt Editor -->
-                                <TextBox x:Name="promptTemplateTextBox" Grid.Row="4" Grid.Column="1" 
+                                <TextBox x:Name="promptTemplateTextBox" Grid.Row="5" Grid.Column="1" 
                                         Margin="0,10,0,0" AcceptsReturn="True" TextWrapping="Wrap"
                                         MinHeight="150" MaxHeight="300" VerticalScrollBarVisibility="Auto"
                                         FontFamily="Consolas" FontSize="12" 
                                         LostFocus="PromptTemplateTextBox_LostFocus"/>
                                 
                                 <!-- Save Button -->
-                                <Button x:Name="savePromptButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SavePrompt]}" Grid.Row="5" Grid.Column="1"
+                                <Button x:Name="savePromptButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SavePrompt]}" Grid.Row="6" Grid.Column="1"
                                        HorizontalAlignment="Right" Margin="0,10,0,0" Padding="10,5"
                                        Click="SavePromptButton_Click"/>
 
                                 <!-- Restore Default Prompt Button -->
-                                <Button x:Name="restoreDefaultPromptButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RestoreDefaultPrompt]}" Grid.Row="5" Grid.Column="1"
+                                <Button x:Name="restoreDefaultPromptButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RestoreDefaultPrompt]}" Grid.Row="6" Grid.Column="1"
                                        HorizontalAlignment="Left" Margin="0,10,0,0" Padding="10,5"
                                        Click="RestoreDefaultPromptButton_Click"/>
 
                                 <!-- Restore Default Prompt Button -->
-                                <TextBlock x:Name="statusPrompt" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_PromptSaved]}" Grid.Row="5" Grid.Column="1" Visibility="Collapsed"
+                                <TextBlock x:Name="statusPrompt" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_PromptSaved]}" Grid.Row="6" Grid.Column="1" Visibility="Collapsed"
                                        HorizontalAlignment="Center" Margin="0,10,0,0" Padding="10,5"/>
                             </Grid>
                         </GroupBox>

@@ -349,6 +349,7 @@
   "Msg_CustomApiError": "Custom API 错误：{0}\\n\\n请检查您的 API 密钥和设置。",
   "Title_CustomApiError": "Custom API 翻译错误",
   "Msg_CustomApiErrorStatus": "Custom API 错误：{0}\\n{1}\\n\\n请检查您的 API 密钥和设置。",
+  "Msg_CustomApiNote": "注意：Custom API 仅支持 OpenAI 兼容的响应格式。您的 API 端点必须以与 OpenAI 的 chat/completions API 相同的格式返回响应。",
   "Msg_GeminiApiError": "Gemini API 错误：{0}\\n\\n请检查您的 API 密钥和设置。",
   "Msg_GeminiApiErrorStatus": "Gemini API 错误：{0}\\n{1}\\n\\n请检查您的 API 密钥和设置。",
   "Msg_GeminiApiException": "Gemini API 错误：{0}\\n\\n请检查您的网络连接和 API 密钥。",

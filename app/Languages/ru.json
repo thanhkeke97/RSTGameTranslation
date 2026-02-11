@@ -349,6 +349,7 @@
   "Msg_CustomApiError": "Ошибка API Custom: {0}\\n\\nПожалуйста, проверьте API ключ и настройки.",
   "Title_CustomApiError": "Ошибка перевода Custom",
   "Msg_CustomApiErrorStatus": "Ошибка API Custom: {0}\\n{1}\\n\\nПожалуйста, проверьте API ключ и настройки.",
+  "Msg_CustomApiNote": "Примечание: Custom API поддерживает только формат ответов, совместимый с OpenAI. Ваша конечная точка API должна возвращать ответы в том же формате, что и API chat/completions от OpenAI.",
   "Msg_GeminiApiError": "Ошибка API Gemini: {0}\\n\\nПожалуйста, проверьте API ключ и настройки.",
   "Msg_GeminiApiErrorStatus": "Ошибка API Gemini: {0}\\n{1}\\n\\nПожалуйста, проверьте API ключ и настройки.",
   "Msg_GeminiApiException": "Ошибка API Gemini: {0}\\n\\nПожалуйста, проверьте подключение к сети и API ключ.",
