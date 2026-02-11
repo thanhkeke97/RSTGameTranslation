@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -10,8 +11,49 @@ namespace RSTGameTranslation
     {
         private static readonly HttpClient _httpClient = new HttpClient();
         private static int _consecutiveFailures = 0;
+        private static int _retryCount = 0;
+        private static readonly object _keySwitchLock = new object();
+        private const int MAX_RETRIES = 3;
         private int delayMS = 100;
-        
+
+        /// <summary>
+        /// Check if error requires API key switch
+        /// </summary>
+        private bool ShouldSwitchApiKey(HttpStatusCode statusCode, string errorMessage)
+        {
+            // Switch key for quota/rate limit/invalid key errors
+            if (statusCode == HttpStatusCode.Unauthorized ||  // 401 - Invalid API key
+                (int)statusCode == 429 ||  // Too Many Requests - Rate limit
+                statusCode == HttpStatusCode.Forbidden)  // 403 - Quota exceeded
+            {
+                return true;
+            }
+
+            // Check error message for quota/rate limit keywords
+            string lowerMessage = errorMessage.ToLower();
+            if (lowerMessage.Contains("quota") ||
+                lowerMessage.Contains("rate limit") ||
+                lowerMessage.Contains("rate-limit") ||
+                lowerMessage.Contains("invalid api key") ||
+                lowerMessage.Contains("api key not found") ||
+                lowerMessage.Contains("api key invalid"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get masked API key for logging (show only first 4 and last 4 characters)
+        /// </summary>
+        private string MaskApiKey(string apiKey)
+        {
+            if (string.IsNullOrEmpty(apiKey) || apiKey.Length < 8)
+                return "***";
+            return $"{apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}";
+        }
+
         /// <summary>
         /// Translate text using the Gemini API
         /// </summary>
@@ -22,6 +64,15 @@ namespace RSTGameTranslation
         {
             string apiKey = ConfigManager.Instance.GetGeminiApiKey();
             string currenServices = ConfigManager.Instance.GetCurrentTranslationService();
+
+            // Check retry limit
+            if (_retryCount >= MAX_RETRIES)
+            {
+                Console.WriteLine($"Gemini API: Max retries ({MAX_RETRIES}) reached. Giving up.");
+                _retryCount = 0;
+                return null;
+            }
+
             try
             {
                 if (string.IsNullOrEmpty(apiKey))
@@ -68,10 +119,11 @@ namespace RSTGameTranslation
                     string jsonResponse = await response.Content.ReadAsStringAsync();
                     // Reset consecutive failures counter on success
                     _consecutiveFailures = 0;
-                    
+                    _retryCount = 0;
+
                     // Log the raw Gemini response before returning it
                     LogManager.Instance.LogLlmReply(jsonResponse);
-                    
+
                     return jsonResponse;
                 }
                 else
@@ -79,29 +131,52 @@ namespace RSTGameTranslation
                     string errorMessage = await response.Content.ReadAsStringAsync();
                     _consecutiveFailures++;
                     Console.WriteLine($"Gemini API error: {response.StatusCode}, {errorMessage}, error count: {_consecutiveFailures}");
-                    // Increment consecutive failures counter
-                    // Try to parse the error message from JSON if possible
-                    string newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
-                    ConfigManager.Instance.SetGeminiApiKey(newApikey);
-                    Console.WriteLine("Change new api key successfully");
+
+                    // Check if we should switch API key
+                    if (ShouldSwitchApiKey(response.StatusCode, errorMessage))
+                    {
+                        string newApikey = null;
+                        lock (_keySwitchLock)
+                        {
+                            newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
+                            if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
+                            {
+                                ConfigManager.Instance.SetGeminiApiKey(newApikey);
+                                Console.WriteLine($"Switched API key from {MaskApiKey(apiKey)} to {MaskApiKey(newApikey)}");
+                                _retryCount++;
+                            }
+                            else
+                            {
+                                Console.WriteLine("No more API keys available to switch to");
+                            }
+                        }
+
+                        // Retry with new key (outside lock)
+                        if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
+                        {
+                            return await TranslateAsync(jsonData, prompt);
+                        }
+                    }
+
+                    // Parse error message
                     try
                     {
                         using JsonDocument errorDoc = JsonDocument.Parse(errorMessage);
                         if (errorDoc.RootElement.TryGetProperty("error", out JsonElement errorElement))
                         {
                             string detailedError = "";
-                            
+
                             // Extract error message
                             if (errorElement.TryGetProperty("message", out JsonElement messageElement))
                             {
                                 detailedError = messageElement.GetString() ?? "";
                             }
-                            // ignore error if it's a rate limite error
+                            // Show error if too many consecutive failures
                             if (_consecutiveFailures > 3)
                             {
                                 // Write error to file
                                 System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
-                                
+
                                 // Show error message to user
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                                     System.Windows.MessageBox.Show(
@@ -123,7 +198,7 @@ namespace RSTGameTranslation
                     {
                         // Write error to file
                         System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {response.StatusCode}\n\nFull response: {errorMessage}");
-                        
+
                         // Show general error if JSON parsing failed
                         System.Windows.Application.Current.Dispatcher.Invoke(() => {
                             System.Windows.MessageBox.Show(
@@ -140,10 +215,10 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Translation API error: {ex.Message}");
-                
+
                 // Write error to file
                 System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {ex.Message}\n\nStack trace: {ex.StackTrace}");
-                
+
                 // Show error message to user
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
                     System.Windows.MessageBox.Show(
@@ -152,7 +227,7 @@ namespace RSTGameTranslation
                         System.Windows.MessageBoxButton.OK,
                         System.Windows.MessageBoxImage.Error);
                 });
-                
+
                 return null;
             }
         }

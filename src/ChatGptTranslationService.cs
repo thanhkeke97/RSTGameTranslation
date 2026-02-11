@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -10,7 +11,49 @@ namespace RSTGameTranslation
     public class ChatGptTranslationService : ITranslationService
     {
         private static readonly HttpClient _httpClient = new HttpClient();
+        private static int _retryCount = 0;
+        private static readonly object _keySwitchLock = new object();
+        private const int MAX_RETRIES = 3;
         private readonly string _configFilePath;
+
+        /// <summary>
+        /// Check if error requires API key switch
+        /// </summary>
+        private bool ShouldSwitchApiKey(HttpStatusCode statusCode, string errorMessage)
+        {
+            // Switch key for quota/rate limit/invalid key errors
+            if (statusCode == HttpStatusCode.Unauthorized ||  // 401 - Invalid API key
+                (int)statusCode == 429 ||  // Too Many Requests - Rate limit
+                statusCode == HttpStatusCode.Forbidden)  // 403 - Quota exceeded
+            {
+                return true;
+            }
+
+            // Check error message for quota/rate limit keywords
+            string lowerMessage = errorMessage.ToLower();
+            if (lowerMessage.Contains("quota") ||
+                lowerMessage.Contains("rate limit") ||
+                lowerMessage.Contains("rate-limit") ||
+                lowerMessage.Contains("invalid api key") ||
+                lowerMessage.Contains("api key not found") ||
+                lowerMessage.Contains("api key invalid") ||
+                lowerMessage.Contains("insufficient quota"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get masked API key for logging (show only first 4 and last 4 characters)
+        /// </summary>
+        private string MaskApiKey(string apiKey)
+        {
+            if (string.IsNullOrEmpty(apiKey) || apiKey.Length < 8)
+                return "***";
+            return $"{apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}";
+        }
         
         public ChatGptTranslationService()
         {
@@ -47,6 +90,15 @@ namespace RSTGameTranslation
         {
             string apiKey = ConfigManager.Instance.GetChatGptApiKey();
             string currenServices = ConfigManager.Instance.GetCurrentTranslationService();
+
+            // Check retry limit
+            if (_retryCount >= MAX_RETRIES)
+            {
+                Console.WriteLine($"ChatGPT API: Max retries ({MAX_RETRIES}) reached. Giving up.");
+                _retryCount = 0;
+                return null;
+            }
+
             try
             {
                 // Get API key and model from config
@@ -117,6 +169,9 @@ namespace RSTGameTranslation
                 // Check if request was successful
                 if (response.IsSuccessStatusCode)
                 {
+                    // Reset retry count on success
+                    _retryCount = 0;
+
                     // Log raw response before any processing
                     LogManager.Instance.LogLlmReply(responseContent);
 
@@ -290,9 +345,32 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Error calling ChatGPT API: {response.StatusCode}");
                     Console.WriteLine($"Response: {responseContent}");
-                    string newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
-                    ConfigManager.Instance.SetChatGptApiKey(newApikey);
-                    Console.WriteLine("Change new api key successfully");
+
+                    // Check if we should switch API key
+                    if (ShouldSwitchApiKey(response.StatusCode, responseContent))
+                    {
+                        string newApikey = null;
+                        lock (_keySwitchLock)
+                        {
+                            newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
+                            if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
+                            {
+                                ConfigManager.Instance.SetChatGptApiKey(newApikey);
+                                Console.WriteLine($"Switched API key from {MaskApiKey(apiKey)} to {MaskApiKey(newApikey)}");
+                                _retryCount++;
+                            }
+                            else
+                            {
+                                Console.WriteLine("No more API keys available to switch to");
+                            }
+                        }
+
+                        // Retry with new key (outside lock)
+                        if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
+                        {
+                            return await TranslateAsync(jsonData, prompt);
+                        }
+                    }
                 }
 
                 return null;
