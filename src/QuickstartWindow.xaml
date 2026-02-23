@@ -18,6 +18,9 @@
     </WindowChrome.WindowChrome>
 
     <Window.Resources>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource ThemedComboBox}"/>
+        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource ThemedComboBoxItem}"/>
+
         <!-- Modern Button Style with Smooth Animations -->
         <Style x:Key="ModernButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
