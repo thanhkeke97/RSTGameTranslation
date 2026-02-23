@@ -65,21 +65,21 @@ namespace RSTGameTranslation
                     Opacity = 0 // Start invisible for fade-in animation
                 };
 
-                // Colors matching MainWindow light theme
-                WPFColor surfaceColor = WPFColor.FromRgb(255, 255, 255);      // #FFFFFF
-                WPFColor surface2Color = WPFColor.FromRgb(243, 248, 253);     // #F3F8FD
-                WPFColor borderColor = WPFColor.FromRgb(224, 236, 248);       // #E0ECF8
-                WPFColor textColor = WPFColor.FromRgb(11, 37, 69);            // #0B2545
-                WPFColor mutedColor = WPFColor.FromRgb(91, 107, 122);         // #5B6B7A
-                WPFColor accentColor = WPFColor.FromRgb(0, 102, 204);         // #0066CC
+                // Use current theme colors (dark/light) from App resources
+                SolidColorBrush surfaceBrush = GetThemeBrush("SurfaceBrush", WPFColor.FromRgb(255, 255, 255));
+                SolidColorBrush surface2Brush = GetThemeBrush("Surface2Brush", WPFColor.FromRgb(243, 248, 253));
+                SolidColorBrush borderBrush = GetThemeBrush("BorderBrush", WPFColor.FromRgb(224, 236, 248));
+                SolidColorBrush textBrush = GetThemeBrush("TextBrush", WPFColor.FromRgb(11, 37, 69));
+                SolidColorBrush mutedBrush = GetThemeBrush("MutedBrush", WPFColor.FromRgb(91, 107, 122));
+                SolidColorBrush accentBrush = GetThemeBrush("AccentBrush", WPFColor.FromRgb(0, 102, 204));
 
                 // Main container - clean light design matching MainWindow
                 Border mainBorder = new Border
                 {
                     CornerRadius = new CornerRadius(12),
                     BorderThickness = new Thickness(1),
-                    BorderBrush = new SolidColorBrush(borderColor),
-                    Background = new SolidColorBrush(surfaceColor),
+                    BorderBrush = borderBrush,
+                    Background = surfaceBrush,
                     Padding = new Thickness(30),
                     Effect = new DropShadowEffect
                     {
@@ -150,7 +150,7 @@ namespace RSTGameTranslation
                     FontSize = 20,
                     FontWeight = FontWeights.SemiBold,
                     FontFamily = new FontFamily("Segoe UI"),
-                    Foreground = new SolidColorBrush(textColor)
+                    Foreground = textBrush
                 };
                 titleStack.Children.Add(appTitle);
 
@@ -159,7 +159,7 @@ namespace RSTGameTranslation
                     Text = $"v{CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}",
                     FontSize = 13,
                     FontFamily = new FontFamily("Segoe UI"),
-                    Foreground = new SolidColorBrush(mutedColor),
+                    Foreground = mutedBrush,
                     Margin = new Thickness(0, 2, 0, 0)
                 };
                 titleStack.Children.Add(_versionTextBlock);
@@ -175,7 +175,7 @@ namespace RSTGameTranslation
                     FontSize = 12,
                     FontFamily = new FontFamily("Segoe UI"),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(mutedColor),
+                    Foreground = mutedBrush,
                     Margin = new Thickness(0, 0, 0, 12)
                 };
                 Grid.SetRow(_statusTextBlock, 2);
@@ -187,7 +187,7 @@ namespace RSTGameTranslation
                     Height = 4,
                     Margin = new Thickness(20, 0, 20, 16),
                     CornerRadius = new CornerRadius(2),
-                    Background = new SolidColorBrush(surface2Color),
+                    Background = surface2Brush,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch
                 };
 
@@ -197,7 +197,7 @@ namespace RSTGameTranslation
                     CornerRadius = new CornerRadius(2),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
                     Width = 0,
-                    Background = new SolidColorBrush(accentColor)
+                    Background = accentBrush
                 };
 
                 loadingBarContainer.Child = loadingBar;
@@ -211,7 +211,7 @@ namespace RSTGameTranslation
                     FontSize = 11,
                     FontFamily = new FontFamily("Segoe UI"),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(WPFColor.FromArgb(150, 91, 107, 122)),
+                    Foreground = new SolidColorBrush(WPFColor.FromArgb(150, mutedBrush.Color.R, mutedBrush.Color.G, mutedBrush.Color.B)),
                     Margin = new Thickness(0, 0, 0, 5)
                 };
                 Grid.SetRow(authorText, 4);
@@ -245,6 +245,24 @@ namespace RSTGameTranslation
 
                 CheckForUpdates();
             });
+        }
+
+        private static SolidColorBrush GetThemeBrush(string key, WPFColor fallback)
+        {
+            try
+            {
+                if (System.Windows.Application.Current?.Resources[key] is SolidColorBrush brush)
+                {
+                    // Clone by color to avoid sharing mutable/frozen instances.
+                    return new SolidColorBrush(brush.Color);
+                }
+            }
+            catch
+            {
+                // Fallback below
+            }
+
+            return new SolidColorBrush(fallback);
         }
 
         private async void CheckForUpdates()
