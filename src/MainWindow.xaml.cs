@@ -1156,6 +1156,7 @@ namespace RSTGameTranslation
             bool audioEnabled = false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(audioEnabled);
             UpdateAudioServiceButtonUI(audioEnabled);
+            UpdateThemeToggleButtonUI();
 
             // Initialization is complete, now we can save settings changes
             _isInitializing = false;
@@ -3856,6 +3857,40 @@ namespace RSTGameTranslation
             }
         }
 
+        private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bool enableDarkMode = !ConfigManager.Instance.IsDarkModeEnabled();
+                ConfigManager.Instance.SetDarkModeEnabled(enableDarkMode);
+                ThemeManager.ApplyTheme(enableDarkMode);
+                UpdateThemeToggleButtonUI();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error toggling theme: {ex.Message}");
+            }
+        }
+
+        private void UpdateThemeToggleButtonUI()
+        {
+            try
+            {
+                if (themeToggleIcon == null || themeToggleButton == null)
+                {
+                    return;
+                }
+
+                bool isDarkMode = ConfigManager.Instance.IsDarkModeEnabled();
+                themeToggleIcon.Text = isDarkMode ? "☀" : "🌙";
+                themeToggleButton.ToolTip = isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating theme toggle UI: {ex.Message}");
+            }
+        }
+
         // private bool isListening = false;
         // private OpenAIRealtimeAudioServiceWhisper? openAIRealtimeAudioService = null;
 
@@ -3902,6 +3937,9 @@ namespace RSTGameTranslation
 
                 // Reload screen list to update localized text
                 LoadScreenList();
+
+                // Refresh dark/light toggle tooltip if language changed
+                UpdateThemeToggleButtonUI();
             }
         }
 

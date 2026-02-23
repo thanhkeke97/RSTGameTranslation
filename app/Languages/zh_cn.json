@@ -34,6 +34,8 @@
   "Btn_Compact_Show": "显示详情",
   "Settings_Title": "设置",
   "Tab_Language": "语言",
+  "Grp_UISettings": "界面设置",
+  "Lbl_DarkMode": "深色模式",
   "Grp_LanguageSettings": "语言设置",
   "Lbl_SourceLanguage": "源语言：",
   "Lbl_TargetLanguage": "目标语言：",

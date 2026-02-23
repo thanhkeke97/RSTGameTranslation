@@ -34,6 +34,8 @@
   "Btn_Compact_Show": "Показать детали",
   "Settings_Title": "Настройки",
   "Tab_Language": "Язык",
+  "Grp_UISettings": "Настройки интерфейса",
+  "Lbl_DarkMode": "Тёмная тема",
   "Grp_LanguageSettings": "Настройки языка",
   "Lbl_SourceLanguage": "Исходный язык:",
   "Lbl_TargetLanguage": "Целевой язык:",

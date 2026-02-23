@@ -34,6 +34,8 @@
   "Btn_Compact_Show": "詳細を表示",
   "Settings_Title": "設定",
   "Tab_Language": "言語",
+  "Grp_UISettings": "UI設定",
+  "Lbl_DarkMode": "ダークモード",
   "Grp_LanguageSettings": "言語設定",
   "Lbl_SourceLanguage": "翻訳元言語:",
   "Lbl_TargetLanguage": "翻訳先言語:",

@@ -34,6 +34,8 @@
   "Btn_Compact_Show": "세부정보 표시",
   "Settings_Title": "설정",
   "Tab_Language": "언어",
+  "Grp_UISettings": "UI 설정",
+  "Lbl_DarkMode": "다크 모드",
   "Grp_LanguageSettings": "언어 설정",
   "Lbl_SourceLanguage": "원본 언어:",
   "Lbl_TargetLanguage": "대상 언어:",

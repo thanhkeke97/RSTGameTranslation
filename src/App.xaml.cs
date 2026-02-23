@@ -19,6 +19,9 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Apply theme
+        ThemeManager.ApplyTheme(ConfigManager.Instance.IsDarkModeEnabled());
+
         // Set up application-wide keyboard handling
         this.DispatcherUnhandledException += App_DispatcherUnhandledException;
 

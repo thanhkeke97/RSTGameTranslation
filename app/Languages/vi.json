@@ -27,6 +27,8 @@
   "Lbl_QuickStart": "HƯỚNG DẪN NHANH",
   "Settings_Title": "Cài đặt",
   "Tab_Language": "Ngôn ngữ",
+  "Grp_UISettings": "Cài đặt giao diện",
+  "Lbl_DarkMode": "Chế độ tối",
   "Grp_LanguageSettings": "Cài đặt ngôn ngữ",
   "Lbl_SourceLanguage": "Ngôn ngữ nguồn:",
   "Lbl_TargetLanguage": "Ngôn ngữ đích:",

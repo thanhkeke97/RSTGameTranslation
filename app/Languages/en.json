@@ -27,6 +27,8 @@
   "Lbl_QuickStart": "QUICK START",
   "Settings_Title": "Settings",
   "Tab_Language": "Language",
+  "Grp_UISettings": "UI Settings",
+  "Lbl_DarkMode": "Dark Mode",
   "Grp_LanguageSettings": "Language Settings",
   "Lbl_SourceLanguage": "Source Language:",
   "Lbl_TargetLanguage": "Target Language:",

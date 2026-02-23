@@ -89,6 +89,7 @@ namespace RSTGameTranslation
         public const string WHISPER_RUNTIME = "whisper_runtime"; // cpu, cuda, vulkan
         public const string FORCE_CURSOR_VISIBLE = "force_cursor_visible";
         public const string AUTO_SIZE_TEXT_BLOCKS = "auto_size_text_blocks";
+        public const string DARK_MODE = "dark_mode";
         public const string GOOGLE_TRANSLATE_API_KEY = "google_translate_api_key";
         // Google Translate settings
         public const string GOOGLE_TRANSLATE_USE_CLOUD_API = "google_translate_use_cloud_api";
@@ -1506,6 +1507,17 @@ namespace RSTGameTranslation
         {
             string value = GetValue(AUTO_SIZE_TEXT_BLOCKS, "true");
             return value.ToLower() == "true";
+        }
+
+        public bool IsDarkModeEnabled()
+        {
+            string value = GetValue(DARK_MODE, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetDarkModeEnabled(bool value)
+        {
+            SetValue(DARK_MODE, value ? "true" : "false");
         }
 
         // Get similary threshold

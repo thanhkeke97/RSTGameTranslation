@@ -192,6 +192,7 @@
                             </TextBlock>
                             </Grid>
                         </GroupBox>
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
