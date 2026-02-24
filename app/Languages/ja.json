@@ -194,6 +194,7 @@
   "Lbl_ClearAllAreas": "全範囲クリア",
   "Lbl_ClearSelectedArea": "選択範囲クリア",
   "Lbl_ShowAreaBorder": "範囲枠を表示",
+  "Lbl_SelectExcludeRegion": "除外領域を選択",
   "Lbl_ToggleChatBox": "チャットボックス切替",
   "Lbl_SelectArea1": "エリア 1 を選択",
   "Lbl_SelectArea2": "エリア 2 を選択",

@@ -194,6 +194,7 @@
   "Lbl_ClearAllAreas": "清空全部区域",
   "Lbl_ClearSelectedArea": "清除选中区域",
   "Lbl_ShowAreaBorder": "显示区域边框",
+  "Lbl_SelectExcludeRegion": "选择排除区域",
   "Lbl_ToggleChatBox": "切换聊天框",
   "Lbl_SelectArea1": "选择区域 1",
   "Lbl_SelectArea2": "选择区域 2",

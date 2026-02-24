@@ -1251,12 +1251,13 @@ namespace RSTGameTranslation
                     ConfigManager.Instance.SetHotKey(functionName, combineKey);
                     statusUpdateHotKey.Visibility = Visibility.Visible;
                     ListHotKey_TextChanged();
-                    // Init keyboard hook
-                    KeyboardShortcuts.InitializeGlobalHook();
-                    IntPtr handle = new WindowInteropHelper(this).Handle;
-                    KeyboardShortcuts.SetMainWindowHandle(handle);
-                    HwndSource source = HwndSource.FromHwnd(handle);
-                    source.AddHook(WndProc);
+                    // Refresh parsed hotkeys and re-register on the main window handle
+                    KeyboardShortcuts.RefreshHotkeys();
+                    IntPtr mainHandle = new WindowInteropHelper(MainWindow.Instance).Handle;
+                    if (mainHandle != IntPtr.Zero)
+                    {
+                        KeyboardShortcuts.SetMainWindowHandle(mainHandle);
+                    }
                     // Auto close notification after 1.5 second
                     var timer = new System.Windows.Threading.DispatcherTimer
                     {
@@ -1306,6 +1307,7 @@ namespace RSTGameTranslation
             hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
             hotKeySwapLanguages.Text = ConfigManager.Instance.GetHotKey("Swap Languages");
             hotKeyRetryTranslate.Text = ConfigManager.Instance.GetHotKey("Retry Translation");
+            hotKeyToggleExcludeRegions.Text = ConfigManager.Instance.GetHotKey("Select Exclude Region");
             // Mainwindows
             MainWindow.Instance.hotKeyStartStop.Text = ConfigManager.Instance.GetHotKey("Start/Stop");
             MainWindow.Instance.hotKeyOverlay.Text = ConfigManager.Instance.GetHotKey("Overlay");
@@ -1324,6 +1326,10 @@ namespace RSTGameTranslation
             MainWindow.Instance.hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
             MainWindow.Instance.hotKeySwapLanguages.Text = ConfigManager.Instance.GetHotKey("Swap Languages");
             MainWindow.Instance.hotKeyRetryTranslate.Text = ConfigManager.Instance.GetHotKey("Retry Translation");
+            if (MainWindow.Instance.FindName("hotKeyToggleExcludeRegions") is TextBlock hotKeyToggleExcludeRegionsText)
+            {
+                hotKeyToggleExcludeRegionsText.Text = ConfigManager.Instance.GetHotKey("Select Exclude Region");
+            }
         }
 
         private void HotKeyFunctionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

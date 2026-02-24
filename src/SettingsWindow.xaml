@@ -701,14 +701,17 @@
                                 <!-- Description -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ExcludeRegionsDesc]}" 
                                            Grid.Row="0" Grid.Column="0" Margin="0,0,0,10"
-                                           TextWrapping="Wrap" Foreground="LightGray" FontSize="12"/>
+                                           TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" FontSize="12"/>
 
                                 <!-- List of exclude regions -->
                                 <ListBox x:Name="excludeRegionsListView" Grid.Row="2" Grid.Column="0" 
-                                         Margin="0,5" Height="200" SelectionMode="Single">
+                                         Margin="0,5" Height="200" SelectionMode="Single"
+                                         Background="{DynamicResource Surface2Brush}"
+                                         Foreground="{DynamicResource TextBrush}"
+                                         BorderBrush="{DynamicResource BorderBrush}">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock>
+                                            <TextBlock Foreground="{DynamicResource TextBrush}">
                                                 <Run Text="Region: "/>
                                                 <Run Text="X="/><Run Text="{Binding X}"/><Run Text=", "/>
                                                 <Run Text="Y="/><Run Text="{Binding Y}"/><Run Text=", "/>
@@ -1463,6 +1466,7 @@
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" Tag="Audio Service"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_SwapLanguages]}" Tag="Swap Languages"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}" Tag="Retry Translation"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}" Tag="Select Exclude Region"/>
                                 </ComboBox>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CombineKeys]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="combineKey1" Grid.Row="2" Grid.Column="1" Padding="5,3" Margin="0,8,10,10">
@@ -1700,6 +1704,16 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}"/>
                                                     <TextBlock Grid.Column="1" x:Name="hotKeyRetryTranslate" Text="ALT + T" FontWeight="Bold" Foreground="#3498db"/>
+                                                </Grid>
+                                                <Separator Background="#222" Margin="5,2"/>
+
+                                                <Grid Margin="10,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyToggleExcludeRegions" Text="ALT + X" FontWeight="Bold" Foreground="#3498db"/>
                                                 </Grid>
                                             </StackPanel>
                                         </ScrollViewer>

@@ -112,8 +112,7 @@ namespace RSTGameTranslation
         private const int HOTKEY_ID_AUDIO_SERVICE = 15;
         private const int HOTKEY_ID_SWAP_LANGUAGES = 16;
         private const int HOTKEY_ID_RETRY_TRANSLATION = 17;
-
-        private static readonly Dictionary<string, EventHandler?> _functionHandlers = new Dictionary<string, EventHandler?>();
+        private const int HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS = 18;
         private static readonly Dictionary<string, int> _keyCodeMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<string, (uint modifiers, int vkCode)> _parsedHotkeys = new Dictionary<string, (uint, int)>();
         
@@ -143,26 +142,6 @@ namespace RSTGameTranslation
         
         static KeyboardShortcuts()
         {
-            // Initialize function handlers
-            _functionHandlers["Start/Stop"] = StartStopRequested;
-            _functionHandlers["Overlay"] = MonitorToggleRequested;
-            _functionHandlers["ChatBox"] = ChatBoxToggleRequested;
-            _functionHandlers["Setting"] = SettingsToggleRequested;
-            _functionHandlers["Log"] = LogToggleRequested;
-            _functionHandlers["Select Area"] = SelectTranslationRegion;
-            _functionHandlers["Clear Areas"] = ClearAreasRequested;
-            _functionHandlers["Clear Selected Area"] = ClearSelectedAreaRequested;
-            _functionHandlers["Show Area"] = ShowAreaRequested;
-            _functionHandlers["Area 1"] = SelectArea1Requested;
-            _functionHandlers["Area 2"] = SelectArea2Requested;
-            _functionHandlers["Area 3"] = SelectArea3Requested;
-            _functionHandlers["Area 4"] = SelectArea4Requested;
-            _functionHandlers["Area 5"] = SelectArea5Requested;
-            _functionHandlers["Audio Service"] = AudioServiceToggleRequested;
-            _functionHandlers["Swap Languages"] = SwapLanguagesRequested;
-            _functionHandlers["Retry Translation"] = RetryTranslationRequested;
-            _functionHandlers["Toggle Exclude Regions"] = ToggleExcludeRegionsRequested;
-            
             // Initialize key code map
             for (int i = 0; i < 26; i++) // A-Z
             {
@@ -222,6 +201,7 @@ namespace RSTGameTranslation
             ParseHotkey("Audio Service");
             ParseHotkey("Swap Languages");
             ParseHotkey("Retry Translation");
+            ParseHotkey("Select Exclude Region");
         }
 
         private static void ParseHotkey(string functionName)
@@ -317,7 +297,7 @@ namespace RSTGameTranslation
                 return;
                 
             // Unregister any existing hotkeys first
-            for (int i = 1; i <= 17; i++)
+            for (int i = 1; i <= HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS; i++)
             {
                 UnregisterHotKey(_mainWindowHandle, i);
             }
@@ -340,6 +320,7 @@ namespace RSTGameTranslation
             RegisterFunctionHotkey("Audio Service", HOTKEY_ID_AUDIO_SERVICE);
             RegisterFunctionHotkey("Swap Languages", HOTKEY_ID_SWAP_LANGUAGES);
             RegisterFunctionHotkey("Retry Translation", HOTKEY_ID_RETRY_TRANSLATION);
+            RegisterFunctionHotkey("Select Exclude Region", HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS);
         }
 
         private static void RegisterFunctionHotkey(string functionName, int hotkeyId)
@@ -453,109 +434,132 @@ namespace RSTGameTranslation
                     Console.WriteLine("Hotkey detected: Retry Translation");
                     RetryTranslationRequested?.Invoke(null, EventArgs.Empty);
                     return true;
+
+                case HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS:
+                    Console.WriteLine("Hotkey detected: Select Exclude Region");
+                    ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty);
+                    return true;
             }
             
             return false;
         }
         
         // Process WM_HOTKEY messages in the main window
-        public static void ProcessHandleHotKey(string function)
+        public static bool ProcessHandleHotKey(string function)
         {
             if (!ConfigManager.Instance.IsHotKeyEnabled())
             {
-                return;
+                return false;
             }
             if (function == "Start/Stop")
             {
                 Console.WriteLine("Hotkey detected: Start/Stop");
                 StartStopRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Overlay")
             {
                 Console.WriteLine("Hotkey detected: Overlay");
                 MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "ChatBox")
             {
                 Console.WriteLine("Hotkey detected: ChatBox");
                 ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Setting")
             {
                 Console.WriteLine("Hotkey detected: Setting");
                 SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Log")
             {
                 Console.WriteLine("Hotkey detected: Log");
                 LogToggleRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Select Area")
             {
                 Console.WriteLine("Hotkey detected: Select Area");
                 SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Clear Areas")
             {
                 Console.WriteLine("Hotkey detected: Clear Areas");
                 ClearAreasRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Clear Selected Area")
             {
                 Console.WriteLine("Hotkey detected: Clear Selected Area");
                 ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Show Area")
             {
                 Console.WriteLine("Hotkey detected: Show Area");
                 ShowAreaRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Area 1")
             {
                 Console.WriteLine("Hotkey detected: Area 1");
                 SelectArea1Requested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Area 2")
             {
                 Console.WriteLine("Hotkey detected: Area 2");
                 SelectArea2Requested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Area 3")
             {
                 Console.WriteLine("Hotkey detected: Area 3");
                 SelectArea3Requested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Area 4")
             {
                 Console.WriteLine("Hotkey detected: Area 4");
                 SelectArea4Requested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Area 5")
             {
                 Console.WriteLine("Hotkey detected: Area 5");
                 SelectArea5Requested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Audio Service")
             {
                 Console.WriteLine("Hotkey detected: Audio Service");
                 AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Swap Languages")
             {
                 Console.WriteLine("Hotkey detected: Swap Languages");
                 SwapLanguagesRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
             else if (function == "Retry Translation")
             {
                 Console.WriteLine("Hotkey detected: Retry Translation");
                 RetryTranslationRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
-            else if (function == "Toggle Exclude Regions")
+            else if (function == "Select Exclude Region" || function == "Toggle Exclude Regions")
             {
-                Console.WriteLine("Hotkey detected: Toggle Exclude Regions");
+                Console.WriteLine("Hotkey detected: Select Exclude Region");
                 ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty);
+                return true;
             }
-
+            return false;
         }
         
         // Start polling for key states as a backup method - ONLY for global shortcuts
@@ -618,14 +622,11 @@ namespace RSTGameTranslation
                                 {
                                     Console.WriteLine($"Polling detected: {function} hotkey");
 
-                                    // Trigger the event on the UI thread
-                                    if (_functionHandlers.TryGetValue(function, out var handler) && handler != null)
+                                    // Trigger the configured action on the UI thread
+                                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
                                     {
-                                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                                        {
-                                            handler.Invoke(null, EventArgs.Empty);
-                                        });
-                                    }
+                                        ProcessHandleHotKey(function);
+                                    });
 
                                     lastTriggerTimes[function] = now;
                                 }
@@ -675,7 +676,7 @@ namespace RSTGameTranslation
             // Unregister hotkeys
             if (_mainWindowHandle != IntPtr.Zero)
             {
-                for (int i = 1; i <= 17; i++)
+                for (int i = 1; i <= HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS; i++)
                 {
                     UnregisterHotKey(_mainWindowHandle, i);
                 }
@@ -755,22 +756,16 @@ namespace RSTGameTranslation
                                 if (modifiersMatch)
                                 {
                                     Console.WriteLine($"Global shortcut detected: {function}");
-                                    ProcessHandleHotKey(function);
-                                    
-                                    // Invoke the associated event handler
-                                    if (_functionHandlers.TryGetValue(function, out var handler) && handler != null)
+                                    try
                                     {
-                                        try
+                                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
                                         {
-                                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                                            {
-                                                handler.Invoke(null, EventArgs.Empty);
-                                            });
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            Console.WriteLine($"Error invoking {function} action: {ex.Message}");
-                                        }
+                                            ProcessHandleHotKey(function);
+                                        });
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error invoking {function} action: {ex.Message}");
                                     }
                                     
                                     return (IntPtr)1; // Prevent further processing
@@ -854,9 +849,8 @@ namespace RSTGameTranslation
                     if (vkCode == configVkCode && modifiers == configModifiers)
                     {
                         // Invoke the associated event handler
-                        if (_functionHandlers.TryGetValue(function, out var handler) && handler != null)
+                        if (ProcessHandleHotKey(function))
                         {
-                            handler.Invoke(null, EventArgs.Empty);
                             e.Handled = true;
                             return true;
                         }

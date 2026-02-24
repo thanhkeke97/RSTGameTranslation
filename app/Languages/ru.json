@@ -194,6 +194,7 @@
   "Lbl_ClearAllAreas": "Очистить все области",
   "Lbl_ClearSelectedArea": "Очистить выбранную область",
   "Lbl_ShowAreaBorder": "Показать границы области",
+  "Lbl_SelectExcludeRegion": "Выбрать область исключения",
   "Lbl_ToggleChatBox": "Переключить Чат-бокс",
   "Lbl_SelectArea1": "Выбрать область 1",
   "Lbl_SelectArea2": "Выбрать область 2",

@@ -64,6 +64,7 @@ namespace RSTGameTranslation
         public const string HOTKEY_AUDIO_SERVICE = "hotkey_audio_service";
         public const string HOTKEY_SWAP_LANGUAGES = "hotkey_swap_languages";
         public const string HOTKEY_RETRY_TRANSLATION = "hotkey_retry_translation";
+        public const string HOTKEY_TOGGLE_EXCLUDE_REGIONS = "hotkey_toggle_exclude_regions";
 
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
@@ -550,6 +551,8 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_AREA_5] = "ALT+5";
             _configValues[HOTKEY_AUDIO_SERVICE] = "ALT+K";
             _configValues[HOTKEY_SWAP_LANGUAGES] = "ALT+V";
+            _configValues[HOTKEY_RETRY_TRANSLATION] = "ALT+T";
+            _configValues[HOTKEY_TOGGLE_EXCLUDE_REGIONS] = "ALT+X";
             _configValues[SHOW_ICON_SIGNAL] = "true";
             _configValues[SEND_DATA_TO_SERVER] = "false";
             _configValues[WINDOWS_OCR_INTEGRATION] = "false";
@@ -1024,6 +1027,10 @@ namespace RSTGameTranslation
             {
                 _configValues[HOTKEY_RETRY_TRANSLATION] = hotKey;
             }
+            else if (functionName == "Select Exclude Region" || functionName == "Toggle Exclude Regions")
+            {
+                _configValues[HOTKEY_TOGGLE_EXCLUDE_REGIONS] = hotKey;
+            }
             SaveConfig();
             Console.WriteLine($"Saving {functionName} to hotkey {hotKey}");
         }
@@ -1098,6 +1105,10 @@ namespace RSTGameTranslation
             else if (functionName == "Retry Translation")
             {
                 return GetValue(HOTKEY_RETRY_TRANSLATION, "ALT+T");
+            }
+            else if (functionName == "Select Exclude Region" || functionName == "Toggle Exclude Regions")
+            {
+                return GetValue(HOTKEY_TOGGLE_EXCLUDE_REGIONS, "ALT+X");
             }
             return GetValue(HOTKEY_START_STOP, "ALT+G");
         }

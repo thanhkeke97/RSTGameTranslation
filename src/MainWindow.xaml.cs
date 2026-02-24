@@ -513,18 +513,17 @@ namespace RSTGameTranslation
                 }
             };
 
-            // Toggle exclude regions hotkey
+            // Select exclude region hotkey
             KeyboardShortcuts.ToggleExcludeRegionsRequested += (s, e) =>
             {
                 try
                 {
-                    bool current = GetShowExcludeRegions();
-                    SetShowExcludeRegions(!current);
-                    Console.WriteLine($"Exclude regions visibility toggled to: {!current}");
+                    ToggleExcludeRegionSelector();
+                    Console.WriteLine("Exclude region selector toggled via hotkey");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error toggling exclude regions via hotkey: {ex.Message}");
+                    Console.WriteLine($"Error selecting exclude region via hotkey: {ex.Message}");
                 }
             };
 

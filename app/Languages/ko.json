@@ -194,6 +194,7 @@
   "Lbl_ClearAllAreas": "모든 영역 지우기",
   "Lbl_ClearSelectedArea": "선택된 영역 지우기",
   "Lbl_ShowAreaBorder": "영역 테두리 표시",
+  "Lbl_SelectExcludeRegion": "제외 영역 선택",
   "Lbl_ToggleChatBox": "채팅 상자 토글",
   "Lbl_SelectArea1": "영역 1 선택",
   "Lbl_SelectArea2": "영역 2 선택",

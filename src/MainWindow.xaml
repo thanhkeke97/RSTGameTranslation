@@ -937,6 +937,15 @@
                                                 </Border>
                                             </Grid>
                                         </Border>
+                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}" 
+                                                           Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
+                                                    <TextBlock x:Name="hotKeyToggleExcludeRegions" Text="ALT + X" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
                                         <!-- Area hotkeys -->
                                         <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
