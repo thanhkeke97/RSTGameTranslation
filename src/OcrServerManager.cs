@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -48,20 +50,23 @@ namespace RSTGameTranslation
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string webserverPath = Path.Combine(baseDirectory, "webserver");
 
-                // Choose the appropriate batch file and working directory based on the OCR method
-                string batchFileName;
+                // Choose server script and virtual environment based on OCR method
+                string serverScriptName;
+                string venvFolderName;
                 string workingDirectory;
                 int targetPort;
 
                 if (ocrMethod == "EasyOCR")
                 {
-                    batchFileName = "RunServerEasyOCR.bat";
+                    serverScriptName = "server_easy.py";
+                    venvFolderName = "ocrstuffeasyocr";
                     workingDirectory = Path.Combine(webserverPath, "EasyOCR");
                     targetPort = SocketManager.Instance.get_EasyOcrPort();
                 }
                 else if (ocrMethod == "PaddleOCR")
                 {
-                    batchFileName = "RunServerPaddleOCR.bat";
+                    serverScriptName = "server_paddle.py";
+                    venvFolderName = "ocrstuffpaddleocr";
                     workingDirectory = Path.Combine(webserverPath, "PaddleOCR");
                     targetPort = SocketManager.Instance.get_PaddleOcrPort();
 
@@ -69,7 +74,8 @@ namespace RSTGameTranslation
                 }
                 else if (ocrMethod == "RapidOCR")
                 {
-                    batchFileName = "RunServerRapidOCR.bat";
+                    serverScriptName = "server_rapid.py";
+                    venvFolderName = "ocrstuffrapidocr";
                     workingDirectory = Path.Combine(webserverPath, "RapidOCR");
                     targetPort = SocketManager.Instance.get_RapidOcrPort();
 
@@ -81,22 +87,66 @@ namespace RSTGameTranslation
                     return false;
                 }
 
-                // Check if batch file exists
-                string batchFilePath = Path.Combine(workingDirectory, batchFileName);
-                if (!File.Exists(batchFilePath))
+                // Preflight check 1: working directory exists
+                if (!Directory.Exists(workingDirectory))
                 {
-                    Console.WriteLine($"File not found: {batchFilePath}");
+                    Console.WriteLine($"Working directory not found: {workingDirectory}");
                     return false;
                 }
+
+                // Preflight check 2: Python executable in venv exists
+                string pythonExecutablePath = Path.Combine(workingDirectory, venvFolderName, "Scripts", "python.exe");
+                if (!File.Exists(pythonExecutablePath))
+                {
+                    Console.WriteLine($"Python executable not found: {pythonExecutablePath}");
+                    return false;
+                }
+
+                // Preflight check 3: server script exists
+                string serverScriptPath = Path.Combine(workingDirectory, serverScriptName);
+                if (!File.Exists(serverScriptPath))
+                {
+                    Console.WriteLine($"Server script not found: {serverScriptPath}");
+                    return false;
+                }
+
+                // Preflight check 4: target port should be free before start
+                if (IsPortInUse(targetPort))
+                {
+                    Console.WriteLine($"Port {targetPort} is already in use. Cannot start {ocrMethod} server.");
+                    return false;
+                }
+
+                string startupLogPath = Path.Combine(workingDirectory, "server_startup.log");
+                var logWriter = new StreamWriter(new FileStream(startupLogPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+                {
+                    AutoFlush = true
+                };
+                object logLock = new object();
+                void WriteStartupLog(string level, string message)
+                {
+                    string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{level}] {message}";
+                    lock (logLock)
+                    {
+                        logWriter.WriteLine(line);
+                    }
+                }
+
+                WriteStartupLog("INFO", "====================================================");
+                WriteStartupLog("INFO", $"Starting OCR server: method={ocrMethod}, port={targetPort}");
+                WriteStartupLog("INFO", $"Python executable: {pythonExecutablePath}");
+                WriteStartupLog("INFO", $"Server script: {serverScriptPath}");
 
                 // Initialize process start info
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {batchFileName}",
+                    FileName = pythonExecutablePath,
+                    Arguments = $"\"{serverScriptPath}\"",
                     WorkingDirectory = workingDirectory,
                     UseShellExecute = false,
-                    CreateNoWindow = false
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
                 };
 
 
@@ -104,15 +154,50 @@ namespace RSTGameTranslation
                 _currentServerProcess = Process.Start(startInfo);
                 if (_currentServerProcess == null)
                 {
+                    WriteStartupLog("ERROR", $"Unable to start OCR server process for {ocrMethod}");
+                    lock (logLock)
+                    {
+                        logWriter.Dispose();
+                    }
                     Console.WriteLine($"Unable to start OCR server process for {ocrMethod}");
                     return false;
                 }
+
+                Process processRef = _currentServerProcess;
+
+                processRef.EnableRaisingEvents = true;
+                processRef.OutputDataReceived += (_, e) =>
+                {
+                    if (!string.IsNullOrWhiteSpace(e.Data))
+                    {
+                        WriteStartupLog("STDOUT", e.Data);
+                    }
+                };
+                processRef.ErrorDataReceived += (_, e) =>
+                {
+                    if (!string.IsNullOrWhiteSpace(e.Data))
+                    {
+                        WriteStartupLog("STDERR", e.Data);
+                    }
+                };
+                processRef.Exited += (_, _) =>
+                {
+                    WriteStartupLog("INFO", $"OCR process exited with code {processRef.ExitCode}");
+                    lock (logLock)
+                    {
+                        logWriter.Dispose();
+                    }
+                };
+
+                processRef.BeginOutputReadLine();
+                processRef.BeginErrorReadLine();
 
                 Console.WriteLine($"⏳ Waiting for {ocrMethod} server on port {targetPort}...");
                 for (int i = 0; i < 90; i++) // 1 minute 30 seconds
                 {
                     if (_currentServerProcess.HasExited)
                     {
+                        WriteStartupLog("ERROR", $"Server exited early with code {_currentServerProcess.ExitCode}");
                         Console.WriteLine($"{ocrMethod} server process exited early with code {_currentServerProcess.ExitCode}");
                         return false;
                     }
@@ -130,18 +215,34 @@ namespace RSTGameTranslation
 
                 if (serverStarted == false)
                 {
+                    WriteStartupLog("ERROR", $"Cannot start {ocrMethod} OCR server (timeout)");
                     Console.WriteLine($"Cannot start {ocrMethod} OCR server (timeout)");
                     timeoutStartServer = true;
                     return false;
                 }
 
 
+                WriteStartupLog("INFO", $"{ocrMethod} server has been started successfully");
                 Console.WriteLine($"{ocrMethod} server has been started");
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error starting OCR server: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static bool IsPortInUse(int port)
+        {
+            try
+            {
+                IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
+                return properties.GetActiveTcpListeners().Any(endpoint => endpoint.Port == port);
+            }
+            catch
+            {
+                // Be conservative: if check fails, treat as available and let startup logic decide.
                 return false;
             }
         }
