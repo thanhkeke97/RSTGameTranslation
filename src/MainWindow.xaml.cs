@@ -2360,30 +2360,38 @@ namespace RSTGameTranslation
                         OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                         OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
 
-                        _ = OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
-                        while (!OcrServerManager.Instance.serverStarted)
+                        bool started = await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
+
+                        if (!started || !OcrServerManager.Instance.serverStarted)
                         {
-                            await Task.Delay(100);
+                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
+                            OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                            OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+
                             if (OcrServerManager.Instance.timeoutStartServer)
                             {
-                                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
                                 System.Windows.MessageBox.Show(
                                     string.Format(LocalizationManager.Instance.Strings["Msg_ServerStartupTimeoutShort"], ocrMethod),
                                     LocalizationManager.Instance.Strings["Title_Error"],
                                     MessageBoxButton.OK,
                                     MessageBoxImage.Error);
-                                break;
                             }
-                        }
-                        if (OcrServerManager.Instance.serverStarted)
-                        {
-                            _ = SocketManager.Instance.TryReconnectAsync();
-                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], ocrMethod));
-
                         }
                         else
                         {
-                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotConnectToServer"], ocrMethod));
+                            bool connected = await SocketManager.Instance.TryReconnectAsync();
+                            if (connected)
+                            {
+                                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], ocrMethod));
+                                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
+                                OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+                            }
+                            else
+                            {
+                                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotConnectToServer"], ocrMethod));
+                                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                                OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+                            }
                         }
                     }
                 }
@@ -3240,39 +3248,39 @@ namespace RSTGameTranslation
                 SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_StartingOcrServer"], ocrMethod));
 
                 // Start the OCR server
-                await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
-                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_StartingOcrServer"], ocrMethod));
-                var startTime = DateTime.Now;
-                while (!OcrServerManager.Instance.serverStarted)
+                bool started = await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
+
+                if (!started || !OcrServerManager.Instance.serverStarted)
                 {
-                    await Task.Delay(100);
+                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
+
                     if (OcrServerManager.Instance.timeoutStartServer)
                     {
-                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
                         System.Windows.MessageBox.Show(
                             string.Format(LocalizationManager.Instance.Strings["Msg_ServerStartupTimeout"], ocrMethod),
                             LocalizationManager.Instance.Strings["Title_Error"],
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
-                        break;
                     }
-                }
-
-
-
-                if (OcrServerManager.Instance.serverStarted)
-                {
-                    UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
-                    // Update socket status
-                    await SocketManager.Instance.TryReconnectAsync();
-                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                 }
                 else
                 {
-                    OcrServerManager.Instance.StopOcrServer();
-                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+                    UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
+                    // Update socket status
+                    bool connected = await SocketManager.Instance.TryReconnectAsync();
+
+                    if (connected)
+                    {
+                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], ocrMethod));
+                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
+                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+                    }
+                    else
+                    {
+                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotConnectToServer"], ocrMethod));
+                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+                    }
                 }
 
             }
