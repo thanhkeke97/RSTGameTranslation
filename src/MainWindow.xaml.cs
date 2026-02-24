@@ -1360,7 +1360,7 @@ namespace RSTGameTranslation
             }
         }
 
-        private void OnStartButtonToggleClicked(object sender, RoutedEventArgs e)
+        private async void OnStartButtonToggleClicked(object sender, RoutedEventArgs e)
         {
             System.Windows.Controls.Button btn = (System.Windows.Controls.Button)sender;
             String method = ConfigManager.Instance.GetOcrMethod();
@@ -1373,9 +1373,27 @@ namespace RSTGameTranslation
             }
             else
             {
-                // EasyOCR, RapidOCR and PaddleOCR need connect to server
-                isReady = socketStatusText != null &&
-                        (socketStatusText.Text == $"Successfully connected to {method} server");
+                // EasyOCR, RapidOCR and PaddleOCR: use real socket state instead of status text
+                isReady = SocketManager.Instance.IsConnected;
+
+                // If server might have been started manually, attempt reconnect once before warning
+                if (!isReady)
+                {
+                    try
+                    {
+                        isReady = await SocketManager.Instance.TryReconnectAsync();
+                        if (isReady)
+                        {
+                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], method));
+                            OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
+                            OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error reconnecting to OCR server before start: {ex.Message}");
+                    }
+                }
             }
 
             if (isStarted)
@@ -3680,13 +3698,6 @@ namespace RSTGameTranslation
 
             // Update button status
             btnStopOcrServer.IsEnabled = isConnected;
-
-            // Update status text
-            if (isConnected)
-            {
-                string ocrMethod = GetSelectedOcrMethod();
-                SetStatus($"Successfully connected to {ocrMethod} server");
-            }
         }
 
         private void SelectWindowButton_Click(object sender, RoutedEventArgs e)
