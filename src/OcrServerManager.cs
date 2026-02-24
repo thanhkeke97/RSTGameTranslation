@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace RSTGameTranslation
@@ -36,11 +37,12 @@ namespace RSTGameTranslation
         /// </summary>
         public async Task<bool> StartOcrServerAsync(string ocrMethod)
         {
-            string flagFile = "";
             try
             {
                 // Stop the current OCR server if it's running
                 StopOcrServer();
+                serverStarted = false;
+                timeoutStartServer = false;
 
                 // Get the base directory of the application
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -49,36 +51,19 @@ namespace RSTGameTranslation
                 // Choose the appropriate batch file and working directory based on the OCR method
                 string batchFileName;
                 string workingDirectory;
+                int targetPort;
 
                 if (ocrMethod == "EasyOCR")
                 {
                     batchFileName = "RunServerEasyOCR.bat";
                     workingDirectory = Path.Combine(webserverPath, "EasyOCR");
-                    flagFile = Path.Combine(Path.GetTempPath(), "easyocr_ready.txt");
-                    try
-                    {
-                        File.Delete(flagFile);
-                        Console.WriteLine("Delete temp file success");
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Delete temp file fail {e.Message}");
-                    }
+                    targetPort = SocketManager.Instance.get_EasyOcrPort();
                 }
                 else if (ocrMethod == "PaddleOCR")
                 {
                     batchFileName = "RunServerPaddleOCR.bat";
                     workingDirectory = Path.Combine(webserverPath, "PaddleOCR");
-                    flagFile = Path.Combine(Path.GetTempPath(), "paddleocr_ready.txt");
-                    try
-                    {
-                        File.Delete(flagFile);
-                        Console.WriteLine("Delete temp file success");
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Delete temp file fail {e.Message}");
-                    }
+                    targetPort = SocketManager.Instance.get_PaddleOcrPort();
 
 
                 }
@@ -86,16 +71,7 @@ namespace RSTGameTranslation
                 {
                     batchFileName = "RunServerRapidOCR.bat";
                     workingDirectory = Path.Combine(webserverPath, "RapidOCR");
-                    flagFile = Path.Combine(Path.GetTempPath(), "rapidocr_ready.txt");
-                    try
-                    {
-                        File.Delete(flagFile);
-                        Console.WriteLine("Delete temp file success");
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Delete temp file fail {e.Message}");
-                    }
+                    targetPort = SocketManager.Instance.get_RapidOcrPort();
 
 
                 }
@@ -126,12 +102,22 @@ namespace RSTGameTranslation
 
                 // Starting process
                 _currentServerProcess = Process.Start(startInfo);
-                timeoutStartServer = false;
-                // Wait for flag file
-                Console.WriteLine("⏳ Waiting for ready flag...");
+                if (_currentServerProcess == null)
+                {
+                    Console.WriteLine($"Unable to start OCR server process for {ocrMethod}");
+                    return false;
+                }
+
+                Console.WriteLine($"⏳ Waiting for {ocrMethod} server on port {targetPort}...");
                 for (int i = 0; i < 90; i++) // 1 minute 30 seconds
                 {
-                    if (File.Exists(flagFile))
+                    if (_currentServerProcess.HasExited)
+                    {
+                        Console.WriteLine($"{ocrMethod} server process exited early with code {_currentServerProcess.ExitCode}");
+                        return false;
+                    }
+
+                    if (await IsPortOpenAsync("127.0.0.1", targetPort, 1000))
                     {
                         Console.WriteLine($"✅ {ocrMethod} READY!");
                         serverStarted = true;
@@ -139,14 +125,12 @@ namespace RSTGameTranslation
                     }
 
                     await Task.Delay(1000);
-
-                    if (i % 1 == 0)
-                        Console.WriteLine($"Still waiting... {i}s");
+                    Console.WriteLine($"Still waiting... {i + 1}s");
                 }
 
                 if (serverStarted == false)
                 {
-                    Console.WriteLine("Cannot start OCR server");
+                    Console.WriteLine($"Cannot start {ocrMethod} OCR server (timeout)");
                     timeoutStartServer = true;
                     return false;
                 }
@@ -158,6 +142,28 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error starting OCR server: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static async Task<bool> IsPortOpenAsync(string host, int port, int timeoutMs)
+        {
+            using TcpClient tcpClient = new TcpClient();
+            try
+            {
+                Task connectTask = tcpClient.ConnectAsync(host, port);
+                Task completedTask = await Task.WhenAny(connectTask, Task.Delay(timeoutMs));
+                if (completedTask != connectTask)
+                {
+                    return false;
+                }
+
+                // Ensure exceptions from ConnectAsync are observed
+                await connectTask;
+                return tcpClient.Connected;
+            }
+            catch
+            {
                 return false;
             }
         }
