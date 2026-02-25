@@ -776,6 +776,7 @@
                                     <ComboBoxItem Content="ChatGPT"/>
                                     <ComboBoxItem Content="Mistral"/>
                                     <ComboBoxItem Content="Google Translate"/>
+                                    <ComboBoxItem Content="Yandex"/>
                                     <ComboBoxItem Content="LM Studio"/>
                                     <ComboBoxItem Content="Microsoft"/>
                                     <ComboBoxItem Content="Custom API"/>

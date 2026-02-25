@@ -2515,7 +2515,7 @@ namespace RSTGameTranslation
 
                 if (isGoogleTranslate)
                 {
-                    Console.WriteLine("Google Translate response detected");
+                    Console.WriteLine("Translation response with 'translations' format detected (Google Translate / Yandex / compatible)");
                     using JsonDocument doc = JsonDocument.Parse(innerContent);
                     ProcessGoogleTranslateJson(doc.RootElement);
                     return;
@@ -2941,8 +2941,8 @@ namespace RSTGameTranslation
                         }
                     }
                 }
-                // Google Translate format: {"translations": [...]}
-                else if (currentService == "Google Translate")
+                // Google Translate / Yandex format: {"translations": [...]}
+                else if (currentService == "Google Translate" || currentService == "Yandex")
                 {
                     if (root.TryGetProperty("translations", out JsonElement _))
                     {

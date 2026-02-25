@@ -327,6 +327,7 @@ namespace RSTGameTranslation
             // Populate translation service dropdown
             TranslationServiceComboBox.Items.Clear();
             TranslationServiceComboBox.Items.Add("Google Translate");
+            TranslationServiceComboBox.Items.Add("Yandex");
             TranslationServiceComboBox.Items.Add("ChatGPT");
             TranslationServiceComboBox.Items.Add("Gemini");
             TranslationServiceComboBox.Items.Add("Groq");
@@ -340,6 +341,9 @@ namespace RSTGameTranslation
             {
                 case "google translate":
                     TranslationServiceComboBox.SelectedItem = "Google Translate";
+                    break;
+                case "yandex":
+                    TranslationServiceComboBox.SelectedItem = "Yandex";
                     break;
                 case "chatgpt":
                     TranslationServiceComboBox.SelectedItem = "ChatGPT";
@@ -777,6 +781,9 @@ namespace RSTGameTranslation
             {
                 case "googletranslate":
                     TranslationServiceSummaryText.Text = "Google Translate";
+                    break;
+                case "yandex":
+                    TranslationServiceSummaryText.Text = "Yandex";
                     break;
                 case "chatgpt":
                     TranslationServiceSummaryText.Text = "ChatGPT";

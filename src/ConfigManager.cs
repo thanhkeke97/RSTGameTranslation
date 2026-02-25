@@ -1245,7 +1245,7 @@ namespace RSTGameTranslation
         // Set current translation service
         public void SetTranslationService(string service)
         {
-            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Mistral" || service == "LM Studio" || service == "Microsoft" || service == "Groq" || service == "Custom API")
+            if (service == "Gemini" || service == "Ollama" || service == "ChatGPT" || service == "Google Translate" || service == "Yandex" || service == "Mistral" || service == "LM Studio" || service == "Microsoft" || service == "Groq" || service == "Custom API")
             {
                 _currentTranslationService = service;
                 _configValues[TRANSLATION_SERVICE] = service;
@@ -1398,8 +1398,8 @@ namespace RSTGameTranslation
         // Get prompt for specific translation service
         public string GetServicePrompt(string service)
         {
-            // Google Translate doesn't use prompts
-            if (service == "Google Translate")
+            // Google Translate/Yandex don't use prompts
+            if (service == "Google Translate" || service == "Yandex")
             {
                 return "";
             }
@@ -1463,8 +1463,8 @@ namespace RSTGameTranslation
         // Save prompt for specific translation service
         public bool SaveServicePrompt(string service, string prompt)
         {
-            // Google Translate doesn't use prompts
-            if (service == "Google Translate")
+            // Google Translate/Yandex don't use prompts
+            if (service == "Google Translate" || service == "Yandex")
             {
                 return true;
             }

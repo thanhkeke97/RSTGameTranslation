@@ -1795,6 +1795,7 @@ namespace RSTGameTranslation
                 bool isChatGptSelected = selectedService == "ChatGPT";
                 bool isMistralSelected = selectedService == "Mistral";
                 bool isGoogleTranslateSelected = selectedService == "Google Translate";
+                bool isYandexSelected = selectedService == "Yandex";
                 bool isGroqSelected = selectedService == "Groq";
                 bool isMicrosoftSelected = selectedService == "Microsoft";
 
@@ -1896,8 +1897,8 @@ namespace RSTGameTranslation
                 googleTranslateMappingLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateMappingCheckBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
 
-                // Hide prompt template for Google Translate or Microsoft
-                bool showPromptTemplate = !isGoogleTranslateSelected && !isMicrosoftSelected;
+                // Hide prompt template for Google Translate / Yandex / Microsoft
+                bool showPromptTemplate = !isGoogleTranslateSelected && !isYandexSelected && !isMicrosoftSelected;
 
                 // API key is only visible for Google Translate if Cloud API is selected
                 bool showGoogleTranslateApiKey = isGoogleTranslateSelected &&
