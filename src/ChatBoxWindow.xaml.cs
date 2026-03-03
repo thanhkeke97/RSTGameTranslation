@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -955,7 +956,7 @@ namespace RSTGameTranslation
                 UpdateChatHistory();
 
                 // Save the new font size to config
-                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, ChatFontSize.ToString());
+                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, ChatFontSize.ToString(CultureInfo.InvariantCulture));
                 ConfigManager.Instance.SaveConfig();
 
                 // Create and start the flash animation for visual feedback
@@ -978,7 +979,7 @@ namespace RSTGameTranslation
                 UpdateChatHistory();
 
                 // Save the new font size to config
-                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, ChatFontSize.ToString());
+                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, ChatFontSize.ToString(CultureInfo.InvariantCulture));
                 ConfigManager.Instance.SaveConfig();
 
                 // Create and start the flash animation for visual feedback

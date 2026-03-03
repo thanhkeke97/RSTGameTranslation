@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -152,7 +153,7 @@ namespace RSTGameTranslation
                 
                 // Update font size
                 fontSizeSlider.Value = _currentFontSize;
-                fontSizeText.Text = _currentFontSize.ToString();
+                fontSizeText.Text = _currentFontSize.ToString(CultureInfo.InvariantCulture);
                 
                 // Update original text color
                 originalTextColorButton.Background = new SolidColorBrush(_currentOriginalTextColor);
@@ -268,7 +269,7 @@ namespace RSTGameTranslation
             if (fontSizeText != null)
             {
                 _currentFontSize = Math.Round(fontSizeSlider.Value);
-                fontSizeText.Text = _currentFontSize.ToString();
+                fontSizeText.Text = _currentFontSize.ToString(CultureInfo.InvariantCulture);
             }
         }
 
@@ -363,10 +364,10 @@ namespace RSTGameTranslation
                 // Save settings to config
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_BACKGROUND_COLOR, ColorToHexString(
                     Color.FromArgb(255, _currentBackgroundColor.R, _currentBackgroundColor.G, _currentBackgroundColor.B)));
-                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_BACKGROUND_OPACITY, _currentBackgroundOpacity.ToString());
-                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_WINDOW_OPACITY, _currentWindowOpacity.ToString());
+                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_BACKGROUND_OPACITY, _currentBackgroundOpacity.ToString(CultureInfo.InvariantCulture));
+                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_WINDOW_OPACITY, _currentWindowOpacity.ToString(CultureInfo.InvariantCulture));
                 ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_FAMILY, _currentFontFamily);
-                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, _currentFontSize.ToString());
+                ConfigManager.Instance.SetValue(ConfigManager.CHATBOX_FONT_SIZE, _currentFontSize.ToString(CultureInfo.InvariantCulture));
                 ConfigManager.Instance.SetValue(ConfigManager.AUTO_CLEAR_CHAT_HISTORY, _currentAutoClearChatboxHistory.ToString());
                 ConfigManager.Instance.SetAutoClearChatTimeout(_currentAutoClearChatTimeout);
                 ConfigManager.Instance.SetChatboxRecreateOnShow(_currentRecreateChatbox);

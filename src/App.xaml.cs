@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -18,6 +19,12 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Force invariant culture for all threads to prevent locale-dependent
+        // number formatting (e.g. comma vs period decimal separator) from
+        // corrupting config values and other serialized data.
+        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
         // Apply theme
         ThemeManager.ApplyTheme(ConfigManager.Instance.IsDarkModeEnabled());
