@@ -462,11 +462,12 @@ namespace RSTGameTranslation
                     screenHeight
                 );
                 
-                // Store the DPI scale at the time of selection for future reference
-                DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY);
-                
                 // Get current screen index for metadata
                 int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
+                
+                // Store the DPI scale at the time of selection for future reference
+                DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY, screenIndex);
+                
                 var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
                 
                 // Notify listeners

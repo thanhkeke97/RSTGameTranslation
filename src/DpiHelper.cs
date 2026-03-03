@@ -18,8 +18,17 @@ namespace RSTGameTranslation
         [DllImport("user32.dll")]
         static extern bool GetCursorPos(out System.Drawing.Point lpPoint);
         
+        [DllImport("user32.dll")]
+        static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+        
+        [DllImport("user32.dll")]
+        static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        
         private const int MDT_EFFECTIVE_DPI = 0;
         private const uint MONITOR_DEFAULTTONEAREST = 2;
+        private const uint SWP_NOZORDER = 0x0004;
+        private const uint SWP_NOACTIVATE = 0x0010;
+        private const uint SWP_NOOWNERZORDER = 0x0200;
         
         // Cache DPI per screen to handle multi-monitor setups with different DPI
         private static double _cachedDpiScaleX = -1;
@@ -157,12 +166,26 @@ namespace RSTGameTranslation
         /// <summary>
         /// Set known DPI scale (used when capturing a region)
         /// </summary>
-        public static void SetKnownDpiScale(double dpiScaleX, double dpiScaleY)
+        public static void SetKnownDpiScale(double dpiScaleX, double dpiScaleY, int screenIndex = -1)
         {
             _cachedDpiScaleX = dpiScaleX;
             _cachedDpiScaleY = dpiScaleY;
             _cacheTimestamp = DateTime.Now;
-            Console.WriteLine($"DpiHelper: Set known DPI scale: {dpiScaleX:F2}x, {dpiScaleY:F2}y");
+            
+            // Also update the screen index so the cache isn't immediately invalidated
+            if (screenIndex >= 0)
+            {
+                _lastScreenIndex = screenIndex;
+            }
+            else
+            {
+                // Try to determine from cursor position as fallback
+                System.Drawing.Point cursorPos;
+                GetCursorPos(out cursorPos);
+                _lastScreenIndex = GetScreenIndexFromPoint(cursorPos);
+            }
+            
+            Console.WriteLine($"DpiHelper: Set known DPI scale: {dpiScaleX:F2}x, {dpiScaleY:F2}y (screen index: {_lastScreenIndex})");
         }
         
         /// <summary>
@@ -221,6 +244,55 @@ namespace RSTGameTranslation
                 logicalRect.Width * scaleX,
                 logicalRect.Height * scaleY
             );
+        }
+        
+        /// <summary>
+        /// Get DPI scaling for a specific window handle.
+        /// Uses MonitorFromWindow to reliably determine which monitor the window is on,
+        /// independent of cursor position.
+        /// </summary>
+        public static void GetDpiForWindowHandle(IntPtr hwnd, out double scaleX, out double scaleY)
+        {
+            try
+            {
+                if (hwnd == IntPtr.Zero)
+                {
+                    GetCurrentScreenDpi(out scaleX, out scaleY);
+                    return;
+                }
+                
+                IntPtr monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+                uint dpiX, dpiY;
+                GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, out dpiX, out dpiY);
+                
+                scaleX = dpiX / 96.0;
+                scaleY = dpiY / 96.0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DpiHelper: Error getting DPI for window handle: {ex.Message}");
+                scaleX = 1.0;
+                scaleY = 1.0;
+            }
+        }
+        
+        /// <summary>
+        /// Position a window using physical screen pixel coordinates via Win32 SetWindowPos.
+        /// This bypasses WPF's coordinate system which can misinterpret positions on
+        /// non-primary monitors with different DPI scaling.
+        /// </summary>
+        public static void PositionWindowPhysical(IntPtr hwnd, int x, int y, int width, int height)
+        {
+            if (hwnd == IntPtr.Zero)
+            {
+                Console.WriteLine("DpiHelper: Cannot position window - handle is null");
+                return;
+            }
+            
+            SetWindowPos(hwnd, IntPtr.Zero, x, y, width, height,
+                SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+            
+            Console.WriteLine($"DpiHelper: Positioned window at physical ({x}, {y}, {width}x{height})");
         }
         
         /// <summary>

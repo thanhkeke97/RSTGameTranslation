@@ -466,10 +466,21 @@ namespace RSTGameTranslation
 
         public void GetDpiScale()
         {
-            DpiHelper.GetCurrentScreenDpi(out double scaleX, out double scaleY);
-            dpiScale = scaleX;
+            // Use MonitorFromWindow to get DPI based on actual window position,
+            // not cursor position. This avoids wrong DPI at screen boundaries.
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd != IntPtr.Zero)
+            {
+                DpiHelper.GetDpiForWindowHandle(hwnd, out double scaleX, out double scaleY);
+                dpiScale = scaleX;
+            }
+            else
+            {
+                DpiHelper.GetCurrentScreenDpi(out double scaleX, out double scaleY);
+                dpiScale = scaleX;
+            }
 
-            Console.WriteLine($"MonitorWindow: Got DPI scale from DpiHelper: {dpiScale:F2}x");
+            Console.WriteLine($"MonitorWindow: Got DPI scale: {dpiScale:F2}x");
         }
         
         /// <summary>
@@ -477,8 +488,12 @@ namespace RSTGameTranslation
         /// </summary>
         private void MonitorWindow_LocationChanged(object? sender, EventArgs e)
         {
-            // Get current DPI scale
-            DpiHelper.GetCurrentScreenDpi(out double currentScaleX, out double currentScaleY);
+            // Use MonitorFromWindow to get DPI based on actual window position,
+            // not cursor position. This avoids wrong DPI at screen boundaries.
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            
+            DpiHelper.GetDpiForWindowHandle(hwnd, out double currentScaleX, out double currentScaleY);
             
             // Check if DPI has changed significantly
             if (Math.Abs(currentScaleX - dpiScale) > 0.01)

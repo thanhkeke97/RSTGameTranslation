@@ -1035,34 +1035,28 @@ namespace RSTGameTranslation
         {
             if (!hasSelectedTranslationArea) return;
 
-            // Use the DPI scale stored in TranslationAreaInfo at capture time
-            // This ensures we use the correct DPI even if cursor is on a different screen
-            double dpiScaleX = selectedTranslationArea.DpiScaleX;
-            double dpiScaleY = selectedTranslationArea.DpiScaleY;
-            
-            Console.WriteLine($"Using stored DPI scale from TranslationAreaInfo: {dpiScaleX:F2}x/{dpiScaleY:F2}y");
-
-            // Place the MonitorWindow exactly at the position of the selected area
-            // Convert from physical pixels to logical pixels (WPF units)
-            MonitorWindow.Instance.Left = selectedTranslationArea.X / dpiScaleX;
-            MonitorWindow.Instance.Top = selectedTranslationArea.Y / dpiScaleY;
-
-            // Set the size of the MonitorWindow to match the size of the selected area
-            MonitorWindow.Instance.Width = selectedTranslationArea.Width / dpiScaleX;
-            MonitorWindow.Instance.Height = selectedTranslationArea.Height / dpiScaleY;
-
-            // Save the new position for future display
-            monitorWindowLeft = selectedTranslationArea.X / dpiScaleX;
-            monitorWindowTop = selectedTranslationArea.Y / dpiScaleY;
-
-            // Show the MonitorWindow if it is not already displayed
+            // Show the MonitorWindow first if it is not already displayed (need handle for SetWindowPos)
             if (!MonitorWindow.Instance.IsVisible)
             {
                 MonitorWindow.Instance.Show();
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
             }
 
-            Console.WriteLine($"MonitorWindow positioned at: Left={MonitorWindow.Instance.Left:F2}, Top={MonitorWindow.Instance.Top:F2}, Width={MonitorWindow.Instance.Width:F2}, Height={MonitorWindow.Instance.Height:F2} (DPI scale: {dpiScaleX:F2}x/{dpiScaleY:F2}y)");
+            // Use SetWindowPos with physical pixel coordinates to bypass WPF's coordinate system.
+            // WPF Left/Top division by DPI fails on non-primary monitors because the divided value
+            // can land on the wrong screen (e.g., physical X=2000 / 1.5 = 1333, which is on screen 0 not screen 1).
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(MonitorWindow.Instance).Handle;
+            DpiHelper.PositionWindowPhysical(hwnd,
+                (int)selectedTranslationArea.X,
+                (int)selectedTranslationArea.Y,
+                (int)selectedTranslationArea.Width,
+                (int)selectedTranslationArea.Height);
+
+            // Save physical position for future reference
+            monitorWindowLeft = selectedTranslationArea.X;
+            monitorWindowTop = selectedTranslationArea.Y;
+
+            Console.WriteLine($"MonitorWindow positioned at physical: X={selectedTranslationArea.X}, Y={selectedTranslationArea.Y}, W={selectedTranslationArea.Width}, H={selectedTranslationArea.Height}");
         }
 
         // Add method for show/hide the main window
@@ -1256,29 +1250,28 @@ namespace RSTGameTranslation
         // Update MonitorWindow position
         private void UpdateMonitorWindowPosition()
         {
-            // Always use DPI from the selected screen in config for consistency
-            // This ensures MonitorWindow is positioned correctly regardless of cursor position
-            DpiHelper.GetDpiForSelectedScreen(out double dpiScaleX, out double dpiScaleY);
-            
-            if (dpiScaleX <= 0)
+            // Use SetWindowPos with physical pixel coordinates to bypass WPF's coordinate system.
+            // WPF Left/Top division by DPI fails on non-primary monitors because the divided value
+            // can land on the wrong screen (e.g., physical X=2000 / 1.5 = 1333, which is on screen 0 not screen 1).
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(MonitorWindow.Instance).Handle;
+            if (hwnd == IntPtr.Zero)
             {
-                dpiScaleX = 1.0;
-                Console.WriteLine("Warning: DPI scale was 0 or negative, using default value 1.0");
+                Console.WriteLine("UpdateMonitorWindowPosition: MonitorWindow handle not available yet");
+                return;
             }
-            // Place the MonitorWindow exactly at the position of the capture area
-            // Convert from physical pixels to logical pixels (WPF units)
-            MonitorWindow.Instance.Left = captureRect.Left / dpiScaleX;
-            MonitorWindow.Instance.Top = captureRect.Top / dpiScaleY;
+            
+            int physX = captureRect.Left;
+            int physY = captureRect.Top;
+            int physW = Math.Max(1, captureRect.Width);
+            int physH = Math.Max(1, captureRect.Height);
+            
+            DpiHelper.PositionWindowPhysical(hwnd, physX, physY, physW, physH);
 
-            // Set the size of the MonitorWindow to match the size of the capture area
-            MonitorWindow.Instance.Width = Math.Max(1.0, captureRect.Width / dpiScaleX);
-            MonitorWindow.Instance.Height = Math.Max(1.0, captureRect.Height / dpiScaleY);
+            // Save physical position for future reference
+            monitorWindowLeft = physX;
+            monitorWindowTop = physY;
 
-            // Save the new position for future display
-            monitorWindowLeft = captureRect.Left / dpiScaleX;
-            monitorWindowTop = captureRect.Top / dpiScaleY;
-
-            Console.WriteLine($"MonitorWindow positioned at: Left={MonitorWindow.Instance.Left:F2}, Top={MonitorWindow.Instance.Top:F2}, Width={MonitorWindow.Instance.Width:F2}, Height={MonitorWindow.Instance.Height:F2} (DPI scale: {dpiScaleX:F2}x/{dpiScaleY:F2}y)");
+            Console.WriteLine($"MonitorWindow positioned at physical: X={physX}, Y={physY}, W={physW}, H={physH}");
         }
 
         private void UpdateCaptureRect()

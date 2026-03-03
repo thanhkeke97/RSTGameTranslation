@@ -382,7 +382,7 @@ namespace RSTGameTranslation
                 );
                 return;
             }
-            DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY);
+            DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY, ConfigManager.Instance.GetSelectedScreenIndex());
             
             // Convert window coordinates to screen coordinates
             // This ensures we use the actual screen coordinates for positioning
