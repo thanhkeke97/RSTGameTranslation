@@ -3,7 +3,7 @@
 # 🎮 RSTGameTranslation
 ### Phần mềm Dịch Màn hình Game Thời gian thực
 
-[![Phiên bản](https://img.shields.io/badge/version-4.5-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
+[![Phiên bản](https://img.shields.io/badge/version-4.6-blue.svg)](https://github.com/thanhkeke97/RSTGameTranslation/releases)
 [![Giấy phép](https://img.shields.io/badge/license-BSD-green.svg)](LICENSE.md)
 [![Nền tảng](https://img.shields.io/badge/platform-Windows%2010+-lightgrey.svg)]()
 
