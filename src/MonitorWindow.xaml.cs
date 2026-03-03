@@ -653,17 +653,17 @@ namespace RSTGameTranslation
                 // Check if we're in Select Window mode
                 bool isSelectingWindow = MainWindow.Instance.GetIsCapturingWindow();
 
-                // Get MonitorWindow's screen position (in physical pixels) and DPI scale
-                // WPF Left/Top are in device-independent pixels (1/96 inch)
-                // To get physical pixels, multiply by DPI scale
-                double monitorLeftPhysical = this.Left * this.dpiScale;
-                double monitorTopPhysical = this.Top * this.dpiScale;
-                double monitorWidthPhysical = this.Width * this.dpiScale;
-                double monitorHeightPhysical = this.Height * this.dpiScale;
+                // Get MonitorWindow's physical screen position via Win32 GetWindowRect
+                // This is reliable regardless of DPI — no WPF coordinate conversion needed
+                IntPtr hwnd = new WindowInteropHelper(this).Handle;
+                var (physLeft, physTop, physWidth, physHeight) = DpiHelper.GetWindowPhysicalRect(hwnd);
+                
+                // Get DPI scale for converting physical sizes to canvas (logical) units
+                DpiHelper.GetDpiForWindowHandle(hwnd, out double dpiScaleX, out double dpiScaleY);
 
                 Console.WriteLine($"=== DrawExcludeRegions ===");
                 Console.WriteLine($"isSelectingWindow: {isSelectingWindow}");
-                Console.WriteLine($"MonitorWindow (physical): Left={monitorLeftPhysical}, Top={monitorTopPhysical}, W={monitorWidthPhysical}, H={monitorHeightPhysical}, dpiScale={this.dpiScale}");
+                Console.WriteLine($"MonitorWindow (physical): Left={physLeft}, Top={physTop}, W={physWidth}, H={physHeight}, dpiScale={dpiScaleX:F2}x/{dpiScaleY:F2}y");
 
                 // Draw each exclude region
                 int regionIndex = 0;
@@ -672,18 +672,18 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Region[{regionIndex}]: Screen X={region.X}, Y={region.Y}, W={region.Width}, H={region.Height}");
 
                     // Check if region is within MonitorWindow bounds (in physical pixels)
-                    bool isInBounds = region.X >= monitorLeftPhysical &&
-                                     region.Y >= monitorTopPhysical &&
-                                     (region.X + region.Width) <= (monitorLeftPhysical + monitorWidthPhysical) &&
-                                     (region.Y + region.Height) <= (monitorTopPhysical + monitorHeightPhysical);
+                    bool isInBounds = region.X >= physLeft &&
+                                     region.Y >= physTop &&
+                                     (region.X + region.Width) <= (physLeft + physWidth) &&
+                                     (region.Y + region.Height) <= (physTop + physHeight);
                     Console.WriteLine($"  -> In bounds: {isInBounds}");
 
                     // Create a border for the exclude region
                     // Canvas uses device-independent pixels, so we need to convert from physical pixels
                     System.Windows.Shapes.Rectangle excludeRect = new System.Windows.Shapes.Rectangle
                     {
-                        Width = region.Width / this.dpiScale,  // Convert physical to logical
-                        Height = region.Height / this.dpiScale,
+                        Width = region.Width / dpiScaleX,  // Convert physical to logical
+                        Height = region.Height / dpiScaleY,
                         Stroke = System.Windows.Media.Brushes.Red,
                         StrokeThickness = 3,
                         Fill = System.Windows.Media.Brushes.Transparent,
@@ -691,8 +691,8 @@ namespace RSTGameTranslation
                     };
 
                     // Calculate position - convert from screen coordinates (physical) to canvas coordinates (logical)
-                    double canvasX = (region.X - monitorLeftPhysical) / this.dpiScale;
-                    double canvasY = (region.Y - monitorTopPhysical) / this.dpiScale;
+                    double canvasX = (region.X - physLeft) / dpiScaleX;
+                    double canvasY = (region.Y - physTop) / dpiScaleY;
 
                     Console.WriteLine($"  -> Canvas (logical): X={canvasX}, Y={canvasY}");
 

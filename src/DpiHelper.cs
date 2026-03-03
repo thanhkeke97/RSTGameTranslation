@@ -24,6 +24,18 @@ namespace RSTGameTranslation
         [DllImport("user32.dll")]
         static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
         
+        [DllImport("user32.dll")]
+        static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+        
         private const int MDT_EFFECTIVE_DPI = 0;
         private const uint MONITOR_DEFAULTTONEAREST = 2;
         private const uint SWP_NOZORDER = 0x0004;
@@ -293,6 +305,19 @@ namespace RSTGameTranslation
                 SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
             
             Console.WriteLine($"DpiHelper: Positioned window at physical ({x}, {y}, {width}x{height})");
+        }
+        
+        /// <summary>
+        /// Get the physical screen-pixel bounding rectangle of a window via Win32 GetWindowRect.
+        /// Returns (left, top, width, height) in physical pixels.
+        /// </summary>
+        public static (int Left, int Top, int Width, int Height) GetWindowPhysicalRect(IntPtr hwnd)
+        {
+            if (hwnd == IntPtr.Zero)
+                return (0, 0, 0, 0);
+            
+            GetWindowRect(hwnd, out RECT rect);
+            return (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
         }
         
         /// <summary>
