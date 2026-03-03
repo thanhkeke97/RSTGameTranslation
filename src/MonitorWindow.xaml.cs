@@ -80,6 +80,9 @@ namespace RSTGameTranslation
             // Add loaded event handler
             this.Loaded += MonitorWindow_Loaded;
 
+            // Add location changed handler to update DPI scale when window moves between monitors
+            this.LocationChanged += MonitorWindow_LocationChanged;
+
             // Add size changed handler to update scrollbars
             // this.SizeChanged += MonitorWindow_SizeChanged;
 
@@ -463,12 +466,29 @@ namespace RSTGameTranslation
 
         public void GetDpiScale()
         {
-
             DpiHelper.GetCurrentScreenDpi(out double scaleX, out double scaleY);
-            dpiScale = scaleX; 
+            dpiScale = scaleX;
 
             Console.WriteLine($"MonitorWindow: Got DPI scale from DpiHelper: {dpiScale:F2}x");
-
+        }
+        
+        /// <summary>
+        /// Handle window location change - update DPI scale when window moves between monitors
+        /// </summary>
+        private void MonitorWindow_LocationChanged(object? sender, EventArgs e)
+        {
+            // Get current DPI scale
+            DpiHelper.GetCurrentScreenDpi(out double currentScaleX, out double currentScaleY);
+            
+            // Check if DPI has changed significantly
+            if (Math.Abs(currentScaleX - dpiScale) > 0.01)
+            {
+                Console.WriteLine($"MonitorWindow: DPI scale changed from {dpiScale:F2}x to {currentScaleX:F2}x");
+                dpiScale = currentScaleX;
+                
+                // Refresh overlays to update positions
+                RefreshOverlays();
+            }
         }
         
         // Handle TextObject added event
@@ -618,15 +638,17 @@ namespace RSTGameTranslation
                 // Check if we're in Select Window mode
                 bool isSelectingWindow = MainWindow.Instance.GetIsCapturingWindow();
 
-                // Get MonitorWindow's screen position and DPI scale
-                double monitorLeft = this.Left * this.dpiScale;
-                double monitorTop = this.Top * this.dpiScale;
-                double monitorWidth = this.Width * this.dpiScale;
-                double monitorHeight = this.Height * this.dpiScale;
+                // Get MonitorWindow's screen position (in physical pixels) and DPI scale
+                // WPF Left/Top are in device-independent pixels (1/96 inch)
+                // To get physical pixels, multiply by DPI scale
+                double monitorLeftPhysical = this.Left * this.dpiScale;
+                double monitorTopPhysical = this.Top * this.dpiScale;
+                double monitorWidthPhysical = this.Width * this.dpiScale;
+                double monitorHeightPhysical = this.Height * this.dpiScale;
 
                 Console.WriteLine($"=== DrawExcludeRegions ===");
                 Console.WriteLine($"isSelectingWindow: {isSelectingWindow}");
-                Console.WriteLine($"MonitorWindow: Left={monitorLeft}, Top={monitorTop}, W={monitorWidth}, H={monitorHeight}, dpiScale={this.dpiScale}");
+                Console.WriteLine($"MonitorWindow (physical): Left={monitorLeftPhysical}, Top={monitorTopPhysical}, W={monitorWidthPhysical}, H={monitorHeightPhysical}, dpiScale={this.dpiScale}");
 
                 // Draw each exclude region
                 int regionIndex = 0;
@@ -634,29 +656,30 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Region[{regionIndex}]: Screen X={region.X}, Y={region.Y}, W={region.Width}, H={region.Height}");
 
-                    // Check if region is within MonitorWindow bounds
-                    bool isInBounds = region.X >= monitorLeft && 
-                                     region.Y >= monitorTop &&
-                                     (region.X + region.Width) <= (monitorLeft + monitorWidth) &&
-                                     (region.Y + region.Height) <= (monitorTop + monitorHeight);
+                    // Check if region is within MonitorWindow bounds (in physical pixels)
+                    bool isInBounds = region.X >= monitorLeftPhysical &&
+                                     region.Y >= monitorTopPhysical &&
+                                     (region.X + region.Width) <= (monitorLeftPhysical + monitorWidthPhysical) &&
+                                     (region.Y + region.Height) <= (monitorTopPhysical + monitorHeightPhysical);
                     Console.WriteLine($"  -> In bounds: {isInBounds}");
 
                     // Create a border for the exclude region
+                    // Canvas uses device-independent pixels, so we need to convert from physical pixels
                     System.Windows.Shapes.Rectangle excludeRect = new System.Windows.Shapes.Rectangle
                     {
-                        Width = region.Width / this.dpiScale,  // Scale to canvas coordinates
+                        Width = region.Width / this.dpiScale,  // Convert physical to logical
                         Height = region.Height / this.dpiScale,
-                        Stroke = System.Windows.Media.Brushes.Red,  // Changed to Red for visibility
+                        Stroke = System.Windows.Media.Brushes.Red,
                         StrokeThickness = 3,
                         Fill = System.Windows.Media.Brushes.Transparent,
                         Opacity = 1.0
                     };
 
-                    // Calculate position - convert from screen coordinates to canvas coordinates
-                    double canvasX = (region.X - monitorLeft) / this.dpiScale;
-                    double canvasY = (region.Y - monitorTop) / this.dpiScale;
+                    // Calculate position - convert from screen coordinates (physical) to canvas coordinates (logical)
+                    double canvasX = (region.X - monitorLeftPhysical) / this.dpiScale;
+                    double canvasY = (region.Y - monitorTopPhysical) / this.dpiScale;
 
-                    Console.WriteLine($"  -> Canvas: X={canvasX}, Y={canvasY}");
+                    Console.WriteLine($"  -> Canvas (logical): X={canvasX}, Y={canvasY}");
 
                     // Position the rectangle on the canvas
                     Canvas.SetLeft(excludeRect, canvasX);

@@ -1336,8 +1336,10 @@ namespace RSTGameTranslation
                             }
                             else
                             {
-                                double dpiScale = MonitorWindow.Instance.dpiScale;
-                                CreateTextObjectAtPosition(text, x / dpiScale, y / dpiScale, width / dpiScale, height / dpiScale, confidence, sourceBitmap);
+                                // Get fresh DPI scale from the screen where MonitorWindow is currently displayed
+                                // Don't use cached MonitorWindow.Instance.dpiScale as it may be stale
+                                DpiHelper.GetCurrentScreenDpi(out double dpiScaleX, out double dpiScaleY);
+                                CreateTextObjectAtPosition(text, x / dpiScaleX, y / dpiScaleY, width / dpiScaleX, height / dpiScaleY, confidence, sourceBitmap);
                             }
                         }
                     }
@@ -1346,7 +1348,8 @@ namespace RSTGameTranslation
                     if (autoMergeEnabled && tempBlocks.Count > 0)
                     {
                         var (mergedBlocks, blockOriginalBounds) = MergeOverlappingTextBlocks(tempBlocks);
-                        double dpiScale = MonitorWindow.Instance.dpiScale;
+                        // Get fresh DPI scale from the screen where MonitorWindow is currently displayed
+                        DpiHelper.GetCurrentScreenDpi(out double dpiScaleX, out double dpiScaleY);
 
                         for (int i = 0; i < mergedBlocks.Count; i++)
                         {
@@ -1358,8 +1361,8 @@ namespace RSTGameTranslation
                             double originalWidth = bounds.MaxX - bounds.MinX;
                             double originalHeight = bounds.MaxY - bounds.MinY;
 
-                            CreateTextObjectAtPosition(block.Text, originalX / dpiScale, originalY / dpiScale,
-                                originalWidth / dpiScale, originalHeight / dpiScale, block.Confidence, sourceBitmap);
+                            CreateTextObjectAtPosition(block.Text, originalX / dpiScaleX, originalY / dpiScaleY,
+                                originalWidth / dpiScaleX, originalHeight / dpiScaleY, block.Confidence, sourceBitmap);
                         }
                     }
                 }
@@ -1463,12 +1466,13 @@ namespace RSTGameTranslation
                 {
                     try
                     {
-                        double dpiScale = MonitorWindow.Instance.dpiScale;
+                        // Get fresh DPI scale for color sampling
+                        DpiHelper.GetCurrentScreenDpi(out double dpiScaleX, out double dpiScaleY);
 
-                        int bitmapX = (int)(x * dpiScale);
-                        int bitmapY = (int)(y * dpiScale);
-                        int bitmapWidth = Math.Max(1, (int)(width * dpiScale));
-                        int bitmapHeight = Math.Max(1, (int)(height * dpiScale));
+                        int bitmapX = (int)(x * dpiScaleX);
+                        int bitmapY = (int)(y * dpiScaleY);
+                        int bitmapWidth = Math.Max(1, (int)(width * dpiScaleX));
+                        int bitmapHeight = Math.Max(1, (int)(height * dpiScaleY));
 
                         if (bitmapWidth > 0 && bitmapHeight > 0)
                         {

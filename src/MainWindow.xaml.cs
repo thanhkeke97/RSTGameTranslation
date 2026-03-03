@@ -109,6 +109,7 @@ namespace RSTGameTranslation
         public bool isCapturingWindow = false;
         private IntPtr capturedWindowHandle = IntPtr.Zero;
         private string capturedWindowTitle = string.Empty;
+        private bool _hasShownDpiMismatchWarning = false;
         // private System.Windows.Controls.Button? selectWindowButton;
 
         // Auto translation
@@ -1034,17 +1035,25 @@ namespace RSTGameTranslation
         {
             if (!hasSelectedTranslationArea) return;
 
+            // Use the DPI scale stored in TranslationAreaInfo at capture time
+            // This ensures we use the correct DPI even if cursor is on a different screen
+            double dpiScaleX = selectedTranslationArea.DpiScaleX;
+            double dpiScaleY = selectedTranslationArea.DpiScaleY;
+            
+            Console.WriteLine($"Using stored DPI scale from TranslationAreaInfo: {dpiScaleX:F2}x/{dpiScaleY:F2}y");
+
             // Place the MonitorWindow exactly at the position of the selected area
-            MonitorWindow.Instance.Left = selectedTranslationArea.X;
-            MonitorWindow.Instance.Top = selectedTranslationArea.Y;
+            // Convert from physical pixels to logical pixels (WPF units)
+            MonitorWindow.Instance.Left = selectedTranslationArea.X / dpiScaleX;
+            MonitorWindow.Instance.Top = selectedTranslationArea.Y / dpiScaleY;
 
             // Set the size of the MonitorWindow to match the size of the selected area
-            MonitorWindow.Instance.Width = selectedTranslationArea.Width;
-            MonitorWindow.Instance.Height = selectedTranslationArea.Height;
+            MonitorWindow.Instance.Width = selectedTranslationArea.Width / dpiScaleX;
+            MonitorWindow.Instance.Height = selectedTranslationArea.Height / dpiScaleY;
 
             // Save the new position for future display
-            monitorWindowLeft = selectedTranslationArea.X;
-            monitorWindowTop = selectedTranslationArea.Y;
+            monitorWindowLeft = selectedTranslationArea.X / dpiScaleX;
+            monitorWindowTop = selectedTranslationArea.Y / dpiScaleY;
 
             // Show the MonitorWindow if it is not already displayed
             if (!MonitorWindow.Instance.IsVisible)
@@ -1053,7 +1062,7 @@ namespace RSTGameTranslation
                 monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
             }
 
-            Console.WriteLine($"The position of the MonitorWindow has been updated according to the selected area.: ({selectedTranslationArea.X}, {selectedTranslationArea.Y}, {selectedTranslationArea.Width}, {selectedTranslationArea.Height})");
+            Console.WriteLine($"MonitorWindow positioned at: Left={MonitorWindow.Instance.Left:F2}, Top={MonitorWindow.Instance.Top:F2}, Width={MonitorWindow.Instance.Width:F2}, Height={MonitorWindow.Instance.Height:F2} (DPI scale: {dpiScaleX:F2}x/{dpiScaleY:F2}y)");
         }
 
         // Add method for show/hide the main window
@@ -1247,29 +1256,29 @@ namespace RSTGameTranslation
         // Update MonitorWindow position
         private void UpdateMonitorWindowPosition()
         {
-            double dpiScale = MonitorWindow.Instance.dpiScale;
-            if (dpiScale <= 0)
+            // Always use DPI from the selected screen in config for consistency
+            // This ensures MonitorWindow is positioned correctly regardless of cursor position
+            DpiHelper.GetDpiForSelectedScreen(out double dpiScaleX, out double dpiScaleY);
+            
+            if (dpiScaleX <= 0)
             {
-                dpiScale = 1.0;
+                dpiScaleX = 1.0;
                 Console.WriteLine("Warning: DPI scale was 0 or negative, using default value 1.0");
             }
             // Place the MonitorWindow exactly at the position of the capture area
-            MonitorWindow.Instance.Left = captureRect.Left / dpiScale;
-            MonitorWindow.Instance.Top = captureRect.Top / dpiScale;
-
-            // double width = Math.Max(1, captureRect.Width);  
-            // double height = Math.Max(1, captureRect.Height);
+            // Convert from physical pixels to logical pixels (WPF units)
+            MonitorWindow.Instance.Left = captureRect.Left / dpiScaleX;
+            MonitorWindow.Instance.Top = captureRect.Top / dpiScaleY;
 
             // Set the size of the MonitorWindow to match the size of the capture area
-            MonitorWindow.Instance.Width = Math.Max(1.0, captureRect.Width / dpiScale);
-            MonitorWindow.Instance.Height = Math.Max(1.0, captureRect.Height / dpiScale);
+            MonitorWindow.Instance.Width = Math.Max(1.0, captureRect.Width / dpiScaleX);
+            MonitorWindow.Instance.Height = Math.Max(1.0, captureRect.Height / dpiScaleY);
 
             // Save the new position for future display
-            monitorWindowLeft = captureRect.Left / dpiScale;
-            monitorWindowTop = captureRect.Top / dpiScale;
+            monitorWindowLeft = captureRect.Left / dpiScaleX;
+            monitorWindowTop = captureRect.Top / dpiScaleY;
 
-            // Console.WriteLine($"Updated MonitorWindow position to match capture rect: ({captureRect.Left}, {captureRect.Top}, {captureRect.Width}, {captureRect.Height})");
-
+            Console.WriteLine($"MonitorWindow positioned at: Left={MonitorWindow.Instance.Left:F2}, Top={MonitorWindow.Instance.Top:F2}, Width={MonitorWindow.Instance.Width:F2}, Height={MonitorWindow.Instance.Height:F2} (DPI scale: {dpiScaleX:F2}x/{dpiScaleY:F2}y)");
         }
 
         private void UpdateCaptureRect()
@@ -1714,12 +1723,28 @@ namespace RSTGameTranslation
                     var selectedArea = savedTranslationAreas[currentAreaIndex];
                     
                     DpiHelper.GetCurrentScreenDpi(out double currentDpiX, out double currentDpiY);
-                    if (Math.Abs(selectedArea.DpiScaleX - currentDpiX) > 0.01 || Math.Abs(selectedArea.DpiScaleY - currentDpiY) > 0.01)
+                    bool dpiMismatch = Math.Abs(selectedArea.DpiScaleX - currentDpiX) > 0.01 || Math.Abs(selectedArea.DpiScaleY - currentDpiY) > 0.01;
+                    
+                    if (dpiMismatch)
                     {
                         Console.WriteLine($"WARNING: DPI mismatch detected! Area was captured at DPI {selectedArea.DpiScaleX:F2}x/{selectedArea.DpiScaleY:F2}y, current DPI is {currentDpiX:F2}x/{currentDpiY:F2}y");
                         double adjustScaleX = currentDpiX / selectedArea.DpiScaleX;
                         double adjustScaleY = currentDpiY / selectedArea.DpiScaleY;
                         Console.WriteLine($"Adjusting coordinates by scale: {adjustScaleX:F2}x/{adjustScaleY:F2}y");
+                        
+                        // Show warning notification to user (only once per session to avoid annoyance)
+                        if (!_hasShownDpiMismatchWarning)
+                        {
+                            _hasShownDpiMismatchWarning = true;
+                            Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                System.Windows.MessageBox.Show(
+                                    $"DPI mismatch detected!\n\nSelected area was captured at: {selectedArea.DpiScaleX:F2}x / {selectedArea.DpiScaleY:F2}y\nCurrent screen DPI: {currentDpiX:F2}x / {currentDpiY:F2}y\n\nThe capture area may be misaligned. Consider re-selecting the translation area.",
+                                    "DPI Mismatch Warning",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Warning);
+                            }), System.Windows.Threading.DispatcherPriority.Background);
+                        }
                     }
 
                     captureX = (int)selectedArea.X - rect.Left;

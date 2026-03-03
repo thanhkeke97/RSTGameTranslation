@@ -192,23 +192,24 @@ namespace RSTGameTranslation
                     }
                     
                     // Set window position using Windows API
+                    // Note: WPF handles DPI scaling automatically, so we use physical pixels directly
                     var activeScreen = GetActiveScreen();
                     var bounds = activeScreen.Bounds;
                     SetWindowPos(
                         hwnd,
                         HWND_TOPMOST,
-                        (int)(bounds.Left / _dpiScaleX),    
-                        (int)(bounds.Top / _dpiScaleY),
-                        (int)(bounds.Width / _dpiScaleX),
-                        (int)(bounds.Height / _dpiScaleY),
+                        bounds.Left,
+                        bounds.Top,
+                        bounds.Width,
+                        bounds.Height,
                         SWP_SHOWWINDOW | SWP_NOACTIVATE
                     );
                     
-                    // Also set WPF properties for consistency
-                    this.Left = bounds.Left / _dpiScaleX;
-                    this.Top = bounds.Top / _dpiScaleY;
-                    this.Width = bounds.Width / _dpiScaleX;
-                    this.Height = bounds.Height / _dpiScaleY;
+                    // Also set WPF properties for consistency (WPF handles DPI automatically)
+                    this.Left = bounds.Left;
+                    this.Top = bounds.Top;
+                    this.Width = bounds.Width;
+                    this.Height = bounds.Height;
                     
                     Console.WriteLine($"Set selection window to cover screen {selectedScreenIndex}: " +
                         $"({bounds.Left}, {bounds.Top}, {bounds.Width}, {bounds.Height})");
@@ -441,61 +442,27 @@ namespace RSTGameTranslation
             
             try
             {
-                // Get window handle
-                IntPtr hwnd = new WindowInteropHelper(this).Handle;
+                // Get the actual screen coordinates using PointToScreen
+                // PointToScreen already returns physical pixels (screen coordinates)
+                Point screenPoint = this.PointToScreen(new Point(left, top));
+                Point screenBottomRight = this.PointToScreen(new Point(left + width, top + height));
                 
-                // Convert window coordinates to screen coordinates using Windows API
-                System.Drawing.Point topLeft = new System.Drawing.Point((int)left, (int)top);
-                System.Drawing.Point bottomRight = new System.Drawing.Point((int)(left + width), (int)(top + height));
+                // Calculate width and height in screen coordinates (physical pixels)
+                double screenWidth = screenBottomRight.X - screenPoint.X;
+                double screenHeight = screenBottomRight.Y - screenPoint.Y;
                 
-                // Convert to screen coordinates
-                ClientToScreen(hwnd, ref topLeft);
-                ClientToScreen(hwnd, ref bottomRight);
+                Console.WriteLine($"Screen coordinates (physical pixels): X={screenPoint.X}, Y={screenPoint.Y}, Width={screenWidth}, Height={screenHeight}");
                 
-                // Calculate width and height in screen coordinates
-                int screenWidth = bottomRight.X - topLeft.X;
-                int screenHeight = bottomRight.Y - topLeft.Y;
-                
-                // Log the raw screen coordinates
-                Console.WriteLine($"Raw screen coordinates: X={topLeft.X}, Y={topLeft.Y}, Width={screenWidth}, Height={screenHeight}");
-                
-                // Now adjust for DPI scaling if needed
-                double screenX = topLeft.X;
-                double screenY = topLeft.Y;
-                
-                // For high DPI screens, we need to adjust the coordinates
-                // This is because the screen coordinates are in logical pixels, but we need physical pixels
-                if (_dpiScaleX != 1.0 || _dpiScaleY != 1.0)
-                {
-                    // Adjust for DPI scaling
-                    // The offset from screen origin needs to be scaled
-                    var activeScreen = GetActiveScreen();
-                    double offsetX = screenX - activeScreen.Bounds.Left;
-                    double offsetY = screenY - activeScreen.Bounds.Top;
-                    
-                    // Scale the offset
-                    double scaledOffsetX = offsetX * _dpiScaleX;
-                    double scaledOffsetY = offsetY * _dpiScaleY;
-                    
-                    // Calculate the new screen coordinates
-                    screenX = activeScreen.Bounds.Left + scaledOffsetX;
-                    screenY = activeScreen.Bounds.Top + scaledOffsetY;
-                    
-                    // Scale the width and height
-                    screenWidth = (int)(screenWidth * _dpiScaleX);
-                    screenHeight = (int)(screenHeight * _dpiScaleY);
-                    
-                    Console.WriteLine($"Adjusted for DPI: X={screenX}, Y={screenY}, Width={screenWidth}, Height={screenHeight}");
-                }
-                
-                // Create rectangle for the selection using the calculated coordinates
+                // Create rectangle with screen coordinates - NO additional DPI scaling needed
+                // PointToScreen already gives us physical pixels
                 Rect selectionRect = new Rect(
-                    screenX, 
-                    screenY, 
-                    screenWidth, 
+                    screenPoint.X,
+                    screenPoint.Y,
+                    screenWidth,
                     screenHeight
                 );
                 
+                // Store the DPI scale at the time of selection for future reference
                 DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY);
                 
                 // Get current screen index for metadata
@@ -509,77 +476,13 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error calculating screen coordinates: {ex.Message}");
                 
-                // Try a different approach as fallback
+                // Fallback: use window position + relative coordinates
                 try
                 {
-                    // Get the actual screen coordinates using PointToScreen
-                    Point screenPoint = this.PointToScreen(new Point(left, top));
-                    Point screenBottomRight = this.PointToScreen(new Point(left + width, top + height));
-                    
-                    // Calculate width and height in screen coordinates
-                    double screenWidth = screenBottomRight.X - screenPoint.X;
-                    double screenHeight = screenBottomRight.Y - screenPoint.Y;
-                    
-                    Console.WriteLine($"Fallback screen coordinates: X={screenPoint.X}, Y={screenPoint.Y}, Width={screenWidth}, Height={screenHeight}");
-                    
-                    // Apply DPI scaling if needed
-                    if (_dpiScaleX != 1.0 || _dpiScaleY != 1.0)
-                    {
-                        // Adjust for DPI scaling
-                        var activeScreen = GetActiveScreen();
-                        double offsetX = screenPoint.X - activeScreen.Bounds.Left;
-                        double offsetY = screenPoint.Y - activeScreen.Bounds.Top;
-                        
-                        double scaledOffsetX = offsetX * _dpiScaleX;
-                        double scaledOffsetY = offsetY * _dpiScaleY;
-                        
-                        double adjustedX = activeScreen.Bounds.Left + scaledOffsetX;
-                        double adjustedY = activeScreen.Bounds.Top + scaledOffsetY;
-                        
-                        screenWidth = screenWidth * _dpiScaleX;
-                        screenHeight = screenHeight * _dpiScaleY;
-                        
-                        Console.WriteLine($"Fallback adjusted for DPI: X={adjustedX}, Y={adjustedY}, Width={screenWidth}, Height={screenHeight}");
-                        
-                        // Create rectangle with adjusted coordinates
-                        Rect selectionRect = new Rect(
-                            adjustedX,
-                            adjustedY,
-                            screenWidth,
-                            screenHeight
-                        );
-                        
-                        int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
-                        var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
-                        
-                        // Notify listeners
-                        SelectionComplete?.Invoke(this, areaInfo);
-                    }
-                    else
-                    {
-                        // Create rectangle without DPI adjustment
-                        Rect selectionRect = new Rect(
-                            screenPoint.X,
-                            screenPoint.Y,
-                            screenWidth,
-                            screenHeight
-                        );
-                        
-                        int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
-                        var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
-                        
-                        // Notify listeners
-                        SelectionComplete?.Invoke(this, areaInfo);
-                    }
-                }
-                catch (Exception ex2)
-                {
-                    Console.WriteLine($"Fallback approach also failed: {ex2.Message}");
-                    
-                    // Last resort: use the raw coordinates without any adjustment
+                    Point screenPoint = this.PointToScreen(new Point(0, 0));
                     Rect selectionRect = new Rect(
-                        GetActiveScreen().Bounds.Left + left,
-                        GetActiveScreen().Bounds.Top + top,
+                        screenPoint.X + left,
+                        screenPoint.Y + top,
                         width,
                         height
                     );
@@ -587,8 +490,11 @@ namespace RSTGameTranslation
                     int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
                     var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
                     
-                    // Notify listeners
                     SelectionComplete?.Invoke(this, areaInfo);
+                }
+                catch (Exception ex2)
+                {
+                    Console.WriteLine($"Fallback also failed: {ex2.Message}");
                 }
             }
 
