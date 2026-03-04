@@ -123,12 +123,29 @@ namespace RSTGameTranslation
                     AutoFlush = true
                 };
                 object logLock = new object();
+                bool logDisposed = false;
                 void WriteStartupLog(string level, string message)
                 {
                     string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{level}] {message}";
                     lock (logLock)
                     {
-                        logWriter.WriteLine(line);
+                        if (logDisposed) return;
+                        try
+                        {
+                            logWriter.WriteLine(line);
+                        }
+                        catch (ObjectDisposedException) { }
+                    }
+                }
+                void DisposeLog()
+                {
+                    lock (logLock)
+                    {
+                        if (!logDisposed)
+                        {
+                            logDisposed = true;
+                            logWriter.Dispose();
+                        }
                     }
                 }
 
@@ -155,10 +172,7 @@ namespace RSTGameTranslation
                 if (_currentServerProcess == null)
                 {
                     WriteStartupLog("ERROR", $"Unable to start OCR server process for {ocrMethod}");
-                    lock (logLock)
-                    {
-                        logWriter.Dispose();
-                    }
+                    DisposeLog();
                     Console.WriteLine($"Unable to start OCR server process for {ocrMethod}");
                     return false;
                 }
@@ -183,10 +197,7 @@ namespace RSTGameTranslation
                 processRef.Exited += (_, _) =>
                 {
                     WriteStartupLog("INFO", $"OCR process exited with code {processRef.ExitCode}");
-                    lock (logLock)
-                    {
-                        logWriter.Dispose();
-                    }
+                    DisposeLog();
                 };
 
                 processRef.BeginOutputReadLine();
