@@ -4,10 +4,45 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
-        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Title]}" Height="420" Width="400"
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Title]}" Height="450" Width="400"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Icon="/media/AppIcon.ico">
+    
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource Surface3Brush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Surface2Brush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -181,35 +216,32 @@
         </ScrollViewer>
 
         <!-- Buttons section -->
-        <Grid Grid.Row="2" Margin="0,10,0,0">
+        <Grid Grid.Row="2" Margin="0,15,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             
-            <Button x:Name="defaultsButton" 
-                    Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_SetDefaults]}" 
-                    Width="100" 
-                    Height="25" 
+            <Button x:Name="defaultsButton"
+                    Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_SetDefaults]}"
+                    Width="100"
                     HorizontalAlignment="Left"
                     Click="DefaultsButton_Click"
                     ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Tip_SetDefaults]}"
                     Grid.Column="0"/>
             
-            <StackPanel Orientation="Horizontal" 
+            <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Grid.Column="1">
-                <Button x:Name="applyButton" 
-                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_Apply]}" 
-                        Width="80" 
-                        Height="25" 
-                        Margin="5,0" 
+                <Button x:Name="applyButton"
+                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_Apply]}"
+                        Width="80"
+                        Margin="5,0"
                         Click="ApplyButton_Click"/>
-                <Button x:Name="cancelButton" 
-                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_Cancel]}" 
-                        Width="80" 
-                        Height="25" 
-                        Margin="5,0" 
+                <Button x:Name="cancelButton"
+                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Btn_Cancel]}"
+                        Width="80"
+                        Margin="5,0"
                         Click="CancelButton_Click"/>
             </StackPanel>
         </Grid>
