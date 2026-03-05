@@ -33,8 +33,9 @@
     <AssemblyTitle>RST Game Translation</AssemblyTitle>
     <Copyright>Copyright © 2024-2026 RSTGameTranslation. All rights reserved.</Copyright>
 
-    <!-- Embed PDB for deterministic builds — AV engines trust binaries with debug info -->
-    <DebugType>embedded</DebugType>
+    <!-- Include PDB for deterministic builds — AV engines trust binaries with debug info -->
+    <!-- Note: CsWinRT IIDOptimizer requires a separate PDB file, so use 'portable' not 'embedded' -->
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
 
     <!-- Deterministic build — identical source always produces identical binary (improves AV trust) -->
