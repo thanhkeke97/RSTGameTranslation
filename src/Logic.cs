@@ -38,6 +38,10 @@ namespace RSTGameTranslation
         private string _lastOcrHash = string.Empty;
         private string _lastTextContent = string.Empty;
 
+        // Cached stop words to avoid re-allocating large HashSets every OCR frame
+        private string _cachedStopWordsLanguage = string.Empty;
+        private HashSet<string> _cachedStopWords = new HashSet<string>();
+
         // Track the current capture position
         private int _currentCaptureX;
         private int _currentCaptureY;
@@ -773,7 +777,9 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
-        /// Determines if two text strings are similar based on multiple similarity metrics
+        /// Determines if two text strings are similar based on multiple similarity metrics.
+        /// Automatically selects the best strategy depending on whether the source language
+        /// is a CJK (character-based, no word boundaries) or a space-delimited language.
         /// </summary>
         /// <param name="s1">First text string to compare</param>
         /// <param name="s2">Second text string to compare</param>
@@ -792,23 +798,38 @@ namespace RSTGameTranslation
                 return s1.Trim().Equals(s2.Trim(), StringComparison.OrdinalIgnoreCase);
             }
 
-            // Calculate similarity using different metrics
-            double keywordSim = KeywordSimilarity(s1, s2);
-            double diceSim = DiceCoefficient(s1, s2);
-            double wordOverlapSim = WordOverlapSimilarity(s1, s2);
+            // Choose strategy based on language type
+            string language = GetSourceLanguage().ToLowerInvariant();
+            bool isCjk = language is "ja" or "ch_sim" or "ch_tra" or "ko";
 
-            // Use the maximum similarity score from all methods
-            double maxSimilarity = Math.Max(Math.Max(keywordSim, diceSim), wordOverlapSim);
+            if (isCjk)
+            {
+                // For CJK languages (no word boundaries), word-based metrics are useless.
+                // Use character-level and n-gram metrics instead.
+                double charNgramSim = CombinedAsianLanguageSimilarity(s1, s2);
+                if (charNgramSim >= threshold) return true;
 
-            // Debug similarity scores if needed
-            // Console.WriteLine($"Similarity between '{s1}' and '{s2}': Keyword={keywordSim:F2}, Dice={diceSim:F2}, WordOverlap={wordOverlapSim:F2}, Max={maxSimilarity:F2}");
+                double diceSim = DiceCoefficient(s1, s2);
+                return diceSim >= threshold;
+            }
+            else
+            {
+                // For space-delimited languages, use word-based + character-level metrics
+                // with early exit as soon as any metric exceeds the threshold.
+                double keywordSim = KeywordSimilarity(s1, s2);
+                if (keywordSim >= threshold) return true;
 
-            // Return true if any similarity metric exceeds the threshold
-            return maxSimilarity >= threshold;
+                double diceSim = DiceCoefficient(s1, s2);
+                if (diceSim >= threshold) return true;
+
+                double wordOverlapSim = WordOverlapSimilarity(s1, s2);
+                return wordOverlapSim >= threshold;
+            }
         }
 
         /// <summary>
-        /// Method to calculate the similarity between two strings using the Dice coefficient
+        /// Calculate similarity for CJK languages using character overlap + trigram metrics.
+        /// Better than word-based methods for languages without word boundaries.
         /// </summary>
         private double CombinedAsianLanguageSimilarity(string s1, string s2)
         {
@@ -892,12 +913,7 @@ namespace RSTGameTranslation
         /// </summary>
         private double KeywordSimilarity(string s1, string s2)
         {
-            // Special case: if both strings are empty, they are considered similar
-            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
-            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
-            if (s1 == s2) return 1.0;
-
-            // Get stop words for the current language
+            // Get stop words for the current language (cached)
             HashSet<string> stopWords = GetStopWordsForCurrentLanguage();
 
             // Separate the strings into words and filter out stop words in one pass
@@ -929,15 +945,19 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
-        /// Get stop words for the current language
+        /// Get stop words for the current language (cached — only rebuilds when language changes)
         /// </summary>
         private HashSet<string> GetStopWordsForCurrentLanguage()
         {
             // Get the current language code
             string language = GetSourceLanguage().ToLowerInvariant();
 
-            // Return appropriate stop words based on language
-            return language switch
+            // Return cached set if language hasn't changed
+            if (language == _cachedStopWordsLanguage && _cachedStopWords.Count > 0)
+                return _cachedStopWords;
+
+            _cachedStopWordsLanguage = language;
+            _cachedStopWords = language switch
             {
                 "ja" => new HashSet<string> {
                     "の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ", "さ", "ある", "いる",
@@ -950,6 +970,14 @@ namespace RSTGameTranslation
                     "ん", "なら", "に対して", "特に", "せる", "及び", "これら", "とき", "では", "にて", "ほか",
                     "ながら", "うち", "そして", "とともに", "ただし", "かつて", "それぞれ", "または", "お",
                     "ほど", "ものの", "に対する", "ほとんど", "と共に", "といった", "です", "とも", "ところ", "ここ"
+                },
+                "ch_tra" => new HashSet<string> {
+                    "的", "了", "和", "是", "就", "都", "而", "及", "與", "著", "或", "一個", "沒有",
+                    "我們", "你們", "他們", "她們", "自己", "其中", "之後", "什麼", "一些", "這個", "那個",
+                    "這些", "那些", "每個", "各自", "的話", "一樣", "不同", "因此", "因為", "所以", "如果",
+                    "但是", "不過", "只是", "除了", "以及", "然後", "現在", "曾經", "已經", "一直", "將來",
+                    "一定", "可能", "應該", "需要", "不能", "可以", "不要", "不會", "那麼", "如何", "為何",
+                    "怎樣", "哪裡", "誰", "什麼", "為什麼", "多少", "幾時", "如何", "怎樣", "哪裡", "從哪裡", "到哪裡"
                 },
                 "ch_sim" => new HashSet<string> {
                     "的", "了", "和", "是", "就", "都", "而", "及", "與", "著", "或", "一個", "沒有",
@@ -994,18 +1022,15 @@ namespace RSTGameTranslation
                     "did", "doing", "would", "could", "should", "ought"
                 }
             };
+            return _cachedStopWords;
         }
 
         /// <summary>
-        /// Calculate the similarity between two strings using the Dice coefficient
+        /// Calculate the similarity between two strings using the Dice coefficient.
+        /// Uses integer-encoded bigrams to avoid string allocations.
         /// </summary>
         private double DiceCoefficient(string s1, string s2)
         {
-            // Special case: if both strings are empty, they are considered similar
-            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
-            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
-            if (s1 == s2) return 1.0;
-
             // if string is too short to create bigrams, compare directly
             if (s1.Length < 2 || s2.Length < 2)
             {
@@ -1017,25 +1042,23 @@ namespace RSTGameTranslation
                 return (double)sameChars / Math.Max(s1.Length, s2.Length);
             }
 
-            // Create sets of bigrams for each string
-            var bigrams1 = new HashSet<string>();
-            var bigrams2 = new HashSet<string>();
-
+            // Encode each bigram as a single int (char1 << 16 | char2) to avoid string allocations
+            var bigrams1 = new HashSet<int>();
+            var bigrams2 = new HashSet<int>();
 
             for (int i = 0; i < s1.Length - 1; i++)
             {
-                bigrams1.Add(s1.Substring(i, 2));
+                bigrams1.Add((s1[i] << 16) | s1[i + 1]);
             }
-
 
             for (int i = 0; i < s2.Length - 1; i++)
             {
-                bigrams2.Add(s2.Substring(i, 2));
+                bigrams2.Add((s2[i] << 16) | s2[i + 1]);
             }
 
             // Count the number of common bigrams
             int intersectionCount = 0;
-            foreach (var bigram in bigrams1)
+            foreach (int bigram in bigrams1)
             {
                 if (bigrams2.Contains(bigram))
                 {
@@ -1052,11 +1075,6 @@ namespace RSTGameTranslation
         /// </summary>
         private double WordOverlapSimilarity(string s1, string s2)
         {
-            // Special case: if both strings are empty, they are considered similar
-            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return 1.0;
-            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return 0.0;
-            if (s1 == s2) return 1.0;
-
             // Separate the strings into words
             string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
                 StringSplitOptions.RemoveEmptyEntries);
