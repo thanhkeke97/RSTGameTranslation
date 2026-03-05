@@ -21,6 +21,27 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Assembly metadata — helps AV heuristics identify the binary as legitimate -->
+    <Version>4.6.0</Version>
+    <FileVersion>4.6.0.0</FileVersion>
+    <AssemblyVersion>4.6.0.0</AssemblyVersion>
+    <Company>RSTGameTranslation</Company>
+    <Product>RST Game Translation</Product>
+    <Authors>RSTGameTranslation</Authors>
+    <Description>Real-time game screen OCR and translation tool</Description>
+    <AssemblyTitle>RST Game Translation</AssemblyTitle>
+    <Copyright>Copyright © 2024-2026 RSTGameTranslation. All rights reserved.</Copyright>
+
+    <!-- Embed PDB for deterministic builds — AV engines trust binaries with debug info -->
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+
+    <!-- Deterministic build — identical source always produces identical binary (improves AV trust) -->
+    <Deterministic>true</Deterministic>
+
+    <!-- Disable IL trimming to avoid AV heuristic false-positives from trimmed assemblies -->
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
