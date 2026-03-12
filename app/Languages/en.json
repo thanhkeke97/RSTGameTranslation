@@ -59,6 +59,8 @@
   "Lbl_MinLineConfidence": "Min line confidence:",
   "Lbl_MultiSelection": "Multi Selection Area",
   "Lbl_LeaveOnscreen": "Leave translation onscreen:",
+  "Lbl_AutoTranslate": "Auto Translate:",
+  "Lbl_ShowTranslation": "Show Translation (OCR text only):",
   "Tab_ContextOverlay": "Context/Overlay",
   "Grp_ContextSettings": "Translation Context Settings",
   "Lbl_MaxContext": "Max Previous Context:",

@@ -2821,72 +2821,88 @@ namespace RSTGameTranslation
                 isChatBoxVisible = false;
                 chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
             }
-            else if (!isChatBoxVisible && !recreateOnShow && chatBoxWindow != null)
+            else if (!isChatBoxVisible && !recreateOnShow)
             {
-                // Show existing ChatBox (reuse)
-                chatBoxWindow.Show();
-                isChatBoxVisible = true;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-            }
-            else
-            {
-                if (recreateOnShow)
+                // Check if we have a saved position
+                double savedLeft = ConfigManager.Instance.GetChatboxPositionLeft();
+                double savedTop = ConfigManager.Instance.GetChatboxPositionTop();
+                double savedWidth = ConfigManager.Instance.GetChatboxPositionWidth();
+                double savedHeight = ConfigManager.Instance.GetChatboxPositionHeight();
+                
+                // If we have a saved position (not default 0,0), show or create chatbox at saved position
+                if (savedLeft > 0 || savedTop > 0)
                 {
-                    // When recreate-on-show is enabled we should always ask the user to pick a region
-                    // so the ChatBox appears at a new location rather than reusing the old one.
-                    try
+                    // If chatBoxWindow is null, create a new instance
+                    if (chatBoxWindow == null)
                     {
-                        // If an existing chatBoxWindow exists, fully close it first to ensure Instance will recreate
-                        if (chatBoxWindow != null)
-                        {
-                            try { chatBoxWindow.ForceClose(); } catch { }
-                            chatBoxWindow = null;
-                            // _chatBoxEventsAttached = false;
-                        }
-
-                        // Show selector to allow user to position ChatBox
-                        ChatBoxSelectorWindow selectorWindow = ChatBoxSelectorWindow.GetInstance();
-                        selectorWindow.SelectionComplete += ChatBoxSelector_SelectionComplete;
-                        selectorWindow.Closed += (s, e) =>
-                        {
-                            isSelectingChatBoxArea = false;
-                            // Only set button to blue if the ChatBox isn't visible (was cancelled)
-                            if (!isChatBoxVisible || chatBoxWindow == null || !chatBoxWindow.IsVisible)
-                            {
-                                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
-                            }
-                        };
-                        selectorWindow.Show();
-
-                        // Set button to red while selector is active
-                        isSelectingChatBoxArea = true;
-                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                        // Create new ChatBox instance
+                        chatBoxWindow = new ChatBoxWindow();
+                        
+                        // Set position and size from saved values
+                        chatBoxWindow.Left = savedLeft;
+                        chatBoxWindow.Top = savedTop;
+                        chatBoxWindow.Width = savedWidth;
+                        chatBoxWindow.Height = savedHeight;
+                        
+                        // Attach event handlers
+                        chatBoxWindow.Closed += ChatBox_Closed_Handler;
+                        chatBoxWindow.IsVisibleChanged += ChatBox_IsVisibleChanged_Handler;
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error creating ChatBox selector: {ex.Message}");
-                    }
+                    
+                    // Show the chatbox
+                    chatBoxWindow.Show();
+                    isChatBoxVisible = true;
+                    chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                 }
                 else
                 {
-                    // Show selector to allow user to position ChatBox
-                    ChatBoxSelectorWindow selectorWindow = ChatBoxSelectorWindow.GetInstance();
-                    selectorWindow.SelectionComplete += ChatBoxSelector_SelectionComplete;
-                    selectorWindow.Closed += (s, e) =>
-                    {
-                        isSelectingChatBoxArea = false;
-                        // Only set button to blue if the ChatBox isn't visible (was cancelled)
-                        if (!isChatBoxVisible || chatBoxWindow == null || !chatBoxWindow.IsVisible)
-                        {
-                            chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
-                        }
-                    };
-                    selectorWindow.Show();
-
-                    // Set button to red while selector is active
-                    isSelectingChatBoxArea = true;
-                    chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                    // No saved position, show selector for first time
+                    ShowChatBoxSelector();
                 }
+            }
+            else if (!isChatBoxVisible && recreateOnShow)
+            {
+                // When recreate-on-show is enabled we should always ask the user to pick a region
+                // so the ChatBox appears at a new location rather than reusing the old one.
+                ShowChatBoxSelector();
+            }
+        }
+        
+        // Helper method to show chatbox selector
+        private void ShowChatBoxSelector()
+        {
+            try
+            {
+                // If an existing chatBoxWindow exists, fully close it first to ensure Instance will recreate
+                if (chatBoxWindow != null)
+                {
+                    try { chatBoxWindow.ForceClose(); } catch { }
+                    chatBoxWindow = null;
+                    // _chatBoxEventsAttached = false;
+                }
+
+                // Show selector to allow user to position ChatBox
+                ChatBoxSelectorWindow selectorWindow = ChatBoxSelectorWindow.GetInstance();
+                selectorWindow.SelectionComplete += ChatBoxSelector_SelectionComplete;
+                selectorWindow.Closed += (s, e) =>
+                {
+                    isSelectingChatBoxArea = false;
+                    // Only set button to blue if the ChatBox isn't visible (was cancelled)
+                    if (!isChatBoxVisible || chatBoxWindow == null || !chatBoxWindow.IsVisible)
+                    {
+                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
+                    }
+                };
+                selectorWindow.Show();
+                selectorWindow.Activate(); // Bring to front and ensure focus
+
+                // Set button to red while selector is active
+                isSelectingChatBoxArea = true;
+                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating ChatBox selector: {ex.Message}");
             }
         }
 
@@ -2966,6 +2982,13 @@ namespace RSTGameTranslation
             chatBoxWindow.Top = selectionRect.Top;
             chatBoxWindow.Width = selectionRect.Width;
             chatBoxWindow.Height = selectionRect.Height;
+
+            // Save position to config
+            ConfigManager.Instance.SetChatboxPositionLeft(selectionRect.Left);
+            ConfigManager.Instance.SetChatboxPositionTop(selectionRect.Top);
+            ConfigManager.Instance.SetChatboxPositionWidth(selectionRect.Width);
+            ConfigManager.Instance.SetChatboxPositionHeight(selectionRect.Height);
+            Console.WriteLine($"Saved chatbox position to config: Left={selectionRect.Left}, Top={selectionRect.Top}, Width={selectionRect.Width}, Height={selectionRect.Height}");
 
             // Show the ChatBox
             chatBoxWindow.Show();

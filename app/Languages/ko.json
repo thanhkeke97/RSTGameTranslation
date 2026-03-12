@@ -66,6 +66,8 @@
   "Lbl_MinLineConfidence": "최소 라인 신뢰도:",
   "Lbl_MultiSelection": "다중 영역 선택",
   "Lbl_LeaveOnscreen": "번역을 화면에 유지:",
+  "Lbl_AutoTranslate": "자동 번역:",
+  "Lbl_ShowTranslation": "번역 표시 (OCR 텍스트만):",
   "Tab_ContextOverlay": "컨텍스트/오버레이",
   "Grp_ContextSettings": "번역 컨텍스트 설정",
   "Lbl_MaxContext": "최대 이전 컨텍스트:",

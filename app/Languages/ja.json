@@ -66,6 +66,8 @@
   "Lbl_MinLineConfidence": "最小行信頼度:",
   "Lbl_MultiSelection": "複数エリア選択",
   "Lbl_LeaveOnscreen": "翻訳を画面に残す:",
+  "Lbl_AutoTranslate": "自動翻訳:",
+  "Lbl_ShowTranslation": "翻訳を表示（OCR テキストのみ）:",
   "Tab_ContextOverlay": "コンテキスト/オーバーレイ",
   "Grp_ContextSettings": "翻訳コンテキスト設定",
   "Lbl_MaxContext": "最大過去コンテキスト:",

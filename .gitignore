@@ -422,3 +422,5 @@ app/webserver/*.exe
 
 *.zip
 mockups/*
+docs/*
+.vscode/*

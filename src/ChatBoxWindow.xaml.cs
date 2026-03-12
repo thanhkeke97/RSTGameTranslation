@@ -118,6 +118,9 @@ namespace RSTGameTranslation
             // Get max history size from configuration for display purposes
             _maxHistorySize = ConfigManager.Instance.GetChatBoxHistorySize();
 
+            // Load display mode from config
+            _displayMode = ConfigManager.Instance.GetChatboxDisplayMode();
+
             // Initialize the RichTextBox with a properly configured document
             chatHistoryText.Document = new FlowDocument()
             {
@@ -165,6 +168,8 @@ namespace RSTGameTranslation
             // Subscribe to events
             this.Loaded += ChatBoxWindow_Loaded;
             this.Closing += ChatBoxWindow_Closing;
+            this.LocationChanged += ChatBoxWindow_LocationChanged;
+            this.SizeChanged += ChatBoxWindow_SizeChanged_WithSave;
 
             // Listen for Logic's translation in progress status
             Logic.Instance.TranslationCompleted += OnTranslationCompleted;
@@ -698,7 +703,31 @@ namespace RSTGameTranslation
 
         private void ChatBoxWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // Load saved position from config (only if recreate-on-show is disabled)
+            if (!ConfigManager.Instance.IsChatboxRecreateOnShowEnabled())
+            {
+                LoadChatboxPosition();
+            }
+
+            // Set mode button content based on loaded display mode
+            if (modeButton != null)
+            {
+                if (_displayMode == 0)
+                {
+                    modeButton.Content = LocalizationManager.Instance.Strings["ChatBox_Btn_Mode_BothTexts"];
+                }
+                else if (_displayMode == 1)
+                {
+                    modeButton.Content = LocalizationManager.Instance.Strings["ChatBox_Btn_Mode_TranslatedText"];
+                }
+                else if (_displayMode == 2)
+                {
+                    modeButton.Content = LocalizationManager.Instance.Strings["ChatBox_Btn_Mode_OriginalText"];
+                }
+            }
+
             // Position the window based on screen bounds if not already positioned
+            // This check ensures we don't overwrite loaded/saved positions
             if (this.Left == 0 && this.Top == 0)
             {
                 var screenWidth = SystemParameters.PrimaryScreenWidth;
@@ -708,9 +737,6 @@ namespace RSTGameTranslation
                 this.Left = screenWidth - this.Width - 20;
                 this.Top = screenHeight - this.Height - 40;
             }
-
-            // Add SizeChanged event handler for reflowing text when window is resized
-            this.SizeChanged += ChatBoxWindow_SizeChanged;
 
             // Create the click-through overlay window for the toggle button
             CreateClickThroughOverlay();
@@ -886,6 +912,75 @@ namespace RSTGameTranslation
         {
             // Reflow text when window size changes
             UpdateChatHistory();
+        }
+
+        // Save position when window is moved
+        private void ChatBoxWindow_LocationChanged(object? sender, EventArgs e)
+        {
+            // Only save position if window is visible and not being initialized
+            if (this.IsVisible && this.IsLoaded)
+            {
+                SaveChatboxPosition();
+            }
+        }
+
+        // Save position when window is resized
+        private void ChatBoxWindow_SizeChanged_WithSave(object sender, SizeChangedEventArgs e)
+        {
+            // Reflow text when window size changes
+            UpdateChatHistory();
+            
+            // Save size if window is visible and loaded
+            if (this.IsVisible && this.IsLoaded)
+            {
+                SaveChatboxPosition();
+            }
+        }
+
+        // Save chatbox position and size to config
+        private void SaveChatboxPosition()
+        {
+            try
+            {
+                ConfigManager.Instance.SetChatboxPositionLeft(this.Left);
+                ConfigManager.Instance.SetChatboxPositionTop(this.Top);
+                ConfigManager.Instance.SetChatboxPositionWidth(this.Width);
+                ConfigManager.Instance.SetChatboxPositionHeight(this.Height);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving chatbox position: {ex.Message}");
+            }
+        }
+
+        // Load chatbox position from config
+        private void LoadChatboxPosition()
+        {
+            try
+            {
+                // Only load if recreate-on-show is disabled
+                if (!ConfigManager.Instance.IsChatboxRecreateOnShowEnabled())
+                {
+                    double left = ConfigManager.Instance.GetChatboxPositionLeft();
+                    double top = ConfigManager.Instance.GetChatboxPositionTop();
+                    double width = ConfigManager.Instance.GetChatboxPositionWidth();
+                    double height = ConfigManager.Instance.GetChatboxPositionHeight();
+
+                    // Apply position if valid
+                    if (left > 0 || top > 0)
+                    {
+                        this.Left = left;
+                        this.Top = top;
+                        this.Width = width;
+                        this.Height = height;
+                        Console.WriteLine($"Loaded chatbox position: Left={left}, Top={top}, Width={width}, Height={height}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading chatbox position: {ex.Message}");
+            }
         }
 
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1308,6 +1403,9 @@ namespace RSTGameTranslation
                     // Source only
                     modeButton.Content = LocalizationManager.Instance.Strings["ChatBox_Btn_Mode_OriginalText"];
                 }
+
+                // Save display mode to config
+                ConfigManager.Instance.SetChatboxDisplayMode(_displayMode);
 
                 // Update the UI
                 UpdateChatHistory();

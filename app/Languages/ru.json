@@ -66,6 +66,8 @@
   "Lbl_MinLineConfidence": "Мин. уверенность (строка):",
   "Lbl_MultiSelection": "Мульти-выбор области",
   "Lbl_LeaveOnscreen": "Оставить перевод на экране:",
+  "Lbl_AutoTranslate": "Авто перевод:",
+  "Lbl_ShowTranslation": "Показать перевод (только OCR текст):",
   "Tab_ContextOverlay": "Контекст/Оверлей",
   "Grp_ContextSettings": "Настройки контекста перевода",
   "Lbl_MaxContext": "Макс. предыдущий контекст:",

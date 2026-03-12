@@ -59,6 +59,8 @@
   "Lbl_MinLineConfidence": "Độ tin cậy dòng tối thiểu:",
   "Lbl_MultiSelection": "Chọn nhiều vùng",
   "Lbl_LeaveOnscreen": "Giữ bản dịch trên màn hình:",
+  "Lbl_AutoTranslate": "Tự động dịch:",
+  "Lbl_ShowTranslation": "Hiện dịch (chỉ OCR text):",
   "Tab_ContextOverlay": "Ngữ cảnh/Lớp phủ",
   "Grp_ContextSettings": "Cài đặt ngữ cảnh dịch",
   "Lbl_MaxContext": "Ngữ cảnh trước tối đa:",

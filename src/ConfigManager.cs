@@ -156,6 +156,11 @@ namespace RSTGameTranslation
         public const string CHATBOX_OPACITY = "chatbox_opacity";
         public const string CHATBOX_MIN_TEXT_SIZE = "chatbox_min_text_size";
         public const string CHATBOX_RECREATE_ON_SHOW = "chatbox_recreate_on_show";
+        public const string CHATBOX_POSITION_LEFT = "chatbox_position_left";
+        public const string CHATBOX_POSITION_TOP = "chatbox_position_top";
+        public const string CHATBOX_POSITION_WIDTH = "chatbox_position_width";
+        public const string CHATBOX_POSITION_HEIGHT = "chatbox_position_height";
+        public const string CHATBOX_DISPLAY_MODE = "chatbox_display_mode";
         public const string SOURCE_LANGUAGE = "source_language";
         public const string TARGET_LANGUAGE = "target_language";
         public const string AUDIO_PROCESSING_PROVIDER = "audio_processing_provider";
@@ -2291,6 +2296,92 @@ namespace RSTGameTranslation
             _configValues[CHATBOX_RECREATE_ON_SHOW] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Chatbox recreate on show enabled: {enabled}");
+        }
+
+        // Get/Set chatbox position
+        public double GetChatboxPositionLeft()
+        {
+            string value = GetValue(CHATBOX_POSITION_LEFT, "0");
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double left))
+            {
+                return left;
+            }
+            return 0;
+        }
+
+        public void SetChatboxPositionLeft(double left)
+        {
+            _configValues[CHATBOX_POSITION_LEFT] = left.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+        }
+
+        public double GetChatboxPositionTop()
+        {
+            string value = GetValue(CHATBOX_POSITION_TOP, "0");
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double top))
+            {
+                return top;
+            }
+            return 0;
+        }
+
+        public void SetChatboxPositionTop(double top)
+        {
+            _configValues[CHATBOX_POSITION_TOP] = top.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+        }
+
+        public double GetChatboxPositionWidth()
+        {
+            string value = GetValue(CHATBOX_POSITION_WIDTH, "400");
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double width))
+            {
+                return Math.Max(200, width); // Minimum width
+            }
+            return 400;
+        }
+
+        public void SetChatboxPositionWidth(double width)
+        {
+            _configValues[CHATBOX_POSITION_WIDTH] = width.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+        }
+
+        public double GetChatboxPositionHeight()
+        {
+            string value = GetValue(CHATBOX_POSITION_HEIGHT, "300");
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double height))
+            {
+                return Math.Max(150, height); // Minimum height
+            }
+            return 300;
+        }
+
+        public void SetChatboxPositionHeight(double height)
+        {
+            _configValues[CHATBOX_POSITION_HEIGHT] = height.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+        }
+
+        // Get/Set chatbox display mode (0 = both, 1 = target only, 2 = source only)
+        public int GetChatboxDisplayMode()
+        {
+            string value = GetValue(CHATBOX_DISPLAY_MODE, "0");
+            if (int.TryParse(value, out int mode) && mode >= 0 && mode <= 2)
+            {
+                return mode;
+            }
+            return 0; // Default to "both"
+        }
+
+        public void SetChatboxDisplayMode(int mode)
+        {
+            if (mode >= 0 && mode <= 2)
+            {
+                _configValues[CHATBOX_DISPLAY_MODE] = mode.ToString();
+                SaveConfig();
+                Console.WriteLine($"Chatbox display mode set to: {mode}");
+            }
         }
 
         // Get/Set clipboard auto-translate settings

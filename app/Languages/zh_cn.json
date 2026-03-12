@@ -66,6 +66,8 @@
   "Lbl_MinLineConfidence": "最小行置信度：",
   "Lbl_MultiSelection": "多区域选择",
   "Lbl_LeaveOnscreen": "保留翻译在屏幕上：",
+  "Lbl_AutoTranslate": "自动翻译：",
+  "Lbl_ShowTranslation": "显示翻译（仅 OCR 文本）：",
   "Tab_ContextOverlay": "上下文/叠加",
   "Grp_ContextSettings": "翻译上下文设置",
   "Lbl_MaxContext": "最大上下文数量：",
