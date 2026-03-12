@@ -62,22 +62,23 @@
                     Width="0" Height="0"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Canvas x:Name="textOverlayCanvas" Panel.ZIndex="1"/>
+                <Canvas x:Name="textOverlayCanvas" Panel.ZIndex="1" IsHitTestVisible="False"/>
             </Grid>
         </ScrollViewer>
         
         <!-- Translation status as overlay -->
-        <Border x:Name="translationStatusBorder" Grid.Row="1" 
-                Background="#DD202020" 
-                VerticalAlignment="Bottom" 
+        <Border x:Name="translationStatusBorder" Grid.Row="1"
+                Background="#DD202020"
+                VerticalAlignment="Bottom"
                 HorizontalAlignment="Center"
-                Margin="0,0,0,10" 
-                Padding="10,5" 
+                Margin="0,0,0,10"
+                Padding="10,5"
                 CornerRadius="5"
                 BorderThickness="1"
                 BorderBrush="#444444"
                 Visibility="Collapsed"
-                Panel.ZIndex="10">
+                Panel.ZIndex="10"
+                IsHitTestVisible="False">
             <Grid>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock x:Name="translationStatusLabel" 

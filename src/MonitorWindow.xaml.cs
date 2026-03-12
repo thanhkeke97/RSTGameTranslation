@@ -22,6 +22,17 @@ namespace RSTGameTranslation
         private const int DWM_TNP_RECTDESTINATION = 1;
         private const int WDA_NONE = 0x00000000;
         private const int WDA_EXCLUDEFROMCAPTURE = 0x00000011;
+        
+        // Extended window styles for click-through
+        private const int GWL_EXSTYLE = -20;
+        private const int WS_EX_TRANSPARENT = 0x00000020;
+        private const int WS_EX_LAYERED = 0x00080000;
+        
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hwnd, int index);
+        
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hwnd, int index, int newStyle);
 
         public double dpiScale = 1;
 
@@ -117,12 +128,18 @@ namespace RSTGameTranslation
                 this.SourceInitialized += MonitorWindow_SourceInitialized;
                 Console.WriteLine("Exclude MonitorWindow from capture success");
             }
+            else
+            {
+                // For Windows 10, just enable click-through
+                this.SourceInitialized += (s, e) => EnableClickThrough();
+            }
         }
         
         // Add a new method to handle SourceInitialized event
         private void MonitorWindow_SourceInitialized(object? sender, EventArgs e)
         {
             EnableExcludeFromCapture();
+            EnableClickThrough();
         }
 
         public void EnableExcludeFromCapture()
@@ -134,6 +151,22 @@ namespace RSTGameTranslation
             SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
 
             Console.WriteLine("MonitorWindow set to be excluded from screen capture");
+        }
+        
+        public void EnableClickThrough()
+        {
+            // Get window handle
+            IntPtr hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            
+            // Get current extended window style
+            int extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+            
+            // Add WS_EX_TRANSPARENT to allow click-through
+            // Also add WS_EX_LAYERED to support transparency
+            SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+            
+            Console.WriteLine("MonitorWindow click-through enabled");
         }
 
         public void DisableExcludeFromCapture()
