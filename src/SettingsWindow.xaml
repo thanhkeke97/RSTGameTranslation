@@ -568,6 +568,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Block Power -->
@@ -628,26 +629,26 @@
                                         ToolTip="Minimum confidence threshold for text lines (0.0-1.0). Lines with average confidence below this threshold will be filtered out."/>
                                 
                                 <!-- Auto Translate -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoTranslate]}" Grid.Row="7" Grid.Column="0" Visibility="Collapsed"
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoTranslate]}" Grid.Row="7" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="7" Grid.Column="1" Visibility="Collapsed"
-                                         Margin="0,5" IsChecked="True" 
-                                         Checked="AutoTranslateCheckBox_CheckedChanged" 
+                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="7" Grid.Column="1"
+                                         Margin="0,5" IsChecked="True"
+                                         Checked="AutoTranslateCheckBox_CheckedChanged"
                                          Unchecked="AutoTranslateCheckBox_CheckedChanged"/>
                                          
                                 
                                 <!-- Multi Selection Area -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MultiSelection]}" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MultiSelection]}" Grid.Row="9" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
                                     ToolTip="Enable multi selection area for text selection."/>
-                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="8" Grid.Column="1" Margin="0,5"
+                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="9" Grid.Column="1" Margin="0,5"
                                          Checked="MultiSelectionAreaCheckBox_CheckedChanged"
                                          Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
 
                                 <!-- Leave Translation Onscreen -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LeaveOnscreen]}" Grid.Row="9" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LeaveOnscreen]}" Grid.Row="10" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
                                           ToolTip="Always show the translation on the Monitor window and don't bother showing the source language, makes it easier to read translations while new ones are being made"/>
-                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="9" Grid.Column="1" 
+                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="10" Grid.Column="1" 
                                          Margin="0,5" IsChecked="False" 
                                          Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged" 
                                          Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"

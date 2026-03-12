@@ -119,6 +119,7 @@ namespace RSTGameTranslation
         public const string MIN_LETTER_CONFIDENCE = "min_letter_confidence";
         public const string MIN_LINE_CONFIDENCE = "min_line_confidence";
         public const string AUTO_TRANSLATE_ENABLED = "auto_translate_enabled";
+        public const string SHOW_TRANSLATION_ENABLED = "show_translation_enabled";
         public const string CHAR_LEVEL = "char_level";
         public const string IGNORE_PHRASES = "ignore_phrases";
         public const string WINDOWS_OCR_INTEGRATION = "windows_ocr_integration";
@@ -530,6 +531,7 @@ namespace RSTGameTranslation
             _configValues[MIN_LETTER_CONFIDENCE] = (0.1).ToString(CultureInfo.InvariantCulture);
             _configValues[MIN_LINE_CONFIDENCE] = (0.1).ToString(CultureInfo.InvariantCulture);
             _configValues[AUTO_TRANSLATE_ENABLED] = "true";
+            _configValues[SHOW_TRANSLATION_ENABLED] = "true";
             _configValues[CHAR_LEVEL] = "false";
             _configValues[IGNORE_PHRASES] = "";
             _configValues[TEXTSIMILAR_THRESHOLD] = (0.9).ToString(CultureInfo.InvariantCulture);
@@ -1659,8 +1661,8 @@ namespace RSTGameTranslation
         // Check if auto translate is enabled
         public bool IsAutoTranslateEnabled()
         {
-            // string value = GetValue(AUTO_TRANSLATE_ENABLED, "true");
-            return true;
+            string value = GetValue(AUTO_TRANSLATE_ENABLED, "true");
+            return value.ToLower() == "true";
         }
 
         // Set auto translate enabled
@@ -1669,6 +1671,21 @@ namespace RSTGameTranslation
             _configValues[AUTO_TRANSLATE_ENABLED] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Auto translate enabled: {enabled}");
+        }
+
+        // Check if show translation is enabled (display translated text on screen)
+        public bool IsShowTranslationEnabled()
+        {
+            string value = GetValue(SHOW_TRANSLATION_ENABLED, "true");
+            return value.ToLower() == "true";
+        }
+
+        // Set show translation enabled
+        public void SetShowTranslationEnabled(bool enabled)
+        {
+            _configValues[SHOW_TRANSLATION_ENABLED] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Show translation enabled: {enabled}");
         }
 
         // Get ChatBox font family

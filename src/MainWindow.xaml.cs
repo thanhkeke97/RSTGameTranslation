@@ -3979,18 +3979,6 @@ namespace RSTGameTranslation
             }
         }
 
-        private void OnOpenAITranscriptionReceived(string text, string translatedText)
-        {
-            Dispatcher.Invoke(() =>
-            {
-
-                //!Handle raw transcribed audio
-                AddTranslationToHistory(text, translatedText);
-
-                ChatBoxWindow.Instance?.OnTranslationWasAdded(text, translatedText);
-            });
-        }
-
         private void TrayStartStop_Click(object sender, RoutedEventArgs e)
         {
             OnStartButtonToggleClicked(toggleButton, e);

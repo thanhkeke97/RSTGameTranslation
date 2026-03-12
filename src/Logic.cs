@@ -733,11 +733,11 @@ namespace RSTGameTranslation
                                         {
                                             // Only add to chat history if translation is disabled
                                             _lastChangeTime = DateTime.MinValue;
-                                            MainWindow.Instance.AddTranslationToHistory(combinedText, "");
+                                            MainWindow.Instance.AddTranslationToHistory(combinedText, combinedText);
 
                                             if (ChatBoxWindow.Instance != null)
                                             {
-                                                ChatBoxWindow.Instance.OnTranslationWasAdded(combinedText, "");
+                                                ChatBoxWindow.Instance.OnTranslationWasAdded(combinedText, combinedText);
                                             }
                                         }
                                     }
@@ -2618,21 +2618,9 @@ namespace RSTGameTranslation
                     return;
                 }
 
-                // Get API key
-                // string apiKey = GetGeminiApiKey();
-                // if (string.IsNullOrEmpty(apiKey))
-                // {
-                //     Console.WriteLine("Gemini API key not set, cannot translate");
-                //     return;
-                // }
-
-
                 // Combine all texts into one string with a separator
                 var combinedText = string.Join("##|||##", _textObjects.Select(obj => obj.Text));
                 var textsToTranslate = new List<object>();
-                // if(!ConfigManager.Instance.IsMangaModeEnabled())
-                // {
-                // Create a single text block with ID=999 and the combined text
                 textsToTranslate = new List<object>
                 {
                     new
@@ -2641,20 +2629,6 @@ namespace RSTGameTranslation
                         text = combinedText
                     }
                 };
-                // }
-                // else
-                // {
-                //     // textsToTranslate = new List<object>();
-                //     for (int i = 0; i < _textObjects.Count; i++)
-                //     {
-                //         var textObj = _textObjects[i];
-                //         textsToTranslate.Add(new
-                //         {
-                //             id = textObj.ID,
-                //             text = textObj.Text
-                //         });
-                //     }
-                // }
 
                 // Get previous context if enabled
                 var previousContext = GetPreviousContext();
@@ -2706,10 +2680,6 @@ namespace RSTGameTranslation
 
                 _translationStopwatch.Stop();
                 Console.WriteLine($"Translation took {_translationStopwatch.ElapsedMilliseconds} ms");
-
-                // We've already logged the raw LLM response in the respective service
-                // This would log the post-processed response, which we don't need
-                // LogManager.Instance.LogLlmReply(translationResponse);
 
                 ProcessTranslatedJSON(translationResponse);
                 if (!ConfigManager.Instance.IsAutoOCREnabled())
