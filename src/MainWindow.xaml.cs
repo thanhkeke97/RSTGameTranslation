@@ -1474,6 +1474,7 @@ namespace RSTGameTranslation
             // Dispose TaskbarIcon to remove tray icon and close any balloons
             if (MyNotifyIcon != null)
             {
+                MyNotifyIcon.CloseBalloon();
                 MyNotifyIcon.Dispose();
             }
 
