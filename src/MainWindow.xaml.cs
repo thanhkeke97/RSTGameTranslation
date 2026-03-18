@@ -110,6 +110,7 @@ namespace RSTGameTranslation
         private IntPtr capturedWindowHandle = IntPtr.Zero;
         private string capturedWindowTitle = string.Empty;
         private bool _hasShownDpiMismatchWarning = false;
+        private GraphicsCaptureService? _graphicsCaptureService;
         // private System.Windows.Controls.Button? selectWindowButton;
 
         // Auto translation
@@ -1460,6 +1461,10 @@ namespace RSTGameTranslation
         // Override OnClosing to ensure the application shuts down completely
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
+            // Dispose WGC capture service
+            _graphicsCaptureService?.Dispose();
+            _graphicsCaptureService = null;
+
             // Stop local whisper service
             localWhisperService.Instance.Stop();
 
@@ -1763,38 +1768,20 @@ namespace RSTGameTranslation
                 }
 
 
-                Bitmap fullWindowBmp = new Bitmap(windowWidth, windowHeight);
-                using (Graphics g = Graphics.FromImage(fullWindowBmp))
+                // Try Windows Graphics Capture first (GPU-friendly, no flickering).
+                Bitmap? fullWindowBmp = null;
+                if (_graphicsCaptureService != null)
                 {
-                    g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
-                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
-                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
-
-                    IntPtr hdc = g.GetHdc();
-                    try
-                    {
-
-                        bool success = PrintWindow(handle, hdc, 0x00000002);
-                        if (!success)
-                        {
-                            int error = Marshal.GetLastWin32Error();
-                            Console.WriteLine($"PrintWindow failed with error code: {error}");
-
-                            g.ReleaseHdc(hdc);
-                            return FallbackCaptureWindow(handle);
-                        }
-                    }
-                    finally
-                    {
-                        g.ReleaseHdc(hdc);
-                    }
+                    fullWindowBmp = _graphicsCaptureService.CaptureFrame();
+                    // WGC active but no frame yet (e.g. first tick) — skip this capture tick
+                    // instead of falling back to CopyFromScreen which captures overlapping windows.
+                    if (fullWindowBmp == null)
+                        return new Bitmap(1, 1);
                 }
-
-                if (IsBitmapEmpty(fullWindowBmp))
+                else
                 {
-                    Console.WriteLine("PrintWindow produced empty bitmap, trying fallback method...");
-                    return FallbackCaptureWindow(handle);
+                    // WGC not available — use screen capture as fallback.
+                    fullWindowBmp = FallbackCaptureWindow(handle);
                 }
 
                 if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
@@ -2035,6 +2022,8 @@ namespace RSTGameTranslation
                         isCapturingWindow = false;
                         capturedWindowHandle = IntPtr.Zero;
                         capturedWindowTitle = string.Empty;
+                        _graphicsCaptureService?.Dispose();
+                        _graphicsCaptureService = null;
 
                         Dispatcher.Invoke(() =>
                         {
@@ -2060,6 +2049,8 @@ namespace RSTGameTranslation
                     isCapturingWindow = false;
                     capturedWindowHandle = IntPtr.Zero;
                     capturedWindowTitle = string.Empty;
+                    _graphicsCaptureService?.Dispose();
+                    _graphicsCaptureService = null;
 
                     Dispatcher.Invoke(() =>
                     {
@@ -3755,6 +3746,8 @@ namespace RSTGameTranslation
                 isCapturingWindow = false;
                 capturedWindowHandle = IntPtr.Zero;
                 capturedWindowTitle = string.Empty;
+                _graphicsCaptureService?.Dispose();
+                _graphicsCaptureService = null;
                 selectWindowButton.Content = "Select Window";
                 selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
                 UpdateCaptureRect();
@@ -3780,6 +3773,22 @@ namespace RSTGameTranslation
                 capturedWindowHandle = windowHandle;
                 capturedWindowTitle = windowTitle;
                 isCapturingWindow = true;
+
+                // Start Windows Graphics Capture for flicker-free window capture.
+                _graphicsCaptureService?.Dispose();
+                _graphicsCaptureService = new GraphicsCaptureService();
+                if (!_graphicsCaptureService.StartCapture(windowHandle))
+                {
+                    Console.WriteLine("WGC not available, will use screen capture fallback");
+                    _graphicsCaptureService.Dispose();
+                    _graphicsCaptureService = null;
+                }
+
+                // WGC captures the window directly, so the overlay doesn't need to be excluded.
+                if (Windows_Version != "Windows 10")
+                {
+                    MonitorWindow.Instance.DisableExcludeFromCapture();
+                }
 
                 selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
                 selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red

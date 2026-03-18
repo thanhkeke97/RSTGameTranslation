@@ -187,7 +187,6 @@ namespace RSTGameTranslation
                 if (IsWindow(window.Handle))
                 {
                     WindowSelected?.Invoke(window.Handle, window.Title);
-                    MonitorWindow.Instance.DisableExcludeFromCapture();
                     this.Close();
                 }
                 else
