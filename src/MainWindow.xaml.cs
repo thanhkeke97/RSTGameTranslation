@@ -1290,6 +1290,29 @@ namespace RSTGameTranslation
                     (int)selectedTranslationArea.Height
                 );
             }
+            else if (isCapturingWindow && capturedWindowHandle != IntPtr.Zero)
+            {
+                // In Select Window mode, position MonitorWindow over the captured game window.
+                // Use DwmGetWindowAttribute to get actual visible bounds (excludes invisible DWM shadow)
+                // so that the overlay matches the WGC capture area exactly.
+                if (IsWindow(capturedWindowHandle))
+                {
+                    RECT windowRect;
+                    if (_graphicsCaptureService != null)
+                        GetVisibleWindowRect(capturedWindowHandle, out windowRect);
+                    else
+                        GetWindowRect(capturedWindowHandle, out windowRect);
+
+                    previousCaptureX = captureRect.Left;
+                    previousCaptureY = captureRect.Top;
+
+                    captureRect = new System.Drawing.Rectangle(
+                        windowRect.Left,
+                        windowRect.Top,
+                        windowRect.Right - windowRect.Left,
+                        windowRect.Bottom - windowRect.Top);
+                }
+            }
             else
             {
                 // Use the old method if a custom translation area has not been selected
@@ -1688,6 +1711,22 @@ namespace RSTGameTranslation
             }
         }
 
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out RECT pvAttribute, int cbAttribute);
+
+        private const int DWMWA_EXTENDED_FRAME_BOUNDS = 9;
+
+        /// <summary>
+        /// Get the actual visible frame bounds of a window, excluding the invisible DWM shadow border.
+        /// Falls back to GetWindowRect if DwmGetWindowAttribute fails.
+        /// </summary>
+        private static void GetVisibleWindowRect(IntPtr hwnd, out RECT rect)
+        {
+            int hr = DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, out rect, Marshal.SizeOf<RECT>());
+            if (hr != 0)
+                GetWindowRect(hwnd, out rect);
+        }
+
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsWindow(IntPtr hWnd);
@@ -1702,7 +1741,10 @@ namespace RSTGameTranslation
             try
             {
                 RECT rect;
-                GetWindowRect(handle, out rect);
+                if (_graphicsCaptureService != null)
+                    GetVisibleWindowRect(handle, out rect);
+                else
+                    GetWindowRect(handle, out rect);
                 int windowWidth = rect.Right - rect.Left;
                 int windowHeight = rect.Bottom - rect.Top;
 
@@ -1897,7 +1939,10 @@ namespace RSTGameTranslation
                     if (IsWindow(capturedWindowHandle) && IsWindowVisible(capturedWindowHandle))
                     {
                         RECT windowRect;
-                        GetWindowRect(capturedWindowHandle, out windowRect);
+                        if (_graphicsCaptureService != null)
+                            GetVisibleWindowRect(capturedWindowHandle, out windowRect);
+                        else
+                            GetWindowRect(capturedWindowHandle, out windowRect);
 
                         if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
                         {
