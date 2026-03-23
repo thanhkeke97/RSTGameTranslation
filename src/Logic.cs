@@ -2589,6 +2589,7 @@ namespace RSTGameTranslation
                 "th" => "ThaiLand",
                 "tr" => "Turkish",
                 "ch_tra" => "Traditional Chinese",
+                "hu" => "Hungarian",
                 "si" => "Sinhala",
                 "da" => "Danish",
                 "uk" => "ukrainian",

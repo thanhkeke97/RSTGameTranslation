@@ -548,6 +548,8 @@
                                             <LineBreak/>
                                             <Run>tr = Turkish</Run>
                                             <LineBreak/>
+                                            <Run>hu = Hungarian</Run>
+                                            <LineBreak/>
                                             <Run>si = Sinhala</Run>
                                         </TextBlock>
                                     </Grid>

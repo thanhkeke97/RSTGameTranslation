@@ -97,6 +97,7 @@ namespace RSTGameTranslation
                 "romanian" or "ro" => "ro",
                 "persian" or "fa" or "farsi" => "fa",
                 "czech" or "cs" => "cs",
+                "hungarian" or "hu" => "hu",
                 "sinhala" or "si" => "si",
                 "ukrainian" or "uk" => "uk",
                 "danish" or "da" => "da",

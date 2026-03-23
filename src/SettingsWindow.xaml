@@ -227,6 +227,7 @@
                                     <ComboBoxItem Content="id"/>
                                     <ComboBoxItem Content="th"/>
                                     <ComboBoxItem Content="hr"/>
+                                    <ComboBoxItem Content="hu"/>
                                     <ComboBoxItem Content="tr"/>
                                     <ComboBoxItem Content="si"/>
                                     <ComboBoxItem Content="da"/>
@@ -268,6 +269,7 @@
                                     <ComboBoxItem Content="id"/>
                                     <ComboBoxItem Content="th"/>
                                     <ComboBoxItem Content="hr"/>
+                                    <ComboBoxItem Content="hu"/>
                                     <ComboBoxItem Content="tr"/>
                                     <ComboBoxItem Content="si"/>
                                     <ComboBoxItem Content="da"/>
@@ -352,6 +354,8 @@
                                 <Run>ch_tra = Traditional Chinese</Run>
                                 <LineBreak/>
                                 <Run>hr = Croatian</Run>
+                                <LineBreak/>
+                                <Run>hu = Hungarian</Run>
                                 <LineBreak/>
                                 <Run>si = Sinhala</Run>
                                 <LineBreak/>

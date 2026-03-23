@@ -172,6 +172,7 @@ namespace RSTGameTranslation
                 "cs",
                 "id",
                 "th",
+                "hu",
                 "tr",
                 "si",
                 "da",

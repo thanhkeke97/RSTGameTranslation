@@ -62,6 +62,7 @@ namespace RSTGameTranslation
             { "fr", "fr-FR" },
             { "it", "it-IT" },
             { "de", "de-DE" },
+            { "hu", "hu-HU" },
             { "ru", "ru-RU" },
             { "ar", "ar-SA" },
             { "pt", "pt-BR" },
@@ -589,6 +590,7 @@ namespace RSTGameTranslation
                 "fr", // French
                 "it", // Italian
                 "de", // German
+                "hu", // Hungarian
                 "ru", // Russian
                 "ar", // Arabic
                 "pt", // Portuguese

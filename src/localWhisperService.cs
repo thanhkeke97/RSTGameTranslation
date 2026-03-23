@@ -117,6 +117,7 @@ namespace RSTGameTranslation
                 "thai" or "th" or "thailand" => "th",
                 "traditional chinese" or "ch_tra" => "zh",
                 "croatian" or "hr" => "hr",
+                "hungarian" or "hu" => "hu",
                 "turkish" or "tr" => "tr",
                 "sinhala" or "si" => "si",
                 "danish" or "da" => "da",
