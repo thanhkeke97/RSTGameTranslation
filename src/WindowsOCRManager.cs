@@ -11,6 +11,8 @@ namespace RSTGameTranslation
     class WindowsOCRManager
     {
         private static WindowsOCRManager? _instance;
+        private bool _windowsOcrUnavailable;
+        private string? _lastWindowsOcrFailureSignature;
 
         public string? _currentLanguageCode = null;
 
@@ -29,26 +31,30 @@ namespace RSTGameTranslation
 
         public bool CheckLanguagePackInstall(string languageCode)
         {
-            var availableLanguages = OcrEngine.AvailableRecognizerLanguages;
+            _currentLanguageCode = null;
+
+            if (!LanguageMap.TryGetValue(languageCode, out string? languageTag))
+            {
+                return false;
+            }
+
+            _currentLanguageCode = languageTag;
+
+            if (!TryGetAvailableRecognizerLanguages(out IReadOnlyList<Language> availableLanguages))
+            {
+                return false;
+            }
+
             foreach (var language in availableLanguages)
             {
                 Console.WriteLine($"------------------------------------------{language.LanguageTag}");
-                if (LanguageMap.TryGetValue(languageCode, out string? languageTag))
+                if (language.LanguageTag == languageTag || language.LanguageTag == languageCode)
                 {
-                    _currentLanguageCode = languageTag;
-                    if (language.LanguageTag == languageTag || language.LanguageTag == languageCode)
-                    {
-                        Console.WriteLine($"Language pack is installed for {languageCode}");
-                        return true;
-                    }
+                    Console.WriteLine($"Language pack is installed for {languageCode}");
+                    return true;
                 }
-                else
-                {
-                    _currentLanguageCode = null;
-                    return false;
-                }
-                
             }
+
             Console.WriteLine($"Language pack is not installed for {languageCode}");
             return false;
         }
@@ -328,29 +334,106 @@ namespace RSTGameTranslation
             }
         }
 
-        // Get OCR engine for the specified language
-        private OcrEngine GetOcrEngine(string languageCode)
+        private bool TryGetAvailableRecognizerLanguages(out IReadOnlyList<Language> availableLanguages)
         {
-            // Convert language code to Windows language tag
+            try
+            {
+                availableLanguages = OcrEngine.AvailableRecognizerLanguages.ToList();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                HandleWindowsOcrActivationFailure("enumerating available recognizer languages", ex);
+                availableLanguages = Array.Empty<Language>();
+                return false;
+            }
+        }
+
+        private OcrEngine? TryCreateOcrEngine(string languageCode)
+        {
             if (LanguageMap.TryGetValue(languageCode, out string? languageTag))
             {
-                // Check if the language is available for OCR
-                if (OcrEngine.IsLanguageSupported(new Language(languageTag)))
+                _currentLanguageCode = languageTag;
+
+                try
                 {
-                    return OcrEngine.TryCreateFromLanguage(new Language(languageTag));
+                    var language = new Language(languageTag);
+
+                    if (OcrEngine.IsLanguageSupported(language))
+                    {
+                        var engine = OcrEngine.TryCreateFromLanguage(language);
+                        if (engine != null)
+                        {
+                            return engine;
+                        }
+
+                        Console.WriteLine($"Windows OCR could not create an engine for language {languageTag}, falling back to user profile languages.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Language {languageTag} not supported for Windows OCR, using user profile languages.");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.WriteLine($"Language {languageTag} not supported for Windows OCR, using user profile languages");
-                    return OcrEngine.TryCreateFromUserProfileLanguages();
+                    HandleWindowsOcrActivationFailure($"creating an OCR engine for language {languageTag}", ex);
+                    return null;
                 }
             }
             else
             {
-                // Fallback to user profile languages
-                Console.WriteLine($"No mapping found for language {languageCode}, using user profile languages");
-                return OcrEngine.TryCreateFromUserProfileLanguages();
+                _currentLanguageCode = null;
+                Console.WriteLine($"No mapping found for language {languageCode}, using user profile languages.");
             }
+
+            try
+            {
+                var fallbackEngine = OcrEngine.TryCreateFromUserProfileLanguages();
+                if (fallbackEngine == null)
+                {
+                    Console.WriteLine("Windows OCR could not create an engine from user profile languages.");
+                }
+
+                return fallbackEngine;
+            }
+            catch (Exception ex)
+            {
+                HandleWindowsOcrActivationFailure("creating an OCR engine from user profile languages", ex);
+                return null;
+            }
+        }
+
+        private void HandleWindowsOcrActivationFailure(string operation, Exception ex)
+        {
+            _windowsOcrUnavailable = true;
+            _currentLanguageCode = null;
+
+            string signature = $"{operation}|0x{ex.HResult:X8}|{ex.GetType().FullName}";
+            if (_lastWindowsOcrFailureSignature == signature)
+            {
+                return;
+            }
+
+            _lastWindowsOcrFailureSignature = signature;
+
+            Console.WriteLine($"Windows OCR is unavailable while {operation}. HRESULT: 0x{ex.HResult:X8}. Message: {ex.Message}");
+
+            if (ex.HResult == unchecked((int)0x80040154))
+            {
+                Console.WriteLine("Windows OCR activation failed because the Windows OCR runtime components are not available on this machine. The app will skip Windows OCR instead of crashing.");
+            }
+        }
+
+        // Get OCR engine for the specified language
+        private OcrEngine GetOcrEngine(string languageCode)
+        {
+            var ocrEngine = TryCreateOcrEngine(languageCode);
+            if (ocrEngine == null)
+            {
+                throw new InvalidOperationException($"Windows OCR engine is unavailable for language '{languageCode}'.");
+            }
+
+            return ocrEngine;
         }
         
       
@@ -364,7 +447,16 @@ namespace RSTGameTranslation
                 SoftwareBitmap softwareBitmap = await ConvertBitmapToSoftwareBitmapAsync(bitmap);
                 
                 // Get the OCR engine
-                OcrEngine ocrEngine = GetOcrEngine(languageCode);
+                OcrEngine? ocrEngine = TryCreateOcrEngine(languageCode);
+                if (ocrEngine == null)
+                {
+                    if (!_windowsOcrUnavailable)
+                    {
+                        Console.WriteLine("Windows OCR engine is not available. Returning an empty OCR result.");
+                    }
+
+                    return new List<Windows.Media.Ocr.OcrLine>();
+                }
                 
                 // Perform OCR
                 var result = await ocrEngine.RecognizeAsync(softwareBitmap);
