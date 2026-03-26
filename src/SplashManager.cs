@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -28,11 +30,13 @@ namespace RSTGameTranslation
         private Window? _splashWindow;
         private TextBlock? _versionTextBlock;
         private TextBlock? _statusTextBlock;
+        private Border? _loadingBar;
+        private Border? _loadingBarContainer;
         
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const double CurrentVersion = 4.8;
+        public const double CurrentVersion = 4.7;
         private const string VersionCheckerUrl = "https://raw.githubusercontent.com/thanhkeke97/RSTGameTranslation/refs/heads/main/media/latest_version_checker.json";
 
         private class VersionInfo
@@ -191,7 +195,7 @@ namespace RSTGameTranslation
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch
                 };
 
-                Border loadingBar = new Border
+                _loadingBar = new Border
                 {
                     Height = 4,
                     CornerRadius = new CornerRadius(2),
@@ -200,7 +204,8 @@ namespace RSTGameTranslation
                     Background = accentBrush
                 };
 
-                loadingBarContainer.Child = loadingBar;
+                _loadingBarContainer = loadingBarContainer;
+                loadingBarContainer.Child = _loadingBar;
                 Grid.SetRow(loadingBarContainer, 3);
                 grid.Children.Add(loadingBarContainer);
 
@@ -241,7 +246,7 @@ namespace RSTGameTranslation
                     Duration = TimeSpan.FromMilliseconds(1800),
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
                 };
-                loadingBar.BeginAnimation(Border.WidthProperty, loadingAnimation);
+                _loadingBar.BeginAnimation(Border.WidthProperty, loadingAnimation);
 
                 CheckForUpdates();
             });
@@ -279,7 +284,7 @@ namespace RSTGameTranslation
                 if (versionInfo.LatestVersion > CurrentVersion)
                 {
                     string message = versionInfo.Message?.Replace("{VERSION_STRING}", versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)) 
-                    ?? $"New version {versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} is available. Would you like to download it now?";
+                    ?? $"New version {versionInfo.LatestVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} is available. Would you like to update automatically?";
                     
                     
                     // Update status text
@@ -291,7 +296,8 @@ namespace RSTGameTranslation
                     // Wait for 2 seconds before showing update dialog
                     await Task.Delay(2000);
                     
-                    // Temporarily disable Topmost property before showing dialog
+                    // Ask user to auto-update
+                    bool shouldUpdate = false;
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         if (_splashWindow != null)
@@ -306,13 +312,16 @@ namespace RSTGameTranslation
                             System.Windows.MessageBoxImage.Information
                         );
                         
-                        if (result == System.Windows.MessageBoxResult.Yes)
-                        {
-                            DownloadUpdate(versionInfo.LatestVersion);
-                        }
-                        
-                        CloseSplash();
+                        shouldUpdate = (result == System.Windows.MessageBoxResult.Yes);
                     });
+                    
+                    if (shouldUpdate)
+                    {
+                        await DownloadAndInstallUpdate(versionInfo.LatestVersion);
+                        return; // App will be restarted by update script
+                    }
+                    
+                    CloseSplash();
                 }
                 else
                 {
@@ -396,36 +405,187 @@ namespace RSTGameTranslation
             });
         }
 
-        private void DownloadUpdate(double version)
+        private void UpdateLoadingProgress(double percent)
         {
-            string DownloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{version.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}/RSTGameTranslation_v{version.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}.zip";
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (_loadingBar != null && _loadingBarContainer != null)
+                {
+                    // Stop any running animation
+                    _loadingBar.BeginAnimation(Border.WidthProperty, null);
+                    double maxWidth = _loadingBarContainer.ActualWidth > 0 ? _loadingBarContainer.ActualWidth : 320;
+                    _loadingBar.Width = maxWidth * (percent / 100.0);
+                }
+            });
+        }
+
+        private async Task DownloadAndInstallUpdate(double version)
+        {
+            string versionStr = version.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            string downloadUrl = $"https://github.com/thanhkeke97/RSTGameTranslation/releases/download/V{versionStr}/RSTGameTranslation_v{versionStr}.zip";
+            string tempDir = Path.Combine(Path.GetTempPath(), "RSTUpdate");
+            string zipPath = Path.Combine(tempDir, $"RSTGameTranslation_v{versionStr}.zip");
+            string extractDir = Path.Combine(tempDir, "extracted");
+
             try
             {
-                UpdateStatusText(LocalizationManager.Instance.Strings["Splash_StartingDownload"]);
-                
-                // Open the download URL in the default browser
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                // Clean up previous update attempt
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, true);
+                Directory.CreateDirectory(tempDir);
+
+                // --- Step 1: Download the zip file with progress ---
+                UpdateStatusText(string.Format(
+                    LocalizationManager.Instance.Strings["Splash_Downloading"], 0));
+
+                using var downloadClient = new HttpClient() { Timeout = TimeSpan.FromMinutes(30) };
+                downloadClient.DefaultRequestHeaders.Add("User-Agent", "RSTGameTranslation");
+
+                using var response = await downloadClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+
+                long? totalBytes = response.Content.Headers.ContentLength;
+                long downloadedBytes = 0;
+
+                using (var contentStream = await response.Content.ReadAsStreamAsync())
+                using (var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
                 {
-                    FileName = DownloadUrl,
-                    UseShellExecute = true
+                    var buffer = new byte[81920]; // 80KB buffer
+                    int bytesRead;
+                    int lastReportedPercent = -1;
+
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                        downloadedBytes += bytesRead;
+
+                        if (totalBytes.HasValue && totalBytes.Value > 0)
+                        {
+                            int percent = (int)((downloadedBytes * 100) / totalBytes.Value);
+                            if (percent != lastReportedPercent)
+                            {
+                                lastReportedPercent = percent;
+                                UpdateStatusText(string.Format(
+                                    LocalizationManager.Instance.Strings["Splash_Downloading"], percent));
+                                UpdateLoadingProgress(percent);
+                            }
+                        }
+                    }
+                }
+
+                Console.WriteLine($"Download complete: {downloadedBytes} bytes");
+
+                // --- Step 2: Extract the zip ---
+                UpdateStatusText(LocalizationManager.Instance.Strings["Splash_Extracting"]);
+                UpdateLoadingProgress(100);
+
+                await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, extractDir));
+
+                // Find the actual content directory (zip may have a root folder like "RSTGameTranslation")
+                string sourceDir = extractDir;
+                var subDirs = Directory.GetDirectories(extractDir);
+                if (subDirs.Length == 1 && Directory.GetFiles(extractDir).Length == 0)
+                {
+                    // Zip has a single root folder, use that as source
+                    sourceDir = subDirs[0];
+                }
+
+                Console.WriteLine($"Extracted to: {sourceDir}");
+
+                // --- Step 3: Create update batch script and launch it ---
+                UpdateStatusText(LocalizationManager.Instance.Strings["Splash_Installing"]);
+
+                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                int currentPid = Environment.ProcessId;
+
+                string scriptPath = CreateUpdateScript(tempDir, sourceDir, appDir, currentPid);
+
+                Console.WriteLine($"Launching update script: {scriptPath}");
+
+                // Launch the batch script (will wait for app to exit, then copy files)
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c \"{scriptPath}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+
+                // Show message to user to reopen the app manually
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (_splashWindow != null)
+                        _splashWindow.Topmost = false;
+
+                    System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Splash_UpdateSuccess"], versionStr),
+                        LocalizationManager.Instance.Strings["Title_UpdateAvailable"],
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Information
+                    );
+
+                    System.Windows.Application.Current.Shutdown();
                 });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error downloading update: {ex.Message}");
-                // Ensure error dialog is visible
-                if (_splashWindow != null)
+                Console.WriteLine($"Error during auto-update: {ex.Message}");
+                UpdateStatusText(string.Format(
+                    LocalizationManager.Instance.Strings["Splash_UpdateFailed"], ex.Message));
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    _splashWindow.Topmost = false;
+                    if (_splashWindow != null)
+                        _splashWindow.Topmost = false;
+
+                    System.Windows.MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_FailedDownloadUpdate"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Error
+                    );
+                });
+
+                CloseSplash();
+
+                // Cleanup on failure
+                try
+                {
+                    if (Directory.Exists(tempDir))
+                        Directory.Delete(tempDir, true);
                 }
-                
-                System.Windows.MessageBox.Show(
-                    string.Format(LocalizationManager.Instance.Strings["Msg_FailedDownloadUpdate"], ex.Message),
-                    LocalizationManager.Instance.Strings["Title_Error"],
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error
-                );
+                catch { /* ignore cleanup errors */ }
             }
+        }
+
+        private string CreateUpdateScript(string tempDir, string sourceDir, string appDir, int currentPid)
+        {
+            string scriptPath = Path.Combine(tempDir, "update.bat");
+
+            // Batch script: wait for process to exit → copy files → cleanup (no restart)
+            string script = $@"@echo off
+chcp 65001 >nul
+echo Waiting for application to close...
+:waitloop
+tasklist /FI ""PID eq {currentPid}"" 2>NUL | find ""{currentPid}"" >NUL
+if not errorlevel 1 (
+    timeout /t 1 /nobreak >nul
+    goto waitloop
+)
+echo Application closed. Copying update files...
+xcopy ""{sourceDir}\*"" ""{appDir}"" /E /Y /I /Q >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: Failed to copy update files.
+    pause
+    exit /b 1
+)
+echo Update complete.
+timeout /t 3 /nobreak >nul
+rmdir /S /Q ""{tempDir}""
+exit
+";
+            File.WriteAllText(scriptPath, script, System.Text.Encoding.UTF8);
+            return scriptPath;
         }
 
         private void CloseSplashAfterDelay(int delay)
