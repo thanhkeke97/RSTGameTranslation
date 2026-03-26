@@ -32,6 +32,7 @@ namespace RSTGameTranslation
         private TextBlock? _statusTextBlock;
         private Border? _loadingBar;
         private Border? _loadingBarContainer;
+        private CancellationTokenSource? _updateCts;
         
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
@@ -427,6 +428,11 @@ namespace RSTGameTranslation
             string zipPath = Path.Combine(tempDir, $"RSTGameTranslation_v{versionStr}.zip");
             string extractDir = Path.Combine(tempDir, "extracted");
 
+            // Create cancellation token for this update operation
+            _updateCts?.Cancel();
+            _updateCts = new CancellationTokenSource();
+            var token = _updateCts.Token;
+
             try
             {
                 // Clean up previous update attempt
@@ -441,7 +447,7 @@ namespace RSTGameTranslation
                 using var downloadClient = new HttpClient() { Timeout = TimeSpan.FromMinutes(30) };
                 downloadClient.DefaultRequestHeaders.Add("User-Agent", "RSTGameTranslation");
 
-                using var response = await downloadClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                using var response = await downloadClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, token);
                 response.EnsureSuccessStatusCode();
 
                 long? totalBytes = response.Content.Headers.ContentLength;
@@ -454,9 +460,10 @@ namespace RSTGameTranslation
                     int bytesRead;
                     int lastReportedPercent = -1;
 
-                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
                     {
-                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                        token.ThrowIfCancellationRequested();
+                        await fileStream.WriteAsync(buffer, 0, bytesRead, token);
                         downloadedBytes += bytesRead;
 
                         if (totalBytes.HasValue && totalBytes.Value > 0)
@@ -475,11 +482,25 @@ namespace RSTGameTranslation
 
                 Console.WriteLine($"Download complete: {downloadedBytes} bytes");
 
+                // Validate zip file before extracting
+                if (!File.Exists(zipPath) || new FileInfo(zipPath).Length == 0)
+                {
+                    throw new IOException("Downloaded file is empty or missing.");
+                }
+
                 // --- Step 2: Extract the zip ---
+                token.ThrowIfCancellationRequested();
                 UpdateStatusText(LocalizationManager.Instance.Strings["Splash_Extracting"]);
                 UpdateLoadingProgress(100);
 
-                await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, extractDir));
+                try
+                {
+                    await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, extractDir), token);
+                }
+                catch (InvalidDataException)
+                {
+                    throw new InvalidDataException("Downloaded file is corrupted. Please try again.");
+                }
 
                 // Find the actual content directory (zip may have a root folder like "RSTGameTranslation")
                 string sourceDir = extractDir;
@@ -493,6 +514,7 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Extracted to: {sourceDir}");
 
                 // --- Step 3: Create update batch script and launch it ---
+                token.ThrowIfCancellationRequested();
                 UpdateStatusText(LocalizationManager.Instance.Strings["Splash_Installing"]);
 
                 string appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -527,35 +549,77 @@ namespace RSTGameTranslation
                     System.Windows.Application.Current.Shutdown();
                 });
             }
+            catch (OperationCanceledException)
+            {
+                // User closed the app or cancelled the update
+                Console.WriteLine("Update cancelled by user.");
+                CleanupTempDir(tempDir);
+                CloseSplash();
+            }
+            catch (HttpRequestException ex)
+            {
+                // Network error (disconnected, DNS failure, server error, etc.)
+                Console.WriteLine($"Network error during auto-update: {ex.Message}");
+                ShowUpdateError(ex.Message);
+                CleanupTempDir(tempDir);
+            }
+            catch (InvalidDataException ex)
+            {
+                // Corrupted zip file
+                Console.WriteLine($"Corrupted download: {ex.Message}");
+                ShowUpdateError(ex.Message);
+                CleanupTempDir(tempDir);
+            }
+            catch (IOException ex)
+            {
+                // File system errors (disk full, permission denied, etc.)
+                Console.WriteLine($"IO error during auto-update: {ex.Message}");
+                ShowUpdateError(ex.Message);
+                CleanupTempDir(tempDir);
+            }
             catch (Exception ex)
             {
+                // Unexpected error
                 Console.WriteLine($"Error during auto-update: {ex.Message}");
-                UpdateStatusText(string.Format(
-                    LocalizationManager.Instance.Strings["Splash_UpdateFailed"], ex.Message));
-
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    if (_splashWindow != null)
-                        _splashWindow.Topmost = false;
-
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_FailedDownloadUpdate"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error
-                    );
-                });
-
-                CloseSplash();
-
-                // Cleanup on failure
-                try
-                {
-                    if (Directory.Exists(tempDir))
-                        Directory.Delete(tempDir, true);
-                }
-                catch { /* ignore cleanup errors */ }
+                ShowUpdateError(ex.Message);
+                CleanupTempDir(tempDir);
             }
+            finally
+            {
+                _updateCts?.Dispose();
+                _updateCts = null;
+            }
+        }
+
+        private void ShowUpdateError(string errorMessage)
+        {
+            UpdateStatusText(string.Format(
+                LocalizationManager.Instance.Strings["Splash_UpdateFailed"], errorMessage));
+
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (_splashWindow != null)
+                    _splashWindow.Topmost = false;
+
+                System.Windows.MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_FailedDownloadUpdate"], errorMessage),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error
+                );
+            });
+
+            CloseSplash();
+        }
+
+        private static void CleanupTempDir(string tempDir)
+        {
+            try
+            {
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, true);
+            }
+            catch { /* ignore cleanup errors */ }
         }
 
         private string CreateUpdateScript(string tempDir, string sourceDir, string appDir, int currentPid)
@@ -598,6 +662,9 @@ exit
 
         private void CloseSplash()
         {
+            // Cancel any ongoing update download
+            _updateCts?.Cancel();
+
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 _splashWindow?.Close();
