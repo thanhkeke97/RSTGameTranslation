@@ -12,7 +12,6 @@ using Whisper.net.LibraryLoader;
 using System.Text.Json;
 using NAudio.CoreAudioApi;
 using System.Windows;
-using Windows.Globalization;
 
 namespace RSTGameTranslation
 {

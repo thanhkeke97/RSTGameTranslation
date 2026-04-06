@@ -16,7 +16,6 @@ using System.Windows.Shell;
 using System.Net.Http;
 using System.Text.Json;
 using SocketIOClient;
-using Windows.ApplicationModel.VoiceCommands;
 using RST;
 
 
@@ -1100,6 +1099,8 @@ namespace RSTGameTranslation
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            try
+            {
             // Play entrance animations
             PlayEntranceAnimations();
             
@@ -1199,6 +1200,13 @@ namespace RSTGameTranslation
 
             // Load screen selection list
             LoadScreenList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during MainWindow_Loaded: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                _isInitializing = false;
+            }
         }
 
         // The LocationChanged event to update the position of the MonitorWindow when the MainWindow moves

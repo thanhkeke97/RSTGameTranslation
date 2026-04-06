@@ -17,8 +17,8 @@ namespace RSTGameTranslation
     public class WindowsTTSService
     {
         private static WindowsTTSService? _instance;
-        private readonly SpeechSynthesizer _synthesizer;
-        private readonly SystemSpeech.SpeechSynthesizer _systemSynthesizer;
+        private SpeechSynthesizer? _synthesizer;
+        private SystemSpeech.SpeechSynthesizer? _systemSynthesizer;
         
         // Dictionary of available voices with their names
         // This will be populated dynamically based on installed voices
@@ -81,8 +81,25 @@ namespace RSTGameTranslation
         
         private WindowsTTSService()
         {
-            _synthesizer = new SpeechSynthesizer();
-            _systemSynthesizer = new SystemSpeech.SpeechSynthesizer();
+            try
+            {
+                _synthesizer = new SpeechSynthesizer();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize WinRT SpeechSynthesizer (Windows N/KN edition or speech features disabled?): {ex.Message}");
+                _synthesizer = null;
+            }
+
+            try
+            {
+                _systemSynthesizer = new SystemSpeech.SpeechSynthesizer();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize System.Speech SpeechSynthesizer: {ex.Message}");
+                _systemSynthesizer = null;
+            }
             
             // Ensure temp directory exists
             Directory.CreateDirectory(_tempDir);
@@ -297,27 +314,43 @@ namespace RSTGameTranslation
                 _voiceApiSource.Clear();
                 
                 // Get all installed voices from Windows.Media.SpeechSynthesis (UWP API)
-                var uwpVoices = SpeechSynthesizer.AllVoices;
-                
-                foreach (var voice in uwpVoices)
+                if (_synthesizer != null)
                 {
-                    string language = voice.Language;
-                    string displayName = voice.DisplayName;
-                    string gender = voice.Gender.ToString();
-                    
-                    // Create a descriptive name for the voice
-                    string voiceKey = $"{displayName} ({language}, {gender}, UWP)";
-                    
-                    // Add to dictionary - use the ID as the value
-                    if (!AvailableVoices.ContainsKey(voiceKey))
+                    try
                     {
-                        AvailableVoices.Add(voiceKey, voice.Id);
-                        _voiceApiSource.Add(voice.Id, true); // Store by voice.Id
-                        Console.WriteLine($"Found Windows UWP TTS voice: {voiceKey} - {voice.Id}");
+                        var uwpVoices = SpeechSynthesizer.AllVoices;
+                
+                        foreach (var voice in uwpVoices)
+                        {
+                            string language = voice.Language;
+                            string displayName = voice.DisplayName;
+                            string gender = voice.Gender.ToString();
+                    
+                            // Create a descriptive name for the voice
+                            string voiceKey = $"{displayName} ({language}, {gender}, UWP)";
+                    
+                            // Add to dictionary - use the ID as the value
+                            if (!AvailableVoices.ContainsKey(voiceKey))
+                            {
+                                AvailableVoices.Add(voiceKey, voice.Id);
+                                _voiceApiSource.Add(voice.Id, true); // Store by voice.Id
+                                Console.WriteLine($"Found Windows UWP TTS voice: {voiceKey} - {voice.Id}");
+                            }
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error enumerating UWP voices: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Skipping UWP voice enumeration (SpeechSynthesizer not available)");
                 }
                 
                 // Get all installed voices from System.Speech.Synthesis (SAPI 5, which Narrator typically uses)
+                if (_systemSynthesizer != null)
+                {
                 try
                 {
                     var systemVoices = _systemSynthesizer.GetInstalledVoices();
@@ -356,6 +389,11 @@ namespace RSTGameTranslation
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error getting System.Speech voices: {ex.Message}");
+                }
+                }
+                else
+                {
+                    Console.WriteLine("Skipping SAPI voice enumeration (System.Speech SpeechSynthesizer not available)");
                 }
                 
                 Console.WriteLine($"Initialized {AvailableVoices.Count} Windows TTS voices in total");
@@ -455,6 +493,12 @@ namespace RSTGameTranslation
                 
                 if (isUwpVoice)
                 {
+                    if (_synthesizer == null)
+                    {
+                        Console.WriteLine("UWP SpeechSynthesizer is not available on this system");
+                        return string.Empty;
+                    }
+
                     // Use Windows.Media.SpeechSynthesis (UWP API)
                     // Find the voice object by ID
                     var selectedVoice = SpeechSynthesizer.AllVoices
