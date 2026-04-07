@@ -127,6 +127,9 @@ namespace RSTGameTranslation
         private static DateTime _lastKeyPressTime = DateTime.MinValue;
         private static int _lastKeyCode = 0;
         private static readonly TimeSpan _keyPressThreshold = TimeSpan.FromMilliseconds(300);
+        private static readonly object _hotkeyDispatchLock = new object();
+        private static readonly Dictionary<string, DateTime> _lastHotkeyDispatchTimes = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+        private static readonly TimeSpan _hotkeyDispatchThreshold = TimeSpan.FromMilliseconds(250);
         
         // Key polling system for global hotkeys only
         private static CancellationTokenSource? _pollingCts;
@@ -342,224 +345,240 @@ namespace RSTGameTranslation
             }
         }
         
-        // Process WM_HOTKEY messages in the main window
-        public static bool ProcessHotKey(IntPtr wParam)
+        private static bool TryReserveHotkeyDispatch(string function)
+        {
+            DateTime now = DateTime.UtcNow;
+
+            lock (_hotkeyDispatchLock)
+            {
+                if (_lastHotkeyDispatchTimes.TryGetValue(function, out DateTime lastDispatch) &&
+                    (now - lastDispatch) < _hotkeyDispatchThreshold)
+                {
+                    Console.WriteLine($"Hotkey duplicate suppressed: {function}");
+                    return false;
+                }
+
+                _lastHotkeyDispatchTimes[function] = now;
+                return true;
+            }
+        }
+
+        private static bool InvokeHotkeyAction(string function)
         {
             if (!ConfigManager.Instance.IsHotKeyEnabled())
             {
                 return false;
             }
-            int id = wParam.ToInt32();
 
+            bool shouldInvoke = TryReserveHotkeyDispatch(function);
+
+            switch (function)
+            {
+                case "Start/Stop":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Start/Stop");
+                        StartStopRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Overlay":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Overlay");
+                        MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "ChatBox":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: ChatBox");
+                        ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Setting":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Setting");
+                        SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Log":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Log");
+                        LogToggleRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Select Area":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Select Area");
+                        SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Clear Areas":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Clear Areas");
+                        ClearAreasRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Clear Selected Area":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Clear Selected Area");
+                        ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Show Area":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Show Area");
+                        ShowAreaRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Area 1":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Area 1");
+                        SelectArea1Requested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Area 2":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Area 2");
+                        SelectArea2Requested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Area 3":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Area 3");
+                        SelectArea3Requested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Area 4":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Area 4");
+                        SelectArea4Requested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Area 5":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Area 5");
+                        SelectArea5Requested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Audio Service":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Audio Service");
+                        AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Swap Languages":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Swap Languages");
+                        SwapLanguagesRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Retry Translation":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Retry Translation");
+                        RetryTranslationRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+
+                case "Select Exclude Region":
+                case "Toggle Exclude Regions":
+                    if (shouldInvoke)
+                    {
+                        Console.WriteLine("Hotkey detected: Select Exclude Region");
+                        ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty);
+                    }
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static string? GetFunctionNameForHotkeyId(int id)
+        {
             switch (id)
             {
                 case HOTKEY_ID_START_STOP:
-                    Console.WriteLine("Hotkey detected: Start/Stop");
-                    StartStopRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "Start/Stop";
                 case HOTKEY_ID_OVERLAY:
-                    Console.WriteLine("Hotkey detected: Overlay");
-                    MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "Overlay";
                 case HOTKEY_ID_CHATBOX:
-                    Console.WriteLine("Hotkey detected: ChatBox");
-                    ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "ChatBox";
                 case HOTKEY_ID_SETTING:
-                    Console.WriteLine("Hotkey detected: Setting");
-                    SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "Setting";
                 case HOTKEY_ID_LOG:
-                    Console.WriteLine("Hotkey detected: Log");
-                    LogToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "Log";
                 case HOTKEY_ID_SELECT_AREA:
-                    Console.WriteLine("Hotkey detected: Select Area");
-                    SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
-                    return true;
-                    
+                    return "Select Area";
                 case HOTKEY_ID_CLEAR_AREAS:
-                    Console.WriteLine("Hotkey detected: Clear Areas");
-                    ClearAreasRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "Clear Areas";
                 case HOTKEY_ID_CLEAR_SELECTED_AREA:
-                    Console.WriteLine("Hotkey detected: Clear Selected Areas");
-                    ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "Clear Selected Area";
                 case HOTKEY_ID_SHOW_AREA:
-                    Console.WriteLine("Hotkey detected: Show Area");
-                    ShowAreaRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                    
+                    return "Show Area";
                 case HOTKEY_ID_AREA_1:
-                    Console.WriteLine("Hotkey detected: Area 1");
-                    SelectArea1Requested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                    
+                    return "Area 1";
                 case HOTKEY_ID_AREA_2:
-                    Console.WriteLine("Hotkey detected: Area 2");
-                    SelectArea2Requested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                    
+                    return "Area 2";
                 case HOTKEY_ID_AREA_3:
-                    Console.WriteLine("Hotkey detected: Area 3");
-                    SelectArea3Requested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                    
+                    return "Area 3";
                 case HOTKEY_ID_AREA_4:
-                    Console.WriteLine("Hotkey detected: Area 4");
-                    SelectArea4Requested?.Invoke(null, EventArgs.Empty);
-                    return true;
-                    
+                    return "Area 4";
                 case HOTKEY_ID_AREA_5:
-                    Console.WriteLine("Hotkey detected: Area 5");
-                    SelectArea5Requested?.Invoke(null, EventArgs.Empty);
-                    return true;
+                    return "Area 5";
                 case HOTKEY_ID_AUDIO_SERVICE:
-                    Console.WriteLine("Hotkey detected: Audio Service");
-                    AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
+                    return "Audio Service";
                 case HOTKEY_ID_SWAP_LANGUAGES:
-                    Console.WriteLine("Hotkey detected: Swap Languages");
-                    SwapLanguagesRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
+                    return "Swap Languages";
                 case HOTKEY_ID_RETRY_TRANSLATION:
-                    Console.WriteLine("Hotkey detected: Retry Translation");
-                    RetryTranslationRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
-
+                    return "Retry Translation";
                 case HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS:
-                    Console.WriteLine("Hotkey detected: Select Exclude Region");
-                    ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty);
-                    return true;
+                    return "Select Exclude Region";
+                default:
+                    return null;
             }
-            
-            return false;
+        }
+
+        // Process WM_HOTKEY messages in the main window
+        public static bool ProcessHotKey(IntPtr wParam)
+        {
+            string? function = GetFunctionNameForHotkeyId(wParam.ToInt32());
+            return function != null && InvokeHotkeyAction(function);
         }
         
         // Process WM_HOTKEY messages in the main window
         public static bool ProcessHandleHotKey(string function)
         {
-            if (!ConfigManager.Instance.IsHotKeyEnabled())
-            {
-                return false;
-            }
-            if (function == "Start/Stop")
-            {
-                Console.WriteLine("Hotkey detected: Start/Stop");
-                StartStopRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Overlay")
-            {
-                Console.WriteLine("Hotkey detected: Overlay");
-                MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "ChatBox")
-            {
-                Console.WriteLine("Hotkey detected: ChatBox");
-                ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Setting")
-            {
-                Console.WriteLine("Hotkey detected: Setting");
-                SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Log")
-            {
-                Console.WriteLine("Hotkey detected: Log");
-                LogToggleRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Select Area")
-            {
-                Console.WriteLine("Hotkey detected: Select Area");
-                SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Clear Areas")
-            {
-                Console.WriteLine("Hotkey detected: Clear Areas");
-                ClearAreasRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Clear Selected Area")
-            {
-                Console.WriteLine("Hotkey detected: Clear Selected Area");
-                ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Show Area")
-            {
-                Console.WriteLine("Hotkey detected: Show Area");
-                ShowAreaRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Area 1")
-            {
-                Console.WriteLine("Hotkey detected: Area 1");
-                SelectArea1Requested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Area 2")
-            {
-                Console.WriteLine("Hotkey detected: Area 2");
-                SelectArea2Requested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Area 3")
-            {
-                Console.WriteLine("Hotkey detected: Area 3");
-                SelectArea3Requested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Area 4")
-            {
-                Console.WriteLine("Hotkey detected: Area 4");
-                SelectArea4Requested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Area 5")
-            {
-                Console.WriteLine("Hotkey detected: Area 5");
-                SelectArea5Requested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Audio Service")
-            {
-                Console.WriteLine("Hotkey detected: Audio Service");
-                AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Swap Languages")
-            {
-                Console.WriteLine("Hotkey detected: Swap Languages");
-                SwapLanguagesRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Retry Translation")
-            {
-                Console.WriteLine("Hotkey detected: Retry Translation");
-                RetryTranslationRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            else if (function == "Select Exclude Region" || function == "Toggle Exclude Regions")
-            {
-                Console.WriteLine("Hotkey detected: Select Exclude Region");
-                ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty);
-                return true;
-            }
-            return false;
+            return InvokeHotkeyAction(function);
         }
         
         // Start polling for key states as a backup method - ONLY for global shortcuts
