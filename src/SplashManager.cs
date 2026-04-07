@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -37,7 +37,7 @@ namespace RSTGameTranslation
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const double CurrentVersion = 4.8;
+        public const double CurrentVersion = 4.9;
         private const string VersionCheckerUrl = "https://raw.githubusercontent.com/thanhkeke97/RSTGameTranslation/refs/heads/main/media/latest_version_checker.json";
 
         private class VersionInfo
