@@ -16,7 +16,70 @@ public partial class App : Application
 {
     private MainWindow? _mainWindow;
 
+    public App()
+    {
+        // Register the earliest possible exception handler to catch assembly load failures,
+        // TypeInitializationExceptions, and other fatal errors that happen before OnStartup.
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            if (args.ExceptionObject is Exception ex)
+            {
+                WriteCrashLog("AppDomain.UnhandledException (fatal=" + args.IsTerminating + ")", ex);
+            }
+        };
+    }
+
+    /// <summary>
+    /// Write a crash log to a file in the app directory.
+    /// This is needed because the console may not exist yet when OnStartup fails.
+    /// </summary>
+    private static void WriteCrashLog(string context, Exception ex)
+    {
+        try
+        {
+            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash_log.txt");
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string entry = $"[{timestamp}] {context}\n" +
+                           $"  Exception: {ex.GetType().FullName}: {ex.Message}\n" +
+                           $"  HRESULT: 0x{ex.HResult:X8}\n" +
+                           $"  Stack: {ex.StackTrace}\n";
+            if (ex.InnerException != null)
+            {
+                entry += $"  Inner: {ex.InnerException.GetType().FullName}: {ex.InnerException.Message}\n" +
+                         $"  Inner HRESULT: 0x{ex.InnerException.HResult:X8}\n" +
+                         $"  Inner Stack: {ex.InnerException.StackTrace}\n";
+            }
+            entry += "\n";
+            File.AppendAllText(logPath, entry);
+        }
+        catch { /* last resort — nothing we can do */ }
+    }
+
     protected override void OnStartup(StartupEventArgs e)
+    {
+        // Catch ALL exceptions during startup, including assembly load / WinRT activation failures.
+        // Without this, the app silently exits on systems where WinRT components are missing.
+        try
+        {
+            StartupCore(e);
+        }
+        catch (Exception ex)
+        {
+            WriteCrashLog("OnStartup", ex);
+            System.Windows.MessageBox.Show(
+                $"RST failed to start.\n\n" +
+                $"{ex.GetType().Name}: {ex.Message}\n\n" +
+                $"A crash log has been written to:\n" +
+                $"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash_log.txt")}\n\n" +
+                $"Please report this issue.",
+                "RST — Startup Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            Shutdown(1);
+        }
+    }
+
+    private void StartupCore(StartupEventArgs e)
     {
         base.OnStartup(e);
 

@@ -8,7 +8,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <EnablePreviewWinRT>true</EnablePreviewWinRT>
     <AssemblyName>rst</AssemblyName>
     <OutputPath>app</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
