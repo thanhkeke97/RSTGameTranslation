@@ -9,6 +9,8 @@
     Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Settings_Title]}"
     Height="550"
     Width="600"
+    Background="{DynamicResource SurfaceBrush}"
+    Foreground="{DynamicResource TextBrush}"
     WindowStyle="SingleBorderWindow"
     ResizeMode="CanResizeWithGrip"
     Icon="/media/AppIcon.ico">
@@ -138,25 +140,108 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="GridViewColumnHeader">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource Surface3Brush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GridViewColumnHeader">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ListView">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource Surface2Brush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="ListViewItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="6,4"
+                                SnapsToDevicePixels="True">
+                            <GridViewRowPresenter VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  Columns="{Binding RelativeSource={RelativeSource AncestorType=ListView}, Path=View.Columns}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Surface3Brush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Surface3Brush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="Background" Value="{DynamicResource Surface3Brush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="MinHeight" Value="30"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="UseLayoutRounding" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               RecognizesAccessKey="True"/>
                         </Border>
                     </ControlTemplate>
@@ -281,7 +366,7 @@
                                 <TextBlock x:Name="checkLanguagePack" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CheckLanguagePack]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"  ToolTip="Check if the language package is installed."/>
                                 <Button x:Name="checkLanguagePackButton" Grid.Row="2" Grid.Column="1"
-                                        Width="60" Height="20" Margin="10,0"
+                                        Width="60" Margin="10,0"
                                         Click="CheckLanguagePackButton_Click">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Check]}"/>
                                 </Button>
@@ -469,7 +554,7 @@
                                         <Setter Property="Padding" Value="5"/>
                                     </Style>
                                     <Style TargetType="Border">
-                                        <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
                                         <Setter Property="BorderThickness" Value="0,0,0,1"/>
                                         <Setter Property="Padding" Value="2"/>
                                     </Style>
@@ -498,51 +583,51 @@
                                 <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Accuracy]}" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_SupportManga]}" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Row="0" Grid.Column="5" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Resources]}" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <Border Grid.Row="0" Grid.ColumnSpan="6" BorderThickness="0,0,0,2" BorderBrush="#FF888888" Margin="0,0,0,5"/>
+                                <Border Grid.Row="0" Grid.ColumnSpan="6" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource BorderBrush}" Margin="0,0,0,5"/>
 
                                 <!-- Windows OCR -->
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Windows OCR"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="No" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="1" Grid.Column="2" Text="Very Fast" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="1" Grid.Column="3" Text="Medium" HorizontalAlignment="Center" Foreground="#FFA500"/> <!-- Orange -->
-                                <TextBlock Grid.Row="1" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
-                                <TextBlock Grid.Row="1" Grid.Column="5" Text="CPU(~2%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="Very Fast" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="3" Text="Medium" HorizontalAlignment="Center" Foreground="{DynamicResource WarningBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="5" Text="CPU(~2%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
                                 <Border Grid.Row="1" Grid.ColumnSpan="6"/>
 
                                 <!-- OneOCR -->
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="OneOCR"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="No" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="2" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="2" Grid.Column="3" Text="High" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="2" Grid.Column="4" Text="Yes" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="2" Grid.Column="5" Text="CPU(~10%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="3" Text="High" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="4" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="5" Text="CPU(~10%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
                                 <Border Grid.Row="2" Grid.ColumnSpan="6"/>
 
                                 <!-- RapidOCR -->
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="RapidOCR"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="Black"/>
-                                <TextBlock Grid.Row="3" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="3" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="3" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
-                                <TextBlock Grid.Row="3" Grid.Column="5" Text="AMD/NVIDIA(~10%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="5" Text="AMD/NVIDIA(~10%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
                                 <Border Grid.Row="3" Grid.ColumnSpan="6"/>
 
                                 <!-- EasyOCR -->
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="EasyOCR"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="Black"/>
-                                <TextBlock Grid.Row="4" Grid.Column="2" Text="Medium" HorizontalAlignment="Center" Foreground="#FFA500"/>
-                                <TextBlock Grid.Row="4" Grid.Column="3" Text="Good" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="4" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
-                                <TextBlock Grid.Row="4" Grid.Column="5" Text="NVIDIA(~20%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="Medium" HorizontalAlignment="Center" Foreground="{DynamicResource WarningBrush}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="3" Text="Good" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="5" Text="NVIDIA(~20%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
                                 <Border Grid.Row="4" Grid.ColumnSpan="6"/>
 
                                 <!-- PaddleOCR -->
                                 <TextBlock Grid.Row="5" Grid.Column="0" Text="PaddleOCR"/>
-                                <TextBlock Grid.Row="5" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="Black"/>
-                                <TextBlock Grid.Row="5" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="5" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Grid.Row="5" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="Black"/>
-                                <TextBlock Grid.Row="5" Grid.Column="5" Text="NVIDIA(~15%)" HorizontalAlignment="Center" Foreground="Black"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="5" Text="NVIDIA(~15%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
                                 <Border Grid.Row="5" Grid.ColumnSpan="6" BorderThickness="0"/>
                             </Grid>
                         </GroupBox>
@@ -1106,7 +1191,7 @@
                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CustomApiNote]}"
                                           VerticalAlignment="Top" Margin="0,8,0,0"
                                           TextWrapping="Wrap"
-                                          Foreground="#FFA0A0A0"
+                                          Foreground="{DynamicResource MutedBrush}"
                                           FontSize="11"/>
                                 
                                 <!-- Mistral Model - Only visible when Mistral is selected -->
@@ -1671,7 +1756,7 @@
                                 <Button x:Name="setHotKeyButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SetHotKey]}"  Grid.Row="3" Grid.Column="1"
                                        HorizontalAlignment="Center" Width="100" Margin="0,8,0,10" Padding="5,3" Click="SetHotKeyButton_Click"
                                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SetHotKey]}"/>
-                                <TextBlock x:Name="statusUpdateHotKey" Foreground="Green" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_HotKeyUpdateSuccess]}" 
+                                <TextBlock x:Name="statusUpdateHotKey" Foreground="{DynamicResource SuccessBrush}" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_HotKeyUpdateSuccess]}" 
                                     Visibility="Collapsed" Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <!-- List HotKey Table -->
                                 <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" BorderBrush="#333" BorderThickness="1" CornerRadius="5">
@@ -1697,7 +1782,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartStopTranslation]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyStartStop" Text="ALT + G" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyStartStop" Text="ALT + G" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1707,7 +1792,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleOverlay]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyOverlay" Text="ALT + F" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyOverlay" Text="ALT + F" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
                                                 
@@ -1717,7 +1802,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeySetting" Text="ALT + P" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeySetting" Text="ALT + P" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1727,7 +1812,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleLog]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1737,7 +1822,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeySelectArea" Text="ALT + Q" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeySelectArea" Text="ALT + Q" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1747,7 +1832,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearAllAreas]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearAreas" Text="ALT + R" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearAreas" Text="ALT + R" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1757,7 +1842,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearSelectedArea]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1767,7 +1852,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowAreaBorder]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1777,7 +1862,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
                                                 
@@ -1787,7 +1872,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyAudio" Text="ALT + K" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyAudio" Text="ALT + K" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1798,7 +1883,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea1]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea1" Text="ALT + 1" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea1" Text="ALT + 1" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
                                                 
@@ -1808,7 +1893,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea2]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea2" Text="ALT + 2" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea2" Text="ALT + 2" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1818,7 +1903,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea3]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea3" Text="ALT + 3" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea3" Text="ALT + 3" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1828,7 +1913,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea4]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea4" Text="ALT + 4" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea4" Text="ALT + 4" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1838,7 +1923,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea5]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1848,7 +1933,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeySwapLanguages" Text="ALT + V" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeySwapLanguages" Text="ALT + V" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1858,7 +1943,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyRetryTranslate" Text="ALT + T" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyRetryTranslate" Text="ALT + T" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                                 <Separator Background="#222" Margin="5,2"/>
 
@@ -1868,7 +1953,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyToggleExcludeRegions" Text="ALT + X" FontWeight="Bold" Foreground="#3498db"/>
+                                                    <TextBlock Grid.Column="1" x:Name="hotKeyToggleExcludeRegions" Text="ALT + X" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
                                                 </Grid>
                                             </StackPanel>
                                         </ScrollViewer>
@@ -1930,7 +2015,7 @@
                                         Margin="0,0,0,5" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
-                                        Foreground="Gray"
+                                        Foreground="{DynamicResource MutedBrush}"
                                         TextWrapping="Wrap"
                                         Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WhisperRuntime]}"/>
                                 <TextBlock x:Name="audioModelDownloadTextBlock"
@@ -1938,7 +2023,7 @@
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
-                                        Foreground="Red"
+                                        Foreground="{DynamicResource DangerBrush}"
                                         TextWrapping="Wrap"
                                         Loaded="AudioModelDownloadTextBlock_Loaded"/>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_VolumeThreshold]}" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -1947,7 +2032,7 @@
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
-                                        Foreground="Red"
+                                        Foreground="{DynamicResource DangerBrush}"
                                         TextWrapping="Wrap"
                                         Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_VolumeThreshold]}"/>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SilenceDuration]}" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -1956,7 +2041,7 @@
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
-                                        Foreground="Red"
+                                        Foreground="{DynamicResource DangerBrush}"
                                         TextWrapping="Wrap"
                                         Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SilenceDuration]}"/>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MaxBufferSamples]}" Grid.Row="10" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -1965,7 +2050,7 @@
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
-                                        Foreground="Red"
+                                        Foreground="{DynamicResource DangerBrush}"
                                         TextWrapping="Wrap"
                                         Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MaxBufferSamples]}"/>
                                 <TextBlock x:Name="whisperThreadCountLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WhisperThreadCount]}" Grid.Row="12" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -1974,7 +2059,7 @@
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 
                                         FontSize="11" 
-                                        Foreground="Red"
+                                        Foreground="{DynamicResource DangerBrush}"
                                         TextWrapping="Wrap"
                                         Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WhisperThreadCount]}"/>
                             </Grid>
@@ -2030,7 +2115,7 @@
                                            Margin="0,0,0,5" 
                                            FontStyle="Italic" 
                                            FontSize="11" 
-                                           Foreground="Gray"
+                                           Foreground="{DynamicResource MutedBrush}"
                                            TextWrapping="Wrap"
                                            Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ClipboardDebounce]}"/>
                                 
@@ -2043,7 +2128,7 @@
                                            Margin="0,0,0,5" 
                                            FontStyle="Italic" 
                                            FontSize="11" 
-                                           Foreground="Gray"
+                                           Foreground="{DynamicResource MutedBrush}"
                                            TextWrapping="Wrap"
                                            Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ClipboardMaxChars]}"/>
                             </Grid>
@@ -2072,17 +2157,17 @@
                                 </Grid.RowDefinitions>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_InstallServer]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button Grid.Row="0" Grid.Column="1" Click="InstallServerButton_Click" HorizontalAlignment="Left"
-                                        Width="100" Height="20" Margin="50,10,10,0">
+                                        Width="100" Margin="50,10,10,0">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Install]}"/>
                                 </Button>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_RemoveServer]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button Grid.Row="1" Grid.Column="1" Click="RemoveServerButton_Click" HorizontalAlignment="Left"
-                                        Width="100" Height="20" Margin="50,10,10,0">
+                                        Width="100" Margin="50,10,10,0">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Remove]}"/>
                                 </Button>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartServer]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button Grid.Row="2" Grid.Column="1" Click="StartServerButton_Click" HorizontalAlignment="Left"
-                                        Width="100" Height="20" Margin="50,10,10,0">
+                                        Width="100" Margin="50,10,10,0">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}"/>
                                 </Button>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SendData]}" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,10,10,0"/>
@@ -2140,22 +2225,22 @@
                                 <ComboBox x:Name="profileComboBox" Grid.Row="1" Grid.Column="1" Margin="0,5">
                                 </ComboBox>
                                 <Button Grid.Row="0" Grid.Column="2" Click="CreateProfileButton_Click"
-                                        Width="100" Height="20" Margin="10,0">
+                                        Width="100" Margin="10,0">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_CreateProfile]}"/>
                                 </Button>
                                 <Button Grid.Row="2" Grid.Column="1" Click="UpdateProfileButton_Click"
-                                        Width="100" Height="20" Margin="10,0">
+                                        Width="100" Margin="10,0">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_UpdateProfile]}"/>
                                 </Button>
                                 <Button Grid.Row="1" Grid.Column="2" Click="RemoveProfileButton_Click"
-                                        Width="100" Height="20" Margin="10,0">
+                                        Width="100" Margin="10,0">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RemoveProfile]}"/>
                                 </Button>
                                 <Button Grid.Row="2" Grid.Column="2" Click="LoadProfileButton_Click"
-                                        Width="100" Height="20" Margin="10,0">
+                                        Width="100" Margin="10,0">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_LoadProfile]}"/>
                                 </Button>
-                                <TextBlock x:Name="statusUpdateGameProfile" Foreground="Green" Text="" HorizontalAlignment="Center"
+                                <TextBlock x:Name="statusUpdateGameProfile" Foreground="{DynamicResource SuccessBrush}" Text="" HorizontalAlignment="Center"
                                     Grid.Row="3" Grid.Column="1" Margin="0,20,0,0"/>
                             </Grid>
                         </GroupBox>
@@ -2178,7 +2263,7 @@
                                     HorizontalAlignment="Left" TextWrapping="Wrap"
                                     Grid.Row="0" Grid.Column="1" Margin="10,10,0,0"/>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_ProfileNameNote]}" 
-                                    HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="Red"
+                                    HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="{DynamicResource DangerBrush}"
                                     Grid.Row="1" Grid.Column="1" Margin="10,10,0,0"/>
                                 <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_RemoveProfileBold]}" HorizontalAlignment="Left"
                                     Grid.Row="2" Grid.Column="0" Margin="0,10,0,0"/>

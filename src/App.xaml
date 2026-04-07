@@ -10,6 +10,10 @@
     <Color x:Key="AccentColor">#0066CC</Color>
     <Color x:Key="BorderColor">#E0ECF8</Color>
     <Color x:Key="NeutralBgColor">#E6EEF3</Color>
+    <Color x:Key="SuccessColor">#15803D</Color>
+    <Color x:Key="WarningColor">#B45309</Color>
+    <Color x:Key="DangerColor">#DC2626</Color>
+    <Color x:Key="LinkColor">#0066CC</Color>
 
     <SolidColorBrush x:Key="BgBrush" Color="{DynamicResource BgColor}"/>
     <SolidColorBrush x:Key="SurfaceBrush" Color="{DynamicResource SurfaceColor}"/>
@@ -20,6 +24,15 @@
     <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource BorderColor}"/>
     <SolidColorBrush x:Key="TextBrush" Color="#0B2545"/>
     <SolidColorBrush x:Key="MutedBrush" Color="#5B6B7A"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource SuccessColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource WarningColor}"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="{DynamicResource DangerColor}"/>
+    <SolidColorBrush x:Key="LinkBrush" Color="{DynamicResource LinkColor}"/>
+
+    <Style TargetType="{x:Type Hyperlink}">
+        <Setter Property="Foreground" Value="{DynamicResource LinkBrush}"/>
+        <Setter Property="TextDecorations" Value="Underline"/>
+    </Style>
 
     <Style x:Key="ThemedComboBoxItem" TargetType="ComboBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>

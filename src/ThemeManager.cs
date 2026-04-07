@@ -20,6 +20,10 @@ namespace RSTGameTranslation
                 app.Resources["AccentColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#007ACC");
                 app.Resources["BorderColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#3F3F46");
                 app.Resources["NeutralBgColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#333337");
+                app.Resources["SuccessColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4ADE80");
+                app.Resources["WarningColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FBBF24");
+                app.Resources["DangerColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F87171");
+                app.Resources["LinkColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#60A5FA");
                 
                 app.Resources["BgBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["BgColor"]);
                 app.Resources["SurfaceBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["SurfaceColor"]);
@@ -30,6 +34,10 @@ namespace RSTGameTranslation
                 app.Resources["BorderBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["BorderColor"]);
                 app.Resources["TextBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F1F1F1"));
                 app.Resources["MutedBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#A0A0A0"));
+                app.Resources["SuccessBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["SuccessColor"]);
+                app.Resources["WarningBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["WarningColor"]);
+                app.Resources["DangerBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["DangerColor"]);
+                app.Resources["LinkBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["LinkColor"]);
 
                 app.Resources[System.Windows.SystemColors.WindowBrushKey] = app.Resources["SurfaceBrush"];
                 app.Resources[System.Windows.SystemColors.ControlBrushKey] = app.Resources["Surface2Brush"];
@@ -49,6 +57,10 @@ namespace RSTGameTranslation
                 app.Resources["AccentColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0066CC");
                 app.Resources["BorderColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#E0ECF8");
                 app.Resources["NeutralBgColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#E6EEF3");
+                app.Resources["SuccessColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#15803D");
+                app.Resources["WarningColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#B45309");
+                app.Resources["DangerColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#DC2626");
+                app.Resources["LinkColor"] = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0066CC");
                 
                 app.Resources["BgBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["BgColor"]);
                 app.Resources["SurfaceBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["SurfaceColor"]);
@@ -59,6 +71,10 @@ namespace RSTGameTranslation
                 app.Resources["BorderBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["BorderColor"]);
                 app.Resources["TextBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0B2545"));
                 app.Resources["MutedBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#5B6B7A"));
+                app.Resources["SuccessBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["SuccessColor"]);
+                app.Resources["WarningBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["WarningColor"]);
+                app.Resources["DangerBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["DangerColor"]);
+                app.Resources["LinkBrush"] = new SolidColorBrush((System.Windows.Media.Color)app.Resources["LinkColor"]);
 
                 app.Resources[System.Windows.SystemColors.WindowBrushKey] = app.Resources["SurfaceBrush"];
                 app.Resources[System.Windows.SystemColors.ControlBrushKey] = app.Resources["Surface2Brush"];
