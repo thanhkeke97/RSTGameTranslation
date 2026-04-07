@@ -48,9 +48,14 @@ call pip install paddleocr==3.2.0
 echo Installing PaddlePaddle (CPU Base)...
 call pip install paddlepaddle==3.1.1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
 
-echo Installing PaddlePaddle (GPU Specific Wheel for Python 3.9)...
-REM This wheel is hardcoded for cp39 (Python 3.9)
+echo Installing PaddlePaddle (GPU Specific Wheel for Python 3.11)...
+REM This wheel is hardcoded for cp311 (Python 3.11)
 call pip install https://paddle-qa.bj.bcebos.com/paddle-pipeline/Develop-TagBuild-Training-Windows-Gpu-Cuda12.9-Cudnn9.9-Trt10.5-Mkl-Avx-VS2019-SelfBuiltPypiUse/86d658f56ebf3a5a7b2b33ace48f22d10680d311/paddlepaddle_gpu-3.0.0.dev20250717-cp311-cp311-win_amd64.whl
+
+echo Normalizing HTTP dependencies for requests compatibility...
+REM Some transitive dependencies install chardet 7.x, but requests 2.32.x only supports chardet ^5 when chardet is present.
+REM Pin it back to a compatible version to avoid RequestsDependencyWarning during runtime verification.
+call python -m pip install --upgrade requests==2.32.3 "urllib3<3" "charset_normalizer<4" chardet==5.2.0
 
 REM 6. Verification
 echo Verifying installations...
