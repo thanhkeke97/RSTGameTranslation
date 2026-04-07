@@ -151,7 +151,6 @@ jobs:
               "webserver\PaddleOCR",
               "webserver\RapidOCR",
               "webserver\Python311",
-              "translation_server\templates",
               "AudioModel",
               "Languages"
           )
@@ -190,16 +189,6 @@ jobs:
           }
           if (Test-Path "app\webserver\*.bat") {
               Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver" -ErrorAction SilentlyContinue
-          }
-
-          # Translation Server
-          if (Test-Path "app\translation_server") {
-              Get-ChildItem "app\translation_server\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\translation_server"
-              if (Test-Path "app\translation_server\templates") {
-                  Copy-Item "app\translation_server\templates\*.html" -Destination "$releaseDir\translation_server\templates" -ErrorAction SilentlyContinue
-              }
-          } else {
-              Write-Host "Warning: translation_server folder not found. Skipping."
           }
 
           # OneOcr

@@ -15,11 +15,9 @@ mkdir tempbuild
 robocopy app\win-x64\publish tempbuild /E /NFL /NDL
 copy README.md tempbuild
 
-:the server stuff too
+:the webserver stuff too
 mkdir tempbuild\webserver
-mkdir tempbuild\translation_server
 mkdir tempbuild\AudioModel
-mkdir tempbuild\translation_server\templates
 mkdir tempbuild\webserver\EasyOCR
 mkdir tempbuild\webserver\PaddleOCR
 mkdir tempbuild\webserver\RapidOCR
@@ -31,11 +29,8 @@ copy app\webserver\PaddleOCR\*.bat tempbuild\webserver\PaddleOCR
 copy app\webserver\PaddleOCR\*.py tempbuild\webserver\PaddleOCR
 copy app\webserver\RapidOCR\*.bat tempbuild\webserver\RapidOCR
 copy app\webserver\RapidOCR\*.py tempbuild\webserver\RapidOCR
-copy app\translation_server\*.py tempbuild\translation_server
-copy app\translation_server\*.bat tempbuild\translation_server
 copy app\OneOcr\* tempbuild
 copy app\AudioModel\ggml-tiny.bin tempbuild\AudioModel
-copy app\translation_server\templates\*.html tempbuild\translation_server\templates
 copy app\webserver\*.bat tempbuild\webserver
 copy app\Languages\* tempbuild\Languages
 robocopy app\webserver\Python311 tempbuild\webserver\Python311 /E /NFL /NDL

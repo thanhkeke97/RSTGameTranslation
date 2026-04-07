@@ -29,7 +29,6 @@ namespace RSTGameTranslation
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
-        private const string SEND_DATA_TO_SERVER = "send_data_to_server";
         private const string SHOW_ICON_SIGNAL = "show_icon_signal";
         public const string GEMINI_API_KEYS = "gemini_api_keys";
         public const string CUSTOM_API_KEYS = "custom_api_keys";
@@ -403,6 +402,12 @@ namespace RSTGameTranslation
                 SaveConfig();
             }
 
+            if (_configValues.Remove("send_data_to_server"))
+            {
+                Console.WriteLine("Removing deprecated 'send_data_to_server' entry from config");
+                SaveConfig();
+            }
+
             // Create service-specific config files if they don't exist
             EnsureServiceConfigFilesExist();
         }
@@ -561,7 +566,6 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_RETRY_TRANSLATION] = "ALT+T";
             _configValues[HOTKEY_TOGGLE_EXCLUDE_REGIONS] = "ALT+X";
             _configValues[SHOW_ICON_SIGNAL] = "true";
-            _configValues[SEND_DATA_TO_SERVER] = "false";
             _configValues[WINDOWS_OCR_INTEGRATION] = "false";
             _configValues[AUTO_OCR] = "true";
             _configValues[EXCLUDE_CHARACTER_NAME] = "false";
@@ -2180,19 +2184,6 @@ namespace RSTGameTranslation
             _configValues[AUTO_MERGE_OVERLAPPING_TEXT] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Auto Merge Overlapping Text enabled: {enabled}");
-        }
-
-        public bool IsSendDataToServerEnabled()
-        {
-            string value = GetValue(SEND_DATA_TO_SERVER, "false");
-            return value.ToLower() == "true";
-        }
-
-        public void SetSendDataToServer(bool enabled)
-        {
-            _configValues[SEND_DATA_TO_SERVER] = enabled.ToString().ToLower();
-            SaveConfig();
-            Console.WriteLine($"Send data to server enabled: {enabled}");
         }
 
         //Get/Set AutoOCR
