@@ -14,6 +14,7 @@ namespace RSTGameTranslation
     /// </summary>
     public class GoogleTranslateService : ITranslationService
     {
+        private const string CombinedBlockSeparator = "##|||##";
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly bool _useCloudApi;
@@ -99,15 +100,7 @@ namespace RSTGameTranslation
                         }
                         
                         // Perform translation
-                        string translatedText;
-                        if (_useCloudApi)
-                        {
-                            translatedText = await TranslateWithCloudApiAsync(originalText, sourceLanguage, targetLanguage);
-                        }
-                        else
-                        {
-                            translatedText = await TranslateWithFreeServiceAsync(originalText, sourceLanguage, targetLanguage);
-                        }
+                        string translatedText = await TranslatePreservingSeparatorsAsync(originalText, sourceLanguage, targetLanguage);
                         
                         // Write the translated text to the output JSON
                         outputJson.WriteStartObject();
@@ -139,6 +132,167 @@ namespace RSTGameTranslation
                 return null;
             }
         }
+
+        private async Task<string> TranslatePreservingSeparatorsAsync(string text, string sourceLanguage, string targetLanguage)
+        {
+            try
+            {
+                if (!text.Contains(CombinedBlockSeparator, StringComparison.Ordinal))
+                {
+                    return await TranslateSingleTextAsync(text, sourceLanguage, targetLanguage);
+                }
+
+                string[] originalParts = text.Split(new[] { CombinedBlockSeparator }, StringSplitOptions.None);
+                string[] translatedParts = new string[originalParts.Length];
+                var translatableParts = new List<string>();
+                var partMap = new List<int>(originalParts.Length);
+
+                for (int i = 0; i < originalParts.Length; i++)
+                {
+                    string normalizedPart = NormalizeText(originalParts[i]);
+
+                    if (string.IsNullOrWhiteSpace(normalizedPart))
+                    {
+                        partMap.Add(-1);
+                        continue;
+                    }
+
+                    partMap.Add(translatableParts.Count);
+                    translatableParts.Add(normalizedPart);
+                }
+
+                if (translatableParts.Count == 0)
+                {
+                    return text;
+                }
+
+                List<string> translatedBatch;
+                if (_useCloudApi)
+                {
+                    translatedBatch = await TranslateBatchWithCloudApiAsync(translatableParts, sourceLanguage, targetLanguage);
+                }
+                else
+                {
+                    translatedBatch = new List<string>(translatableParts.Count);
+                    foreach (string part in translatableParts)
+                    {
+                        translatedBatch.Add(await TranslateWithFreeServiceAsync(part, sourceLanguage, targetLanguage));
+                    }
+                }
+
+                for (int i = 0; i < originalParts.Length; i++)
+                {
+                    int translatedIndex = partMap[i];
+                    if (translatedIndex < 0 || translatedIndex >= translatedBatch.Count)
+                    {
+                        translatedParts[i] = originalParts[i];
+                        continue;
+                    }
+
+                    string translatedPart = translatedBatch[translatedIndex];
+                    translatedParts[i] = string.IsNullOrWhiteSpace(translatedPart) ? originalParts[i] : translatedPart;
+                }
+
+                string rebuiltText = string.Join(CombinedBlockSeparator, translatedParts);
+                Console.WriteLine($"Google Translate preserved separator across {translatedParts.Length} block(s)");
+                return rebuiltText;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error preserving Google Translate separators: {ex.Message}");
+                return text;
+            }
+        }
+
+        private async Task<string> TranslateSingleTextAsync(string text, string sourceLanguage, string targetLanguage)
+        {
+            string normalizedText = NormalizeText(text);
+            if (string.IsNullOrWhiteSpace(normalizedText))
+            {
+                return text;
+            }
+
+            if (_useCloudApi)
+            {
+                return await TranslateWithCloudApiAsync(normalizedText, sourceLanguage, targetLanguage);
+            }
+
+            return await TranslateWithFreeServiceAsync(normalizedText, sourceLanguage, targetLanguage);
+        }
+
+        private async Task<List<string>> TranslateBatchWithCloudApiAsync(IReadOnlyList<string> texts, string sourceLanguage, string targetLanguage)
+        {
+            try
+            {
+                if (texts.Count == 0)
+                {
+                    return new List<string>();
+                }
+
+                if (string.IsNullOrEmpty(_apiKey))
+                {
+                    Console.WriteLine("Google Translate API key is not configured");
+                    return texts.Select(text => $"[API KEY MISSING] {text}").ToList();
+                }
+
+                string url = $"https://translation.googleapis.com/language/translate/v2?key={_apiKey}";
+                var requestBody = new
+                {
+                    q = texts,
+                    source = sourceLanguage,
+                    target = targetLanguage,
+                    format = "text"
+                };
+
+                string jsonRequest = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(url, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"Google Translate batch API error: {response.StatusCode}");
+                    return texts.ToList();
+                }
+
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+                using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+
+                if (doc.RootElement.TryGetProperty("data", out JsonElement data) &&
+                    data.TryGetProperty("translations", out JsonElement translations) &&
+                    translations.ValueKind == JsonValueKind.Array)
+                {
+                    var results = new List<string>(translations.GetArrayLength());
+                    foreach (JsonElement translation in translations.EnumerateArray())
+                    {
+                        string translated = translation.TryGetProperty("translatedText", out JsonElement translatedText)
+                            ? HttpUtility.HtmlDecode(translatedText.GetString() ?? string.Empty)
+                            : string.Empty;
+                        results.Add(translated);
+                    }
+
+                    return results;
+                }
+
+                return texts.ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error batching Google Cloud translations: {ex.Message}");
+                return texts.ToList();
+            }
+        }
+
+        private string NormalizeText(string text)
+        {
+            string normalizedText = text.Replace("\r\n", " ").Replace("\n", " ");
+
+            while (normalizedText.Contains("  "))
+            {
+                normalizedText = normalizedText.Replace("  ", " ");
+            }
+
+            return normalizedText.Trim();
+        }
         
         /// <summary>
         /// Translate a single text using Google Cloud Translation API (paid)
@@ -147,49 +301,8 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Check if API key is available
-                if (string.IsNullOrEmpty(_apiKey))
-                {
-                    Console.WriteLine("Google Translate API key is not configured");
-                    return $"[API KEY MISSING] {text}";
-                }
-                
-                // Prepare the API URL
-                string url = $"https://translation.googleapis.com/language/translate/v2?key={_apiKey}";
-                
-                // Prepare the request body
-                var requestBody = new
-                {
-                    q = text,
-                    source = sourceLanguage,
-                    target = targetLanguage,
-                    format = "text"
-                };
-                
-                string jsonRequest = JsonSerializer.Serialize(requestBody);
-                var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-                
-                // Send the request
-                var response = await _httpClient.PostAsync(url, content);
-                
-                // Check if the request was successful
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-                    using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                    
-                    // Extract the translated text from the response
-                    if (doc.RootElement.TryGetProperty("data", out JsonElement data) &&
-                        data.TryGetProperty("translations", out JsonElement translations) &&
-                        translations.GetArrayLength() > 0 &&
-                        translations[0].TryGetProperty("translatedText", out JsonElement translatedText))
-                    {
-                        return HttpUtility.HtmlDecode(translatedText.GetString() ?? text);
-                    }
-                }
-                
-                Console.WriteLine($"Google Translate API error: {response.StatusCode}");
-                return $"[ERROR] {text}";
+                List<string> results = await TranslateBatchWithCloudApiAsync(new[] { text }, sourceLanguage, targetLanguage);
+                return results.Count > 0 && !string.IsNullOrEmpty(results[0]) ? results[0] : $"[ERROR] {text}";
             }
             catch (Exception ex)
             {
@@ -205,14 +318,7 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Normalize the text by replacing line breaks with spaces and removing extra spaces
-                string normalizedText = text.Replace("\r\n", " ").Replace("\n", " ");
-                
-                // Ensure there are no consecutive spaces
-                while (normalizedText.Contains("  "))
-                {
-                    normalizedText = normalizedText.Replace("  ", " ");
-                }
+                string normalizedText = NormalizeText(text);
                 
                 // Prepare the URL for the free translation service
                 string encodedText = HttpUtility.UrlEncode(normalizedText);

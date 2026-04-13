@@ -349,7 +349,7 @@ namespace RSTGameTranslation
 
 
         // Process Google Translate JSON response
-        private void ProcessGoogleTranslateJson(JsonElement rootElement)
+        private void ProcessGoogleTranslateJson(JsonElement rootElement, bool addToChatBox = true)
         {
             try
             {
@@ -498,30 +498,9 @@ namespace RSTGameTranslation
                         }
                     }
 
-                    // Add translations to chatbox
-                    // Sort text objects by Y coordinate
-                    var sortedTextObjects = _textObjects.OrderBy(t => t.Y).ToList();
-
-                    // Add each translated text to the ChatBox
-                    foreach (var textObject in sortedTextObjects)
+                    if (addToChatBox)
                     {
-                        string originalText = textObject.Text;
-                        string translatedText = textObject.TextTranslated;
-
-                        // Only add to chatbox if we have both texts and translation is not empty
-                        if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
-                        {
-                            // Add to TranslationCompleted, this will add it to the chatbox also
-                            TranslationCompleted?.Invoke(this, new TranslationEventArgs
-                            {
-                                OriginalText = originalText,
-                                TranslatedText = translatedText
-                            });
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Skipping empty translation - Original: '{originalText}', Translated: '{translatedText}'");
-                        }
+                        AddTranslatedTextObjectsToChatBox();
                     }
                 }
                 else
@@ -2326,7 +2305,7 @@ namespace RSTGameTranslation
         }
 
         //! Process structured JSON translation from ChatGPT or other services
-        private void ProcessStructuredJsonTranslation(JsonElement translatedRoot)
+        private void ProcessStructuredJsonTranslation(JsonElement translatedRoot, bool addToChatBox = true)
         {
             try
             {
@@ -2493,33 +2472,14 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error processing structured JSON translation: {ex.Message}");
             }
 
-            // Sort text objects by Y coordinate
-            var sortedTextObjects = _textObjects.OrderBy(t => t.Y).ToList();
-            // Add each translated text to the ChatBox
-            foreach (var textObject in sortedTextObjects)
+            if (addToChatBox)
             {
-                string originalText = textObject.Text;
-                string translatedText = textObject.TextTranslated; // Assuming translation is done in-place
-
-                // Only add to chatbox if we have both texts and translation is not empty
-                if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
-                {
-                    // Add to TranslationCompleted, this will add it to the chatbox also
-                    TranslationCompleted?.Invoke(this, new TranslationEventArgs
-                    {
-                        OriginalText = originalText,
-                        TranslatedText = translatedText
-                    });
-                }
-                else
-                {
-                    Console.WriteLine($"Skipping empty translation - Original: '{originalText}', Translated: '{translatedText}'");
-                }
+                AddTranslatedTextObjectsToChatBox();
             }
         }
 
         //!Process the finished translation into text blocks and the chatbox
-        void ProcessTranslatedJSON(string translationResponse)
+        void ProcessTranslatedJSON(string translationResponse, bool addToChatBox = true)
         {
             try
             {
@@ -2539,7 +2499,7 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine("Translation response with 'translations' format detected (Google Translate / Yandex / compatible)");
                     using JsonDocument doc = JsonDocument.Parse(innerContent);
-                    ProcessGoogleTranslateJson(doc.RootElement);
+                    ProcessGoogleTranslateJson(doc.RootElement, addToChatBox);
                     return;
                 }
 
@@ -2547,7 +2507,7 @@ namespace RSTGameTranslation
                 try
                 {
                     using JsonDocument translatedDoc = JsonDocument.Parse(innerContent);
-                    ProcessStructuredJsonTranslation(translatedDoc.RootElement);
+                    ProcessStructuredJsonTranslation(translatedDoc.RootElement, addToChatBox);
                 }
                 catch (JsonException ex)
                 {
@@ -2559,6 +2519,30 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error in ProcessTranslatedJSON: {ex.Message}");
                 OnFinishedThings(true);
+            }
+        }
+
+        private void AddTranslatedTextObjectsToChatBox()
+        {
+            var sortedTextObjects = _textObjects.OrderBy(t => t.Y).ToList();
+
+            foreach (var textObject in sortedTextObjects)
+            {
+                string originalText = textObject.Text;
+                string translatedText = textObject.TextTranslated;
+
+                if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
+                {
+                    TranslationCompleted?.Invoke(this, new TranslationEventArgs
+                    {
+                        OriginalText = originalText,
+                        TranslatedText = translatedText
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"Skipping empty translation - Original: '{originalText}', Translated: '{translatedText}'");
+                }
             }
         }
 
@@ -2619,47 +2603,15 @@ namespace RSTGameTranslation
                     return;
                 }
 
-                // Combine all texts into one string with a separator
-                var combinedText = string.Join("##|||##", _textObjects.Select(obj => obj.Text));
-                var textsToTranslate = new List<object>();
-                textsToTranslate = new List<object>
-                {
-                    new
-                    {
-                        id = "999",
-                        text = combinedText
-                    }
-                };
-
                 // Get previous context if enabled
                 var previousContext = GetPreviousContext();
 
                 // Get game info if available
                 string gameInfo = ConfigManager.Instance.GetGameInfo();
 
-                // Create the full JSON object with OCR results, context and game info
-                var ocrData = new
-                {
-                    source_language = MapLanguageCode(GetSourceLanguage()),
-                    target_language = MapLanguageCode(GetTargetLanguage()),
-                    text_blocks = textsToTranslate,
-                    previous_context = previousContext,
-                    game_info = gameInfo
-                };
-
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                };
-                string jsonToTranslate = JsonSerializer.Serialize(ocrData, jsonOptions);
-
                 // Get the prompt template
                 string prompt = GetLlmPrompt();
                 prompt = prompt.Replace("source_language", MapLanguageCode(GetSourceLanguage())).Replace("target_language", MapLanguageCode(GetTargetLanguage()));
-
-                // Log the LLM request
-                LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
 
                 _translationStopwatch.Restart();
 
@@ -2669,20 +2621,73 @@ namespace RSTGameTranslation
                 ITranslationService translationService = TranslationServiceFactory.CreateService();
                 string currentService = ConfigManager.Instance.GetCurrentTranslationService();
 
-                // Call the translation API with the modified prompt if context exists
-                string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
+                bool mangaModeEnabled = ConfigManager.Instance.IsMangaModeEnabled();
+                bool hadSuccessfulTranslation = false;
 
-                if (string.IsNullOrEmpty(translationResponse))
+                if (mangaModeEnabled)
                 {
-                    Console.WriteLine($"Translation failed with {currentService} - empty response");
-                    OnFinishedThings(true);
-                    return;
+                    foreach (var textObject in _textObjects)
+                    {
+                        var singleBlockPayload = new List<object>
+                        {
+                            new
+                            {
+                                id = textObject.ID,
+                                text = textObject.Text
+                            }
+                        };
+
+                        string jsonToTranslate = BuildTranslationRequestJson(singleBlockPayload, previousContext, gameInfo);
+                        LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
+
+                        string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
+                        if (string.IsNullOrEmpty(translationResponse))
+                        {
+                            Console.WriteLine($"Translation failed with {currentService} for block {textObject.ID} - empty response");
+                            continue;
+                        }
+
+                        ProcessTranslatedJSON(translationResponse, false);
+                        hadSuccessfulTranslation = true;
+                    }
+
+                    if (!hadSuccessfulTranslation)
+                    {
+                        OnFinishedThings(true);
+                        return;
+                    }
+
+                    AddTranslatedTextObjectsToChatBox();
+                }
+                else
+                {
+                    var combinedText = string.Join("##|||##", _textObjects.Select(obj => obj.Text));
+                    var textsToTranslate = new List<object>
+                    {
+                        new
+                        {
+                            id = "999",
+                            text = combinedText
+                        }
+                    };
+
+                    string jsonToTranslate = BuildTranslationRequestJson(textsToTranslate, previousContext, gameInfo);
+                    LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
+
+                    string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
+
+                    if (string.IsNullOrEmpty(translationResponse))
+                    {
+                        Console.WriteLine($"Translation failed with {currentService} - empty response");
+                        OnFinishedThings(true);
+                        return;
+                    }
+
+                    ProcessTranslatedJSON(translationResponse);
                 }
 
                 _translationStopwatch.Stop();
                 Console.WriteLine($"Translation took {_translationStopwatch.ElapsedMilliseconds} ms");
-
-                ProcessTranslatedJSON(translationResponse);
                 if (!ConfigManager.Instance.IsAutoOCREnabled())
                 {
                     MainWindow.Instance.isStopOCR = true;
@@ -2697,6 +2702,26 @@ namespace RSTGameTranslation
 
             //all done
             OnFinishedThings(true);
+        }
+
+        private string BuildTranslationRequestJson(List<object> textBlocks, List<string> previousContext, string gameInfo)
+        {
+            var ocrData = new
+            {
+                source_language = MapLanguageCode(GetSourceLanguage()),
+                target_language = MapLanguageCode(GetTargetLanguage()),
+                text_blocks = textBlocks,
+                previous_context = previousContext,
+                game_info = gameInfo
+            };
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
+            return JsonSerializer.Serialize(ocrData, jsonOptions);
         }
 
         public string GetGeminiApiKey()

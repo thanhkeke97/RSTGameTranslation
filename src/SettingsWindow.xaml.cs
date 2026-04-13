@@ -99,7 +99,7 @@ namespace RSTGameTranslation
         // Show message for Auto OCR
         private bool isNeedShowWarningAutoOCR = false;
         // Show message for Manga Mode
-        // private bool isNeedShowWarningMangaMode = false;
+        private bool isNeedShowWarningMangaMode = false;
 
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
@@ -1003,8 +1003,8 @@ namespace RSTGameTranslation
             whisperRuntimeComboBox.SelectionChanged += WhisperRuntimeComboBox_SelectionChanged;
 
             // Set manga mode
-            // MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
-            // isNeedShowWarningMangaMode = true;
+            MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
+            isNeedShowWarningMangaMode = true;
 
             // Set WindowsOCR integration
             // windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
@@ -1030,6 +1030,7 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Found matching OCR method: '{itemText}'");
                     ocrMethodComboBox.SelectedItem = item;
+                    UpdateMangaModeVisibility(itemText);
                     if (itemText == "Windows OCR" || itemText == "OneOCR")
                     {
                         ocrButtonsPanel.Visibility = Visibility.Collapsed;
@@ -1470,6 +1471,7 @@ namespace RSTGameTranslation
                     // Update UI
                     MainWindow.Instance.SetOcrMethod(ocrMethod);
                     UpdateMonitorWindowOcrMethod(ocrMethod);
+                    UpdateMangaModeVisibility(ocrMethod);
                     SocketManager.Instance.Disconnect();
 
                     // await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
@@ -1513,6 +1515,21 @@ namespace RSTGameTranslation
                         break;
                     }
                 }
+            }
+        }
+
+        private void UpdateMangaModeVisibility(string? ocrMethod)
+        {
+            bool showMangaMode = string.Equals(ocrMethod, "OneOCR", StringComparison.OrdinalIgnoreCase);
+
+            if (MangaModeLabel != null)
+            {
+                MangaModeLabel.Visibility = showMangaMode ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            if (MangaModeCheckBox != null)
+            {
+                MangaModeCheckBox.Visibility = showMangaMode ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
@@ -4739,25 +4756,34 @@ namespace RSTGameTranslation
 
         #endregion
 
-        // private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        // {
-        //     bool enabled = MangaModeCheckBox.IsChecked ?? true;
-        //     ConfigManager.Instance.SetMangaMode(enabled);
-        //     Console.WriteLine($"Manga mode set to {enabled}");
-        //     if (isNeedShowWarningMangaMode && enabled)
-        //     {
-        //         // Show notification
-        //         MessageBox.Show(
-        //         "If you enable this feature, translation speed will be slower but will provide more accurate overlay display for manga.",
-        //         "Manga Mode Enabled",
-        //         MessageBoxButton.OK,
-        //         MessageBoxImage.Information);
-        //         isNeedShowWarningMangaMode = false;
-        //     } 
-        //     else 
-        //     {
-        //         isNeedShowWarningMangaMode = true;
-        //     }
-        // }
+        private void MangaModeCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing)
+            {
+                return;
+            }
+
+            bool enabled = MangaModeCheckBox.IsChecked ?? false;
+            ConfigManager.Instance.SetMangaMode(enabled);
+            Console.WriteLine($"Manga mode set to {enabled}");
+
+            Logic.Instance.ResetHash();
+            Logic.Instance.ClearAllTextObjects();
+            MainWindow.Instance.SetOCRCheckIsWanted(true);
+
+            if (isNeedShowWarningMangaMode && enabled)
+            {
+                MessageBox.Show(
+                    "Manga Mode will send OCR blocks as separate translation requests instead of one merged batch. This improves speech-bubble handling, but can be slower.",
+                    "Manga Mode Enabled",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                isNeedShowWarningMangaMode = false;
+            }
+            else if (!enabled)
+            {
+                isNeedShowWarningMangaMode = true;
+            }
+        }
     }
 }

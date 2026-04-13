@@ -2439,9 +2439,8 @@ namespace RSTGameTranslation
         // Get/Set manga mode
         public bool IsMangaModeEnabled()
         {
-            // string value = GetValue(MANGA_MODE, "false");
-            // return value.ToLower() == "true";
-            return false;
+            string value = GetValue(MANGA_MODE, "false");
+            return value.ToLower() == "true";
         }
 
         public void SetMangaMode(bool enabled)

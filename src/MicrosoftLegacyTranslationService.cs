@@ -14,6 +14,7 @@ namespace RSTGameTranslation
     /// </summary>
     public class MicrosoftLegacyTranslationService : ITranslationService
     {
+        private const string CombinedBlockSeparator = "##|||##";
         private readonly HttpClient _httpClient;
         private readonly string _singleKey;
 
@@ -185,85 +186,20 @@ namespace RSTGameTranslation
                             continue;
                         }
 
-                        // Prepare signature inputs
-                        string guid = Guid.NewGuid().ToString("N");
-                        DateTime utcNow = DateTime.UtcNow;
-                        string signature = ComputeSignature(urlForSignature, privateKey, utcNow, guid);
-
-                        // Reconstruct canonical string for debugging (no private key included)
-                        string escapedForDebug = Uri.EscapeDataString(urlForSignature);
-                        string dateForDebug = utcNow.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture);
-                        string canonicalForDebug = ("MSTranslatorAndroidApp" + escapedForDebug + dateForDebug + guid).ToLowerInvariant();
-
-                        var request = new HttpRequestMessage(HttpMethod.Post, $"https://{urlForSignature}");
-                        request.Headers.Add("X-MT-Signature", signature);
-                        var bodyArray = new object[] { new { Text = originalText } };
-                        string jsonRequest = JsonSerializer.Serialize(bodyArray);
-                        request.Content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-
-                        HttpResponseMessage? response = null;
-
-                        try
+                        string? translated = await TranslatePreservingSeparatorsAsync(originalText, urlForSignature, privateKey);
+                        if (translated == null)
                         {
-                            // Use retry/backoff + concurrency control to send the request
-                            response = await SendWithRetriesAsync(urlForSignature, privateKey, jsonRequest, DefaultMaxRetries);
-                            if (response == null)
-                            {
-                                Console.WriteLine("Microsoft translator failed after retries");
-                                return null;
-                            }
-                        }
-                        catch (Exception exSend)
-                        {
-                            // Log send exception
-                            string debug = $"Exception sending request after retries: {exSend}\nURL: https://{urlForSignature}\nRequestBody: {jsonRequest}";
-                            try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_request.txt"), debug); } catch { }
-                            Console.WriteLine($"Microsoft translator request failed: {exSend.Message}");
                             return null;
                         }
 
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            string err = await response.Content.ReadAsStringAsync();
-                            string debug = $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}\nURL: https://{urlForSignature}\nRequestBody: {jsonRequest}\nResponse: {err}";
+                        // Write output element
+                        outputJson.WriteStartObject();
+                        outputJson.WriteString("id", blockId);
+                        outputJson.WriteString("original_text", originalText);
+                        outputJson.WriteString("translated_text", translated);
+                        outputJson.WriteEndObject();
 
-                            try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_error.txt"), err); } catch { }
-                            try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_request.txt"), debug); } catch { }
-
-                            Console.WriteLine($"Microsoft translator HTTP error: {response.StatusCode}");
-
-                            // On failure, return null (non-throwing behavior like other services)
-                            return null;
-                        }
-
-                        string jsonResponse = await response.Content.ReadAsStringAsync();
-                        try
-                        {
-                            using JsonDocument respDoc = JsonDocument.Parse(jsonResponse);
-                            string translated = "";
-                            if (respDoc.RootElement.GetArrayLength() > 0 &&
-                                respDoc.RootElement[0].TryGetProperty("translations", out JsonElement transArr) &&
-                                transArr.GetArrayLength() > 0 &&
-                                transArr[0].TryGetProperty("text", out JsonElement ttext))
-                            {
-                                translated = ttext.GetString() ?? "";
-                            }
-
-                            // Write output element
-                            outputJson.WriteStartObject();
-                            outputJson.WriteString("id", blockId);
-                            outputJson.WriteString("original_text", originalText);
-                            outputJson.WriteString("translated_text", translated);
-                            outputJson.WriteEndObject();
-
-                            Console.WriteLine($"Microsoft translated: '{originalText}' -> '{translated}'");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Microsoft response: {ex.Message}");
-                            File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_error.txt"), jsonResponse);
-                            return null;
-                        }
+                        Console.WriteLine($"Microsoft translated: '{originalText}' -> '{translated}'");
                     }
                 }
 
@@ -284,6 +220,162 @@ namespace RSTGameTranslation
                 catch { }
                 return null;
             }
+        }
+
+        private async Task<string?> TranslatePreservingSeparatorsAsync(string text, string urlForSignature, byte[] privateKey)
+        {
+            try
+            {
+                if (!text.Contains(CombinedBlockSeparator, StringComparison.Ordinal))
+                {
+                    return await TranslateSingleTextAsync(text, urlForSignature, privateKey);
+                }
+
+                string[] originalParts = text.Split(new[] { CombinedBlockSeparator }, StringSplitOptions.None);
+                string[] translatedParts = new string[originalParts.Length];
+                var translatableParts = new List<string>();
+                var partMap = new List<int>(originalParts.Length);
+
+                for (int i = 0; i < originalParts.Length; i++)
+                {
+                    string normalizedPart = NormalizeText(originalParts[i]);
+                    if (string.IsNullOrWhiteSpace(normalizedPart))
+                    {
+                        partMap.Add(-1);
+                        continue;
+                    }
+
+                    partMap.Add(translatableParts.Count);
+                    translatableParts.Add(normalizedPart);
+                }
+
+                if (translatableParts.Count == 0)
+                {
+                    return text;
+                }
+
+                List<string>? translatedBatch = await TranslateBatchAsync(translatableParts, urlForSignature, privateKey);
+                if (translatedBatch == null)
+                {
+                    return null;
+                }
+
+                for (int i = 0; i < originalParts.Length; i++)
+                {
+                    int translatedIndex = partMap[i];
+                    if (translatedIndex < 0 || translatedIndex >= translatedBatch.Count)
+                    {
+                        translatedParts[i] = originalParts[i];
+                        continue;
+                    }
+
+                    string translatedPart = translatedBatch[translatedIndex];
+                    translatedParts[i] = string.IsNullOrWhiteSpace(translatedPart) ? originalParts[i] : translatedPart;
+                }
+
+                Console.WriteLine($"Microsoft preserved separator across {translatedParts.Length} block(s)");
+                return string.Join(CombinedBlockSeparator, translatedParts);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error preserving Microsoft separators: {ex.Message}");
+                return null;
+            }
+        }
+
+        private async Task<string?> TranslateSingleTextAsync(string text, string urlForSignature, byte[] privateKey)
+        {
+            string normalizedText = NormalizeText(text);
+            if (string.IsNullOrWhiteSpace(normalizedText))
+            {
+                return text;
+            }
+
+            List<string>? results = await TranslateBatchAsync(new[] { normalizedText }, urlForSignature, privateKey);
+            if (results == null)
+            {
+                return null;
+            }
+
+            return results.Count > 0 ? results[0] : string.Empty;
+        }
+
+        private async Task<List<string>?> TranslateBatchAsync(IReadOnlyList<string> texts, string urlForSignature, byte[] privateKey)
+        {
+            if (texts.Count == 0)
+            {
+                return new List<string>();
+            }
+
+            string jsonRequest = JsonSerializer.Serialize(texts.Select(text => new { Text = text }));
+            HttpResponseMessage? response = null;
+
+            try
+            {
+                response = await SendWithRetriesAsync(urlForSignature, privateKey, jsonRequest, DefaultMaxRetries);
+                if (response == null)
+                {
+                    Console.WriteLine("Microsoft translator failed after retries");
+                    return null;
+                }
+            }
+            catch (Exception exSend)
+            {
+                string debug = $"Exception sending request after retries: {exSend}\nURL: https://{urlForSignature}\nRequestBody: {jsonRequest}";
+                try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_request.txt"), debug); } catch { }
+                Console.WriteLine($"Microsoft translator request failed: {exSend.Message}");
+                return null;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string err = await response.Content.ReadAsStringAsync();
+                string debug = $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}\nURL: https://{urlForSignature}\nRequestBody: {jsonRequest}\nResponse: {err}";
+
+                try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_error.txt"), err); } catch { }
+                try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_request.txt"), debug); } catch { }
+
+                Console.WriteLine($"Microsoft translator HTTP error: {response.StatusCode}");
+                return null;
+            }
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            try
+            {
+                using JsonDocument respDoc = JsonDocument.Parse(jsonResponse);
+                var results = new List<string>(respDoc.RootElement.GetArrayLength());
+                foreach (JsonElement responseItem in respDoc.RootElement.EnumerateArray())
+                {
+                    string translated = string.Empty;
+                    if (responseItem.TryGetProperty("translations", out JsonElement transArr) &&
+                        transArr.GetArrayLength() > 0 &&
+                        transArr[0].TryGetProperty("text", out JsonElement ttext))
+                    {
+                        translated = ttext.GetString() ?? string.Empty;
+                    }
+
+                    results.Add(translated);
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Microsoft response: {ex.Message}");
+                try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "microsoft_last_error.txt"), jsonResponse); } catch { }
+                return null;
+            }
+        }
+
+        private string NormalizeText(string text)
+        {
+            string normalizedText = text.Replace("\r\n", " ").Replace("\n", " ");
+            while (normalizedText.Contains("  "))
+            {
+                normalizedText = normalizedText.Replace("  ", " ");
+            }
+
+            return normalizedText.Trim();
         }
 
         // Send request with retries, exponential backoff, jitter and respecting Retry-After header
