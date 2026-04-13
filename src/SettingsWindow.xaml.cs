@@ -1522,6 +1522,22 @@ namespace RSTGameTranslation
         {
             bool showMangaMode = string.Equals(ocrMethod, "OneOCR", StringComparison.OrdinalIgnoreCase);
 
+            if (!showMangaMode && MangaModeCheckBox != null && (MangaModeCheckBox.IsChecked ?? false))
+            {
+                Console.WriteLine("Disabling Manga Mode because OCR method is not OneOCR.");
+
+                if (_isInitializing)
+                {
+                    MangaModeCheckBox.IsChecked = false;
+                    ConfigManager.Instance.SetMangaMode(false);
+                    isNeedShowWarningMangaMode = true;
+                }
+                else
+                {
+                    MangaModeCheckBox.IsChecked = false;
+                }
+            }
+
             if (MangaModeLabel != null)
             {
                 MangaModeLabel.Visibility = showMangaMode ? Visibility.Visible : Visibility.Collapsed;
