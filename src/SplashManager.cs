@@ -517,23 +517,28 @@ namespace RSTGameTranslation
                 token.ThrowIfCancellationRequested();
                 UpdateStatusText(LocalizationManager.Instance.Strings["Splash_Installing"]);
 
-                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string appDir = NormalizeDirectoryPath(AppDomain.CurrentDomain.BaseDirectory);
                 int currentPid = Environment.ProcessId;
+                string currentExePath = Process.GetCurrentProcess().MainModule?.FileName
+                    ?? Environment.ProcessPath
+                    ?? Path.Combine(appDir, "rst.exe");
+                string restartExePath = ResolveRestartExecutablePath(appDir, sourceDir, currentExePath);
 
-                string scriptPath = CreateUpdateScript(tempDir, sourceDir, appDir, currentPid);
+                string scriptPath = CreateUpdateScript(tempDir, sourceDir, appDir, currentPid, restartExePath);
 
                 Console.WriteLine($"Launching update script: {scriptPath}");
+                Console.WriteLine($"Current app exe path: {currentExePath}");
+                Console.WriteLine($"Resolved restart exe path: {restartExePath}");
 
-                // Launch the batch script (will wait for app to exit, then copy files)
+                // Launch the batch script with UseShellExecute so 'start' command works properly
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c \"{scriptPath}\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
+                    FileName = scriptPath,
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
                 });
 
-                // Show message to user to reopen the app manually
+                // Notify user and shutdown; the batch script will restart the app
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (_splashWindow != null)
@@ -622,31 +627,122 @@ namespace RSTGameTranslation
             catch { /* ignore cleanup errors */ }
         }
 
-        private string CreateUpdateScript(string tempDir, string sourceDir, string appDir, int currentPid)
+        private static string ResolveRestartExecutablePath(string appDir, string sourceDir, string currentExePath)
         {
-            string scriptPath = Path.Combine(tempDir, "update.bat");
+            string currentExeName = Path.GetFileName(currentExePath);
 
-            // Batch script: wait for process to exit → copy files → cleanup (no restart)
+            string? sourceExecutable = FindPreferredExecutable(sourceDir, currentExeName);
+            if (!string.IsNullOrWhiteSpace(sourceExecutable))
+                return Path.Combine(appDir, Path.GetFileName(sourceExecutable));
+
+            string? appExecutable = FindPreferredExecutable(appDir, currentExeName);
+            if (!string.IsNullOrWhiteSpace(appExecutable))
+                return appExecutable;
+
+            return Path.Combine(appDir, string.IsNullOrWhiteSpace(currentExeName) ? "rst.exe" : currentExeName);
+        }
+
+        private static string? FindPreferredExecutable(string directory, string? currentExeName)
+        {
+            if (!Directory.Exists(directory))
+                return null;
+
+            string[] preferredNames =
+            {
+                "rst.exe",
+                currentExeName ?? string.Empty,
+                "rst_debug.exe"
+            };
+
+            foreach (string preferredName in preferredNames)
+            {
+                if (string.IsNullOrWhiteSpace(preferredName))
+                    continue;
+
+                string candidatePath = Path.Combine(directory, preferredName);
+                if (File.Exists(candidatePath))
+                    return candidatePath;
+            }
+
+            try
+            {
+                foreach (string executablePath in Directory.GetFiles(directory, "*.exe"))
+                {
+                    string fileName = Path.GetFileName(executablePath);
+                    if (fileName.Equals("createdump.exe", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    return executablePath;
+                }
+            }
+            catch
+            {
+                // Ignore fallback scan errors and let caller use default path.
+            }
+
+            return null;
+        }
+
+        private static string NormalizeDirectoryPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return path;
+
+            string root = Path.GetPathRoot(path) ?? string.Empty;
+            string trimmedPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            if (string.IsNullOrEmpty(trimmedPath))
+                return root;
+
+            return trimmedPath.Length < root.Length ? root : trimmedPath;
+        }
+
+        private static string EscapePowerShellSingleQuotedString(string value)
+        {
+            return value.Replace("'", "''");
+        }
+
+        private string CreateUpdateScript(string tempDir, string sourceDir, string appDir, int currentPid, string restartExePath)
+        {
+            string normalizedTempDir = NormalizeDirectoryPath(tempDir);
+            string normalizedSourceDir = NormalizeDirectoryPath(sourceDir);
+            string normalizedAppDir = NormalizeDirectoryPath(appDir);
+            string scriptPath = Path.Combine(normalizedTempDir, "update.bat");
+            string logPath = Path.Combine(normalizedAppDir, "update.log");
+            string restartExePathForPowerShell = EscapePowerShellSingleQuotedString(restartExePath);
+            string restartWorkingDirForPowerShell = EscapePowerShellSingleQuotedString(Path.GetDirectoryName(restartExePath) ?? normalizedAppDir);
+
+            // Batch script: wait for process to exit → copy files → restart app → cleanup
             string script = $@"@echo off
+setlocal EnableExtensions
 chcp 65001 >nul
-echo Waiting for application to close...
+set ""LOGFILE={logPath}""
+echo [%date% %time%] Waiting for application to close...>> ""%LOGFILE%""
 :waitloop
 tasklist /FI ""PID eq {currentPid}"" 2>NUL | find ""{currentPid}"" >NUL
 if not errorlevel 1 (
     timeout /t 1 /nobreak >nul
     goto waitloop
 )
-echo Application closed. Copying update files...
-xcopy ""{sourceDir}\*"" ""{appDir}"" /E /Y /I /Q >nul 2>&1
+echo [%date% %time%] Application closed. Copying update files...>> ""%LOGFILE%""
+robocopy ""{normalizedSourceDir}"" ""{normalizedAppDir}"" /E /R:10 /W:1 /NFL /NDL /NJH /NJS /NP >> ""%LOGFILE%"" 2>&1
+set ""ROBOCOPY_EXIT=%errorlevel%""
+if %ROBOCOPY_EXIT% GEQ 8 (
+    echo [%date% %time%] ERROR: Failed to copy update files. Robocopy exit code: %ROBOCOPY_EXIT%>> ""%LOGFILE%""
+    pause
+    exit /b %ROBOCOPY_EXIT%
+)
+echo [%date% %time%] Update complete. Restarting application: {restartExePath}>> ""%LOGFILE%""
+powershell -NoProfile -ExecutionPolicy Bypass -Command ""Start-Process -FilePath '{restartExePathForPowerShell}' -WorkingDirectory '{restartWorkingDirForPowerShell}'"" >> ""%LOGFILE%"" 2>&1
 if errorlevel 1 (
-    echo ERROR: Failed to copy update files.
+    echo [%date% %time%] ERROR: Failed to restart application.>> ""%LOGFILE%""
     pause
     exit /b 1
 )
-echo Update complete.
-timeout /t 3 /nobreak >nul
-rmdir /S /Q ""{tempDir}""
-exit
+echo [%date% %time%] Restart command sent successfully.>> ""%LOGFILE%""
+timeout /t 2 /nobreak >nul
+rmdir /S /Q ""{normalizedTempDir}"" >nul 2>&1
+exit /b 0
 ";
             File.WriteAllText(scriptPath, script, System.Text.Encoding.UTF8);
             return scriptPath;
