@@ -113,6 +113,7 @@ namespace RSTGameTranslation
                 "romanian" or "ro" => "ro",
                 "persian" or "farsi" or "fa" => "fa",
                 "czech" or "cs" => "cs",
+                "bulgarian" or "bg" => "bg",
                 "thai" or "th" or "thailand" => "th",
                 "traditional chinese" or "ch_tra" => "zh",
                 "croatian" or "hr" => "hr",

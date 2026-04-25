@@ -2563,6 +2563,7 @@ namespace RSTGameTranslation
                 "hi" => "hindi",
                 "pt" => "portuguese",
                 "ar" => "arabic",
+                "bg" or "bg-bg" => "bulgarian",
                 "nl" => "dutch",
                 "hr" => "Croatian",
                 "pl" => "Polish",

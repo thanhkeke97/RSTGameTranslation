@@ -165,6 +165,7 @@ namespace RSTGameTranslation
                 "hi",
                 "pt",
                 "ar",
+                "bg-BG",
                 "nl",
                 "pl",
                 "ro",

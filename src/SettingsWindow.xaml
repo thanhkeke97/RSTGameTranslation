@@ -304,6 +304,7 @@
                                     <ComboBoxItem Content="hi"/>
                                     <ComboBoxItem Content="pt"/>
                                     <ComboBoxItem Content="ar"/>
+                                    <ComboBoxItem Content="bg"/>
                                     <ComboBoxItem Content="nl"/>
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
@@ -346,6 +347,7 @@
                                     <ComboBoxItem Content="hi"/>
                                     <ComboBoxItem Content="pt"/>
                                     <ComboBoxItem Content="ar"/>
+                                    <ComboBoxItem Content="bg"/>
                                     <ComboBoxItem Content="nl"/>
                                     <ComboBoxItem Content="pl"/>
                                     <ComboBoxItem Content="ro"/>
@@ -414,7 +416,9 @@
                                 <LineBreak/>
                                 <Run>da = Danish</Run>
                                 <LineBreak/>
-                                <Run>uk = Ukraina</Run>
+                                <Run>uk = Ukrainian</Run>
+                                <LineBreak/>
+                                <Run>bg = Bulgarian</Run>
                             </TextBlock>
                             <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
                                 Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">

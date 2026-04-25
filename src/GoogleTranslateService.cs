@@ -450,6 +450,7 @@ namespace RSTGameTranslation
                 "portuguese" or "pt" => "pt",
                 "russian" or "ru" => "ru",
                 "hindi" or "hi" => "hi",
+                "bulgarian" or "bg" or "bg-bg" => "bg",
                 "indonesian" or "id" => "id",
                 "polish" or "pl" => "pl",
                 "arabic" or "ar" => "ar",
