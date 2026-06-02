@@ -178,7 +178,9 @@ namespace RSTGameTranslation
                 "si",
                 "da",
                 "uk",
-                "fi"
+                "fi",
+                "ckb",
+                "bn"
             };
 
             // Sort languages alphabetically

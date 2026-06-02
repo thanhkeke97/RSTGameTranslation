@@ -1528,7 +1528,7 @@ namespace RSTGameTranslation
 
                 // Define RTL (Right-to-Left) languages
                 HashSet<string> rtlLanguages = new HashSet<string> {
-                    "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu"
+                    "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu", "ckb", "central kurdish"
                 };
 
                 // Check if languages are RTL

@@ -52,7 +52,9 @@ def initialize_ocr_engine(lang='en'):
         'da': 'da',
         'uk': 'uk',
         'fi': 'fi',
-        'bg': 'bg'
+        'bg': 'bg',
+        'ckb': 'ckb',
+        'bn': 'bn'
     }
 
     # Use mapped language or default to input if not in map

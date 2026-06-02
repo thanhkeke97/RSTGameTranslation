@@ -2579,6 +2579,8 @@ namespace RSTGameTranslation
                 "da" => "Danish",
                 "uk" => "ukrainian",
                 "fi" => "Finnish",
+                "ckb" => "Central Kurdish",
+                "bn" => "Bengali",
                 _ => language
             };
         }

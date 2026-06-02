@@ -333,6 +333,8 @@ namespace RSTGameTranslation
                 "danish" or "da" => "da",
                 "ukrainian" or "uk" => "uk",
                 "finnish" or "fi" => "fi",
+                "central kurdish" or "ckb" => "ckb",
+                "bengali" or "bn" => "bn",
                 _ => language
             };
         }

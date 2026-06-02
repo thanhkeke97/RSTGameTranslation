@@ -32,7 +32,7 @@ namespace RSTGameTranslation
         private ISampleProvider? processedProvider;
         private WaveFileWriter? debugWriter;
         private WaveFileWriter? debugWriterProcessed;
-        int minBytesToProcess = 192000;
+        int minBytesToProcess = 32000; // ~2 seconds @ 16kHz 16-bit mono
         public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
         private string _lastTranslatedText = "";
         private bool forceProcessing = false;
@@ -123,6 +123,8 @@ namespace RSTGameTranslation
                 "danish" or "da" => "da",
                 "ukrainian" or "uk" => "uk",
                 "finnish" or "fi" => "fi",
+                "central kurdish" or "ckb" => "ckb",
+                "bengali" or "bn" => "bn",
                 _ => language
             };
         }
@@ -482,7 +484,7 @@ namespace RSTGameTranslation
 
                 try
                 {
-                    await Task.Delay(20, cancellationToken);
+                    await Task.Delay(5, cancellationToken);
                 }
                 catch (TaskCanceledException)
                 {

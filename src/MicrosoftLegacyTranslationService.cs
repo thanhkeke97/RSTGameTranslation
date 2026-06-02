@@ -103,6 +103,8 @@ namespace RSTGameTranslation
                 "ukrainian" or "uk" => "uk",
                 "danish" or "da" => "da",
                 "finnish" or "fi" => "fi",
+                "central kurdish" or "ckb" => "ku",
+                "bengali" or "bn" => "bn",
                 "auto" or "auto-detect" or "auto_detect" => "auto",
                 _ => language
             };
