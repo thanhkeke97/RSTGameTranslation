@@ -3336,6 +3336,10 @@ namespace RSTGameTranslation
                 bool ok = await downloader.DownloadAsync();
                 if (ok)
                 {
+                    // Re-enable the "model missing" notice so any future
+                    // SpeakText error after the install will be reported.
+                    SupertonicTTSService.ResetMissingModelNotice();
+
                     MessageBox.Show(
                         "Supertonic model downloaded successfully.\n\nYou can now use Supertonic as a TTS service.",
                         "Download complete", MessageBoxButton.OK, MessageBoxImage.Information);

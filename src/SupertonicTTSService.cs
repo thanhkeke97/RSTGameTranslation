@@ -645,14 +645,27 @@ namespace RSTGameTranslation
     public class SupertonicTTSService
     {
         private static SupertonicTTSService? _instance;
+        private static readonly object _instanceLock = new object();
         public static SupertonicTTSService Instance
         {
             get
             {
-                if (_instance == null) _instance = new SupertonicTTSService();
+                if (_instance == null)
+                {
+                    lock (_instanceLock)
+                    {
+                        if (_instance == null) _instance = new SupertonicTTSService();
+                    }
+                }
                 return _instance;
             }
         }
+
+        // Suppress the "Supertonic model is not installed" MessageBox after the
+        // first popup in this session so we don't spam the user on every chat
+        // line when they've selected Supertonic but haven't downloaded yet.
+        private static bool _suppressMissingModelNotice = false;
+        private static readonly object _noticeLock = new object();
 
         // Lazy-loaded ONNX engine + style (re-loaded when voice style changes)
         private Supertonic.TextToSpeech? _tts;
@@ -723,6 +736,15 @@ namespace RSTGameTranslation
         {
             try
             {
+                // Pre-create the model root dir so downstream file-exists checks
+                // never crash on a fresh machine. Cheap no-op if it already exists.
+                try
+                {
+                    string root = GetModelRoot();
+                    if (!string.IsNullOrEmpty(root)) Directory.CreateDirectory(root);
+                }
+                catch { /* permission errors are surfaced by file-existence checks below */ }
+
                 string onnxDir = GetOnnxDir();
                 if (!Directory.Exists(onnxDir)) return false;
                 foreach (var f in RequiredOnnxFiles)
@@ -735,6 +757,16 @@ namespace RSTGameTranslation
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Resets the once-per-session "model missing" notice so the next
+        /// SpeakText call after the user clicks "Download model" will surface
+        /// any new error.
+        /// </summary>
+        public static void ResetMissingModelNotice()
+        {
+            lock (_noticeLock) { _suppressMissingModelNotice = false; }
         }
 
         public static List<string> GetInstalledVoiceStyles()
@@ -761,14 +793,33 @@ namespace RSTGameTranslation
         /// <summary>
         /// Background pre-load of ONNX sessions + voice style. Call once at startup
         /// if the user has already enabled TTS and selected Supertonic, so the
-        /// first SpeakText call returns instantly.
+        /// first SpeakText call returns instantly. Always safe to call —
+        /// catches all exceptions and never propagates an unobserved task
+        /// exception to the host process.
         /// </summary>
         public async Task WarmUpAsync()
         {
             try
             {
-                if (!IsModelInstalled()) return;
-                await Task.Run(() => EnsureLoaded());
+                if (!IsModelInstalled())
+                {
+                    Console.WriteLine("Supertonic warm-up skipped: model not installed");
+                    return;
+                }
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        EnsureLoaded();
+                        Console.WriteLine("Supertonic warm-up complete");
+                    }
+                    catch (Exception inner)
+                    {
+                        // Don't let a bad model file stop the app from starting;
+                        // the next SpeakText will surface the error to the user.
+                        Console.WriteLine($"Supertonic warm-up inner error: {inner.Message}");
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -788,11 +839,32 @@ namespace RSTGameTranslation
 
                 if (!IsModelInstalled())
                 {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                        MessageBox.Show(
-                            "Supertonic model is not installed.\n\nPlease open Settings → TTS and click \"Download model\".",
-                            "Supertonic model missing",
-                            MessageBoxButton.OK, MessageBoxImage.Warning));
+                    // Only show the popup the first time per session so we
+                    // don't spam the user for every chat line.
+                    bool shouldShow = false;
+                    lock (_noticeLock)
+                    {
+                        if (!_suppressMissingModelNotice)
+                        {
+                            _suppressMissingModelNotice = true;
+                            shouldShow = true;
+                        }
+                    }
+                    if (shouldShow)
+                    {
+                        try
+                        {
+                            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                                MessageBox.Show(
+                                    "Supertonic model is not installed.\n\nPlease open Settings → TTS and click \"Download model\".",
+                                    "Supertonic model missing",
+                                    MessageBoxButton.OK, MessageBoxImage.Warning));
+                        }
+                        catch (Exception mbx)
+                        {
+                            Console.WriteLine($"Supertonic: failed to show missing-model notice: {mbx.Message}");
+                        }
+                    }
                     return false;
                 }
 
@@ -816,15 +888,39 @@ namespace RSTGameTranslation
                     if (speed < 0.5f) speed = 0.5f;
                     if (speed > 2.0f) speed = 2.0f;
 
-                    // Ensure model + style are loaded (lazy)
-                    var (wav, _) = await Task.Run(() =>
+                    // Ensure model + style are loaded (lazy). Catches errors
+                    // here so the user gets a clear MessageBox instead of
+                    // a silent failure that gets swallowed by callers.
+                    float[] wav;
+                    try
                     {
-                        var tts = EnsureLoaded();
-                        if (tts == null) throw new InvalidOperationException("Failed to load Supertonic TTS");
-                        EnsureStyle(voiceStyle);
-                        if (_style == null) throw new InvalidOperationException("Failed to load voice style");
-                        return tts.Call(processedText, lang, _style, totalSteps, speed, 0.3f);
-                    });
+                        wav = await Task.Run(() =>
+                        {
+                            var tts = EnsureLoaded();
+                            if (tts == null) throw new InvalidOperationException("Failed to load Supertonic TTS");
+                            EnsureStyle(voiceStyle);
+                            if (_style == null) throw new InvalidOperationException("Failed to load voice style");
+                            var (samples, _) = tts.Call(processedText, lang, _style, totalSteps, speed, 0.3f);
+                            return samples;
+                        });
+                    }
+                    catch (Exception synthEx)
+                    {
+                        // Reset the missing-model notice so the user can
+                        // re-trigger a popup after fixing the install.
+                        ResetMissingModelNotice();
+                        Console.WriteLine($"Supertonic synthesis error: {synthEx.Message}");
+                        try
+                        {
+                            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                                MessageBox.Show(
+                                    $"Supertonic failed to synthesize speech.\n\n{synthEx.Message}\n\nThe model may be corrupted - try re-downloading in Settings → TTS.",
+                                    "Supertonic synthesis error",
+                                    MessageBoxButton.OK, MessageBoxImage.Warning));
+                        }
+                        catch { }
+                        return false;
+                    }
 
                     if (wav == null || wav.Length == 0)
                     {
@@ -852,10 +948,17 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Supertonic SpeakText error: {ex.Message}");
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                    MessageBox.Show(
-                        $"Error with Supertonic Text-to-Speech: {ex.Message}",
-                        "TTS Error", MessageBoxButton.OK, MessageBoxImage.Warning));
+                try
+                {
+                    System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                        MessageBox.Show(
+                            $"Error with Supertonic Text-to-Speech: {ex.Message}",
+                            "TTS Error", MessageBoxButton.OK, MessageBoxImage.Warning));
+                }
+                catch (Exception mbx)
+                {
+                    Console.WriteLine($"Supertonic: failed to show TTS error MessageBox: {mbx.Message}");
+                }
                 return false;
             }
         }

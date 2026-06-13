@@ -17,7 +17,16 @@
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <ApplicationIcon>media\AppIcon.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <PublishSingleFile>true</PublishSingleFile>
+    <!--
+      PublishSingleFile=true would bundle all managed DLLs (including
+      Microsoft.ML.OnnxRuntime.dll) into a single rst.exe (~190 MB).
+      This breaks the ONNX Runtime native loader path on first launch and
+      causes the app to crash when the user has tts_service=Supertonic.
+      Multi-file self-contained publish keeps every DLL next to rst.exe,
+      which matches the layout that works for both `dotnet build` and
+      `dotnet publish` outputs.
+    -->
+    <PublishSingleFile>false</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 

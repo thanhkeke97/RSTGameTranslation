@@ -27,6 +27,14 @@ public partial class App : Application
                 WriteCrashLog("AppDomain.UnhandledException (fatal=" + args.IsTerminating + ")", ex);
             }
         };
+
+        // Catch unobserved task exceptions (e.g. from fire-and-forget async
+        // work like Supertonic warm-up) before they tear down the process.
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            WriteCrashLog("TaskScheduler.UnobservedTaskException", args.Exception);
+            args.SetObserved();
+        };
     }
 
     /// <summary>
@@ -144,7 +152,9 @@ public partial class App : Application
     private void App_DispatcherUnhandledException(object sender,
                                                System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
-        // Log the exception
+        // Log the exception to disk (in addition to the console) so we can
+        // diagnose silent crashes in release builds.
+        WriteCrashLog("DispatcherUnhandledException", e.Exception);
         System.Console.WriteLine($"Unhandled application exception: {e.Exception.Message}");
         System.Console.WriteLine($"Stack trace: {e.Exception.StackTrace}");
 

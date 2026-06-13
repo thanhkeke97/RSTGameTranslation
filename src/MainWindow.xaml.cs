@@ -1203,15 +1203,11 @@ namespace RSTGameTranslation
             // Warm up Supertonic TTS in the background so the first SpeakText
             // call returns instantly. Only kicks in when the user has actually
             // selected Supertonic as the TTS service and the model is on disk.
-            try
-            {
-                if (ConfigManager.Instance.IsTtsEnabled() &&
-                    ConfigManager.Instance.GetTtsService() == "Supertonic" &&
-                    SupertonicTTSService.IsModelInstalled())
-                {
-                    _ = SupertonicTTSService.Instance.WarmUpAsync();
-                }
-            }
+            // Wrapped in an isolated method to ensure that any failure here
+            // (e.g. assembly load issue in the release build) cannot prevent
+            // the rest of MainWindow_Loaded from running and the window from
+            // appearing.
+            try { TryWarmUpSupertonic(); }
             catch (Exception ex)
             {
                 Console.WriteLine($"Supertonic warm-up trigger failed: {ex.Message}");
@@ -1222,6 +1218,35 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error during MainWindow_Loaded: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 _isInitializing = false;
+            }
+        }
+
+        // Isolated so any failure (assembly load, ONNX init, etc.) cannot
+        // prevent MainWindow_Loaded from completing and the window from
+        // showing. All exceptions are swallowed and logged.
+        private void TryWarmUpSupertonic()
+        {
+            try
+            {
+                if (!ConfigManager.Instance.IsTtsEnabled()) return;
+                if (ConfigManager.Instance.GetTtsService() != "Supertonic") return;
+                if (!SupertonicTTSService.IsModelInstalled()) return;
+
+                var warmup = SupertonicTTSService.Instance.WarmUpAsync();
+                if (warmup != null)
+                {
+                    warmup.ContinueWith(t =>
+                    {
+                        if (t.IsFaulted && t.Exception != null)
+                        {
+                            Console.WriteLine($"Supertonic warm-up unobserved: {t.Exception.GetBaseException().Message}");
+                        }
+                    }, TaskScheduler.Default);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Supertonic warm-up outer error: {ex.Message}");
             }
         }
 
