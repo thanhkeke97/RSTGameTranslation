@@ -76,7 +76,8 @@ namespace RSTGameTranslation
             { "ja", "ja-JP" },
             { "ko", "ko-KR" },
             { "ckb", "ku-Arab" },
-            { "bn", "bn-BD" }
+            { "bn", "bn-BD" },
+            { "el", "el-GR" }
         };
 
         // Convert a System.Drawing.Bitmap to a Windows.Graphics.Imaging.SoftwareBitmap

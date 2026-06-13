@@ -105,6 +105,7 @@ namespace RSTGameTranslation
                 "finnish" or "fi" => "fi",
                 "central kurdish" or "ckb" => "ku",
                 "bengali" or "bn" => "bn",
+                "greek" or "el" => "el",
                 "auto" or "auto-detect" or "auto_detect" => "auto",
                 _ => language
             };

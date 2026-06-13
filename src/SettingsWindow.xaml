@@ -321,8 +321,9 @@
                                     <ComboBoxItem Content="fi"/>
                                     <ComboBoxItem Content="ckb"/>
                                     <ComboBoxItem Content="bn"/>
+                                    <ComboBoxItem Content="el"/>
                                 </ComboBox>
-                                
+
                                 <!-- Swap Languages Button placed between source and target in its own column -->
                                 <Button x:Name="swapLanguagesButton" Grid.Row="0" Grid.Column="2" Grid.RowSpan="2"
                                         VerticalAlignment="Center" Width="30" Height="30" Margin="10,0"
@@ -366,6 +367,7 @@
                                     <ComboBoxItem Content="fi"/>
                                     <ComboBoxItem Content="bn"/>
                                     <ComboBoxItem Content="ckb"/>
+                                    <ComboBoxItem Content="el"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -457,6 +459,8 @@
                                 <Run>fi = Finnish</Run>
                                 <LineBreak/>
                                 <Run>bn = Bengali</Run>
+                                <LineBreak/>
+                                <Run>el = Greek</Run>
                             </TextBlock>
                             </Grid>
                         </GroupBox>

@@ -180,7 +180,8 @@ namespace RSTGameTranslation
                 "uk",
                 "fi",
                 "ckb",
-                "bn"
+                "bn",
+                "el"
             };
 
             // Sort languages alphabetically
