@@ -22,10 +22,42 @@
 - **Dịch thuật bằng AI** với Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
 - **Nhận dạng thông minh** với nhận biết ngữ cảnh game và phát hiện tên nhân vật
 - **Hiển thị linh hoạt** với overlay và cửa sổ chat
-- **Chức năng Text-to-Speech** (đọc văn bản)
+- **Chức năng Text-to-Speech** với 4 backend: ElevenLabs (cloud), Google Cloud TTS (cloud), Windows TTS (local), và **Supertonic** (miễn phí, on-device, 31 ngôn ngữ, model OpenRAIL-M)
 - **Chức năng Speech-to-Text** (Nhận dạng giọng nói từ âm thanh game và dịch nó)
 
 ![Xem trước](media/preview_video.gif)
+
+---
+
+## 🔊 Text-to-Speech (TTS)
+
+RST hỗ trợ 4 backend TTS. Chọn backend phù hợp với nhu cầu:
+
+| Backend | Chi phí | Internet | Riêng tư | Ngôn ngữ | Phù hợp cho |
+|---|---|---|---|---|---|
+| **ElevenLabs** | Free tier + trả phí | Cần | Cloud | Nhiều | Giọng tự nhiên nhất |
+| **Google Cloud TTS** | Trả theo ký tự | Cần | Cloud | 50+ | Phủ ngôn ngữ rộng |
+| **Windows TTS** | Miễn phí | Không cần | Local | Giọng hệ thống | Không cài đặt, không mạng |
+| **Supertonic** (mới) | **Miễn phí** | **Không cần** | **100% local** | **31** | Offline, đa ngôn ngữ, không cần API key |
+
+### Supertonic (khuyên dùng cho offline / miễn phí)
+
+[Supertonic](https://github.com/supertone-inc/supertonic) là hệ thống TTS đa ngôn ngữ on-device, tốc độ cực nhanh của [Supertone](https://www.supertone.ai/). Chạy hoàn toàn trên CPU qua ONNX Runtime — không cần cloud, không cần API key, không lo lộ dữ liệu. Sau khi tải model ~400 MB một lần, dùng offline hoàn toàn.
+
+**Cách bật:**
+
+1. Mở **Cài đặt → TTS**
+2. Đặt **TTS Service** = `Supertonic`
+3. Nhấn **Download model** (≈400 MB, tải từ Hugging Face)
+4. Chọn voice style (M1, F1, M2, F2, M3, M3, M4, M5, F3, F4, F5)
+5. Tùy chỉnh **Quality** (denoise steps, mặc định 8) và **Speech speed** (mặc định 1.05)
+
+**Ngôn ngữ hỗ trợ** (31): `en, ko, ja, ar, bg, cs, da, de, el, es, et, fi, fr, hi, hr, hu, id, it, lt, lv, nl, pl, pt, ro, ru, sk, sl, sv, tr, uk, vi` và `na` (tự động nhận diện).
+
+**Lưu ý:**
+- Lần đầu gọi SpeakText sau khi mở app có thể mất 1-2s để load model; app sẽ tự warm-up ở background nếu Supertonic đang được chọn, các lần sau phản hồi tức thì.
+- License: SDK **MIT**, model **OpenRAIL-M** (miễn phí dùng thương mại với điều kiện responsible-AI).
+- Model files: https://huggingface.co/Supertone/supertonic-3
 
 ---
 

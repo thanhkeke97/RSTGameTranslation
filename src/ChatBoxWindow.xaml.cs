@@ -441,6 +441,10 @@ namespace RSTGameTranslation
                         {
                             success = await WindowsTTSService.Instance.SpeakText(trimmedText);
                         }
+                        else if (ttsService == "Supertonic")
+                        {
+                            success = await SupertonicTTSService.Instance.SpeakText(trimmedText);
+                        }
                         else
                         {
                             Console.WriteLine($"Unsupported TTS service: {ttsService}");

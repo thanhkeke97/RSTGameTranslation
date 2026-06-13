@@ -1506,6 +1506,7 @@
                                     <ComboBoxItem Content="ElevenLabs"/>
                                     <ComboBoxItem Content="Google Cloud TTS"/>
                                     <ComboBoxItem Content="Windows TTS"/>
+                                    <ComboBoxItem Content="Supertonic"/>
                                 </ComboBox>
                                 
                                 <!-- ElevenLabs API Key - Only visible when ElevenLabs is selected -->
@@ -1675,6 +1676,59 @@
                                     <ComboBoxItem Content="Vietnamese (Female) - Neural2" Tag="vi-VN-Neural2-A"/>
                                     <ComboBoxItem Content="Vietnamese (Male) - Neural2" Tag="vi-VN-Neural2-D"/>
                                 </ComboBox>
+                            </Grid>
+                        </GroupBox>
+
+                        <!-- Supertonic TTS Settings (on-device, no API key) -->
+                        <GroupBox x:Name="supertonicSettingsGroupBox" Header="Supertonic TTS (Local, On-Device)" Margin="0,0,0,15" Padding="10" Visibility="Collapsed">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Model status + Download button -->
+                                <TextBlock Text="Model status:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Grid Grid.Row="0" Grid.Column="1" Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="supertonicModelStatusText" Text="Checking..." VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <Button x:Name="supertonicDownloadButton" Grid.Column="1" Content="Download model" Padding="8,3" Click="SupertonicDownloadButton_Click"/>
+                                </Grid>
+
+                                <!-- Voice style -->
+                                <TextBlock Text="Voice style:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <ComboBox x:Name="supertonicVoiceStyleComboBox" Grid.Row="1" Grid.Column="1" Margin="0,5"
+                                          SelectionChanged="SupertonicVoiceStyleComboBox_SelectionChanged"/>
+
+                                <!-- Total steps -->
+                                <TextBlock Text="Quality (denoise steps):" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,5,10,0"
+                                           ToolTip="Higher = better quality, slower. 5 (fast) to 12 (high), default 8."/>
+                                <TextBox x:Name="supertonicTotalStepsTextBox" Grid.Row="2" Grid.Column="1" Margin="0,5"
+                                         LostFocus="SupertonicTotalStepsTextBox_LostFocus"/>
+
+                                <!-- Speed -->
+                                <TextBlock Text="Speech speed:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,5,10,0"
+                                           ToolTip="0.9 = slower, 1.05 = natural, 1.5 = faster. Range 0.5 - 2.0."/>
+                                <TextBox x:Name="supertonicSpeedTextBox" Grid.Row="3" Grid.Column="1" Margin="0,5"
+                                         LostFocus="SupertonicSpeedTextBox_LostFocus"/>
+
+                                <!-- Help / info -->
+                                <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,0" TextWrapping="Wrap" FontSize="11">
+                                    <Run>Supertonic is a free, on-device multilingual TTS by Supertone. After the model is downloaded (~400 MB), it runs entirely offline via ONNX Runtime.</Run>
+                                    <LineBreak/>
+                                    <Run>Model license: OpenRAIL-M. SDK license: MIT. </Run>
+                                    <Hyperlink Click="SupertonicHomepageLink_Click">https://github.com/supertone-inc/supertonic</Hyperlink>
+                                </TextBlock>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

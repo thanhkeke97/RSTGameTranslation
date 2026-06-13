@@ -22,14 +22,46 @@
 - **AI-Powered Translation** with Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
 - **Smart Recognition** with game context awareness and character name detection
 - **Flexible Display** options with overlay and chat window
-- **Text-to-Speech** feature (text reading)
+- **Text-to-Speech** feature with 4 backends: ElevenLabs (cloud), Google Cloud TTS (cloud), Windows TTS (local), and **Supertonic** (free, on-device, 31 languages, OpenRAIL-M model)
 - **Speech-to-Text** functionality (Recognize speech from game audio and translate it)
 
 ![Preview](media/preview_video.gif)
 
 ---
 
-## 🚀 Quick Start
+## � Text-to-Speech (TTS)
+
+RST supports four TTS backends. Pick the one that fits your needs:
+
+| Backend | Cost | Internet | Privacy | Languages | Best for |
+|---|---|---|---|---|---|
+| **ElevenLabs** | Free tier + paid | Required | Cloud | Many | Highest naturalness |
+| **Google Cloud TTS** | Pay-per-character | Required | Cloud | 50+ | Wide language coverage |
+| **Windows TTS** | Free | Not required | Local | System voices | No setup, no network |
+| **Supertonic** (new) | **Free** | **Not required** | **100% local** | **31** | Offline, multilingual, no API key |
+
+### Supertonic (recommended for offline / free TTS)
+
+[Supertonic](https://github.com/supertone-inc/supertonic) is a lightning-fast, on-device multilingual TTS by [Supertone](https://www.supertone.ai/). It runs entirely on your CPU via ONNX Runtime - no cloud, no API key, no privacy concerns. After the one-time ~400 MB model download, it works completely offline.
+
+**How to enable:**
+
+1. Open **Settings → TTS**
+2. Set **TTS Service** = `Supertonic`
+3. Click **Download model** (≈400 MB, downloaded from Hugging Face)
+4. Pick a voice style (M1, F1, M2, F2, M3, M3, M4, M5, F3, F4, F5)
+5. Optionally tune **Quality** (denoise steps, default 8) and **Speech speed** (default 1.05)
+
+**Supported languages** (31): `en, ko, ja, ar, bg, cs, da, de, el, es, et, fi, fr, hi, hr, hu, id, it, lt, lv, nl, pl, pt, ro, ru, sk, sl, sv, tr, uk, vi` plus `na` (language-agnostic auto-detect).
+
+**Notes:**
+- First SpeakText call after app launch may take 1-2s while the model loads; the app will warm the engine in the background if Supertonic is already selected, so subsequent calls are instant.
+- License: SDK is **MIT**, model is **OpenRAIL-M** (free for commercial use with responsible-AI conditions).
+- Model files: https://huggingface.co/Supertone/supertonic-3
+
+---
+
+## �🚀 Quick Start
 
 ### Prerequisites
 - Windows 10+ and game in windowed/borderless mode

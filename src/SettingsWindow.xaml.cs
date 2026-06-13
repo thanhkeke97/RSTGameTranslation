@@ -1121,6 +1121,8 @@ namespace RSTGameTranslation
             elevenLabsVoiceComboBox.SelectionChanged -= ElevenLabsVoiceComboBox_SelectionChanged;
             googleTtsVoiceComboBox.SelectionChanged -= GoogleTtsVoiceComboBox_SelectionChanged;
             windowTTSVoiceComboBox.SelectionChanged -= WindowTTSVoiceComboBox_SelectionChanged;
+            if (supertonicVoiceStyleComboBox != null)
+                supertonicVoiceStyleComboBox.SelectionChanged -= SupertonicVoiceStyleComboBox_SelectionChanged;
 
             // Set TTS enabled state
             ttsEnabledCheckBox.IsChecked = ConfigManager.Instance.IsTtsEnabled();
@@ -1188,6 +1190,14 @@ namespace RSTGameTranslation
             elevenLabsVoiceComboBox.SelectionChanged += ElevenLabsVoiceComboBox_SelectionChanged;
             googleTtsVoiceComboBox.SelectionChanged += GoogleTtsVoiceComboBox_SelectionChanged;
             windowTTSVoiceComboBox.SelectionChanged += WindowTTSVoiceComboBox_SelectionChanged;
+            if (supertonicVoiceStyleComboBox != null)
+                supertonicVoiceStyleComboBox.SelectionChanged += SupertonicVoiceStyleComboBox_SelectionChanged;
+
+            // Refresh Supertonic model status / voice list (so the user can
+            // see at a glance whether the on-device model is ready, even if
+            // Supertonic isn't currently the selected service).
+            if (supertonicModelStatusText != null) RefreshSupertonicModelStatus();
+            if (supertonicVoiceStyleComboBox != null) LoadSupertonicVoiceStyles();
 
             // Load ignore phrases
             LoadIgnorePhrases();
@@ -2202,6 +2212,7 @@ namespace RSTGameTranslation
                 bool isElevenLabsSelected = selectedService == "ElevenLabs";
                 bool isGoogleTtsSelected = selectedService == "Google Cloud TTS";
                 bool isWindowTtsSelected = selectedService == "Windows TTS";
+                bool isSupertonicSelected = selectedService == "Supertonic";
 
                 // Make sure the window is fully loaded and controls are initialized
                 if (elevenLabsApiKeyLabel == null || elevenLabsApiKeyGrid == null ||
@@ -2243,6 +2254,12 @@ namespace RSTGameTranslation
                 windowTTSVoiceLabel.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 windowTTSVoiceComboBox.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 windowsTTSGuide.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
+
+                // Show/hide Supertonic TTS-specific settings
+                if (supertonicSettingsGroupBox != null)
+                {
+                    supertonicSettingsGroupBox.Visibility = isSupertonicSelected ? Visibility.Visible : Visibility.Collapsed;
+                }
                 // Load service-specific settings if they're being shown
                 if (isElevenLabsSelected)
                 {
@@ -2316,6 +2333,20 @@ namespace RSTGameTranslation
                             break;
                         }
                     }
+                }
+                else if (isSupertonicSelected)
+                {
+                    // Supertonic - on-device, no API key needed
+                    RefreshSupertonicModelStatus();
+                    LoadSupertonicVoiceStyles();
+                    if (supertonicTotalStepsTextBox != null)
+                        supertonicTotalStepsTextBox.Text =
+                            ConfigManager.Instance.GetSupertonicTotalSteps()
+                                .ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    if (supertonicSpeedTextBox != null)
+                        supertonicSpeedTextBox.Text =
+                            ConfigManager.Instance.GetSupertonicSpeed()
+                                .ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
                 }
             }
             catch (Exception ex)
@@ -3216,6 +3247,200 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating TTS service: {ex.Message}");
+            }
+        }
+
+        // ==================== Supertonic TTS handlers ====================
+
+        private void RefreshSupertonicModelStatus()
+        {
+            if (supertonicModelStatusText == null) return;
+            try
+            {
+                bool installed = SupertonicTTSService.IsModelInstalled();
+                if (installed)
+                {
+                    supertonicModelStatusText.Text = "✓ Installed";
+                    supertonicModelStatusText.Foreground =
+                        System.Windows.Media.Brushes.Green;
+                    if (supertonicDownloadButton != null)
+                    {
+                        supertonicDownloadButton.Content = "Re-download";
+                    }
+                }
+                else
+                {
+                    supertonicModelStatusText.Text = "✗ Not installed (≈400 MB required)";
+                    supertonicModelStatusText.Foreground =
+                        System.Windows.Media.Brushes.Red;
+                    if (supertonicDownloadButton != null)
+                    {
+                        supertonicDownloadButton.Content = "Download model";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                supertonicModelStatusText.Text = "Error: " + ex.Message;
+                supertonicModelStatusText.Foreground =
+                    System.Windows.Media.Brushes.Red;
+            }
+        }
+
+        private void LoadSupertonicVoiceStyles()
+        {
+            if (supertonicVoiceStyleComboBox == null) return;
+            try
+            {
+                supertonicVoiceStyleComboBox.Items.Clear();
+                var styles = SupertonicTTSService.GetInstalledVoiceStyles();
+                if (styles.Count == 0)
+                {
+                    var noItem = new ComboBoxItem
+                    {
+                        Content = "(download model first)",
+                        IsEnabled = false
+                    };
+                    supertonicVoiceStyleComboBox.Items.Add(noItem);
+                    return;
+                }
+                foreach (var name in styles)
+                {
+                    supertonicVoiceStyleComboBox.Items.Add(new ComboBoxItem { Content = name });
+                }
+                // Select current
+                string current = ConfigManager.Instance.GetSupertonicVoiceStyle();
+                foreach (ComboBoxItem item in supertonicVoiceStyleComboBox.Items)
+                {
+                    if (string.Equals(item.Content?.ToString(), current, StringComparison.OrdinalIgnoreCase))
+                    {
+                        supertonicVoiceStyleComboBox.SelectedItem = item;
+                        return;
+                    }
+                }
+                if (supertonicVoiceStyleComboBox.Items.Count > 0)
+                    supertonicVoiceStyleComboBox.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LoadSupertonicVoiceStyles error: {ex.Message}");
+            }
+        }
+
+        private async void SupertonicDownloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (supertonicDownloadButton != null) supertonicDownloadButton.IsEnabled = false;
+                var downloader = new SupertonicModelDownloader();
+                bool ok = await downloader.DownloadAsync();
+                if (ok)
+                {
+                    MessageBox.Show(
+                        "Supertonic model downloaded successfully.\n\nYou can now use Supertonic as a TTS service.",
+                        "Download complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                RefreshSupertonicModelStatus();
+                LoadSupertonicVoiceStyles();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error: {ex.Message}", "Download error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (supertonicDownloadButton != null) supertonicDownloadButton.IsEnabled = true;
+            }
+        }
+
+        private void SupertonicVoiceStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (_isInitializing) return;
+                if (supertonicVoiceStyleComboBox?.SelectedItem is ComboBoxItem item)
+                {
+                    string name = item.Content?.ToString() ?? "M1";
+                    if (!string.IsNullOrWhiteSpace(name) && name != "(download model first)")
+                    {
+                        ConfigManager.Instance.SetSupertonicVoiceStyle(name);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SupertonicVoiceStyleComboBox_SelectionChanged: {ex.Message}");
+            }
+        }
+
+        private void SupertonicTotalStepsTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (supertonicTotalStepsTextBox == null) return;
+                if (int.TryParse(supertonicTotalStepsTextBox.Text, out int v))
+                {
+                    ConfigManager.Instance.SetSupertonicTotalSteps(v);
+                    supertonicTotalStepsTextBox.Text =
+                        ConfigManager.Instance.GetSupertonicTotalSteps()
+                            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    // restore
+                    supertonicTotalStepsTextBox.Text =
+                        ConfigManager.Instance.GetSupertonicTotalSteps()
+                            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SupertonicTotalStepsTextBox_LostFocus: {ex.Message}");
+            }
+        }
+
+        private void SupertonicSpeedTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (supertonicSpeedTextBox == null) return;
+                if (float.TryParse(supertonicSpeedTextBox.Text,
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out float v))
+                {
+                    ConfigManager.Instance.SetSupertonicSpeed(v);
+                    supertonicSpeedTextBox.Text =
+                        ConfigManager.Instance.GetSupertonicSpeed()
+                            .ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    supertonicSpeedTextBox.Text =
+                        ConfigManager.Instance.GetSupertonicSpeed()
+                            .ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SupertonicSpeedTextBox_LostFocus: {ex.Message}");
+            }
+        }
+
+        private void SupertonicHomepageLink_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://github.com/supertone-inc/supertonic",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SupertonicHomepageLink_Click: {ex.Message}");
             }
         }
 

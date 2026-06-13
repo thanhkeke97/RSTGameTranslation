@@ -1199,6 +1199,23 @@ namespace RSTGameTranslation
 
             // Load screen selection list
             LoadScreenList();
+
+            // Warm up Supertonic TTS in the background so the first SpeakText
+            // call returns instantly. Only kicks in when the user has actually
+            // selected Supertonic as the TTS service and the model is on disk.
+            try
+            {
+                if (ConfigManager.Instance.IsTtsEnabled() &&
+                    ConfigManager.Instance.GetTtsService() == "Supertonic" &&
+                    SupertonicTTSService.IsModelInstalled())
+                {
+                    _ = SupertonicTTSService.Instance.WarmUpAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Supertonic warm-up trigger failed: {ex.Message}");
+            }
             }
             catch (Exception ex)
             {
@@ -1445,11 +1462,12 @@ namespace RSTGameTranslation
                 {
                     // Stop speech queue in ChatBoxWindow first
                     ChatBoxWindow.StopSpeechQueue();
-                    
+
                     // Stop all TTS services
                     WindowsTTSService.StopAllTTS();
                     GoogleTTSService.StopAllTTS();
                     ElevenLabsService.StopAllTTS();
+                    SupertonicTTSService.StopAllTTS();
                 }
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStopped"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStopped_Details"]);
                 StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red

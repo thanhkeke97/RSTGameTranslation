@@ -26,6 +26,7 @@ namespace RSTGameTranslation
         private readonly string _customApiConfigFilePath;
         private readonly string _googleTranslateConfigFilePath;
         public readonly string _audioProcessingModelFolderPath;
+        public readonly string _supertonicModelFolderPath;
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
@@ -135,6 +136,10 @@ namespace RSTGameTranslation
         public const string GOOGLE_TTS_API_KEY = "google_tts_api_key";
         public const string GOOGLE_TTS_VOICE = "google_tts_voice";
         public const string WINDOWS_TTS_VOICE = "windows_tts_voice";
+        public const string SUPERTONIC_MODEL_DIR = "supertonic_model_dir";
+        public const string SUPERTONIC_VOICE_STYLE = "supertonic_voice_style";
+        public const string SUPERTONIC_TOTAL_STEPS = "supertonic_total_steps";
+        public const string SUPERTONIC_SPEED = "supertonic_speed";
         public const string EXCLUDE_CHARACTER_NAME = "exclude_character_name";
 
         // Exclude regions configuration keys
@@ -356,6 +361,7 @@ namespace RSTGameTranslation
             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
             _configFilePath = Path.Combine(appDirectory, "config.txt");
             _audioProcessingModelFolderPath = Path.Combine(appDirectory, "AudioModel");
+            _supertonicModelFolderPath = Path.Combine(appDirectory, "Supertonic");
             _profileFolderPath = Path.Combine(appDirectory, "Profiles");
             _geminiConfigFilePath = Path.Combine(appDirectory, "gemini_config.txt");
             _customApiConfigFilePath = Path.Combine(appDirectory, "custom_api_config.txt");
@@ -522,6 +528,10 @@ namespace RSTGameTranslation
             _configValues[GOOGLE_TTS_API_KEY] = "<your API key here>";
             _configValues[GOOGLE_TTS_VOICE] = "ja-JP-Neural2-B";
             _configValues[WINDOWS_TTS_VOICE] = "Microsoft David (en-US, Male)";
+            _configValues[SUPERTONIC_MODEL_DIR] = "Supertonic";
+            _configValues[SUPERTONIC_VOICE_STYLE] = "F2";
+            _configValues[SUPERTONIC_TOTAL_STEPS] = (5).ToString(CultureInfo.InvariantCulture);
+            _configValues[SUPERTONIC_SPEED] = (2f).ToString(CultureInfo.InvariantCulture);
             _configValues[TTS_ENABLED] = "false";
             _configValues[MAX_CONTEXT_PIECES] = (20).ToString(CultureInfo.InvariantCulture);
             _configValues[MIN_CONTEXT_SIZE] = (8).ToString(CultureInfo.InvariantCulture);
@@ -2555,6 +2565,74 @@ namespace RSTGameTranslation
                 SaveConfig();
                 Console.WriteLine($"Google TTS voice set to: {voiceId}");
             }
+        }
+
+        // Get/Set Supertonic model directory (relative to app base)
+        public string GetSupertonicModelDir()
+        {
+            return GetValue(SUPERTONIC_MODEL_DIR, "Supertonic");
+        }
+
+        public void SetSupertonicModelDir(string dir)
+        {
+            if (!string.IsNullOrWhiteSpace(dir))
+            {
+                _configValues[SUPERTONIC_MODEL_DIR] = dir;
+                SaveConfig();
+                Console.WriteLine($"Supertonic model dir set to: {dir}");
+            }
+        }
+
+        // Get/Set Supertonic voice style (e.g. M1, F1, M2, F2, ...)
+        public string GetSupertonicVoiceStyle()
+        {
+            return GetValue(SUPERTONIC_VOICE_STYLE, "M1");
+        }
+
+        public void SetSupertonicVoiceStyle(string style)
+        {
+            if (!string.IsNullOrWhiteSpace(style))
+            {
+                _configValues[SUPERTONIC_VOICE_STYLE] = style;
+                SaveConfig();
+                Console.WriteLine($"Supertonic voice style set to: {style}");
+            }
+        }
+
+        // Get/Set Supertonic total denoising steps (1..32, default 8)
+        public int GetSupertonicTotalSteps()
+        {
+            if (int.TryParse(GetValue(SUPERTONIC_TOTAL_STEPS, "8"), NumberStyles.Integer,
+                             CultureInfo.InvariantCulture, out int v))
+                return v;
+            return 8;
+        }
+
+        public void SetSupertonicTotalSteps(int steps)
+        {
+            if (steps < 1) steps = 1;
+            if (steps > 32) steps = 32;
+            _configValues[SUPERTONIC_TOTAL_STEPS] = steps.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+            Console.WriteLine($"Supertonic total steps set to: {steps}");
+        }
+
+        // Get/Set Supertonic speed factor (0.5..2.0, default 1.05)
+        public float GetSupertonicSpeed()
+        {
+            if (float.TryParse(GetValue(SUPERTONIC_SPEED, "1.05"), NumberStyles.Float,
+                               CultureInfo.InvariantCulture, out float v))
+                return v;
+            return 1.05f;
+        }
+
+        public void SetSupertonicSpeed(float speed)
+        {
+            if (speed < 0.5f) speed = 0.5f;
+            if (speed > 2.0f) speed = 2.0f;
+            _configValues[SUPERTONIC_SPEED] = speed.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+            Console.WriteLine($"Supertonic speed set to: {speed}");
         }
 
         // ChatGPT methods
