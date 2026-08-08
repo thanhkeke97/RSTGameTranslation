@@ -25,7 +25,6 @@ copy README.md tempbuild
 mkdir tempbuild\webserver
 mkdir tempbuild\AudioModel
 mkdir tempbuild\Supertonic
-mkdir tempbuild\Python311
 mkdir tempbuild\Languages
 copy app\OneOcr\* tempbuild
 :NOTE: OneOcr ships its own onnxruntime.dll (older build) for its own OCR
@@ -41,7 +40,6 @@ del /Q tempbuild\onnxruntime_providers_shared.lib 2>nul
 copy app\AudioModel\ggml-tiny.bin tempbuild\AudioModel
 copy app\webserver\*.bat tempbuild\webserver
 copy app\Languages\* tempbuild\Languages
-robocopy app\webserver\Python311 tempbuild\webserver\Python311 /E /NFL /NDL
 
 7-zip\7z.exe a -r -tzip %FNAME% tempbuild
 :Rename the root folder
