@@ -39,209 +39,10 @@ namespace RSTGameTranslation
         /// </summary>
         public async Task<bool> StartOcrServerAsync(string ocrMethod)
         {
-            try
-            {
-                // Stop the current OCR server if it's running
-                StopOcrServer();
-                serverStarted = false;
-                timeoutStartServer = false;
-
-                // Get the base directory of the application
-                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                string webserverPath = Path.Combine(baseDirectory, "webserver");
-
-                // Choose server script and virtual environment based on OCR method
-                string serverScriptName;
-                string venvFolderName;
-                string workingDirectory;
-                int targetPort;
-
-                if (ocrMethod == "EasyOCR")
-                {
-                    serverScriptName = "server_easy.py";
-                    venvFolderName = "ocrstuffeasyocr";
-                    workingDirectory = Path.Combine(webserverPath, "EasyOCR");
-                    targetPort = SocketManager.Instance.get_EasyOcrPort();
-                }
-                else if (ocrMethod == "PaddleOCR")
-                {
-                    serverScriptName = "server_paddle.py";
-                    venvFolderName = "ocrstuffpaddleocr";
-                    workingDirectory = Path.Combine(webserverPath, "PaddleOCR");
-                    targetPort = SocketManager.Instance.get_PaddleOcrPort();
-
-
-                }
-                else if (ocrMethod == "RapidOCR")
-                {
-                    serverScriptName = "server_rapid.py";
-                    venvFolderName = "ocrstuffrapidocr";
-                    workingDirectory = Path.Combine(webserverPath, "RapidOCR");
-                    targetPort = SocketManager.Instance.get_RapidOcrPort();
-
-
-                }
-                else
-                {
-                    Console.WriteLine($"OCR method not supported: {ocrMethod}");
-                    return false;
-                }
-
-                // Preflight check 1: working directory exists
-                if (!Directory.Exists(workingDirectory))
-                {
-                    Console.WriteLine($"Working directory not found: {workingDirectory}");
-                    return false;
-                }
-
-                // Preflight check 2: Python executable in venv exists
-                string pythonExecutablePath = Path.Combine(workingDirectory, venvFolderName, "Scripts", "python.exe");
-                if (!File.Exists(pythonExecutablePath))
-                {
-                    Console.WriteLine($"Python executable not found: {pythonExecutablePath}");
-                    return false;
-                }
-
-                // Preflight check 3: server script exists
-                string serverScriptPath = Path.Combine(workingDirectory, serverScriptName);
-                if (!File.Exists(serverScriptPath))
-                {
-                    Console.WriteLine($"Server script not found: {serverScriptPath}");
-                    return false;
-                }
-
-                // Preflight check 4: target port should be free before start
-                if (IsPortInUse(targetPort))
-                {
-                    Console.WriteLine($"Port {targetPort} is already in use. Cannot start {ocrMethod} server.");
-                    return false;
-                }
-
-                string startupLogPath = Path.Combine(workingDirectory, "server_startup.log");
-                var logWriter = new StreamWriter(new FileStream(startupLogPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-                {
-                    AutoFlush = true
-                };
-                object logLock = new object();
-                bool logDisposed = false;
-                void WriteStartupLog(string level, string message)
-                {
-                    string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{level}] {message}";
-                    lock (logLock)
-                    {
-                        if (logDisposed) return;
-                        try
-                        {
-                            logWriter.WriteLine(line);
-                        }
-                        catch (ObjectDisposedException) { }
-                    }
-                }
-                void DisposeLog()
-                {
-                    lock (logLock)
-                    {
-                        if (!logDisposed)
-                        {
-                            logDisposed = true;
-                            logWriter.Dispose();
-                        }
-                    }
-                }
-
-                WriteStartupLog("INFO", "====================================================");
-                WriteStartupLog("INFO", $"Starting OCR server: method={ocrMethod}, port={targetPort}");
-                WriteStartupLog("INFO", $"Python executable: {pythonExecutablePath}");
-                WriteStartupLog("INFO", $"Server script: {serverScriptPath}");
-
-                // Initialize process start info
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = pythonExecutablePath,
-                    Arguments = $"\"{serverScriptPath}\"",
-                    WorkingDirectory = workingDirectory,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-
-                // Starting process
-                _currentServerProcess = Process.Start(startInfo);
-                if (_currentServerProcess == null)
-                {
-                    WriteStartupLog("ERROR", $"Unable to start OCR server process for {ocrMethod}");
-                    DisposeLog();
-                    Console.WriteLine($"Unable to start OCR server process for {ocrMethod}");
-                    return false;
-                }
-
-                Process processRef = _currentServerProcess;
-
-                processRef.EnableRaisingEvents = true;
-                processRef.OutputDataReceived += (_, e) =>
-                {
-                    if (!string.IsNullOrWhiteSpace(e.Data))
-                    {
-                        WriteStartupLog("STDOUT", e.Data);
-                    }
-                };
-                processRef.ErrorDataReceived += (_, e) =>
-                {
-                    if (!string.IsNullOrWhiteSpace(e.Data))
-                    {
-                        WriteStartupLog("STDERR", e.Data);
-                    }
-                };
-                processRef.Exited += (_, _) =>
-                {
-                    WriteStartupLog("INFO", $"OCR process exited with code {processRef.ExitCode}");
-                    DisposeLog();
-                };
-
-                processRef.BeginOutputReadLine();
-                processRef.BeginErrorReadLine();
-
-                Console.WriteLine($"⏳ Waiting for {ocrMethod} server on port {targetPort}...");
-                for (int i = 0; i < 90; i++) // 1 minute 30 seconds
-                {
-                    if (_currentServerProcess.HasExited)
-                    {
-                        WriteStartupLog("ERROR", $"Server exited early with code {_currentServerProcess.ExitCode}");
-                        Console.WriteLine($"{ocrMethod} server process exited early with code {_currentServerProcess.ExitCode}");
-                        return false;
-                    }
-
-                    if (await IsPortOpenAsync("127.0.0.1", targetPort, 1000))
-                    {
-                        Console.WriteLine($"✅ {ocrMethod} READY!");
-                        serverStarted = true;
-                        break;
-                    }
-
-                    await Task.Delay(1000);
-                    Console.WriteLine($"Still waiting... {i + 1}s");
-                }
-
-                if (serverStarted == false)
-                {
-                    WriteStartupLog("ERROR", $"Cannot start {ocrMethod} OCR server (timeout)");
-                    Console.WriteLine($"Cannot start {ocrMethod} OCR server (timeout)");
-                    timeoutStartServer = true;
-                    return false;
-                }
-
-
-                WriteStartupLog("INFO", $"{ocrMethod} server has been started successfully");
-                Console.WriteLine($"{ocrMethod} server has been started");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error starting OCR server: {ex.Message}");
-                return false;
-            }
+            // Third-party Python OCR engines (EasyOCR, PaddleOCR, RapidOCR) have been removed.
+            // Only built-in OCR (OneOCR, Windows OCR) is supported, which doesn't need a server.
+            Console.WriteLine($"StartOcrServerAsync: '{ocrMethod}' is not a server-based OCR (built-in only).");
+            return false;
         }
 
         private static bool IsPortInUse(int port)
@@ -289,9 +90,7 @@ namespace RSTGameTranslation
             {
                 if (_currentServerProcess != null && !_currentServerProcess.HasExited)
                 {
-                    KillProcessesByPort(SocketManager.Instance.get_EasyOcrPort());
-                    KillProcessesByPort(SocketManager.Instance.get_PaddleOcrPort());
-                    KillProcessesByPort(SocketManager.Instance.get_RapidOcrPort());
+                    // KillProcessesByPort calls for EasyOCR/PaddleOCR/RapidOCR ports removed below
                     MainWindow.Instance.UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
                     // Get the process ID of the current server process
                     int processId = _currentServerProcess.Id;
@@ -446,79 +245,13 @@ namespace RSTGameTranslation
         /// <summary>
         /// Run bat file setup environment for OCR
         /// </summary>
-        /// <param name="ocrMethod">OCR method ("EasyOCR" or "PaddleOCR")</param>
+        /// <param name="ocrMethod">OCR method</param>
         public bool SetupOcrEnvironment(string ocrMethod)
         {
-            try
-            {
-                // Get the base directory of the application
-                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                string webserverPath = Path.Combine(baseDirectory, "webserver");
-
-                // Choose the appropriate batch file and working directory based on the OCR method
-                string setupBatchFileName;
-                string workingDirectory;
-
-                if (ocrMethod == "EasyOCR")
-                {
-                    setupBatchFileName = "SetupServerCondaEnvNVidiaEasyOCR.bat";
-                    workingDirectory = Path.Combine(webserverPath, "EasyOCR");
-                }
-                else if (ocrMethod == "PaddleOCR")
-                {
-                    setupBatchFileName = "SetupServerCondaEnvNVidiaPaddleOCR.bat";
-                    workingDirectory = Path.Combine(webserverPath, "PaddleOCR");
-                }
-                else if (ocrMethod == "RapidOCR")
-                {
-                    setupBatchFileName = "SetupServerCondaEnvNVidiaRapidOCR.bat";
-                    workingDirectory = Path.Combine(webserverPath, "RapidOCR");
-                }
-                else
-                {
-                    Console.WriteLine($"This OCR method is not supported: {ocrMethod}");
-                    return false;
-                }
-
-                // Check if batch file exists
-                string setupBatchFilePath = Path.Combine(workingDirectory, setupBatchFileName);
-                if (!File.Exists(setupBatchFilePath))
-                {
-                    Console.WriteLine($"File installation not found: {setupBatchFilePath}");
-                    return false;
-                }
-
-                // Initialize process start info
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {setupBatchFileName}",
-                    WorkingDirectory = workingDirectory,
-                    UseShellExecute = true,
-                    CreateNoWindow = false
-                };
-
-                // Start the process
-                using (Process? setupProcess = Process.Start(startInfo))
-                {
-                    if (setupProcess == null)
-                    {
-                        Console.WriteLine("Unable to start the OCR server installation process");
-                        return false;
-                    }
-
-                    // Wait for the process to finish
-                    setupProcess.WaitForExit();
-
-                    Console.WriteLine($"The {ocrMethod} server installation process has been completed");
-                    return setupProcess.ExitCode == 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error when installing OCR server: {ex.Message}");
-                return false;
-            }
+            // Third-party Python OCR engines (EasyOCR, PaddleOCR, RapidOCR) have been removed.
+            // Only built-in OCR (OneOCR, Windows OCR) is supported, which doesn't need setup.
+            Console.WriteLine($"SetupOcrEnvironment: '{ocrMethod}' is a built-in OCR, no setup required.");
+            return false;
         }
     }
 }

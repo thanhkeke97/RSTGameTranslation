@@ -447,9 +447,6 @@
   "Msg_ServerStartupTimeoutShort": "服务器启动超时 {0}。请检查环境是否已安装。",
   "Status_CannotConnectToServer": "无法连接到服务器 {0}。",
   "Status_UsingBuiltInOcr": "正在使用 {0}（内置）",
-  "Status_PleaseStartEasyOCR": "请启动 EasyOCR 服务器",
-  "Status_PleaseStartRapidOCR": "请启动 RapidOCR 服务器",
-  "Status_PleaseStartPaddleOCR": "请启动 PaddleOCR 服务器",
   "Status_PleaseClickStartServer": "请点击 StartOCR 按钮重新连接服务器",
   "App_Version": "版本",
   "Chk_AutoMapLanguageCodes": "自动映射语言代码",
@@ -572,6 +569,7 @@
 
   "Quickstart_OCR_Title": "OCR 方法",
   "Quickstart_OCR_Desc": "选择 OCR（光学字符识别）方法来识别游戏中的文本。",
+  "Quickstart_OCR_Desc2": "OneOCR 和 Windows OCR 均为内置，无需额外设置。只需选择其中一个即可开始使用。",
   "Quickstart_OCR_Method": "OCR 方法：",
   "Quickstart_OCR_Setup": "设置 OCR 服务器",
   "Quickstart_OCR_Comparison": "OCR 方法比较：",
@@ -585,21 +583,6 @@
   "Quickstart_OCR_OneOCR_Pros": "优点：内置，无需额外设置，对大多数语言效果很好",
   "Quickstart_OCR_OneOCR_Cons": "缺点：对于某些亚洲语言可能不够准确。",
   "Quickstart_OCR_OneOCR_Rec": "推荐：初学者或没有专用 GPU 的最佳选择",
-
-  "Quickstart_OCR_RapidOCR_Title": "RapidOCR",
-  "Quickstart_OCR_RapidOCR_Pros": "优点：对中文、日语和英语有良好的准确度。支持所有 GPU，包括 iGPU",
-  "Quickstart_OCR_RapidOCR_Cons": "缺点：需要额外设置，更资源密集。消耗 GPU 资源（5-10%）",
-  "Quickstart_OCR_RapidOCR_Rec": "推荐：AMD、INTEL 或 NVIDIA",
-
-  "Quickstart_OCR_EasyOCR_Title": "EasyOCR",
-  "Quickstart_OCR_EasyOCR_Pros": "优点：对多种语言有良好的准确度，支持 GPU 加速",
-  "Quickstart_OCR_EasyOCR_Cons": "缺点：需要额外设置。消耗大量 GPU 资源（20-30%）",
-  "Quickstart_OCR_EasyOCR_Rec": "推荐：NVIDIA RTX 4000 系列及以下",
-
-  "Quickstart_OCR_PaddleOCR_Title": "PaddleOCR",
-  "Quickstart_OCR_PaddleOCR_Pros": "优点：对多种语言有高准确度",
-  "Quickstart_OCR_PaddleOCR_Cons": "缺点：需要额外设置，更资源密集。消耗 GPU 资源（5-15%）",
-  "Quickstart_OCR_PaddleOCR_Rec": "推荐：NVIDIA RTX 2000 系列及以上",
 
   "Quickstart_Translation_Title": "翻译服务",
   "Quickstart_Translation_Desc": "选择翻译服务来翻译识别的文本。",

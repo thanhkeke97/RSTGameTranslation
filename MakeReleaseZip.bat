@@ -25,17 +25,8 @@ copy README.md tempbuild
 mkdir tempbuild\webserver
 mkdir tempbuild\AudioModel
 mkdir tempbuild\Supertonic
-mkdir tempbuild\webserver\EasyOCR
-mkdir tempbuild\webserver\PaddleOCR
-mkdir tempbuild\webserver\RapidOCR
-mkdir tempbuild\webserver\Python311
+mkdir tempbuild\Python311
 mkdir tempbuild\Languages
-copy app\webserver\EasyOCR\*.py tempbuild\webserver\EasyOCR
-copy app\webserver\EasyOCR\*.bat tempbuild\webserver\EasyOCR
-copy app\webserver\PaddleOCR\*.bat tempbuild\webserver\PaddleOCR
-copy app\webserver\PaddleOCR\*.py tempbuild\webserver\PaddleOCR
-copy app\webserver\RapidOCR\*.bat tempbuild\webserver\RapidOCR
-copy app\webserver\RapidOCR\*.py tempbuild\webserver\RapidOCR
 copy app\OneOcr\* tempbuild
 :NOTE: OneOcr ships its own onnxruntime.dll (older build) for its own OCR
 :engine. If we let it overwrite the NuGet-published Microsoft.ML.OnnxRuntime

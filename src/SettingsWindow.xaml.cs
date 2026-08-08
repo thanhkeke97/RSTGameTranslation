@@ -5331,21 +5331,9 @@ namespace RSTGameTranslation
             }
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string webserverPath = Path.Combine(baseDirectory, "webserver");
-            string ocrDataPath = Path.Combine(webserverPath, currentOcrEngine);
-            // mapping OCR method to folder path name
+            // Third-party Python OCR engines (EasyOCR, PaddleOCR, RapidOCR) have been removed.
+            // Only built-in OCR (OneOCR, Windows OCR) is supported, which has no removable data.
             string fullOcrPath = "";
-            if (currentOcrEngine == "PaddleOCR")
-            {
-                fullOcrPath = Path.Combine(ocrDataPath, "ocrstuffpaddleocr");
-            }
-            else if (currentOcrEngine == "EasyOCR")
-            {
-                fullOcrPath = Path.Combine(ocrDataPath, "ocrstuffeasyocr");
-            }
-            else if (currentOcrEngine == "RapidOCR")
-            {
-                fullOcrPath = Path.Combine(ocrDataPath, "ocrstuffrapidocr");
-            }
             Console.WriteLine("Removing OCR data at: " + fullOcrPath);
             if (Directory.Exists(fullOcrPath))
             {

@@ -222,55 +222,19 @@ namespace RSTGameTranslation
             Logic.Instance.ClearAllTextObjects();
             
             // Update the UI and connection state based on the selected OCR method
-            if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
-            {
-                // Using Windows OCR, no need for socket connection
-                _ = Task.Run(() => 
-                {
-                    try
-                    {
-                       SocketManager.Instance.Disconnect();
-                        UpdateStatus("Using Windows OCR (built-in)");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error disconnecting socket: {ex.Message}");
-                    }
-                });
-            }
-            else
+            // Only built-in OCR (OneOCR, Windows OCR) is supported now - no socket connection needed
+            _ = Task.Run(() =>
             {
                 try
-                    {
-                       SocketManager.Instance.Disconnect();
-                        UpdateStatus($"Using {ocrMethod}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error disconnecting socket: {ex.Message}");
-                    }
-                // Using EasyOCR or PaddleOCR, check connection status first
-                _ = Task.Run(async () => 
                 {
-                   
-                        Console.WriteLine("Switching to new OCR, checking socket connection...");
-
-                        // If already connected, we're good to go
-                        if (SocketManager.Instance.IsConnected)
-                        {
-                            Console.WriteLine("Already connected to socket server");
-                            UpdateStatus("Connected to Python backend");
-                            return;
-                        }
-
-                        // Not connected yet, attempt to connect silently first
-                        UpdateStatus("Connecting to Python backend...");
-
-                        // Connect without disconnecting first (TryReconnectAsync handles cleanup)
-                        bool reconnected = await SocketManager.Instance.TryReconnectAsync();
-                   
-                });
-            }
+                    SocketManager.Instance.Disconnect();
+                    UpdateStatus($"Using {ocrMethod} (built-in)");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error disconnecting socket: {ex.Message}");
+                }
+            });
             
             // Sync the OCR method selection with MainWindow
             if (MainWindow.Instance != null)

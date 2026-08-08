@@ -18,7 +18,7 @@
 
 ## ✨ Tính năng
 
-- **Dịch thời gian thực** với nhiều tùy chọn OCR (OneOCR, Windows OCR, PaddleOCR, EasyOCR, RapidOCR)
+- **Dịch thời gian thực** với nhiều tùy chọn OCR (OneOCR, Windows OCR)
 - **Dịch thuật bằng AI** với Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
 - **Nhận dạng thông minh** với nhận biết ngữ cảnh game và phát hiện tên nhân vật
 - **Hiển thị linh hoạt** với overlay và cửa sổ chat
@@ -84,7 +84,6 @@ RST hỗ trợ 4 backend TTS. Chọn backend phù hợp với nhu cầu:
 #### 🔴 Thiết lập nâng cao (Cần cài đặt thêm)
 1. **Tùy chọn OCR**: (Chỉ cài đặt ở lần đầu tiên OCR được chọn trên thiết bị, không cần cài đặt lại)
    - Tích hợp sẵn: OneOCR, Windows OCR (không cần thiết lập)
-   - Bên thứ 3: Nhấn **SetupOCR** cho PaddleOCR, RapidOCR, EasyOCR (đợi 5-15 phút)
 
 2. **Dịch vụ dịch thuật**:
    - Không cần API: Google Translate
@@ -117,7 +116,7 @@ RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi đ
 - **Dịch thuật**: Google Translate (không cần khóa API)
 
 ### Cho chất lượng tốt nhất
-- **OCR**: PaddleOCR (tiếng Á Đông) hoặc RapidOCR (tiếng phương Tây) hoặc EasyOCR
+- **OCR**: OneOCR (khuyến nghị) hoặc Windows OCR
 - **Dịch thuật**: Gemini Flash lite 2.5 (Cần khóa API)
 - **Phần cứng**: Khuyến nghị GPU NVIDIA
 

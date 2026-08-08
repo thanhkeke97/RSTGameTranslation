@@ -441,9 +441,6 @@
   "Msg_ServerStartupTimeoutShort": "サーバー起動タイムアウト {0}。環境がインストールされているか確認してください。",
   "Status_CannotConnectToServer": "サーバー {0} に接続できません。",
   "Status_UsingBuiltInOcr": "{0} (内蔵) を使用中",
-  "Status_PleaseStartEasyOCR": "EasyOCRサーバーを起動してください",
-  "Status_PleaseStartRapidOCR": "RapidOCRサーバーを起動してください",
-  "Status_PleaseStartPaddleOCR": "PaddleOCRサーバーを起動してください",
   "Status_PleaseClickStartServer": "StartOCRボタンをクリックしてサーバーに再接続してください",
   "App_Version": "バージョン",
   "Chk_AutoMapLanguageCodes": "言語コードを自動マップする",
@@ -575,6 +572,7 @@
 
   "Quickstart_OCR_Title": "OCR方法",
   "Quickstart_OCR_Desc": "ゲーム内のテキストを認識するためのOCR（光学文字認識）方法を選択してください。",
+  "Quickstart_OCR_Desc2": "OneOCRとWindows OCRはどちらも組み込みで、追加の設定は不要です。どちらかを選ぶだけで準備完了です。",
   "Quickstart_OCR_Method": "OCR方法：",
   "Quickstart_OCR_Setup": "OCRサーバーをセットアップ",
   "Quickstart_OCR_Comparison": "OCR方法比較：",
@@ -588,21 +586,6 @@
   "Quickstart_OCR_OneOCR_Pros": "長所：組み込み、追加設定不要、ほとんどの言語で很好地動作",
   "Quickstart_OCR_OneOCR_Cons": "短所：一部のアジア言語では精度が低い場合があります。",
   "Quickstart_OCR_OneOCR_Rec": "推奨：初心者専用GPUをお持ちでない方への最佳選択",
-
-  "Quickstart_OCR_RapidOCR_Title": "RapidOCR",
-  "Quickstart_OCR_RapidOCR_Pros": "長所：中国語、日本語、英語で很好地精度。iGPUを含むすべてのGPUをサポート",
-  "Quickstart_OCR_RapidOCR_Cons": "短所：追加設定が必要、よりリソースを消費。GPUリソースを消費（5-10%）",
-  "Quickstart_OCR_RapidOCR_Rec": "推奨：AMD、INTEL、またはNVIDIA",
-
-  "Quickstart_OCR_EasyOCR_Title": "EasyOCR",
-  "Quickstart_OCR_EasyOCR_Pros": "長所：多くの言語で很好地精度、GPUアクセラレーションをサポート",
-  "Quickstart_OCR_EasyOCR_Cons": "短所：追加設定が必要。多くのGPUリソースを消費（20-30%）",
-  "Quickstart_OCR_EasyOCR_Rec": "推奨：NVIDIA RTX 4000シリーズ以下",
-
-  "Quickstart_OCR_PaddleOCR_Title": "PaddleOCR",
-  "Quickstart_OCR_PaddleOCR_Pros": "長所：多くの言語で高い精度",
-  "Quickstart_OCR_PaddleOCR_Cons": "短所：追加設定が必要。多くのGPUリソースを消費（5-15%）",
-  "Quickstart_OCR_PaddleOCR_Rec": "推奨：NVIDIA RTX 2000シリーズ以上",
 
   "Quickstart_Translation_Title": "翻訳サービス",
   "Quickstart_Translation_Desc": "認識されたテキストを翻訳する翻訳サービスを選択してください。",

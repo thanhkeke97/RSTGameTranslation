@@ -6,7 +6,7 @@ Purpose: help an AI coding agent become productive quickly in this repository by
 - Windows WPF application (UI in XAML) that performs real-time OCR, translation and optional audio STT.
 - Core pieces:
   - UI & settings: main WPF app (open solution `RST.sln`).
-  - OCR pipeline: selectable OCR backends (OneOCR, PaddleOCR, EasyOCR, RapidOCR). See `app/` and README for setup details.
+  - OCR pipeline: selectable OCR backends (OneOCR, Windows OCR). See `app/` and README for setup details.
   - Translation/backends: many adapters (Gemini, Groq, ChatGPT, Google Translate, Ollama, LM Studio). Config via files under `app/` and `config.txt`.
   - Audio STT: implemented in `src/localWhisperService.cs` — uses NAudio (WasapiLoopbackCapture) + Whisper.Net.
   - Core orchestration: singletons like `Logic.Instance` and `ConfigManager.Instance` coordinate capture → processing → UI.

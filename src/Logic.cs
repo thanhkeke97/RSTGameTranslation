@@ -141,18 +141,12 @@ namespace RSTGameTranslation
                 // Load force cursor visible setting
                 // Force cursor visibility is now handled by MouseManager
 
-                // Only connect to socket server if using EasyOCR or PaddleOCR or RapidOCR
-                if (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR" || MainWindow.Instance.GetSelectedOcrMethod() == "RapidOCR")
-                {
-                    await ConnectToSocketServerAsync();
-                }
-                else
-                {
-                    Console.WriteLine($"Using {MainWindow.Instance.GetSelectedOcrMethod()} - socket connection not needed");
+                // Only connect to socket server if using a server-based OCR (third-party engines removed)
+                // Built-in OCR (OneOCR, Windows OCR) doesn't need a socket connection
+                Console.WriteLine($"Using {MainWindow.Instance.GetSelectedOcrMethod()} (built-in) - socket connection not needed");
 
-                    // Update status message in the UI
-                    MainWindow.Instance.SetStatus($"Using {MainWindow.Instance.GetSelectedOcrMethod()} (built-in)");
-                }
+                // Update status message in the UI
+                MainWindow.Instance.SetStatus($"Using {MainWindow.Instance.GetSelectedOcrMethod()} (built-in)");
             }
             catch (Exception ex)
             {
@@ -184,8 +178,6 @@ namespace RSTGameTranslation
                 if (!SocketManager.Instance.IsConnected)
                 {
                     Console.WriteLine("Connection failed, starting reconnect timer");
-                    _reconnectAttempts = 0;
-                    _hasShownConnectionErrorMessage = false;
                     _reconnectTimer.Start();
                 }
                 else
@@ -198,65 +190,17 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Socket connection error: {ex.Message}");
 
                 // Start the reconnect timer
-                _reconnectAttempts = 0;
-                _hasShownConnectionErrorMessage = false;
                 _reconnectTimer.Start();
             }
         }
 
-        // Track reconnection attempts
-        private int _reconnectAttempts = 0;
-        private bool _hasShownConnectionErrorMessage = false;
-
         // Reconnect timer tick event
         private async void ReconnectTimer_Tick(object? sender, EventArgs e)
         {
-            // Only try to reconnect if we're using EasyOCR or PaddleOCR or RapidOCR
-            if (MainWindow.Instance.GetSelectedOcrMethod() != "EasyOCR" || MainWindow.Instance.GetSelectedOcrMethod() != "PaddleOCR" || MainWindow.Instance.GetSelectedOcrMethod() != "RapidOCR")
-            {
-                _reconnectTimer.Stop();
-                _reconnectAttempts = 0;
-                _hasShownConnectionErrorMessage = false;
-                return;
-            }
-
-            if (!SocketManager.Instance.IsConnected)
-            {
-                _reconnectAttempts++;
-                await SocketManager.Instance.TryReconnectAsync();
-
-                // Stop the timer if connected
-                if (SocketManager.Instance.IsConnected)
-                {
-                    _reconnectTimer.Stop();
-                    _reconnectAttempts = 0;
-                    _hasShownConnectionErrorMessage = false;
-                }
-                // Show error message after several failed attempts (approximately 15 seconds)
-                else if (_reconnectAttempts >= 1 && !_hasShownConnectionErrorMessage)
-                {
-                    _hasShownConnectionErrorMessage = true;
-                    string serverUrl = $"localhost:{SocketManager.Instance.GetPort()}";
-
-                    string message = string.Format(
-                        LocalizationManager.Instance.Strings["Msg_ServerConnectionError"],
-                        serverUrl
-                    );
-
-                    MessageBox.Show(
-                        message,
-                        LocalizationManager.Instance.Strings["Title_ServerConnectionError"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                }
-            }
-            else
-            {
-                // Stop the timer if already connected
-                _reconnectTimer.Stop();
-                _reconnectAttempts = 0;
-                _hasShownConnectionErrorMessage = false;
-            }
+            // Third-party Python OCR engines removed; no socket reconnection needed.
+            // Keep the timer stopped for built-in OCR (OneOCR, Windows OCR).
+            _reconnectTimer.Stop();
+            await Task.CompletedTask;
         }
 
         // Socket data received event handler
@@ -271,20 +215,15 @@ namespace RSTGameTranslation
         // Socket connection changed event handler
         private void OnSocketConnectionChanged(object? sender, bool isConnected)
         {
-            // If not connected and we're using EasyOCR or PaddleOCR, start the reconnect timer
-            if (!isConnected && (MainWindow.Instance.GetSelectedOcrMethod() == "EasyOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "PaddleOCR" || !isConnected && MainWindow.Instance.GetSelectedOcrMethod() == "RapidOCR"))
+            // Third-party Python OCR engines removed; socket connection events are no longer relevant.
+            // Built-in OCR (OneOCR, Windows OCR) doesn't use socket connections.
+            if (!isConnected)
             {
-                Console.WriteLine("Connection status changed to disconnected. Starting reconnect timer.");
                 SocketManager.Instance._isConnected = false;
-
-                _reconnectTimer.Start();
             }
-            else if (isConnected)
+            else
             {
-                Console.WriteLine("Connection status changed to connected. Stopping reconnect timer.");
                 _reconnectTimer.Stop();
-                _reconnectAttempts = 0;
-                _hasShownConnectionErrorMessage = false;
             }
         }
 
@@ -2103,74 +2042,11 @@ namespace RSTGameTranslation
 
             try
             {
-                // Check if we're using Windows OCR or EasyOCR or PaddleOCR
+                // Only built-in OCR (OneOCR, Windows OCR) is supported now.
+                // Third-party Python OCR engines (EasyOCR, PaddleOCR, RapidOCR) have been removed.
                 string ocrMethod = MainWindow.Instance.GetSelectedOcrMethod();
-
-                if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
-                {
-                    // Windows OCR doesn't require socket connection
-                    Console.WriteLine($"Using {ocrMethod} (built-in)");
-                    // ProcessScreenshot will handle the Windows OCR logic
-                }
-                else
-                {
-                    if (SocketManager.Instance.IsWaitingForSomething())
-                    {
-                        Console.WriteLine("Waiting for socket to connect to backend...");
-                        MainWindow.Instance.SetOCRCheckIsWanted(true);
-                        return;
-                    }
-
-                    // Get the source language from MainWindow
-                    string sourceLanguage = GetSourceLanguage()!;
-
-                    Console.WriteLine($"Processing screenshot with {ocrMethod} character-level OCR, language: {sourceLanguage}");
-
-                    // Check socket connection for EasyOCR or PaddleOCR
-                    if (!SocketManager.Instance.IsConnected)
-                    {
-                        Console.WriteLine("Socket not connected, attempting to reconnect...");
-
-                        // Try to reconnect
-                        bool reconnected = await SocketManager.Instance.TryReconnectAsync();
-
-                        // Wait 300 ms
-                        await Task.Delay(300);
-
-                        // Check if reconnection succeeded
-                        if (!reconnected || !SocketManager.Instance.IsConnected)
-                        {
-                            Console.WriteLine($"Reconnection failed, cannot perform OCR with {ocrMethod}");
-
-                            // Make sure the reconnect timer is running to keep trying
-                            if (!_reconnectTimer.IsEnabled)
-                            {
-                                Console.WriteLine("Starting reconnect timer after failed immediate reconnection");
-                                _reconnectAttempts = 0;
-                                _hasShownConnectionErrorMessage = false;
-                                _reconnectTimer.Start();
-                            }
-
-                            MainWindow.Instance.SetOCRCheckIsWanted(true);
-                            return;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Successfully reconnected to socket server");
-                        }
-                    }
-                    if (DateTime.Now - _lastOcrRequestTime < _minOcrInterval)
-                    {
-                        Console.WriteLine($"Throttling OCR request, too soon after last request");
-                        MainWindow.Instance.SetOCRCheckIsWanted(true);
-                        return;
-                    }
-
-                    _lastOcrRequestTime = DateTime.Now;
-                    bool charLevel = ConfigManager.Instance.IsCharLevelEnabled();
-                    // If we got here, socket is connected - explicitly request character-level OCR
-                    await SocketManager.Instance.SendDataAsync($"read_image|{sourceLanguage}|{ocrMethod}|{charLevel}|{ConfigManager.Instance.IsHDRSupportEnabled()}");
-                }
+                Console.WriteLine($"Using {ocrMethod} (built-in)");
+                // ProcessScreenshot will handle the built-in OCR logic
             }
             catch (Exception ex)
             {

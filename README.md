@@ -18,7 +18,7 @@
 
 ## ✨ Features
 
-- **Real-time Translation** with multiple OCR options (OneOCR, Windows OCR, PaddleOCR, EasyOCR, RapidOCR)
+- **Real-time Translation** with multiple OCR options (OneOCR, Windows OCR)
 - **AI-Powered Translation** with Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
 - **Smart Recognition** with game context awareness and character name detection
 - **Flexible Display** options with overlay and chat window
@@ -84,7 +84,6 @@ RST supports four TTS backends. Pick the one that fits your needs:
 #### 🔴 Advanced Setup (Need Installation)
 1. **OCR Options**: (Setup is only needed the first time the new OCR is chosen, no need to reinstall.)
    - Built-in: OneOCR, Windows OCR (no setup needed)
-   - External: Click **SetupOCR** for PaddleOCR, RapidOCR, EasyOCR (5-15 min wait)
    
 2. **Translation Services**:
    - No API needed: Google Translate
@@ -117,7 +116,7 @@ RSTGameTranslation will automatically check for updates when you start it. If th
 - **Translation**: Google Translate (no API key needed)
 
 ### For Best Quality
-- **OCR**: PaddleOCR (Asian) or RapidOCR (Western) or EasyOCR
+- **OCR**: OneOCR (recommended) or Windows OCR
 - **Translation**: Gemini Flash lite 2.5 (Need API key)
 - **Hardware**: NVIDIA GPU recommended
 

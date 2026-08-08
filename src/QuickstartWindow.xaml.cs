@@ -225,34 +225,22 @@ namespace RSTGameTranslation
             // Load OCR method from config
             string ocrMethod = configManager.GetOcrMethod();
 
-            // Populate OCR method dropdown
+            // Populate OCR method dropdown (third-party OCR engines removed)
             OcrMethodComboBox.Items.Clear();
             OcrMethodComboBox.Items.Add("Windows OCR");
-            OcrMethodComboBox.Items.Add("EasyOCR");
-            OcrMethodComboBox.Items.Add("PaddleOCR");
-            OcrMethodComboBox.Items.Add("RapidOCR");
             OcrMethodComboBox.Items.Add("OneOCR");
 
-            // Set current selection
+            // Set current selection (default to OneOCR)
             switch (ocrMethod.ToLower())
             {
                 case "windows ocr":
                     OcrMethodComboBox.SelectedItem = "Windows OCR";
                     break;
-                case "easyocr":
-                    OcrMethodComboBox.SelectedItem = "EasyOCR";
-                    break;
                 case "oneocr":
                     OcrMethodComboBox.SelectedItem = "OneOCR";
                     break;
-                case "paddleocr":
-                    OcrMethodComboBox.SelectedItem = "PaddleOCR";
-                    break;
-                case "rapidocr":
-                    OcrMethodComboBox.SelectedItem = "RapidOCR";
-                    break;
                 default:
-                    OcrMethodComboBox.SelectedItem = "Windows OCR";
+                    OcrMethodComboBox.SelectedItem = "OneOCR";
                     break;
             }
             LoadedOcrSettings = true;
@@ -262,17 +250,8 @@ namespace RSTGameTranslation
         {
             if (OcrMethodComboBox.SelectedItem != null)
             {
-                string? selectedOcrMethod = OcrMethodComboBox.SelectedItem.ToString();
-
-                // Show or hide setup button based on selected OCR method
-                if (selectedOcrMethod == "EasyOCR" || selectedOcrMethod == "PaddleOCR" || selectedOcrMethod == "RapidOCR")
-                {
-                    setupOCR.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    setupOCR.Visibility = Visibility.Collapsed;
-                }
+                // Only built-in OCR (OneOCR, Windows OCR) is supported now - no setup needed
+                setupOCR.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -758,26 +737,17 @@ namespace RSTGameTranslation
             string targetFormatted = char.ToUpper(targetLanguage[0]) + targetLanguage.Substring(1);
             LanguagesSummaryText.Text = $"{sourceFormatted} → {targetFormatted}";
 
-            // Format OCR method display
+            // Format OCR method display (third-party OCR engines removed)
             switch (ocrMethod.ToLower())
             {
                 case "windowsocr":
                     OcrMethodSummaryText.Text = "Windows OCR";
                     break;
-                case "easyocr":
-                    OcrMethodSummaryText.Text = "EasyOCR";
-                    break;
-                case "paddleocr":
-                    OcrMethodSummaryText.Text = "PaddleOCR";
-                    break;
                 case "oneocr":
                     OcrMethodSummaryText.Text = "OneOCR";
                     break;
-                case "rapidocr":
-                    OcrMethodSummaryText.Text = "RapidOCR";
-                    break;
                 default:
-                    OcrMethodSummaryText.Text = "Windows OCR";
+                    OcrMethodSummaryText.Text = "OneOCR";
                     break;
             }
 

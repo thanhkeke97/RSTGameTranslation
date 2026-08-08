@@ -282,11 +282,7 @@ namespace RSTGameTranslation
                 }
 
                 double scaleFactor = 1.0;
-                string methodOcr = ConfigManager.Instance.GetOcrMethod();
-                if (methodOcr == "PaddleOCR")
-                {
-                    scaleFactor = 1;
-                }
+                // Third-party OCR engines removed; scaleFactor stays 1.0 for built-in OCR (OneOCR, Windows OCR)
                 
                 // Get Min/Max from Config
                 double minSize = ConfigManager.Instance.GetLanguageFontSizeMin() * scaleFactor;

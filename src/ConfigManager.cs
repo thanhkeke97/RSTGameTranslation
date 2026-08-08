@@ -1344,13 +1344,15 @@ namespace RSTGameTranslation
         // Get current OCR method
         public string GetOcrMethod()
         {
-            // Console.WriteLine("Checking contents of _configValues in GetOcrMethod:");
-            // foreach (var key in _configValues.Keys)
-            // {
-            //     Console.WriteLine($"  Config key: '{key}'");
-            // }
-
-            string ocrMethod = GetValue(OCR_METHOD, "Windows OCR"); // Default to Windows OCR if not set
+            string ocrMethod = GetValue(OCR_METHOD, "OneOCR"); // Default to OneOCR if not set
+            // Migrate legacy third-party OCR engines (removed) to OneOCR
+            if (ocrMethod == "EasyOCR" || ocrMethod == "PaddleOCR" || ocrMethod == "RapidOCR")
+            {
+                Console.WriteLine($"ConfigManager.GetOcrMethod() migrating legacy '{ocrMethod}' to 'OneOCR'");
+                _configValues[OCR_METHOD] = "OneOCR";
+                SaveConfig();
+                ocrMethod = "OneOCR";
+            }
             Console.WriteLine($"ConfigManager.GetOcrMethod() returning: '{ocrMethod}'");
             return ocrMethod;
         }
@@ -1359,7 +1361,7 @@ namespace RSTGameTranslation
         public void SetOcrMethod(string method)
         {
             Console.WriteLine($"ConfigManager.SetOcrMethod called with method: {method}");
-            if (method == "Windows OCR" || method == "EasyOCR" || method == "PaddleOCR" || method == "RapidOCR" || method == "OneOCR")
+            if (method == "Windows OCR" || method == "OneOCR")
             {
                 _configValues[OCR_METHOD] = method;
                 SaveConfig();
@@ -1367,7 +1369,10 @@ namespace RSTGameTranslation
             }
             else
             {
-                Console.WriteLine($"WARNING: Invalid OCR method: {method}. Must be 'Windows OCR' or 'EasyOCR' or 'PaddleOCR' or 'RapidOCR' or 'OneOCR'");
+                // Migrate legacy third-party OCR (EasyOCR, PaddleOCR, RapidOCR) to OneOCR
+                Console.WriteLine($"WARNING: OCR method '{method}' is no longer supported. Falling back to OneOCR.");
+                _configValues[OCR_METHOD] = "OneOCR";
+                SaveConfig();
             }
         }
 

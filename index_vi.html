@@ -16,7 +16,7 @@
     <meta name="description"
         content="RSTGameTranslation là công cụ dịch màn hình game thời gian thực sử dụng AI tiên tiến, hỗ trợ nhiều ngôn ngữ, chạy được cả offline và online với Gemini, ChatGPT, Ollama, LM Studio." />
     <meta name="keywords"
-        content="dịch game, dịch màn hình thời gian thực, RSTGameTranslation, OCR game, AI dịch game, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama, LM Studio" />
+        content="dịch game, dịch màn hình thời gian thực, RSTGameTranslation, OCR game, AI dịch game, OneOCR, Windows OCR, Gemini, ChatGPT, Ollama, LM Studio" />
     <meta name="author" content="thanhkeke97 (Thành Phạm)" />
     <link rel="canonical" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
 
@@ -519,7 +519,7 @@
             <div class="feature-grid">
                 <div class="feature-card">
                     <h3>🔥 Dịch thời gian thực</h3>
-                    <p>Sử dụng EasyOCR, RapidOCR, PaddleOCR, OneOCR hoặc Windows OCR chạy cục bộ để dịch tự động theo
+                    <p>Sử dụng OneOCR hoặc Windows OCR chạy cục bộ để dịch tự động theo
                         thời gian thực. Hỗ trợ cửa sổ chat cho visual novel và dịch toàn màn hình.</p>
                 </div>
                 <div class="feature-card">
@@ -552,7 +552,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>⚡ Nhiều tùy chọn OCR</h3>
-                    <p>Lựa chọn từ 5 engine OCR: Windows OCR (tích hợp sẵn), OneOCR, RapidOCR, EasyOCR hoặc PaddleOCR
+                    <p>Lựa chọn từ 2 engine OCR tích hợp sẵn: OneOCR (khuyến nghị) hoặc Windows OCR
                         tùy theo phần cứng của bạn.</p>
                 </div>
             </div>
@@ -564,11 +564,9 @@
                 <ul>
                     <li><strong>Yêu cầu hệ thống:</strong> Windows 10 trở lên. Game cần để ở chế độ cửa sổ, fullscreen
                         borderless hoặc windowed borderless.</li>
-                    <li><strong>Phần cứng khuyến nghị:</strong> GPU NVIDIA để có hiệu suất tốt nhất với EasyOCR/PaddleOCR.</li>
-                    <li><strong>Hiệu suất CPU:</strong> Nếu không có GPU NVIDIA, bạn sẽ mất 30-50% công suất CPU (nếu
-                        chọn EasyOCR hoặc PaddleOCR).</li>
-                    <li><strong>Lựa chọn OCR:</strong> RapidOCR, OneOCR, WindowsOCR (khuyến nghị cho VGA AMD và Intel),
-                        RapidOCR, EasyOCR và PaddleOCR cho NVIDIA</li>
+                    <li><strong>Phần cứng khuyến nghị:</strong> Hoạt động trên mọi GPU (AMD, Intel, NVIDIA) hoặc chỉ CPU.</li>
+                    <li><strong>Hiệu suất CPU:</strong> OneOCR dùng ~10% CPU, Windows OCR dùng ~2% CPU.</li>
+                    <li><strong>Lựa chọn OCR:</strong> OneOCR (khuyến nghị, hỗ trợ manga) hoặc Windows OCR (nhẹ nhất, cho VGA AMD/Intel)</li>
                     <li><strong>Vùng dịch:</strong> Khu vực dịch càng nhỏ, tốc độ dịch càng nhanh.</li>
                     <li><strong>Khóa API:</strong> Một số dịch vụ dịch thuật yêu cầu khóa API. Google Translate hoạt động
                         không cần khóa, nhưng các dịch vụ AI cần khóa.</li>
@@ -638,8 +636,7 @@
                 <ol>
                     <li><strong>Chụp màn hình:</strong> Ứng dụng chụp vùng màn hình game đã chọn theo chu kỳ hoặc khi text
                         thay đổi.</li>
-                    <li><strong>Nhận dạng OCR:</strong> Engine OCR được chọn (Windows OCR, OneOCR, RapidOCR, EasyOCR, hoặc
-                        PaddleOCR) trích xuất text từ hình ảnh chụp.</li>
+                    <li><strong>Nhận dạng OCR:</strong> Engine OCR được chọn (OneOCR hoặc Windows OCR) trích xuất text từ hình ảnh chụp.</li>
                     <li><strong>Xử lý text:</strong> Text được trích xuất được lọc, loại bỏ trùng lặp và phân tích ngữ
                         cảnh.</li>
                     <li><strong>Dịch AI:</strong> Text được gửi đến dịch vụ dịch thuật được chọn (Gemini, ChatGPT, Google
@@ -682,33 +679,6 @@
                         <p><strong>Độ chính xác:</strong> Cao</p>
                         <p><strong>Cài đặt:</strong> Không cần</p>
                         <p><strong>Phù hợp với:</strong> Mọi người dùng, hỗ trợ manga</p>
-                    </div>
-                    <div class="ocr-card">
-                        <span class="ocr-badge badge-external">Bên ngoài</span>
-                        <span class="ocr-badge badge-fast">Nhanh</span>
-                        <h4>RapidOCR</h4>
-                        <p><strong>Tài nguyên:</strong> ~10% GPU</p>
-                        <p><strong>Độ chính xác:</strong> Rất cao</p>
-                        <p><strong>Cài đặt:</strong> 5-15 phút</p>
-                        <p><strong>Phù hợp với:</strong> VGA NVIDIA, ngôn ngữ phương Tây</p>
-                    </div>
-                    <div class="ocr-card">
-                        <span class="ocr-badge badge-external">Bên ngoài</span>
-                        <span class="ocr-badge badge-medium">Trung bình</span>
-                        <h4>EasyOCR</h4>
-                        <p><strong>Tài nguyên:</strong> ~20% GPU</p>
-                        <p><strong>Độ chính xác:</strong> Tốt</p>
-                        <p><strong>Cài đặt:</strong> 5-15 phút</p>
-                        <p><strong>Phù hợp với:</strong> VGA NVIDIA, nhiều ngôn ngữ</p>
-                    </div>
-                    <div class="ocr-card">
-                        <span class="ocr-badge badge-external">Bên ngoài</span>
-                        <span class="ocr-badge badge-fast">Nhanh</span>
-                        <h4>PaddleOCR</h4>
-                        <p><strong>Tài nguyên:</strong> ~15% GPU</p>
-                        <p><strong>Độ chính xác:</strong> Rất cao</p>
-                        <p><strong>Cài đặt:</strong> 5-15 phút</p>
-                        <p><strong>Phù hợp với:</strong> VGA NVIDIA, ngôn ngữ Châu Á</p>
                     </div>
                 </div>
 

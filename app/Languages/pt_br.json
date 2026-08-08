@@ -435,9 +435,6 @@
   "Msg_ServerStartupTimeoutShort": "Tempo limite de inicialização do servidor {0}. Verifique se o ambiente foi instalado.",
   "Status_CannotConnectToServer": "Não é possível conectar ao Servidor {0}.",
   "Status_UsingBuiltInOcr": "Usando {0} (integrado)",
-  "Status_PleaseStartEasyOCR": "Por favor, inicie o servidor EasyOCR",
-  "Status_PleaseStartRapidOCR": "Por favor, inicie o servidor RapidOCR",
-  "Status_PleaseStartPaddleOCR": "Por favor, inicie o servidor PaddleOCR",
   "Status_PleaseClickStartServer": "Por favor, clique no botão StartOCR para reconectar ao servidor",
   "App_Version": "Versão",
   "Chk_AutoMapLanguageCodes": "Mapear códigos de idioma automaticamente",
@@ -574,7 +571,7 @@
 
   "Quickstart_OCR_Title": "Método de OCR",
   "Quickstart_OCR_Desc": "Selecione um método de OCR (Reconhecimento Óptico de Caracteres) para reconhecer o texto nos seus jogos.",
-  "Quickstart_OCR_Desc2": "Para métodos avançados de OCR (EasyOCR, PaddleOCR, RapidOCR), você precisará instalar e iniciar o servidor de OCR. Isso pode ser feito através do botão SetupOCR na tela principal ou no botão Configurar servidor OCR abaixo, após concluir este guia.",
+  "Quickstart_OCR_Desc2": "Tanto o OneOCR quanto o Windows OCR são integrados e não exigem configuração adicional. Basta selecionar um e você estará pronto para usar.",
   "Quickstart_OCR_Method": "Método de OCR:",
   "Quickstart_OCR_Setup": "Configurar Servidor OCR",
   "Quickstart_OCR_Comparison": "Comparação de Métodos de OCR:",
@@ -588,21 +585,6 @@
   "Quickstart_OCR_OneOCR_Pros": "Prós: Integrado, sem necessidade de configuração adicional, funciona bem para a maioria dos idiomas. Melhor que o Windows OCR",
   "Quickstart_OCR_OneOCR_Cons": "Contras: Pode ser menos preciso para alguns idiomas asiáticos.",
   "Quickstart_OCR_OneOCR_Rec": "Recomendação: Melhor escolha para iniciantes ou se você não tiver uma GPU dedicada",
-
-  "Quickstart_OCR_RapidOCR_Title": "RapidOCR",
-  "Quickstart_OCR_RapidOCR_Pros": "Prós: Boa precisão para os idiomas chinês, japonês e inglês. É inferior ao PaddleOCR para outros idiomas. Suporta todas as GPUs, incluindo iGPU",
-  "Quickstart_OCR_RapidOCR_Cons": "Contras: Requer configuração adicional, consome mais recursos, mais lento que o Windows OCR sem GPU. Consome recursos de GPU (5-10%)",
-  "Quickstart_OCR_RapidOCR_Rec": "Recomendação: AMD, INTEL ou NVIDIA",
-
-  "Quickstart_OCR_EasyOCR_Title": "EasyOCR",
-  "Quickstart_OCR_EasyOCR_Pros": "Prós: Boa precisão para muitos idiomas, suporta aceleração por GPU",
-  "Quickstart_OCR_EasyOCR_Cons": "Contras: Requer configuração adicional, mais lento que o Windows OCR sem GPU. Consome muitos recursos de GPU (20-30%)",
-  "Quickstart_OCR_EasyOCR_Rec": "Recomendação: Séries NVIDIA RTX 4000 e inferiores",
-
-  "Quickstart_OCR_PaddleOCR_Title": "PaddleOCR",
-  "Quickstart_OCR_PaddleOCR_Pros": "Prós: Alta precisão com muitos idiomas",
-  "Quickstart_OCR_PaddleOCR_Cons": "Contras: Requer configuração adicional, consome mais recursos. Consome muitos recursos de GPU (5-15%)",
-  "Quickstart_OCR_PaddleOCR_Rec": "Recomendação: Séries NVIDIA RTX 2000 e superiores",
 
   "Quickstart_Translation_Title": "Serviço de Tradução",
   "Quickstart_Translation_Desc": "Selecione um serviço de tradução para traduzir o texto reconhecido.",

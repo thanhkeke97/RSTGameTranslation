@@ -500,10 +500,7 @@
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="ocrMethodComboBox" Grid.Row="0" Grid.Column="1" 
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="OcrMethodComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="EasyOCR"/>
                                     <ComboBoxItem Content="Windows OCR"/>
-                                    <ComboBoxItem Content="PaddleOCR"/>
-                                    <ComboBoxItem Content="RapidOCR"/>
                                     <ComboBoxItem Content="OneOCR"/>
                                 </ComboBox>
                                 <!-- Remove OCR and Setup Buttons -->
@@ -589,9 +586,6 @@
                                     <RowDefinition Height="Auto"/> <!-- Header -->
                                     <RowDefinition Height="Auto"/> <!-- Windows OCR -->
                                     <RowDefinition Height="Auto"/> <!-- OneOCR -->
-                                    <RowDefinition Height="Auto"/> <!-- RapidOCR -->
-                                    <RowDefinition Height="Auto"/> <!-- EasyOCR -->
-                                    <RowDefinition Height="Auto"/> <!-- PaddleOCR -->
                                 </Grid.RowDefinitions>
 
                                 <!-- Header Row -->
@@ -619,34 +613,7 @@
                                 <TextBlock Grid.Row="2" Grid.Column="3" Text="High" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
                                 <TextBlock Grid.Row="2" Grid.Column="4" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
                                 <TextBlock Grid.Row="2" Grid.Column="5" Text="CPU(~10%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <Border Grid.Row="2" Grid.ColumnSpan="6"/>
-
-                                <!-- RapidOCR -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="RapidOCR"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <TextBlock Grid.Row="3" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
-                                <TextBlock Grid.Row="3" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
-                                <TextBlock Grid.Row="3" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <TextBlock Grid.Row="3" Grid.Column="5" Text="AMD/NVIDIA(~10%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <Border Grid.Row="3" Grid.ColumnSpan="6"/>
-
-                                <!-- EasyOCR -->
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="EasyOCR"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <TextBlock Grid.Row="4" Grid.Column="2" Text="Medium" HorizontalAlignment="Center" Foreground="{DynamicResource WarningBrush}"/>
-                                <TextBlock Grid.Row="4" Grid.Column="3" Text="Good" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
-                                <TextBlock Grid.Row="4" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <TextBlock Grid.Row="4" Grid.Column="5" Text="NVIDIA(~20%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <Border Grid.Row="4" Grid.ColumnSpan="6"/>
-
-                                <!-- PaddleOCR -->
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="PaddleOCR"/>
-                                <TextBlock Grid.Row="5" Grid.Column="1" Text="Yes" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <TextBlock Grid.Row="5" Grid.Column="2" Text="Fast" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
-                                <TextBlock Grid.Row="5" Grid.Column="3" Text="Very High" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBrush}"/>
-                                <TextBlock Grid.Row="5" Grid.Column="4" Text="No" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <TextBlock Grid.Row="5" Grid.Column="5" Text="NVIDIA(~15%)" HorizontalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                <Border Grid.Row="5" Grid.ColumnSpan="6" BorderThickness="0"/>
+                                <Border Grid.Row="2" Grid.ColumnSpan="6" BorderThickness="0"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

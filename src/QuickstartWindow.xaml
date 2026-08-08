@@ -610,42 +610,6 @@
                                                            Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_OneOCR_Rec]}"/>
                                             </StackPanel>
                                         </Expander>
-
-                                        <!-- RapidOCR -->
-                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Title]}" Margin="0,0,0,10" Foreground="{DynamicResource TextBrush}">
-                                            <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Pros]}"/>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Cons]}"/>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_RapidOCR_Rec]}"/>
-                                            </StackPanel>
-                                        </Expander>
-
-                                        <!-- EasyOCR -->
-                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Title]}" Margin="0,0,0,10" Foreground="{DynamicResource TextBrush}">
-                                            <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Pros]}"/>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Cons]}"/>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_EasyOCR_Rec]}"/>
-                                            </StackPanel>
-                                        </Expander>
-
-                                        <!-- PaddleOCR -->
-                                        <Expander Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Title]}" Margin="0,0,0,10" Foreground="{DynamicResource TextBrush}">
-                                            <StackPanel Margin="10,5,0,0">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Pros]}"/>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Cons]}"/>
-                                                <TextBlock TextWrapping="Wrap" Margin="0,5,0,0" Foreground="{DynamicResource TextBrush}"
-                                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Quickstart_OCR_PaddleOCR_Rec]}"/>
-                                            </StackPanel>
-                                        </Expander>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

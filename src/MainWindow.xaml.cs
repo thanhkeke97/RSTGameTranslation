@@ -245,39 +245,14 @@ namespace RSTGameTranslation
             // Don't update other windows or save to config
             // if (true)
             // {
+            // Only built-in OCR (OneOCR, Windows OCR) is supported now.
+            // Third-party Python OCR engines (EasyOCR, PaddleOCR, RapidOCR) have been removed.
             Console.WriteLine($"Setting OCR method during initialization: {method}");
             selectedOcrMethod = method;
-            // Important: Update status text even during initialization
-            if (method == "Windows OCR")
-            {
-                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
-                OcrServerPanel.Visibility = Visibility.Collapsed;
-                OcrServerBorder.Visibility = Visibility.Collapsed;
-            }
-            else if (method == "OneOCR")
-            {
-                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
-                OcrServerPanel.Visibility = Visibility.Collapsed;
-                OcrServerBorder.Visibility = Visibility.Collapsed;
-            }
-            else if (method == "EasyOCR")
-            {
-                SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartEasyOCR"]);
-                OcrServerPanel.Visibility = Visibility.Visible;
-                OcrServerBorder.Visibility = Visibility.Visible;
-            }
-            else if (method == "RapidOCR")
-            {
-                SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartRapidOCR"]);
-                OcrServerPanel.Visibility = Visibility.Visible;
-                OcrServerBorder.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                SetStatus(LocalizationManager.Instance.Strings["Status_PleaseStartPaddleOCR"]);
-                OcrServerPanel.Visibility = Visibility.Visible;
-                OcrServerBorder.Visibility = Visibility.Visible;
-            }
+            // Update status text
+            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
+            OcrServerPanel.Visibility = Visibility.Collapsed;
+            OcrServerBorder.Visibility = Visibility.Collapsed;
             // return;
             // }
 
@@ -286,28 +261,14 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"MainWindow changing OCR method from {selectedOcrMethod} to {method}");
                 selectedOcrMethod = method;
-                // No need to handle socket connection here, the MonitorWindow handles that
-                if (method == "Windows OCR" || method == "OneOCR")
+                // Only built-in OCR (OneOCR, Windows OCR) is supported now.
+                if (isStarted)
                 {
-                    if (isStarted)
-                    {
-                        OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
-                    }
-
-                    OcrServerManager.Instance.StopOcrServer();
-                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
+                    OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
                 }
-                else
-                {
-                    if (isStarted)
-                    {
-                        OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
-                    }
 
-                    OcrServerManager.Instance.StopOcrServer();
-                    SetStatus(LocalizationManager.Instance.Strings["Status_PleaseClickStartServer"]);
-
-                }
+                OcrServerManager.Instance.StopOcrServer();
+                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
             }
         }
 
@@ -1455,37 +1416,8 @@ namespace RSTGameTranslation
         {
             System.Windows.Controls.Button btn = (System.Windows.Controls.Button)sender;
             String method = ConfigManager.Instance.GetOcrMethod();
-            bool isReady = false;
-
-            if (method == "Windows OCR" || method == "OneOCR")
-            {
-                // Windows OCR always ready because it don't need server
-                isReady = true;
-            }
-            else
-            {
-                // EasyOCR, RapidOCR and PaddleOCR: use real socket state instead of status text
-                isReady = SocketManager.Instance.IsConnected;
-
-                // If server might have been started manually, attempt reconnect once before warning
-                if (!isReady)
-                {
-                    try
-                    {
-                        isReady = await SocketManager.Instance.TryReconnectAsync();
-                        if (isReady)
-                        {
-                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], method));
-                            OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                            OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error reconnecting to OCR server before start: {ex.Message}");
-                    }
-                }
-            }
+            // Only built-in OCR (OneOCR, Windows OCR) is supported now - always ready
+            bool isReady = true;
 
             if (isStarted)
             {
@@ -2463,61 +2395,16 @@ namespace RSTGameTranslation
                     // Try stop server OCR if haved one running
                     OcrServerManager.Instance.StopOcrServer();
                     SocketManager.Instance.Disconnect();
-                    // Update the UI and connection state based on the selected OCR method
-                    if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
-                    {
-                        // Using Windows OCR, no need for socket connection
-                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], ocrMethod));
-                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
-                    }
-                    else
-                    {
-                        // Using EasyOCR, RapidOCR or PaddleOCR, try to connect to the socket server
-                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectingToServer"], ocrMethod));
-                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
-
-                        bool started = await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
-
-                        if (!started || !OcrServerManager.Instance.serverStarted)
-                        {
-                            SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
-                            OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                            OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
-
-                            if (OcrServerManager.Instance.timeoutStartServer)
-                            {
-                                System.Windows.MessageBox.Show(
-                                    string.Format(LocalizationManager.Instance.Strings["Msg_ServerStartupTimeoutShort"], ocrMethod),
-                                    LocalizationManager.Instance.Strings["Title_Error"],
-                                    MessageBoxButton.OK,
-                                    MessageBoxImage.Error);
-                            }
-                        }
-                        else
-                        {
-                            bool connected = await SocketManager.Instance.TryReconnectAsync();
-                            if (connected)
-                            {
-                                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], ocrMethod));
-                                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                                OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
-                            }
-                            else
-                            {
-                                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotConnectToServer"], ocrMethod));
-                                OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                                OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
-                            }
-                        }
-                    }
+                    // Only built-in OCR (OneOCR, Windows OCR) is supported now - no server needed
+                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], ocrMethod));
+                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
+                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
                 }
             }
         }
 
-        // Keep track of selected OCR method
-        private string selectedOcrMethod = "Windows OCR";
+        // Keep track of selected OCR method (default: OneOCR)
+        private string selectedOcrMethod = "OneOCR";
 
         public string GetSelectedOcrMethod()
         {
@@ -3223,37 +3110,12 @@ namespace RSTGameTranslation
 
         private void btnStopOcrServer_Click(object sender, RoutedEventArgs e)
         {
-            if (ConfigManager.Instance.GetOcrMethod() == "PaddleOCR" || ConfigManager.Instance.GetOcrMethod() == "EasyOCR" || ConfigManager.Instance.GetOcrMethod() == "RapidOCR")
-            {
-                if (isStarted)
-                {
-                    OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
-                }
-                try
-                {
-                    // Stop OCR server
-                    OcrServerManager.Instance.StopOcrServer();
-                    SetStatus(LocalizationManager.Instance.Strings["Status_OcrServerStopped"]);
-                    OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                    OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
-                }
-                catch (Exception ex)
-                {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_ErrorStoppingOcrServer"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                }
-            }
-            else
-            {
-                System.Windows.MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_OcrNoStopRequired"],
-                        LocalizationManager.Instance.Strings["Title_WarningExclamation"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-            }
+            // Only built-in OCR (OneOCR, Windows OCR) is supported now - no server to stop
+            System.Windows.MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_OcrNoStopRequired"],
+                    LocalizationManager.Instance.Strings["Title_WarningExclamation"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
         }
 
         // Public method to run the OCR setup flow. Can be called from SettingsWindow.

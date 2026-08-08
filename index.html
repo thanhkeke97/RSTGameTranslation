@@ -13,7 +13,7 @@
     <!-- SEO Meta Tags -->
     <title>RSTGameTranslation - Real-time Screen Translation for Gaming</title>
     <meta name="description" content="RSTGameTranslation is a real-time screen translation tool for games using advanced AI, supporting multiple languages, working both offline and online with Gemini, ChatGPT, Ollama, LM Studio." />
-    <meta name="keywords" content="game translation, real-time screen translation, RSTGameTranslation, game OCR, AI translation, EasyOCR, PaddleOCR, Gemini, ChatGPT, Ollama, LM Studio" />
+    <meta name="keywords" content="game translation, real-time screen translation, RSTGameTranslation, game OCR, AI translation, OneOCR, Windows OCR, Gemini, ChatGPT, Ollama, LM Studio" />
     <meta name="author" content="thanhkeke97 (Thanh Pham)" />
     <link rel="canonical" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
     
@@ -488,7 +488,7 @@
             <div class="feature-grid">
                 <div class="feature-card">
                     <h3>🔥 Real-time Translation</h3>
-                    <p>Using EasyOCR, RapidOCR, PaddleOCR, OneOCR or Windows OCR running locally for automatic real-time translation. Supports chat window for visual novels and full-screen translation.</p>
+                    <p>Using OneOCR or Windows OCR running locally for automatic real-time translation. Supports chat window for visual novels and full-screen translation.</p>
                 </div>
                 <div class="feature-card">
                     <h3>🤖 Advanced AI Translation</h3>
@@ -516,7 +516,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>⚡ Multiple OCR Options</h3>
-                    <p>Choose from 5 OCR engines: Windows OCR (built-in), OneOCR, RapidOCR, EasyOCR, or PaddleOCR based on your hardware.</p>
+                    <p>Choose from 2 built-in OCR engines: OneOCR (recommended) or Windows OCR based on your hardware.</p>
                 </div>
             </div>
         </section>
@@ -526,9 +526,9 @@
             <div class="important-note">
                 <ul>
                     <li><strong>System Requirements:</strong> Windows 10 or higher. Game needs to be in windowed, fullscreen borderless, or windowed borderless mode.</li>
-                    <li><strong>Recommended Hardware:</strong> NVIDIA GPU for best performance with EasyOCR/PaddleOCR.</li>
-                    <li><strong>CPU Performance:</strong> Without an NVIDIA GPU, you'll use 30-50% CPU capacity (if choosing EasyOCR or PaddleOCR).</li>
-                    <li><strong>OCR Selection:</strong> RapidOCR, OneOCR, WindowsOCR (recommended for AMD and Intel GPUs), RapidOCR, EasyOCR and PaddleOCR for NVIDIA</li>
+                    <li><strong>Recommended Hardware:</strong> Works on any GPU (AMD, Intel, NVIDIA) or CPU-only.</li>
+                    <li><strong>CPU Performance:</strong> OneOCR uses ~10% CPU, Windows OCR uses ~2% CPU.</li>
+                    <li><strong>OCR Selection:</strong> OneOCR (recommended, manga support) or Windows OCR (lightest, for AMD/Intel GPUs)</li>
                     <li><strong>Translation Area:</strong> Smaller translation area = faster translation speed.</li>
                     <li><strong>API Keys:</strong> Some translation services require API keys. Google Translate works without keys, but AI services need keys.</li>
                 </ul>
@@ -593,7 +593,7 @@
                 <h4>Step-by-Step Process</h4>
                 <ol>
                     <li><strong>Capture Screen:</strong> The application captures the selected area of your game screen at regular intervals or when text changes.</li>
-                    <li><strong>OCR Detection:</strong> The selected OCR engine (Windows OCR, OneOCR, RapidOCR, EasyOCR, or PaddleOCR) extracts text from the captured image.</li>
+                    <li><strong>OCR Detection:</strong> The selected OCR engine (OneOCR or Windows OCR) extracts text from the captured image.</li>
                     <li><strong>Text Processing:</strong> The extracted text is filtered, deduplicated, and analyzed for context.</li>
                     <li><strong>AI Translation:</strong> The text is sent to your selected translation service (Gemini, ChatGPT, Google Translate, Ollama, etc.)</li>
                     <li><strong>Context Enhancement:</strong> Previous translations and game information are used to improve accuracy.</li>
@@ -631,33 +631,6 @@
                         <p><strong>Accuracy:</strong> High</p>
                         <p><strong>Setup:</strong> None</p>
                         <p><strong>Best for:</strong> All users, manga support</p>
-                    </div>
-                    <div class="ocr-card">
-                        <span class="ocr-badge badge-external">External</span>
-                        <span class="ocr-badge badge-fast">Fast</span>
-                        <h4>RapidOCR</h4>
-                        <p><strong>Resources:</strong> ~10% GPU</p>
-                        <p><strong>Accuracy:</strong> Very High</p>
-                        <p><strong>Setup:</strong> 5-15 min</p>
-                        <p><strong>Best for:</strong> NVIDIA GPUs, Western languages</p>
-                    </div>
-                    <div class="ocr-card">
-                        <span class="ocr-badge badge-external">External</span>
-                        <span class="ocr-badge badge-medium">Medium</span>
-                        <h4>EasyOCR</h4>
-                        <p><strong>Resources:</strong> ~20% GPU</p>
-                        <p><strong>Accuracy:</strong> Good</p>
-                        <p><strong>Setup:</strong> 5-15 min</p>
-                        <p><strong>Best for:</strong> NVIDIA GPUs, many languages</p>
-                    </div>
-                    <div class="ocr-card">
-                        <span class="ocr-badge badge-external">External</span>
-                        <span class="ocr-badge badge-fast">Fast</span>
-                        <h4>PaddleOCR</h4>
-                        <p><strong>Resources:</strong> ~15% GPU</p>
-                        <p><strong>Accuracy:</strong> Very High</p>
-                        <p><strong>Setup:</strong> 5-15 min</p>
-                        <p><strong>Best for:</strong> NVIDIA GPUs, Asian languages</p>
                     </div>
                 </div>
 

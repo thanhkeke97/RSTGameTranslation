@@ -442,9 +442,6 @@
   "Msg_ServerStartupTimeoutShort": "Hết thời gian khởi động máy chủ {0}. Vui lòng kiểm tra xem môi trường đã được cài đặt chưa.",
   "Status_CannotConnectToServer": "Không thể kết nối đến máy chủ {0}.",
   "Status_UsingBuiltInOcr": "Đang sử dụng {0} (tích hợp sẵn)",
-  "Status_PleaseStartEasyOCR": "Vui lòng khởi động máy chủ EasyOCR",
-  "Status_PleaseStartRapidOCR": "Vui lòng khởi động máy chủ RapidOCR",
-  "Status_PleaseStartPaddleOCR": "Vui lòng khởi động máy chủ PaddleOCR",
   "Status_PleaseClickStartServer": "Vui lòng nhấp vào nút StartOCR để kết nối lại máy chủ",
   "App_Version": "Phiên bản",
   "Chk_AutoMapLanguageCodes": "Tự động ánh xạ mã ngôn ngữ",
@@ -577,7 +574,7 @@
 
   "Quickstart_OCR_Title": "Phương Pháp OCR",
   "Quickstart_OCR_Desc": "Chọn phương pháp OCR (Nhận dạng ký tự quang học) để nhận dạng văn bản trong game của bạn.",
-  "Quickstart_OCR_Desc2": "Đối với các phương pháp OCR nâng cao (EasyOCR, PaddleOCR, RapidOCR), bạn cần cài đặt và khởi động máy chủ OCR.",
+  "Quickstart_OCR_Desc2": "Cả OneOCR và Windows OCR đều được tích hợp sẵn và không cần cài đặt thêm. Chỉ cần chọn một và bạn đã sẵn sàng.",
   "Quickstart_OCR_Method": "Phương pháp OCR:",
   "Quickstart_OCR_Setup": "Cài Đặt Máy Chủ OCR",
   "Quickstart_OCR_Comparison": "So Sánh Các Phương Pháp OCR:",
@@ -591,21 +588,6 @@
   "Quickstart_OCR_OneOCR_Pros": "Ưu điểm: Tích hợp sẵn, không cần cài đặt thêm, hoạt động tốt với hầu hết các ngôn ngữ. OCR Windows tốt hơn",
   "Quickstart_OCR_OneOCR_Cons": "Nhược điểm: Có thể kém chính xác hơn với một số ngôn ngữ châu Á.",
   "Quickstart_OCR_OneOCR_Rec": "Khuyến nghị: Lựa chọn tốt nhất cho người mới bắt đầu hoặc nếu bạn không có GPU riêng",
-
-  "Quickstart_OCR_RapidOCR_Title": "RapidOCR",
-  "Quickstart_OCR_RapidOCR_Pros": "Ưu điểm: Độ chính xác tốt với tiếng Trung, tiếng Nhật và tiếng Anh. Hỗ trợ tất cả GPU, bao gồm iGPU",
-  "Quickstart_OCR_RapidOCR_Cons": "Nhược điểm: Yêu cầu cài đặt thêm, tốn tài nguyên hơn. Tiêu thụ tài nguyên GPU (5-10%)",
-  "Quickstart_OCR_RapidOCR_Rec": "Khuyến nghị: AMD, INTEL hoặc NVIDIA",
-
-  "Quickstart_OCR_EasyOCR_Title": "EasyOCR",
-  "Quickstart_OCR_EasyOCR_Pros": "Ưu điểm: Độ chính xác tốt với nhiều ngôn ngữ, hỗ trợ tăng tốc GPU",
-  "Quickstart_OCR_EasyOCR_Cons": "Nhược điểm: Yêu cầu cài đặt thêm. Tiêu thụ nhiều tài nguyên GPU (20-30%)",
-  "Quickstart_OCR_EasyOCR_Rec": "Khuyến nghị: NVIDIA RTX 4000 series trở xuống",
-
-  "Quickstart_OCR_PaddleOCR_Title": "PaddleOCR",
-  "Quickstart_OCR_PaddleOCR_Pros": "Ưu điểm: Độ chính xác cao với nhiều ngôn ngữ",
-  "Quickstart_OCR_PaddleOCR_Cons": "Nhược điểm: Yêu cầu cài đặt thêm, tốn tài nguyên hơn. Tiêu thụ tài nguyên GPU (5-15%)",
-  "Quickstart_OCR_PaddleOCR_Rec": "Khuyến nghị: NVIDIA RTX 2000 series trở lên",
 
   "Quickstart_Translation_Title": "Dịch Vụ Dịch Thuật",
   "Quickstart_Translation_Desc": "Chọn dịch vụ dịch thuật để dịch văn bản đã nhận dạng.",

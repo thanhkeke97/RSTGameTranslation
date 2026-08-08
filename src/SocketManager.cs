@@ -15,18 +15,9 @@ namespace RSTGameTranslation
         // Semaphore to prevent concurrent connect/disconnect operations
         private SemaphoreSlim _connectionSemaphore = new SemaphoreSlim(1, 1);
         
-        // Constants for OCR server ports
-        public const int EASYOCR_PORT = 9999;
-        public const int PADDLEOCR_PORT = 9998;
-        public const int RAPIDOCR_PORT = 9997;
-        
         // Events for data received and connection status changes
         public event EventHandler<string>? DataReceived;
         public event EventHandler<bool>? ConnectionChanged;
-        
-        public int get_EasyOcrPort() => EASYOCR_PORT;
-        public int get_PaddleOcrPort() => PADDLEOCR_PORT;
-        public int get_RapidOcrPort() => RAPIDOCR_PORT;
 
         // Singleton pattern
         public static SocketManager Instance
@@ -45,37 +36,14 @@ namespace RSTGameTranslation
         private SocketManager()
         {
             _host = "localhost";
-            // Get OCR method from ConfigManager
-            string ocrMethod = ConfigManager.Instance.GetOcrMethod();
-            Console.WriteLine($"SocketManager initializing with OCR method: {ocrMethod}");
-            // Set port based on OCR method
-            _port = ocrMethod switch
-            {
-                "PaddleOCR" => PADDLEOCR_PORT,
-                "EasyOCR" => EASYOCR_PORT,
-                "RapidOCR" => RAPIDOCR_PORT,
-                _ => PADDLEOCR_PORT // Default to PADDLEOCR_PORT 
-            };
-            Console.WriteLine($"SocketManager initialized with port: {_port} for {ocrMethod}");
+            _port = 0; // No Python OCR server ports needed (OneOCR/Windows OCR are built-in)
             _isConnected = false;
         }
 
         // Method to set the port based on OCR method
         public void UpdatePortBasedOnOcrMethod(string ocrMethod)
         {
-            int newPort = ocrMethod switch
-            {
-                "PaddleOCR" => PADDLEOCR_PORT,
-                "EasyOCR" => EASYOCR_PORT,
-                "RapidOCR" => RAPIDOCR_PORT,
-                _ => PADDLEOCR_PORT // Default to PADDLEOCR_PORT 
-            };
-
-            if (_port != newPort)
-            {
-                Console.WriteLine($"Changing OCR server port from {_port} to {newPort} for {ocrMethod}");
-                SetPort(newPort);
-            }
+            // No Python OCR server ports needed (OneOCR/Windows OCR are built-in)
         }
 
         // Method to set the port directly

@@ -441,9 +441,6 @@
   "Msg_ServerStartupTimeoutShort": "Тайм-аут запуска сервера {0}. Пожалуйста, проверьте, установлено ли окружение.",
   "Status_CannotConnectToServer": "Не удается подключиться к серверу {0}.",
   "Status_UsingBuiltInOcr": "Используется {0} (встроенный)",
-  "Status_PleaseStartEasyOCR": "Пожалуйста, запустите сервер EasyOCR",
-  "Status_PleaseStartRapidOCR": "Пожалуйста, запустите сервер RapidOCR",
-  "Status_PleaseStartPaddleOCR": "Пожалуйста, запустите сервер PaddleOCR",
   "Status_PleaseClickStartServer": "Пожалуйста, нажмите кнопку StartOCR для переподключения сервера",
   "App_Version": "Версия",
   "Chk_AutoMapLanguageCodes": "Автоматическое сопоставление кодов языка",
@@ -575,6 +572,7 @@
 
   "Quickstart_OCR_Title": "Метод OCR",
   "Quickstart_OCR_Desc": "Выберите метод OCR (оптическое распознавание символов) для распознавания текста в ваших играх.",
+  "Quickstart_OCR_Desc2": "И OneOCR, и Windows OCR встроены и не требуют дополнительной настройки. Просто выберите один из них, и вы готовы к работе.",
   "Quickstart_OCR_Method": "Метод OCR:",
   "Quickstart_OCR_Setup": "Настройка OCR-сервера",
   "Quickstart_OCR_Comparison": "Сравнение методов OCR:",
@@ -588,21 +586,6 @@
   "Quickstart_OCR_OneOCR_Pros": "Плюсы: Встроенный, дополнительная настройка не требуется, хорошо работает с большинством языков",
   "Quickstart_OCR_OneOCR_Cons": "Минусы: Может быть менее точным для некоторых азиатских языков.",
   "Quickstart_OCR_OneOCR_Rec": "Рекомендация: Лучший выбор для начинающих или если у вас нет выделенного GPU",
-
-  "Quickstart_OCR_RapidOCR_Title": "RapidOCR",
-  "Quickstart_OCR_RapidOCR_Pros": "Плюсы: Хорошая точность для китайского, японского и английского языков. Поддерживает все GPU, включая iGPU",
-  "Quickstart_OCR_RapidOCR_Cons": "Минусы: Требуется дополнительная настройка, более ресурсоемкий. Потребляет ресурсы GPU (5-10%)",
-  "Quickstart_OCR_RapidOCR_Rec": "Рекомендация: AMD, INTEL или NVIDIA",
-
-  "Quickstart_OCR_EasyOCR_Title": "EasyOCR",
-  "Quickstart_OCR_EasyOCR_Pros": "Плюсы: Хорошая точность для многих языков, поддержка ускорения GPU",
-  "Quickstart_OCR_EasyOCR_Cons": "Минусы: Требуется дополнительная настройка. Потребляет много ресурсов GPU (20-30%)",
-  "Quickstart_OCR_EasyOCR_Rec": "Рекомендация: NVIDIA RTX 4000 серии и ниже",
-
-  "Quickstart_OCR_PaddleOCR_Title": "PaddleOCR",
-  "Quickstart_OCR_PaddleOCR_Pros": "Плюсы: Высокая точность со многими языками",
-  "Quickstart_OCR_PaddleOCR_Cons": "Минусы: Требуется дополнительная настройка, более ресурсоемкий. Потребляет много ресурсов GPU (5-15%)",
-  "Quickstart_OCR_PaddleOCR_Rec": "Рекомендация: NVIDIA RTX 2000 серии и выше",
 
   "Quickstart_Translation_Title": "Служба перевода",
   "Quickstart_Translation_Desc": "Выберите службу перевода для перевода распознанного текста.",

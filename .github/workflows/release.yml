@@ -147,9 +147,6 @@ jobs:
 
           New-Item -ItemType Directory -Force -Path $releaseDir
           $dirs = @(
-              "webserver\EasyOCR",
-              "webserver\PaddleOCR",
-              "webserver\RapidOCR",
               "webserver\Python311",
               "AudioModel",
               "Languages"
@@ -178,15 +175,6 @@ jobs:
           if (Test-Path "README.md") { Copy-Item "README.md" -Destination $releaseDir }
 
           # Webserver & OCR Scripts
-          if (Test-Path "app\webserver\EasyOCR") {
-              Get-ChildItem "app\webserver\EasyOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\EasyOCR"
-          }
-          if (Test-Path "app\webserver\PaddleOCR") {
-              Get-ChildItem "app\webserver\PaddleOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\PaddleOCR"
-          }
-          if (Test-Path "app\webserver\RapidOCR") {
-              Get-ChildItem "app\webserver\RapidOCR\*" -Include *.py,*.bat -ErrorAction SilentlyContinue | Copy-Item -Destination "$releaseDir\webserver\RapidOCR"
-          }
           if (Test-Path "app\webserver\*.bat") {
               Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver" -ErrorAction SilentlyContinue
           }
