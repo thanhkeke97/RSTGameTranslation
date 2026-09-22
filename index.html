@@ -555,7 +555,7 @@
                     <li>Get a <strong>Gemini API Key</strong> from <a href="https://ai.google.dev" target="_blank" rel="noopener">Google AI Studio</a></li>
                     <li>Go to <strong>Settings</strong> → <strong>Translation</strong></li>
                     <li>Select <strong>Gemini</strong> and enter your API key</li>
-                    <li>Select <strong>PaddleOCR</strong> or <strong>RapidOCR</strong> in OCR settings</li>
+                    <li>Select <strong>OneOCR</strong> in OCR settings</li>
                     <li>Enter your <strong>Game Info</strong> for better context-aware translations</li>
                 </ol>
             </div>
@@ -811,7 +811,7 @@
                     </tr>
                     <tr>
                         <td><strong>OCR Method</strong></td>
-                        <td>Select OCR engine: EasyOCR, Windows OCR, PaddleOCR, RapidOCR, or OneOCR.</td>
+                        <td>Select OCR engine: Windows OCR or OneOCR.</td>
                     </tr>
                     <tr>
                         <td><strong>Select Screen</strong></td>
@@ -935,7 +935,7 @@
                     </tr>
                     <tr>
                         <td><strong>Install/Start/Remove Server</strong></td>
-                        <td>Manage OCR backend servers (EasyOCR, PaddleOCR, RapidOCR).</td>
+                        <td>Manage OCR backend servers.</td>
                     </tr>
                     <tr>
                         <td><strong>Send Data to Server</strong></td>
@@ -1049,7 +1049,7 @@
                 <h4>Case 2: Action RPG Game HUD Translation</h4>
                 <div class="info-box">
                     <strong>Recommended Setup:</strong><br>
-                    OCR: RapidOCR (if NVIDIA) or OneOCR (if AMD/Intel)<br>
+                    OCR: OneOCR (recommended)<br>
                     Translation: Google Translate (fast) or Gemini (accurate)<br>
                     Display: Overlay mode with auto background
                 </div>
@@ -1157,7 +1157,6 @@
                         </ul>
                     </li>
                 </ol>
-                <p><strong>Note:</strong> The first time you use EasyOCR or PaddleOCR with a new language, it has to download first! So it might seem like it's not working, just wait a minute or two and start/stop the application's translation, it will work.</p>
             </div>
         </section>
 
@@ -1177,9 +1176,9 @@
             <h3>Recommended Settings</h3>
             <ul>
                 <li><strong>For Quick Use:</strong> OneOCR or Windows OCR (built-in, no setup) with Google Translate</li>
-                <li><strong>For Best Quality:</strong> PaddleOCR (Asian) or RapidOCR (Western) with Gemini Flash lite 2.5</li>
+                <li><strong>For Best Quality:</strong> OneOCR with Gemini Flash lite 2.5</li>
                 <li><strong>For Privacy:</strong> OneOCR with Ollama or LM Studio (100% local)</li>
-                <li><strong>For AMD, Intel users:</strong> Consider using RapidOCR, OneOCR if you don't want to lose CPU performance</li>
+                <li><strong>For AMD, Intel users:</strong> OneOCR is lightweight and CPU-friendly</li>
             </ul>
             
             <h3>Performance Tips</h3>

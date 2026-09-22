@@ -156,11 +156,6 @@ This project stands on the shoulders of giants. We gratefully acknowledge the fo
 ### Core & UI
 - **[WPF (Windows Presentation Foundation)](https://github.com/dotnet/wpf)** - UI Framework
 
-### OCR (Optical Character Recognition)
-- **[PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)** - Awesome multilingual OCR toolkits
-- **[EasyOCR](https://github.com/JaidedAI/EasyOCR)** - Ready-to-use OCR with 80+ supported languages
-- **[RapidOCR](https://github.com/RapidAI/RapidOCR)** - Cross platform OCR library based on OnnxRuntime
-
 ### AI & Translation
 - **[System.Text.Json](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-overview)** - High-performance JSON serialization
 - **[Hugging Face](https://huggingface.co/)** - For various AI models and datasets

@@ -597,7 +597,7 @@
                             target="_blank" rel="noopener">Google AI Studio</a></li>
                     <li>Vào <strong>Cài đặt</strong> → <strong>Dịch thuật</strong></li>
                     <li>Chọn <strong>Gemini</strong> và nhập khóa API của bạn</li>
-                    <li>Chọn <strong>PaddleOCR</strong> hoặc <strong>RapidOCR</strong> trong cài đặt OCR</li>
+                    <li>Chọn <strong>OneOCR</strong> trong cài đặt OCR</li>
                     <li>Nhập <strong>Thông tin Game</strong> để dịch tốt hơn theo ngữ cảnh</li>
                 </ol>
             </div>
@@ -860,7 +860,7 @@
                     </tr>
                     <tr>
                         <td><strong>Phương pháp OCR</strong></td>
-                        <td>Chọn engine OCR: EasyOCR, Windows OCR, PaddleOCR, RapidOCR hoặc OneOCR.</td>
+                        <td>Chọn engine OCR: Windows OCR hoặc OneOCR.</td>
                     </tr>
                     <tr>
                         <td><strong>Chọn màn hình</strong></td>
@@ -985,7 +985,7 @@
                     </tr>
                     <tr>
                         <td><strong>Cài đặt/Khởi động/Xóa Server</strong></td>
-                        <td>Quản lý server backend OCR (EasyOCR, PaddleOCR, RapidOCR).</td>
+                        <td>Quản lý server backend OCR.</td>
                     </tr>
                     <tr>
                         <td><strong>Gửi dữ liệu đến Server</strong></td>
@@ -1100,7 +1100,7 @@
                 <h4>Trường hợp 2: Game Action RPG HUD</h4>
                 <div class="info-box">
                     <strong>Cài đặt khuyến nghị:</strong><br>
-                    OCR: RapidOCR (nếu có NVIDIA) hoặc OneOCR (nếu có AMD/Intel)<br>
+                    OCR: OneOCR (khuyến nghị)<br>
                     Dịch thuật: Google Translate (nhanh) hoặc Gemini (chính xác)<br>
                     Hiển thị: Chế độ Overlay với màu nền tự động
                 </div>
@@ -1222,9 +1222,6 @@
                         </ul>
                     </li>
                 </ol>
-                <p><strong>Lưu ý:</strong> Lần đầu tiên bạn sử dụng EasyOCR, RapidOCR hoặc PaddleOCR với một ngôn ngữ
-                    mới, nó phải tải xuống trước! Vì vậy, có thể có vẻ không hoạt động, chỉ cần đợi một hoặc hai phút và
-                    khởi động/dừng dịch của ứng dụng, nó sẽ hoạt động.</p>
             </div>
         </section>
 
@@ -1248,11 +1245,9 @@
             <ul>
                 <li><strong>Cho sử dụng nhanh:</strong> OneOCR hoặc Windows OCR (tích hợp sẵn, không cần thiết lập) với
                     Google Translate</li>
-                <li><strong>Cho chất lượng tốt nhất:</strong> PaddleOCR (tiếng Á Đông) hoặc RapidOCR (tiếng phương Tây)
-                    với Gemini Flash lite 2.5</li>
+                <li><strong>Cho chất lượng tốt nhất:</strong> OneOCR với Gemini Flash lite 2.5</li>
                 <li><strong>Cho quyền riêng tư:</strong> OneOCR với Ollama hoặc LM Studio (100% cục bộ)</li>
-                <li><strong>Với người dùng AMD, Intel:</strong> Nên sử dụng RapidOCR, OneOCR nếu không muốn mất hiệu
-                    năng CPU</li>
+                <li><strong>Với người dùng AMD, Intel:</strong> OneOCR nhẹ và thân thiện với CPU</li>
             </ul>
 
             <h3>Mẹo tăng hiệu suất</h3>

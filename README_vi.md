@@ -156,11 +156,6 @@ Dự án này được xây dựng dựa trên sự đóng góp của cộng đ�
 ### Core & UI
 - **[WPF (Windows Presentation Foundation)](https://github.com/dotnet/wpf)** - Framework giao diện người dùng
 
-### OCR (Nhận dạng Ký tự Quang học)
-- **[PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)** - Bộ công cụ OCR đa ngôn ngữ tuyệt vời
-- **[EasyOCR](https://github.com/JaidedAI/EasyOCR)** - OCR sẵn sàng sử dụng với hơn 80 ngôn ngữ được hỗ trợ
-- **[RapidOCR](https://github.com/RapidAI/RapidOCR)** - Thư viện OCR đa nền tảng dựa trên OnnxRuntime
-
 ### AI & Dịch thuật
 - **[System.Text.Json](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-overview)** - Tuần tự hóa JSON hiệu suất cao
 - **[Hugging Face](https://huggingface.co/)** - Nền tảng cho các mô hình AI và bộ dữ liệu
