@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -22,29 +21,12 @@ namespace RSTGameTranslation
         // Creating a new instance per service can lead to socket exhaustion under load.
         private static readonly HttpClient _httpClient = CreateSharedHttpClient();
 
-        // Lightweight throttle so we don't burst the free endpoint.
-        private static readonly object _throttleLock = new object();
-        private static DateTime _lastFreeRequestUtc = DateTime.MinValue;
-        private const int MinFreeRequestIntervalMs = 200;
-        private const int MaxFreeRetriesPerEndpoint = 2;
-
-        // Hard budget per text block. If we exceed this we abort retries and
-        // return null so the user sees the source text instead of a long wait.
-        private const int MaxPerBlockDurationMs = 6000;
-
-        // Per-request HTTP timeout. Keep this short — long timeouts compound
-        // across retries and blocks and produce the "pending forever" UX bug.
+        // Allow time for every part while still bounding an entire failed OCR batch.
+        private const int MaxFreePartDurationMs = 6000;
+        private const int MaxFreeTranslationDurationMs = 30000;
         private const int FreeRequestTimeoutMs = 8000;
-
-        // Endpoint variants tried in order. The `gtx` client is the canonical one
-        // but is aggressively rate-limited; the other variants ride the same
-        // backend with different identifiers and tend to have independent quotas.
-        private static readonly string[] FreeEndpointTemplates = new[]
-        {
-            "https://translate.googleapis.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}",
-            "https://translate.googleapis.com/translate_a/single?client=webapp&sl={0}&tl={1}&dt=t&q={2}",
-            "https://translate.googleapis.com/translate_a/single?sl={0}&tl={1}&dt=t&q={2}"
-        };
+        private static readonly GoogleTranslateFreeClient SharedFreeClient = new GoogleTranslateFreeClient(_httpClient);
+        private readonly GoogleTranslateFreeClient _freeClient = SharedFreeClient;
 
         private readonly string _apiKey;
         private readonly bool _useCloudApi;
@@ -56,6 +38,11 @@ namespace RSTGameTranslation
             _apiKey = ConfigManager.Instance.GetGoogleTranslateApiKey();
             _useCloudApi = ConfigManager.Instance.GetGoogleTranslateUseCloudApi();
             _autoMapLanguages = ConfigManager.Instance.GetGoogleTranslateAutoMapLanguages();
+        }
+
+        internal GoogleTranslateService(GoogleTranslateFreeClient freeClient) : this()
+        {
+            _freeClient = freeClient;
         }
 
         private static HttpClient CreateSharedHttpClient()
@@ -79,9 +66,12 @@ namespace RSTGameTranslation
         {
             try
             {
+                using var freeBudget = new CancellationTokenSource();
                 // Analyze the input JSON data
                 using JsonDocument doc = JsonDocument.Parse(jsonData);
                 JsonElement root = doc.RootElement;
+                if (!_useCloudApi)
+                    freeBudget.CancelAfter(GetFreeTranslationBudgetMs(root));
 
                 // Create a new JSON object for the output
                 // We will copy the metadata if exists, and then add the translations
@@ -147,18 +137,12 @@ namespace RSTGameTranslation
 
                         attemptedCount++;
 
-                        // Perform translation. TranslatePreservingSeparatorsAsync
-                        // falls back to the source text when a block fails, so we
-                        // compare against the source to detect real success.
-                        string translatedText = await TranslatePreservingSeparatorsAsync(originalText, sourceLanguage, targetLanguage);
-                        if (string.IsNullOrEmpty(translatedText))
-                        {
-                            translatedText = originalText;
-                        }
-                        else if (!string.Equals(translatedText, originalText, StringComparison.Ordinal))
-                        {
+                        var translation = await TranslatePreservingSeparatorsAsync(
+                            originalText, sourceLanguage, targetLanguage, freeBudget.Token);
+                        string translatedText = translation.Text;
+                        // A valid translation can equal the source (names, numbers, same language).
+                        if (translation.Success)
                             successCount++;
-                        }
 
                         // Write the translated text to the output JSON
                         outputJson.WriteStartObject();
@@ -200,14 +184,14 @@ namespace RSTGameTranslation
             }
         }
 
-        private async Task<string> TranslatePreservingSeparatorsAsync(string text, string sourceLanguage, string targetLanguage)
+        private async Task<(string Text, bool Success)> TranslatePreservingSeparatorsAsync(string text, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken)
         {
             try
             {
                 if (!text.Contains(CombinedBlockSeparator, StringComparison.Ordinal))
                 {
-                    string? single = await TranslateSingleTextAsync(text, sourceLanguage, targetLanguage);
-                    return string.IsNullOrEmpty(single) ? text : single;
+                    string? single = await TranslateSingleTextAsync(text, sourceLanguage, targetLanguage, cancellationToken);
+                    return string.IsNullOrEmpty(single) ? (text, false) : (single, true);
                 }
 
                 string[] originalParts = text.Split(new[] { CombinedBlockSeparator }, StringSplitOptions.None);
@@ -231,7 +215,7 @@ namespace RSTGameTranslation
 
                 if (translatableParts.Count == 0)
                 {
-                    return text;
+                    return (text, false);
                 }
 
                 List<string?> translatedBatch;
@@ -244,7 +228,9 @@ namespace RSTGameTranslation
                     translatedBatch = new List<string?>(translatableParts.Count);
                     foreach (string part in translatableParts)
                     {
-                        translatedBatch.Add(await TranslateWithFreeServiceAsync(part, sourceLanguage, targetLanguage));
+                        if (cancellationToken.IsCancellationRequested)
+                            break;
+                        translatedBatch.Add(await TranslateFreePartAsync(part, sourceLanguage, targetLanguage, cancellationToken));
                     }
                 }
 
@@ -263,16 +249,16 @@ namespace RSTGameTranslation
 
                 string rebuiltText = string.Join(CombinedBlockSeparator, translatedParts);
                 Console.WriteLine($"Google Translate preserved separator across {translatedParts.Length} block(s)");
-                return rebuiltText;
+                return (rebuiltText, translatedBatch.Any(value => !string.IsNullOrWhiteSpace(value)));
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error preserving Google Translate separators: {ex.Message}");
-                return text;
+                return (text, false);
             }
         }
 
-        private async Task<string?> TranslateSingleTextAsync(string text, string sourceLanguage, string targetLanguage)
+        private async Task<string?> TranslateSingleTextAsync(string text, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken)
         {
             string normalizedText = NormalizeText(text);
             if (string.IsNullOrWhiteSpace(normalizedText))
@@ -285,7 +271,33 @@ namespace RSTGameTranslation
                 return await TranslateWithCloudApiAsync(normalizedText, sourceLanguage, targetLanguage);
             }
 
-            return await TranslateWithFreeServiceAsync(normalizedText, sourceLanguage, targetLanguage);
+            return await TranslateFreePartAsync(normalizedText, sourceLanguage, targetLanguage, cancellationToken);
+        }
+
+        internal static int GetFreeTranslationBudgetMs(JsonElement root)
+        {
+            int parts = 0;
+            if (root.TryGetProperty("text_blocks", out JsonElement blocks) && blocks.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement block in blocks.EnumerateArray())
+                {
+                    if (!block.TryGetProperty("text", out JsonElement text) || text.ValueKind != JsonValueKind.String)
+                        continue;
+                    foreach (string part in (text.GetString() ?? "").Split(CombinedBlockSeparator))
+                    {
+                        if (!string.IsNullOrWhiteSpace(part) && ++parts >= MaxFreeTranslationDurationMs / MaxFreePartDurationMs)
+                            return MaxFreeTranslationDurationMs;
+                    }
+                }
+            }
+            return Math.Max(1, parts) * MaxFreePartDurationMs;
+        }
+
+        private async Task<string?> TranslateFreePartAsync(string text, string source, string target, CancellationToken batchToken)
+        {
+            using var partBudget = CancellationTokenSource.CreateLinkedTokenSource(batchToken);
+            partBudget.CancelAfter(MaxFreePartDurationMs);
+            return await _freeClient.TranslateAsync(text, source, target, partBudget.Token);
         }
 
         private async Task<List<string?>> TranslateBatchWithCloudApiAsync(IReadOnlyList<string> texts, string sourceLanguage, string targetLanguage)
@@ -380,241 +392,6 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error translating text with Cloud API: {ex.Message}");
                 return null;
-            }
-        }
-        
-        /// <summary>
-        /// Translate a single text using Google Translate free web service.
-        /// Tries multiple endpoint variants with retry + exponential backoff to
-        /// work around Google's aggressive rate-limiting on the `gtx` client.
-        /// Returns null when all attempts fail so the caller can surface the error.
-        /// Hard-capped at <see cref="MaxPerBlockDurationMs"/> so the UI never
-        /// hangs on a single block.
-        /// </summary>
-        private async Task<string?> TranslateWithFreeServiceAsync(string text, string sourceLanguage, string targetLanguage)
-        {
-            string normalizedText = NormalizeText(text);
-            if (string.IsNullOrWhiteSpace(normalizedText))
-            {
-                return text;
-            }
-
-            // Log translation attempt (truncate long texts)
-            string logText = normalizedText.Length > 50
-                ? normalizedText.Substring(0, 50) + "..."
-                : normalizedText;
-            Console.WriteLine($"Translating with free service: {logText}");
-
-            // Per-block budget. If we exceed this we abort immediately and
-            // return null so the rest of the pipeline can keep moving.
-            CancellationTokenSource? budgetCts = null;
-            try
-            {
-                budgetCts = new CancellationTokenSource();
-                budgetCts.CancelAfter(MaxPerBlockDurationMs);
-                CancellationToken budgetToken = budgetCts.Token;
-
-                string? lastError = null;
-                Stopwatch budgetWatch = Stopwatch.StartNew();
-
-                // Try each endpoint variant in order. The `gtx` client is the canonical
-                // free Google Translate client but is aggressively rate-limited; the
-                // other variants ride the same backend with different identifiers and
-                // tend to have independent quotas.
-                for (int endpointIndex = 0; endpointIndex < FreeEndpointTemplates.Length; endpointIndex++)
-                {
-                    for (int attempt = 1; attempt <= MaxFreeRetriesPerEndpoint; attempt++)
-                    {
-                        if (budgetToken.IsCancellationRequested)
-                        {
-                            lastError = $"budget exceeded ({budgetWatch.ElapsedMilliseconds}ms)";
-                            break;
-                        }
-
-                        await ThrottleFreeRequestAsync(budgetToken);
-
-                        string url = string.Format(FreeEndpointTemplates[endpointIndex],
-                            sourceLanguage,
-                            targetLanguage,
-                            HttpUtility.UrlEncode(normalizedText));
-
-                        try
-                        {
-                            using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, budgetToken);
-
-                            // 429 = rate limited, 5xx = transient server error -> retry with backoff.
-                            if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
-                            {
-                                int retryDelayMs = ComputeRetryDelayMs(response, attempt);
-
-                                // If Google tells us to wait a long time, skip to
-                                // the next endpoint variant instead of blocking
-                                // the UI on a retry-after countdown.
-                                if (retryDelayMs > MaxPerBlockDurationMs / 2)
-                                {
-                                    lastError = $"HTTP {response.StatusCode} (long retry-after)";
-                                    Console.WriteLine($"Google Translate endpoint #{endpointIndex + 1} returned {response.StatusCode} with long retry-after; skipping to next endpoint");
-                                    break;
-                                }
-
-                                lastError = $"HTTP {response.StatusCode}";
-                                Console.WriteLine($"Google Translate endpoint #{endpointIndex + 1} returned {response.StatusCode} (attempt {attempt}/{MaxFreeRetriesPerEndpoint}); retrying in {retryDelayMs}ms");
-                                if (attempt < MaxFreeRetriesPerEndpoint)
-                                {
-                                    await Task.Delay(retryDelayMs, budgetToken);
-                                    continue;
-                                }
-                                break; // exhausted retries for this endpoint
-                            }
-
-                            if (!response.IsSuccessStatusCode)
-                            {
-                                lastError = $"HTTP {response.StatusCode}";
-                                Console.WriteLine($"Google Translate endpoint #{endpointIndex + 1} returned {response.StatusCode}; trying next endpoint");
-                                break;
-                            }
-
-                            string jsonResponse = await response.Content.ReadAsStringAsync();
-                            string? result = ParseFreeServiceJsonResponse(jsonResponse);
-                            if (!string.IsNullOrEmpty(result))
-                            {
-                                string logResult = result.Length > 50
-                                    ? result.Substring(0, 50) + "..."
-                                    : result;
-                                Console.WriteLine($"Translation result: {logResult} (took {budgetWatch.ElapsedMilliseconds}ms)");
-                                return result;
-                            }
-
-                            lastError = "empty result";
-                            Console.WriteLine($"Google Translate endpoint #{endpointIndex + 1} returned empty result (attempt {attempt}/{MaxFreeRetriesPerEndpoint})");
-                        }
-                        catch (TaskCanceledException ex) when (budgetToken.IsCancellationRequested)
-                        {
-                            lastError = "budget exceeded";
-                            Console.WriteLine($"Google Translate per-block budget exceeded after {budgetWatch.ElapsedMilliseconds}ms");
-                            break;
-                        }
-                        catch (TaskCanceledException ex)
-                        {
-                            lastError = "timeout";
-                            Console.WriteLine($"Google Translate timeout (endpoint #{endpointIndex + 1}, attempt {attempt}): {ex.Message}");
-                        }
-                        catch (HttpRequestException ex)
-                        {
-                            lastError = ex.Message;
-                            Console.WriteLine($"Google Translate network error (endpoint #{endpointIndex + 1}, attempt {attempt}): {ex.Message}");
-                        }
-                        catch (JsonException ex)
-                        {
-                            lastError = ex.Message;
-                            Console.WriteLine($"Google Translate JSON parse error (endpoint #{endpointIndex + 1}, attempt {attempt}): {ex.Message}");
-                        }
-                    }
-
-                    if (budgetToken.IsCancellationRequested)
-                    {
-                        break;
-                    }
-                }
-
-                Console.WriteLine($"Google Translate free service failed for all endpoints: {lastError ?? "unknown"} ({budgetWatch.ElapsedMilliseconds}ms)");
-                return null;
-            }
-            finally
-            {
-                budgetCts?.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Parses a translate_a/single JSON response and concatenates all
-        /// translation segments. Returns null if the payload is malformed or empty.
-        /// </summary>
-        private static string? ParseFreeServiceJsonResponse(string jsonResponse)
-        {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                JsonElement outerArray = doc.RootElement;
-                if (outerArray.GetArrayLength() == 0)
-                {
-                    return null;
-                }
-
-                StringBuilder translatedText = new StringBuilder();
-                JsonElement translationArray = outerArray[0];
-                foreach (JsonElement segment in translationArray.EnumerateArray())
-                {
-                    if (segment.GetArrayLength() > 0 && segment[0].ValueKind == JsonValueKind.String)
-                    {
-                        translatedText.Append(segment[0].GetString() ?? "");
-                    }
-                }
-
-                string result = translatedText.ToString();
-                return string.IsNullOrEmpty(result) ? null : result;
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Computes how long to wait before the next retry. Honors the server's
-        /// Retry-After header when present, otherwise uses exponential backoff
-        /// with jitter. The returned delay is capped to avoid blocking the UI.
-        /// </summary>
-        private static int ComputeRetryDelayMs(HttpResponseMessage response, int attempt)
-        {
-            if (response.Headers.RetryAfter != null)
-            {
-                if (response.Headers.RetryAfter.Delta.HasValue)
-                {
-                    int delta = (int)response.Headers.RetryAfter.Delta.Value.TotalMilliseconds;
-                    if (delta > 0)
-                    {
-                        return Math.Min(Math.Max(delta, 200), MaxPerBlockDurationMs);
-                    }
-                }
-                if (response.Headers.RetryAfter.Date.HasValue)
-                {
-                    int delta = (int)(response.Headers.RetryAfter.Date.Value - DateTime.UtcNow).TotalMilliseconds;
-                    if (delta > 0)
-                    {
-                        return Math.Min(Math.Max(delta, 200), MaxPerBlockDurationMs);
-                    }
-                }
-            }
-
-            // Exponential backoff with jitter: ~250ms, 500ms + 0-150ms.
-            int baseDelay = (int)(Math.Pow(2, attempt - 1) * 250);
-            int jitter = Random.Shared.Next(0, 150);
-            return baseDelay + jitter;
-        }
-
-        /// <summary>
-        /// Enforces a minimum interval between free-endpoint requests to avoid
-        /// bursting Google's rate limiter. Honors the per-block budget so we
-        /// don't sleep into the timeout.
-        /// </summary>
-        private static async Task ThrottleFreeRequestAsync(CancellationToken cancellationToken)
-        {
-            int delayMs = 0;
-            lock (_throttleLock)
-            {
-                DateTime now = DateTime.UtcNow;
-                double elapsedMs = (now - _lastFreeRequestUtc).TotalMilliseconds;
-                if (elapsedMs < MinFreeRequestIntervalMs)
-                {
-                    delayMs = (int)(MinFreeRequestIntervalMs - elapsedMs);
-                }
-                _lastFreeRequestUtc = now.AddMilliseconds(delayMs);
-            }
-
-            if (delayMs > 0)
-            {
-                await Task.Delay(delayMs, cancellationToken);
             }
         }
         
