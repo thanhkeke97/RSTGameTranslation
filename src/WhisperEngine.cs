@@ -151,6 +151,7 @@ namespace RSTGameTranslation
                 "central kurdish" or "ckb" => "ckb",
                 "bengali" or "bn" => "bn",
                 "greek" or "el" => "el",
+                "hebrew" or "he" or "iw" => "he",
                 _ => language
             };
         }

@@ -323,6 +323,7 @@
                                     <ComboBoxItem Content="ckb"/>
                                     <ComboBoxItem Content="bn"/>
                                     <ComboBoxItem Content="el"/>
+                                    <ComboBoxItem Content="he"/>
                                 </ComboBox>
 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -369,6 +370,7 @@
                                     <ComboBoxItem Content="bn"/>
                                     <ComboBoxItem Content="ckb"/>
                                     <ComboBoxItem Content="el"/>
+                                    <ComboBoxItem Content="he"/>
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -462,6 +464,8 @@
                                 <Run>bn = Bengali</Run>
                                 <LineBreak/>
                                 <Run>el = Greek</Run>
+                                <LineBreak/>
+                                <Run>he = Hebrew</Run>
                             </TextBlock>
                             </Grid>
                         </GroupBox>

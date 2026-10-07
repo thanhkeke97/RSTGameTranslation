@@ -434,6 +434,7 @@ namespace RSTGameTranslation
                 "central kurdish" or "ckb" => "ckb",
                 "bengali" or "bn" => "bn",
                 "greek" or "el" => "el",
+                "hebrew" or "he" or "iw" => "iw", // Google's legacy code for Hebrew, accepted by all endpoints
                 _ => language
             };
         }

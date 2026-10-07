@@ -181,7 +181,8 @@ namespace RSTGameTranslation
                 "fi",
                 "ckb",
                 "bn",
-                "el"
+                "el",
+                "he"
             };
 
             // Sort languages alphabetically

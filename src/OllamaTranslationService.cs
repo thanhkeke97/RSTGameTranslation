@@ -9,6 +9,10 @@ namespace RSTGameTranslation
 {
     public class OllamaTranslationService : ITranslationService
     {
+        // Shared across instances (a new service is created per translation) so connections are reused.
+        // Local models can be slow, hence the long timeout.
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
+
         /// <summary>
         /// Translate text using the Ollama API
         /// </summary>
@@ -29,6 +33,7 @@ namespace RSTGameTranslation
                     model = ollamaModel, // Use model from config
                     prompt = $"{prompt}\n{jsonData}",
                     stream = false,
+                    keep_alive = "30m", // Keep the model loaded between translations (default unloads after 5 min idle)
                     options = new
                     {
                         temperature = ConfigManager.Instance.GetOllamaTemperature(),
@@ -47,175 +52,169 @@ namespace RSTGameTranslation
                 
                 Console.WriteLine($"Sending request to Ollama API at: {ollamaEndpoint}");
                 
-                // Create a new HttpClient with a longer timeout
-                using (var client = new HttpClient())
+                HttpResponseMessage response = await _httpClient.PostAsync(ollamaEndpoint, content);
+                
+                if (response.IsSuccessStatusCode)
                 {
-                    client.Timeout = TimeSpan.FromMinutes(2); // 2 minute timeout
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+                    TranslationErrorNotifier.Reset("Ollama");
                     
-                    HttpResponseMessage response = await client.PostAsync(ollamaEndpoint, content);
+                    // Log the raw Ollama response before any processing
                     
-                    if (response.IsSuccessStatusCode)
+                    // Parse the Ollama response which has a different format from Gemini
+                    try
                     {
-                        string jsonResponse = await response.Content.ReadAsStringAsync();
-                        TranslationErrorNotifier.Reset("Ollama");
-                        
-                        // Log the raw Ollama response before any processing
-                        
-                        // Parse the Ollama response which has a different format from Gemini
+                        using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+                        string responseText = doc.RootElement.GetProperty("response").GetString() ?? "";
+                        LogManager.Instance.LogLlmReply(responseText); //we could log this earlier, but it
+                        //has all this "context" # crap that Ollama returns that we don't want to log
+
+                        // Check if the response contains nested JSON
                         try
                         {
-                            using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                            string responseText = doc.RootElement.GetProperty("response").GetString() ?? "";
-                            LogManager.Instance.LogLlmReply(responseText); //we could log this earlier, but it
-                            //has all this "context" # crap that Ollama returns that we don't want to log
-
-                            // Check if the response contains nested JSON
-                            try
+                            // Trim possible markdown code blocks or extra text
+                            responseText = responseText.Trim();
+                            if (responseText.StartsWith("```json"))
                             {
-                                // Trim possible markdown code blocks or extra text
-                                responseText = responseText.Trim();
-                                if (responseText.StartsWith("```json"))
+                                int endIndex = responseText.IndexOf("```", 7);
+                                if (endIndex > 0)
                                 {
-                                    int endIndex = responseText.IndexOf("```", 7);
-                                    if (endIndex > 0)
-                                    {
-                                        responseText = responseText.Substring(7, endIndex - 7).Trim();
-                                    }
+                                    responseText = responseText.Substring(7, endIndex - 7).Trim();
+                                }
+                            }
+                            
+                            // If the response doesn't start with '{', look for JSON within the text
+                            if (!responseText.StartsWith("{"))
+                            {
+                                int jsonStart = responseText.IndexOf('{');
+                                int jsonEnd = responseText.LastIndexOf('}');
+                                
+                                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                                {
+                                    responseText = responseText.Substring(jsonStart, jsonEnd - jsonStart + 1);
+                                }
+                            }
+                            
+                            Console.WriteLine($"Attempting to parse nested JSON: {responseText}");
+                            
+                            using JsonDocument nestedDoc = JsonDocument.Parse(responseText);
+                            
+                            // Try to find text_blocks array which contains translations
+                            if (nestedDoc.RootElement.TryGetProperty("text_blocks", out JsonElement textBlocks) && 
+                                textBlocks.ValueKind == JsonValueKind.Array)
+                            {
+                                // Don't extract just the text - we want to keep the entire JSON structure
+                                // This ensures Logic.cs gets the complete JSON with text_blocks
+                                Console.WriteLine("Found structured JSON with text_blocks - keeping entire JSON structure");
+                                
+                                // Ensure the responseText is the entire JSON object
+                                // responseText is already set to the entire JSON
+                            }
+                            else
+                            {
+                                // If we don't have the structured JSON we expect, try to extract text
+                                // Extract text from the first text block or combine all blocks
+                                StringBuilder combinedText = new StringBuilder();
+                                
+                                // Nested blocks may vary, so try to handle different structures
+                                
+                                // Try to find any text property at the root level
+                                if (nestedDoc.RootElement.TryGetProperty("text", out JsonElement rootTextProp))
+                                {
+                                    combinedText.AppendLine(rootTextProp.GetString());
                                 }
                                 
-                                // If the response doesn't start with '{', look for JSON within the text
-                                if (!responseText.StartsWith("{"))
+                                if (combinedText.Length > 0)
                                 {
-                                    int jsonStart = responseText.IndexOf('{');
-                                    int jsonEnd = responseText.LastIndexOf('}');
-                                    
-                                    if (jsonStart >= 0 && jsonEnd > jsonStart)
-                                    {
-                                        responseText = responseText.Substring(jsonStart, jsonEnd - jsonStart + 1);
-                                    }
-                                }
-                                
-                                Console.WriteLine($"Attempting to parse nested JSON: {responseText}");
-                                
-                                using JsonDocument nestedDoc = JsonDocument.Parse(responseText);
-                                
-                                // Try to find text_blocks array which contains translations
-                                if (nestedDoc.RootElement.TryGetProperty("text_blocks", out JsonElement textBlocks) && 
-                                    textBlocks.ValueKind == JsonValueKind.Array)
-                                {
-                                    // Don't extract just the text - we want to keep the entire JSON structure
-                                    // This ensures Logic.cs gets the complete JSON with text_blocks
-                                    Console.WriteLine("Found structured JSON with text_blocks - keeping entire JSON structure");
-                                    
-                                    // Ensure the responseText is the entire JSON object
-                                    // responseText is already set to the entire JSON
+                                    responseText = combinedText.ToString().Trim();
                                 }
                                 else
                                 {
-                                    // If we don't have the structured JSON we expect, try to extract text
-                                    // Extract text from the first text block or combine all blocks
-                                    StringBuilder combinedText = new StringBuilder();
-                                    
-                                    // Nested blocks may vary, so try to handle different structures
-                                    
-                                    // Try to find any text property at the root level
-                                    if (nestedDoc.RootElement.TryGetProperty("text", out JsonElement rootTextProp))
-                                    {
-                                        combinedText.AppendLine(rootTextProp.GetString());
-                                    }
-                                    
-                                    if (combinedText.Length > 0)
-                                    {
-                                        responseText = combinedText.ToString().Trim();
-                                    }
-                                    else
-                                    {
-                                        // Just use the entire cleaned JSON object as is - Logic.cs can handle it
-                                        // Keep the responseText as the cleaned JSON
-                                        Console.WriteLine("Using the entire JSON object as responseText");
-                                    }
+                                    // Just use the entire cleaned JSON object as is - Logic.cs can handle it
+                                    // Keep the responseText as the cleaned JSON
+                                    Console.WriteLine("Using the entire JSON object as responseText");
                                 }
                             }
-                            catch (JsonException ex)
+                        }
+                        catch (JsonException ex)
+                        {
+                            // If nested parsing fails, use the original response text
+                            Console.WriteLine($"Could not parse nested JSON, using raw response: {ex.Message}");
+                        }
+                        
+                        // Process the response to match what Logic.cs expects from Gemini
+                        var formattedResponse = new
+                        {
+                            candidates = new[]
                             {
-                                // If nested parsing fails, use the original response text
-                                Console.WriteLine($"Could not parse nested JSON, using raw response: {ex.Message}");
-                            }
-                            
-                            // Process the response to match what Logic.cs expects from Gemini
-                            var formattedResponse = new
-                            {
-                                candidates = new[]
+                                new
                                 {
-                                    new
+                                    content = new
                                     {
-                                        content = new
+                                        parts = new[]
                                         {
-                                            parts = new[]
+                                            new
                                             {
-                                                new
-                                                {
-                                                    text = responseText
-                                                }
+                                                text = responseText
                                             }
                                         }
                                     }
                                 }
-                            };
-                            
-                            return JsonSerializer.Serialize(formattedResponse, jsonOptions);
-                        }
-                        catch (JsonException jex)
+                            }
+                        };
+                        
+                        return JsonSerializer.Serialize(formattedResponse, jsonOptions);
+                    }
+                    catch (JsonException jex)
+                    {
+                        Console.WriteLine($"Error parsing Ollama response: {jex.Message}");
+                        Console.WriteLine($"Raw response: {jsonResponse}");
+                        return null;
+                    }
+                }
+                else
+                {
+                    string errorMessage = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Ollama API error: {response.StatusCode}, {errorMessage}");
+                    
+                    // Try to parse the error message from JSON if possible
+                    try
+                    {
+                        using JsonDocument errorDoc = JsonDocument.Parse(errorMessage);
+                        if (errorDoc.RootElement.TryGetProperty("error", out JsonElement errorElement))
                         {
-                            Console.WriteLine($"Error parsing Ollama response: {jex.Message}");
-                            Console.WriteLine($"Raw response: {jsonResponse}");
+                            string detailedError = errorElement.GetString() ?? errorMessage;
+                            
+                            // Show error message to user
+                            TranslationErrorNotifier.ShowOnce("Ollama",
+                                string.Format(LocalizationManager.Instance.Strings["Msg_OllamaError"], detailedError),
+                                LocalizationManager.Instance.Strings["Title_OllamaError"]);
+                            
                             return null;
                         }
                     }
-                    else
+                    catch (JsonException)
                     {
-                        string errorMessage = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine($"Ollama API error: {response.StatusCode}, {errorMessage}");
-                        
-                        // Try to parse the error message from JSON if possible
-                        try
-                        {
-                            using JsonDocument errorDoc = JsonDocument.Parse(errorMessage);
-                            if (errorDoc.RootElement.TryGetProperty("error", out JsonElement errorElement))
-                            {
-                                string detailedError = errorElement.GetString() ?? errorMessage;
-                                
-                                // Show error message to user
-                                TranslationErrorNotifier.ShowOnce("Ollama",
-                                    string.Format(LocalizationManager.Instance.Strings["Msg_OllamaError"], detailedError),
-                                    LocalizationManager.Instance.Strings["Title_OllamaError"]);
-                                
-                                return null;
-                            }
-                        }
-                        catch (JsonException)
-                        {
-                            // If we can't parse as JSON, just use the raw message
-                        }
-                        
-                        // Show general error if JSON parsing failed
-                        TranslationErrorNotifier.ShowOnce("Ollama",
-                            string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiErrorStatus"], response.StatusCode, errorMessage),
-                            LocalizationManager.Instance.Strings["Title_OllamaError"]);
-                        
-                        return null;
+                        // If we can't parse as JSON, just use the raw message
                     }
+                    
+                    // Show general error if JSON parsing failed
+                    TranslationErrorNotifier.ShowOnce("Ollama",
+                        string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiErrorStatus"], response.StatusCode, errorMessage),
+                        LocalizationManager.Instance.Strings["Title_OllamaError"]);
+                    
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Ollama API error: {ex.Message}");
-                
+            
                 // Show error message to user for other exceptions
                 TranslationErrorNotifier.ShowOnce("Ollama",
                     string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiException"], ex.Message),
                     LocalizationManager.Instance.Strings["Title_OllamaError"]);
-                
+            
                 return null;
             }
         }

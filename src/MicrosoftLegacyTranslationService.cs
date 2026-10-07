@@ -15,7 +15,8 @@ namespace RSTGameTranslation
     public class MicrosoftLegacyTranslationService : ITranslationService
     {
         private const string CombinedBlockSeparator = "##|||##";
-        private readonly HttpClient _httpClient;
+        // Shared across instances (a new service is created per translation) so connections are reused
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         private readonly string _singleKey;
 
         // Default private key 
@@ -28,7 +29,6 @@ namespace RSTGameTranslation
 
         public MicrosoftLegacyTranslationService()
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
             _singleKey = ConfigManager.Instance.GetMicrosoftApiKey();
         }
 
@@ -106,6 +106,7 @@ namespace RSTGameTranslation
                 "central kurdish" or "ckb" => "ku",
                 "bengali" or "bn" => "bn",
                 "greek" or "el" => "el",
+                "hebrew" or "he" or "iw" => "he",
                 "auto" or "auto-detect" or "auto_detect" => "auto",
                 _ => language
             };

@@ -16,23 +16,16 @@ namespace RSTGameTranslation
     /// </summary>
     public class YandexTranslationService : ITranslationService
     {
-        private readonly HttpClient _httpClient;
+        // Shared across instances (a new service is created per translation) so connections are reused
+        private static readonly HttpClient _httpClient = CreateHttpClient();
 
-        public YandexTranslationService()
+        private static HttpClient CreateHttpClient()
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-
-            if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
-            {
-                _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
-            }
-
-            if (!_httpClient.DefaultRequestHeaders.Contains("Origin"))
-            {
-                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Origin", "https://translate.yandex.com");
-            }
-
-            _httpClient.DefaultRequestHeaders.Referrer = new Uri("https://translate.yandex.com/");
+            var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Origin", "https://translate.yandex.com");
+            client.DefaultRequestHeaders.Referrer = new Uri("https://translate.yandex.com/");
+            return client;
         }
 
         public async Task<string?> TranslateAsync(string jsonData, string prompt)
@@ -336,6 +329,7 @@ namespace RSTGameTranslation
                 "central kurdish" or "ckb" => "ckb",
                 "bengali" or "bn" => "bn",
                 "greek" or "el" => "el",
+                "hebrew" or "he" or "iw" => "he",
                 _ => language
             };
         }
