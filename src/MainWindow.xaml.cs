@@ -1173,7 +1173,7 @@ namespace RSTGameTranslation
             // Register the LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
             this.LocationChanged += MainWindow_LocationChanged;
             // ToggleMonitorWindow();
-            CheckAndShowQuickstart();
+            CheckAndShowWelcome();
 
             // Load screen selection list
             LoadScreenList();
@@ -1804,7 +1804,7 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    Console.WriteLine($"Capturing entire window: Width={windowWidth}, Height={windowHeight}");
+                    // Console.WriteLine($"Capturing entire window: Width={windowWidth}, Height={windowHeight}");
 
                     Logic.Instance.SetCurrentCapturePosition(rect.Left, rect.Top);
                 }
@@ -3625,9 +3625,25 @@ namespace RSTGameTranslation
 
         private void QuickStartButton_Click(object sender, RoutedEventArgs e)
         {
-            QuickstartWindow quickstartWindow = new QuickstartWindow();
-            quickstartWindow.Owner = this;
-            quickstartWindow.ShowDialog();
+            ShowWelcomeWindow();
+        }
+
+        private void ShowWelcomeWindow()
+        {
+            var welcomeWindow = new WelcomeWindow { Owner = this };
+            if (welcomeWindow.ShowDialog() != true)
+            {
+                return;
+            }
+
+            // The welcome screen saves the language pair to config; OCR reads it from these combo boxes
+            LoadLanguageSettingsFromConfig();
+            Logic.Instance.ClearAllTextObjects();
+
+            if (welcomeWindow.OpenSettingsRequested)
+            {
+                SettingsButton_Click(settingsButton, new RoutedEventArgs());
+            }
         }
 
         private void DonateButton_Click(object sender, RoutedEventArgs e)
@@ -3640,15 +3656,11 @@ namespace RSTGameTranslation
             });
         }
 
-        private void CheckAndShowQuickstart()
+        private void CheckAndShowWelcome()
         {
-            bool showQuickstart = ConfigManager.Instance.IsNeedShowQuickStart();
-
-            if (showQuickstart)
+            if (ConfigManager.Instance.IsNeedShowQuickStart())
             {
-                QuickstartWindow quickstartWindow = new QuickstartWindow();
-                quickstartWindow.Owner = this;
-                quickstartWindow.ShowDialog();
+                ShowWelcomeWindow();
             }
         }
 
