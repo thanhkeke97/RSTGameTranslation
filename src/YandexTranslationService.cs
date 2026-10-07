@@ -20,7 +20,7 @@ namespace RSTGameTranslation
 
         public YandexTranslationService()
         {
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
             if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
             {

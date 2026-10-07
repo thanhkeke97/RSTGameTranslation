@@ -36,10 +36,8 @@ namespace RSTGameTranslation
         private DispatcherTimer _reconnectTimer;
         private string _lastOcrHash = string.Empty;
         private string _lastTextContent = string.Empty;
-
-        // Cached stop words to avoid re-allocating large HashSets every OCR frame
-        private string _cachedStopWordsLanguage = string.Empty;
-        private HashSet<string> _cachedStopWords = new HashSet<string>();
+        // Last OCR text logged as skipped, so a static screen is logged once instead of every frame
+        private string _lastSkipLoggedText = string.Empty;
 
         // Track the current capture position
         private int _currentCaptureX;
@@ -242,6 +240,7 @@ namespace RSTGameTranslation
         public void ResetHash()
         {
             _lastOcrHash = "";
+            _lastTextContent = string.Empty;
             _lastChangeTime = DateTime.Now;
         }
 
@@ -329,16 +328,13 @@ namespace RSTGameTranslation
                                     // Assign each part to the corresponding text object
                                     for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
                                     {
-                                        // Clean up the translated text - remove any remaining separators that might have been part of the translation
-                                        // Use regex to handle all variations of the separator with different spacing
+                                        // Clean up the translated text - remove any remaining (possibly mangled) ##|||## separators.
+                                        // Only fragments around "|||" are removed, so real text such as "#1" is left intact.
                                         string cleanTranslatedText = System.Text.RegularExpressions.Regex.Replace(
                                             translatedParts[j],
-                                            @"\#{2}\s*\|\|\|\s*\#{2}",
+                                            @"#{0,2}\s*\|{3}\s*#{0,2}",
                                             ""
                                         );
-                                        // Also clean up any potential fragments
-                                        cleanTranslatedText = cleanTranslatedText.Replace("|||", "");
-                                        cleanTranslatedText = cleanTranslatedText.Replace("##", "");
 
                                         // Apply RTL specific handling if needed
                                         if (isRtlLanguage)
@@ -528,13 +524,16 @@ namespace RSTGameTranslation
 
                                 // Handle settle time if enabled
                                 double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
+                                double similarThreshold = ConfigManager.Instance.GetTextSimilarThreshold();
+                                bool hashMatch = contentHash == _lastOcrHash;
+                                double similarity = 0.0;
                                 if (settleTime > 0)
                                 {
-                                    if (contentHash == _lastOcrHash || IsTextSimilar(textContent, _lastTextContent, Convert.ToDouble(ConfigManager.Instance.GetTextSimilarThreshold())))
+                                    if (hashMatch || IsTextSimilar(textContent, _lastTextContent, similarThreshold, out similarity))
                                     {
                                         if (_lastChangeTime == DateTime.MinValue)
                                         {
-                                            Console.WriteLine("Content is similar to previous, skipping translation");
+                                            LogSimilaritySkip(hashMatch, similarity, similarThreshold, textContent);
                                             OnFinishedThings(true);
                                             return; // Already rendered it, just ignore until it changes again
                                         }
@@ -558,6 +557,7 @@ namespace RSTGameTranslation
                                         _lastChangeTime = DateTime.Now;
                                         _lastOcrHash = contentHash;
                                         _lastTextContent = textContent;
+                                        _lastSkipLoggedText = string.Empty;
 
                                         //only run if translation is still active
                                         if (MainWindow.Instance.GetIsStarted())
@@ -571,15 +571,16 @@ namespace RSTGameTranslation
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
                                 }
-                                else if (IsTextSimilar(textContent, _lastTextContent, Convert.ToDouble(ConfigManager.Instance.GetTextSimilarThreshold())))
+                                else if (IsTextSimilar(textContent, _lastTextContent, similarThreshold, out similarity))
                                 {
-                                    Console.WriteLine("Content is similar to previous, skipping translation");
+                                    LogSimilaritySkip(false, similarity, similarThreshold, textContent);
                                     OnFinishedThings(true);
                                     return;
                                 }
                                 // Looks like new stuff
                                 _lastOcrHash = contentHash;
                                 _lastTextContent = textContent;
+                                _lastSkipLoggedText = string.Empty;
                                 double scale = BlockDetectionManager.Instance.GetBlockDetectionScale();
                                 Console.WriteLine($"Character-level processing (scale={scale:F2}): {resultsElement.GetArrayLength()} characters → {modifiedResults.GetArrayLength()} blocks");
 
@@ -702,329 +703,64 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
-        /// Determines if two text strings are similar based on multiple similarity metrics.
-        /// Automatically selects the best strategy depending on whether the source language
-        /// is a CJK (character-based, no word boundaries) or a space-delimited language.
+        /// Determines if two text strings are similar using normalized Levenshtein similarity.
+        /// Order-aware, so it tolerates small OCR noise but does not treat two different
+        /// sentences that merely share common words/characters as the same text.
         /// </summary>
         /// <param name="s1">First text string to compare</param>
         /// <param name="s2">Second text string to compare</param>
         /// <param name="threshold">Similarity threshold (0.0-1.0) to consider texts as similar</param>
+        /// <param name="similarity">The computed similarity score (0.0-1.0)</param>
         /// <returns>True if texts are considered similar, false otherwise</returns>
-        private bool IsTextSimilar(string s1, string s2, double threshold = 0.7)
+        private bool IsTextSimilar(string s1, string s2, double threshold, out double similarity)
         {
+            similarity = 0.0;
+
             // Handle special cases
-            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) return true;
+            if (string.IsNullOrEmpty(s1) && string.IsNullOrEmpty(s2)) { similarity = 1.0; return true; }
             if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2)) return false;
-            if (s1 == s2) return true;
 
-            // For very short strings, use exact matching with trimming
-            if (s1.Length < 5 || s2.Length < 5)
+            string n1 = NormalizeTextForComparison(s1);
+            string n2 = NormalizeTextForComparison(s2);
+            if (n1 == n2) { similarity = 1.0; return true; }
+
+            // For very short strings, only exact matching (already checked above) counts
+            if (n1.Length < 5 || n2.Length < 5) return false;
+
+            // Levenshtein similarity can never exceed the length ratio, so skip the expensive
+            // computation when the lengths alone already rule out a match
+            double lengthRatio = Math.Min(n1.Length, n2.Length) / (double)Math.Max(n1.Length, n2.Length);
+            if (lengthRatio < threshold)
             {
-                return s1.Trim().Equals(s2.Trim(), StringComparison.OrdinalIgnoreCase);
+                similarity = lengthRatio;
+                return false;
             }
 
-            // Choose strategy based on language type
-            string language = GetSourceLanguage().ToLowerInvariant();
-            bool isCjk = language is "ja" or "ch_sim" or "ch_tra" or "ko";
-
-            if (isCjk)
-            {
-                // For CJK languages (no word boundaries), word-based metrics are useless.
-                // Use character-level and n-gram metrics instead.
-                double charNgramSim = CombinedAsianLanguageSimilarity(s1, s2);
-                if (charNgramSim >= threshold) return true;
-
-                double diceSim = DiceCoefficient(s1, s2);
-                return diceSim >= threshold;
-            }
-            else
-            {
-                // For space-delimited languages, use word-based + character-level metrics
-                // with early exit as soon as any metric exceeds the threshold.
-                double keywordSim = KeywordSimilarity(s1, s2);
-                if (keywordSim >= threshold) return true;
-
-                double diceSim = DiceCoefficient(s1, s2);
-                if (diceSim >= threshold) return true;
-
-                double wordOverlapSim = WordOverlapSimilarity(s1, s2);
-                return wordOverlapSim >= threshold;
-            }
+            similarity = CalculateTextSimilarity(n1, n2);
+            return similarity >= threshold;
         }
 
         /// <summary>
-        /// Calculate similarity for CJK languages using character overlap + trigram metrics.
-        /// Better than word-based methods for languages without word boundaries.
+        /// Logs why an OCR result was skipped as similar to the previous one, so false positives can be diagnosed.
+        /// Each distinct OCR text is logged only once, since a static screen is skipped on every frame.
         /// </summary>
-        private double CombinedAsianLanguageSimilarity(string s1, string s2)
+        private void LogSimilaritySkip(bool hashMatch, double similarity, double threshold, string textContent)
         {
-            // Compare the strings using the Dice coefficient
-            int commonChars = 0;
-            HashSet<char> chars1 = new HashSet<char>(s1);
-            HashSet<char> chars2 = new HashSet<char>(s2);
+            static string Truncate(string text) =>
+                text.Length <= 80 ? text : text.Substring(0, 80) + "...";
 
-            foreach (char c in chars1)
+            if (textContent == _lastSkipLoggedText) return;
+            _lastSkipLoggedText = textContent;
+
+            if (hashMatch)
             {
-                if (chars2.Contains(c))
-                {
-                    commonChars++;
-                }
+                Console.WriteLine("Content is similar to previous, skipping translation (hash match)");
+                return;
             }
 
-            double characterSimilarity = chars1.Count > 0 && chars2.Count > 0
-                ? (double)commonChars / Math.Max(chars1.Count, chars2.Count)
-                : 0;
-
-            double ngramSimilarity = CalculateNgramSimilarity(s1, s2, 3);
-
-            // Compare the strings base on length ratio
-            double lengthRatio = Math.Min(s1.Length, s2.Length) / (double)Math.Max(s1.Length, s2.Length);
-
-            // Combine the similarity scores
-            double charWeight = 0.4;
-            double ngramWeight = 0.5;
-            double lengthWeight = 0.1;
-
-            // Calculate the combined similarity score
-            return (characterSimilarity * charWeight) +
-                (ngramSimilarity * ngramWeight) +
-                (lengthRatio * lengthWeight);
-        }
-
-
-        private double CalculateNgramSimilarity(string s1, string s2, int n)
-        {
-            // If the length of either string is less than n, reduce n to the length of the shorter string
-            if (s1.Length < n || s2.Length < n)
-            {
-                n = Math.Min(s1.Length, s2.Length);
-                if (n == 0) return 0;
-            }
-
-            // Create a HashSet to store the n-grams of each string
-            var ngrams1 = new HashSet<string>();
-            var ngrams2 = new HashSet<string>();
-
-            // Create n-grams for the first string
-            for (int i = 0; i <= s1.Length - n; i++)
-            {
-                ngrams1.Add(s1.Substring(i, n));
-            }
-
-            // Create n-grams for the second string
-            for (int i = 0; i <= s2.Length - n; i++)
-            {
-                ngrams2.Add(s2.Substring(i, n));
-            }
-
-            // Count the number of common n-grams
-            int intersectionCount = 0;
-            foreach (var ngram in ngrams1)
-            {
-                if (ngrams2.Contains(ngram))
-                {
-                    intersectionCount++;
-                }
-            }
-
-            // Calculate the Dice coefficient
-            return ngrams1.Count > 0 && ngrams2.Count > 0
-                ? (2.0 * intersectionCount) / (ngrams1.Count + ngrams2.Count)
-                : 0;
-        }
-
-        /// <summary>
-        /// Calculate the similarity between two strings based on their keywords
-        /// </summary>
-        private double KeywordSimilarity(string s1, string s2)
-        {
-            // Get stop words for the current language (cached)
-            HashSet<string> stopWords = GetStopWordsForCurrentLanguage();
-
-            // Separate the strings into words and filter out stop words in one pass
-            var keywords1 = new HashSet<string>(
-                s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
-                    StringSplitOptions.RemoveEmptyEntries)
-                    .Select(w => w.ToLowerInvariant())
-                    .Where(w => !stopWords.Contains(w))
-            );
-
-            var keywords2 = new HashSet<string>(
-                s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
-                    StringSplitOptions.RemoveEmptyEntries)
-                    .Select(w => w.ToLowerInvariant())
-                    .Where(w => !stopWords.Contains(w))
-            );
-
-            // If either set is empty, use Dice coefficient on the original strings
-            if (keywords1.Count == 0 || keywords2.Count == 0)
-            {
-                return DiceCoefficient(s1, s2);
-            }
-
-            // Calculate intersection size efficiently using LINQ
-            int commonKeywords = keywords1.Count(keyword => keywords2.Contains(keyword));
-
-            // Calculate the Dice coefficient: 2*|X∩Y|/(|X|+|Y|)
-            return (2.0 * commonKeywords) / (keywords1.Count + keywords2.Count);
-        }
-
-        /// <summary>
-        /// Get stop words for the current language (cached — only rebuilds when language changes)
-        /// </summary>
-        private HashSet<string> GetStopWordsForCurrentLanguage()
-        {
-            // Get the current language code
-            string language = GetSourceLanguage().ToLowerInvariant();
-
-            // Return cached set if language hasn't changed
-            if (language == _cachedStopWordsLanguage && _cachedStopWords.Count > 0)
-                return _cachedStopWords;
-
-            _cachedStopWordsLanguage = language;
-            _cachedStopWords = language switch
-            {
-                "ja" => new HashSet<string> {
-                    "の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ", "さ", "ある", "いる",
-                    "も", "する", "から", "な", "こと", "として", "い", "や", "れる", "など", "なっ", "ない",
-                    "この", "ため", "その", "あっ", "よう", "また", "もの", "という", "あり", "まで", "られ",
-                    "なる", "へ", "か", "だ", "これ", "によって", "により", "おり", "より", "による", "ず",
-                    "なり", "られる", "において", "ば", "なかっ", "なく", "しかし", "について", "せ", "だっ",
-                    "その後", "できる", "それ", "う", "ので", "なお", "のみ", "でき", "き", "つ", "における",
-                    "および", "いう", "さらに", "でも", "ら", "たり", "その他", "に関する", "たち", "ます",
-                    "ん", "なら", "に対して", "特に", "せる", "及び", "これら", "とき", "では", "にて", "ほか",
-                    "ながら", "うち", "そして", "とともに", "ただし", "かつて", "それぞれ", "または", "お",
-                    "ほど", "ものの", "に対する", "ほとんど", "と共に", "といった", "です", "とも", "ところ", "ここ"
-                },
-                "ch_tra" => new HashSet<string> {
-                    "的", "了", "和", "是", "就", "都", "而", "及", "與", "著", "或", "一個", "沒有",
-                    "我們", "你們", "他們", "她們", "自己", "其中", "之後", "什麼", "一些", "這個", "那個",
-                    "這些", "那些", "每個", "各自", "的話", "一樣", "不同", "因此", "因為", "所以", "如果",
-                    "但是", "不過", "只是", "除了", "以及", "然後", "現在", "曾經", "已經", "一直", "將來",
-                    "一定", "可能", "應該", "需要", "不能", "可以", "不要", "不會", "那麼", "如何", "為何",
-                    "怎樣", "哪裡", "誰", "什麼", "為什麼", "多少", "幾時", "如何", "怎樣", "哪裡", "從哪裡", "到哪裡"
-                },
-                "ch_sim" => new HashSet<string> {
-                    "的", "了", "和", "是", "就", "都", "而", "及", "與", "著", "或", "一個", "沒有",
-                    "我們", "你們", "他們", "她們", "自己", "其中", "之後", "什麼", "一些", "這個", "那個",
-                    "這些", "那些", "每個", "各自", "的話", "一樣", "不同", "因此", "因為", "所以", "如果",
-                    "但是", "不過", "只是", "除了", "以及", "然後", "現在", "曾經", "已經", "一直", "將來",
-                    "一定", "可能", "應該", "需要", "不能", "可以", "不要", "不會", "那麼", "如何", "為何",
-                    "怎樣", "哪裡", "誰", "什麼", "為什麼", "多少", "幾時", "如何", "怎樣", "哪裡", "從哪裡", "到哪裡"
-                },
-                "ko" => new HashSet<string> {
-                    "이", "그", "저", "것", "수", "등", "들", "및", "에서", "그리고", "그러나", "그런데",
-                    "그래서", "또는", "혹은", "그러므로", "따라서", "하지만", "또한", "에게", "의해", "때문에",
-                    "을", "를", "이", "가", "에", "에게", "께", "한테", "더러", "에서", "에게서", "한테서",
-                    "로", "으로", "와", "과", "랑", "이랑", "하고", "처럼", "만큼", "보다", "같이", "도",
-                    "만", "부터", "까지", "마저", "조차", "커녕", "은", "는", "이", "가", "을", "를",
-                    "의", "로서", "로써", "서", "에서", "께서"
-                },
-                "vi" => new HashSet<string> {
-                    "và", "của", "cho", "trong", "là", "với", "có", "được", "tại", "những", "để",
-                    "các", "đến", "về", "không", "này", "như", "từ", "một", "người", "ra", "thì",
-                    "bị", "đã", "sẽ", "đang", "nên", "cần", "vì", "khi", "nếu", "cũng", "nhưng",
-                    "mà", "còn", "phải", "trên", "dưới", "theo", "do", "vào", "lúc", "sau", "rồi",
-                    "đó", "nào", "thế", "vậy", "tôi", "bạn", "anh", "chị", "ông", "bà", "họ",
-                    "chúng", "ta", "mình", "làm", "biết", "đi", "thấy", "muốn", "nói", "nhìn",
-                    "thích", "cảm", "yêu", "ghét", "sợ", "buồn", "vui", "giận", "mệt", "đói",
-                    "khát", "ngủ", "dậy", "chạy", "đứng", "ngồi", "nằm"
-                },
-                _ => new HashSet<string> {
-                    "a", "an", "the", "and", "or", "but", "is", "are", "was", "were", "be",
-                    "been", "being", "in", "on", "at", "to", "for", "with", "by", "about",
-                    "against", "between", "into", "through", "during", "before", "after",
-                    "above", "below", "from", "up", "down", "of", "off", "over", "under",
-                    "again", "further", "then", "once", "here", "there", "when", "where",
-                    "why", "how", "all", "any", "both", "each", "few", "more", "most",
-                    "other", "some", "such", "no", "nor", "not", "only", "own", "same",
-                    "so", "than", "too", "very", "can", "will", "just", "should", "now",
-                    "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
-                    "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself",
-                    "she", "her", "hers", "herself", "it", "its", "itself", "they", "them",
-                    "their", "theirs", "themselves", "what", "which", "who", "whom", "this",
-                    "that", "these", "those", "am", "have", "has", "had", "do", "does",
-                    "did", "doing", "would", "could", "should", "ought"
-                }
-            };
-            return _cachedStopWords;
-        }
-
-        /// <summary>
-        /// Calculate the similarity between two strings using the Dice coefficient.
-        /// Uses integer-encoded bigrams to avoid string allocations.
-        /// </summary>
-        private double DiceCoefficient(string s1, string s2)
-        {
-            // if string is too short to create bigrams, compare directly
-            if (s1.Length < 2 || s2.Length < 2)
-            {
-                int sameChars = 0;
-                for (int i = 0; i < s1.Length; i++)
-                {
-                    if (s2.Contains(s1[i])) sameChars++;
-                }
-                return (double)sameChars / Math.Max(s1.Length, s2.Length);
-            }
-
-            // Encode each bigram as a single int (char1 << 16 | char2) to avoid string allocations
-            var bigrams1 = new HashSet<int>();
-            var bigrams2 = new HashSet<int>();
-
-            for (int i = 0; i < s1.Length - 1; i++)
-            {
-                bigrams1.Add((s1[i] << 16) | s1[i + 1]);
-            }
-
-            for (int i = 0; i < s2.Length - 1; i++)
-            {
-                bigrams2.Add((s2[i] << 16) | s2[i + 1]);
-            }
-
-            // Count the number of common bigrams
-            int intersectionCount = 0;
-            foreach (int bigram in bigrams1)
-            {
-                if (bigrams2.Contains(bigram))
-                {
-                    intersectionCount++;
-                }
-            }
-
-            // Calculate the Dice coefficient
-            return (2.0 * intersectionCount) / (bigrams1.Count + bigrams2.Count);
-        }
-
-        /// <summary>
-        /// Calculate the similarity between two strings using the Jaccard index
-        /// </summary>
-        private double WordOverlapSimilarity(string s1, string s2)
-        {
-            // Separate the strings into words
-            string[] words1 = s1.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
-                StringSplitOptions.RemoveEmptyEntries);
-            string[] words2 = s2.Split(new char[] { ' ', ',', '.', '!', '?', ';', ':', '-', '\n', '\r', '\t' },
-                StringSplitOptions.RemoveEmptyEntries);
-
-
-            if (words1.Length == 0 || words2.Length == 0) return 0.0;
-
-            // Transform words to lowercase and create sets of unique words
-            var wordSet1 = new HashSet<string>(words1.Select(w => w.ToLowerInvariant()));
-            var wordSet2 = new HashSet<string>(words2.Select(w => w.ToLowerInvariant()));
-
-            // Count the number of common words
-            int commonWords = 0;
-            foreach (var word in wordSet1)
-            {
-                if (wordSet2.Contains(word))
-                {
-                    commonWords++;
-                }
-            }
-
-            // Calculate the Jaccard index
-            return (double)commonWords / (wordSet1.Count + wordSet2.Count - commonWords);
+            Console.WriteLine($"Content is similar to previous, skipping translation (similarity={similarity:F2} >= threshold={threshold:F2})");
+            Console.WriteLine($"  prev: '{Truncate(_lastTextContent)}'");
+            Console.WriteLine($"  new:  '{Truncate(textContent)}'");
         }
 
         // Filter results array to remove objects that should be ignored based on ignore phrases
@@ -1803,26 +1539,28 @@ namespace RSTGameTranslation
 
         private int LevenshteinDistance(string s1, string s2)
         {
-            int[,] d = new int[s1.Length + 1, s2.Length + 1];
+            // Two-row DP: same result as the full matrix but O(n) memory, since this runs on every OCR frame
+            int[] prev = new int[s2.Length + 1];
+            int[] curr = new int[s2.Length + 1];
 
-            for (int i = 0; i <= s1.Length; i++)
-                d[i, 0] = i;
             for (int j = 0; j <= s2.Length; j++)
-                d[0, j] = j;
+                prev[j] = j;
 
             for (int i = 1; i <= s1.Length; i++)
             {
+                curr[0] = i;
                 for (int j = 1; j <= s2.Length; j++)
                 {
                     int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
-                    d[i, j] = Math.Min(
-                        Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                        d[i - 1, j - 1] + cost
+                    curr[j] = Math.Min(
+                        Math.Min(prev[j] + 1, curr[j - 1] + 1),
+                        prev[j - 1] + cost
                     );
                 }
+                (prev, curr) = (curr, prev);
             }
 
-            return d[s1.Length, s2.Length];
+            return prev[s2.Length];
         }
 
         public void AddAudioTextObject(string audioText)
@@ -2243,15 +1981,13 @@ namespace RSTGameTranslation
                                     for (int j = 0; j < Math.Min(translatedParts.Length, _textObjects.Count); j++)
                                     {
                                         // Clean up the translated text - remove any remaining separators that might have been part of the translation
-                                        // Use regex to handle all variations of the separator with different spacing
+                                        // (legacy |||RST||| and mangled ##|||## variants). Only fragments around "|||" are removed,
+                                        // so real text such as "FIRST" or "#1" is left intact.
                                         string cleanTranslatedText = System.Text.RegularExpressions.Regex.Replace(
                                             translatedParts[j],
-                                            @"\|{3}\s*RST\s*\|{3}",
+                                            @"\|{3}\s*RST\s*\|{3}|#{0,2}\s*\|{3}\s*#{0,2}",
                                             ""
                                         );
-                                        // Also clean up any potential fragments
-                                        cleanTranslatedText = cleanTranslatedText.Replace("RST", "");
-                                        cleanTranslatedText = cleanTranslatedText.Replace("##", "");
 
                                         // Apply RTL specific handling if needed
                                         if (isRtlLanguage)

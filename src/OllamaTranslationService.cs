@@ -57,6 +57,7 @@ namespace RSTGameTranslation
                     if (response.IsSuccessStatusCode)
                     {
                         string jsonResponse = await response.Content.ReadAsStringAsync();
+                        TranslationErrorNotifier.Reset("Ollama");
                         
                         // Log the raw Ollama response before any processing
                         
@@ -185,13 +186,9 @@ namespace RSTGameTranslation
                                 string detailedError = errorElement.GetString() ?? errorMessage;
                                 
                                 // Show error message to user
-                                System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                                    System.Windows.MessageBox.Show(
-                                        string.Format(LocalizationManager.Instance.Strings["Msg_OllamaError"], detailedError),
-                                        LocalizationManager.Instance.Strings["Title_OllamaError"],
-                                        System.Windows.MessageBoxButton.OK,
-                                        System.Windows.MessageBoxImage.Error);
-                                });
+                                TranslationErrorNotifier.ShowOnce("Ollama",
+                                    string.Format(LocalizationManager.Instance.Strings["Msg_OllamaError"], detailedError),
+                                    LocalizationManager.Instance.Strings["Title_OllamaError"]);
                                 
                                 return null;
                             }
@@ -202,13 +199,9 @@ namespace RSTGameTranslation
                         }
                         
                         // Show general error if JSON parsing failed
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                            System.Windows.MessageBox.Show(
-                                string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiErrorStatus"], response.StatusCode, errorMessage),
-                                LocalizationManager.Instance.Strings["Title_OllamaError"],
-                                System.Windows.MessageBoxButton.OK,
-                                System.Windows.MessageBoxImage.Error);
-                        });
+                        TranslationErrorNotifier.ShowOnce("Ollama",
+                            string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiErrorStatus"], response.StatusCode, errorMessage),
+                            LocalizationManager.Instance.Strings["Title_OllamaError"]);
                         
                         return null;
                     }
@@ -219,13 +212,9 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Ollama API error: {ex.Message}");
                 
                 // Show error message to user for other exceptions
-                System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiException"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_OllamaError"],
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error);
-                });
+                TranslationErrorNotifier.ShowOnce("Ollama",
+                    string.Format(LocalizationManager.Instance.Strings["Msg_OllamaApiException"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_OllamaError"]);
                 
                 return null;
             }

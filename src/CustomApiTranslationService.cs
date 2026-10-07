@@ -9,7 +9,7 @@ namespace RSTGameTranslation
 {
     public class CustomApiTranslationService : ITranslationService
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
         private static int _consecutiveFailures = 0;
         private static int _retryCount = 0;
         private static readonly object _keySwitchLock = new object();
@@ -115,6 +115,7 @@ namespace RSTGameTranslation
                     string jsonResponse = await response.Content.ReadAsStringAsync();
                     // Reset consecutive failures counter on success
                     _consecutiveFailures = 0;
+                    TranslationErrorNotifier.Reset("Custom API");
                     _retryCount = 0;
 
                     // Log the raw Custom API response before returning it
@@ -172,14 +173,9 @@ namespace RSTGameTranslation
                                 System.IO.File.WriteAllText("custom_api_last_error.txt", $"Custom API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
 
                                 // Show error message to user
-                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    System.Windows.MessageBox.Show(
-                                        string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiError"], detailedError),
-                                        LocalizationManager.Instance.Strings["Title_CustomApiError"],
-                                        System.Windows.MessageBoxButton.OK,
-                                        System.Windows.MessageBoxImage.Error);
-                                });
+                                TranslationErrorNotifier.ShowOnce("Custom API",
+                                    string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiError"], detailedError),
+                                    LocalizationManager.Instance.Strings["Title_CustomApiError"]);
                             }
                             await Task.Delay(delayMS);
                             return null;
@@ -195,14 +191,9 @@ namespace RSTGameTranslation
                         System.IO.File.WriteAllText("custom_api_last_error.txt", $"Custom API error: {response.StatusCode}\n\nFull response: {errorMessage}");
 
                         // Show general error if JSON parsing failed
-                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            System.Windows.MessageBox.Show(
-                                string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiErrorStatus"], response.StatusCode, errorMessage),
-                                LocalizationManager.Instance.Strings["Title_CustomApiError"],
-                                System.Windows.MessageBoxButton.OK,
-                                System.Windows.MessageBoxImage.Error);
-                        });
+                        TranslationErrorNotifier.ShowOnce("Custom API",
+                            string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiErrorStatus"], response.StatusCode, errorMessage),
+                            LocalizationManager.Instance.Strings["Title_CustomApiError"]);
                     }
                     await Task.Delay(delayMS);
                     return null;
@@ -216,14 +207,9 @@ namespace RSTGameTranslation
                 System.IO.File.WriteAllText("custom_api_last_error.txt", $"Custom API error: {ex.Message}\n\nStack trace: {ex.StackTrace}");
 
                 // Show error message to user
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiException"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_CustomApiError"],
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error);
-                });
+                TranslationErrorNotifier.ShowOnce("Custom API",
+                    string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiException"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_CustomApiError"]);
 
                 return null;
             }

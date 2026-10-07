@@ -9,7 +9,7 @@ namespace RSTGameTranslation
 {
     public class MistralTranslationService : ITranslationService
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
         private static int _consecutiveFailures = 0;
         private static int _retryCount = 0;
         private static readonly object _keySwitchLock = new object();
@@ -115,6 +115,7 @@ namespace RSTGameTranslation
                     string jsonResponse = await response.Content.ReadAsStringAsync();
                     // Reset consecutive failures counter on success
                     _consecutiveFailures = 0;
+                    TranslationErrorNotifier.Reset("Mistral");
                     _retryCount = 0;
 
                     // Log the raw Mistral response before returning it
@@ -172,13 +173,9 @@ namespace RSTGameTranslation
                                 System.IO.File.WriteAllText("mistral_last_error.txt", $"Mistral API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
                                 
                                 // Show error message to user
-                                System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                                    System.Windows.MessageBox.Show(
-                                        string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiError"], detailedError),
-                                        LocalizationManager.Instance.Strings["Title_MistralError"],
-                                        System.Windows.MessageBoxButton.OK,
-                                        System.Windows.MessageBoxImage.Error);
-                                });
+                                TranslationErrorNotifier.ShowOnce("Mistral",
+                                    string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiError"], detailedError),
+                                    LocalizationManager.Instance.Strings["Title_MistralError"]);
                             }
                             await Task.Delay(delayMS);
                             return null;
@@ -194,13 +191,9 @@ namespace RSTGameTranslation
                         System.IO.File.WriteAllText("mistral_last_error.txt", $"Mistral API error: {response.StatusCode}\n\nFull response: {errorMessage}");
                         
                         // Show general error if JSON parsing failed
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                            System.Windows.MessageBox.Show(
-                                string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiErrorStatus"], response.StatusCode, errorMessage),
-                                LocalizationManager.Instance.Strings["Title_MistralError"],
-                                System.Windows.MessageBoxButton.OK,
-                                System.Windows.MessageBoxImage.Error);
-                        });
+                        TranslationErrorNotifier.ShowOnce("Mistral",
+                            string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiErrorStatus"], response.StatusCode, errorMessage),
+                            LocalizationManager.Instance.Strings["Title_MistralError"]);
                     }
                     await Task.Delay(delayMS);
                     return null;
@@ -214,13 +207,9 @@ namespace RSTGameTranslation
                 System.IO.File.WriteAllText("mistral_last_error.txt", $"Mistral API error: {ex.Message}\n\nStack trace: {ex.StackTrace}");
                 
                 // Show error message to user
-                System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiException"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_MistralError"],
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error);
-                });
+                TranslationErrorNotifier.ShowOnce("Mistral",
+                    string.Format(LocalizationManager.Instance.Strings["Msg_MistralApiException"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_MistralError"]);
                 
                 return null;
             }

@@ -10,7 +10,7 @@ namespace RSTGameTranslation
 {
     public class ChatGptTranslationService : ITranslationService
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = CreateHttpClient();
         private static int _retryCount = 0;
         private static readonly object _keySwitchLock = new object();
         private const int MAX_RETRIES = 3;
@@ -55,11 +55,17 @@ namespace RSTGameTranslation
             return $"{apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}";
         }
         
+        // Default headers are set once here: the client is static but a new service is created per translation,
+        // so adding them in the constructor would append another User-Agent value on every call
+        private static HttpClient CreateHttpClient()
+        {
+            var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+            client.DefaultRequestHeaders.Add("User-Agent", "WPFScreenCapture");
+            return client;
+        }
+
         public ChatGptTranslationService()
         {
-            // Set the base address for OpenAI API
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "WPFScreenCapture");
-            
             // Get the configuration file path
             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
             _configFilePath = System.IO.Path.Combine(appDirectory, "chatgpt_config.txt");

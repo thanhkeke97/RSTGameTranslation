@@ -28,7 +28,7 @@ namespace RSTGameTranslation
 
         public MicrosoftLegacyTranslationService()
         {
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
             _singleKey = ConfigManager.Instance.GetMicrosoftApiKey();
         }
 
@@ -38,7 +38,7 @@ namespace RSTGameTranslation
         private static readonly Random _jitterRng = new Random();
         private const int DefaultMaxRetries = 5; // total attempts
         private const int BaseDelayMs = 500; // base for exponential backoff (ms)
-        private const int MaxDelayMs = 60000; // cap backoff at 60s
+        private const int MaxDelayMs = 10000; // cap backoff at 10s so a rate limit cannot stall translation for minutes
 
         /// <summary>
         /// Compute signature 
@@ -429,18 +429,21 @@ namespace RSTGameTranslation
                     {
                         // Respect Retry-After if provided
                         int delayMs = CalculateBackoffMs(attempt);
-                        if (response.Headers.TryGetValues("Retry-After", out var values))
+                        TimeSpan? retryAfter = response.Headers.RetryAfter?.Delta
+                            ?? (response.Headers.RetryAfter?.Date - DateTimeOffset.UtcNow);
+                        if (retryAfter.HasValue)
                         {
-                            var first = values?.FirstOrDefault();
-                            if (int.TryParse(first, out int seconds))
+                            double retryAfterMs = Math.Max(0, retryAfter.Value.TotalMilliseconds);
+
+                            // Waiting longer than the cap would hold the semaphore and stall every
+                            // later translation, so give up on this request instead
+                            if (retryAfterMs > MaxDelayMs)
                             {
-                                delayMs = Math.Max(delayMs, seconds * 1000);
+                                Console.WriteLine($"Received 429 with Retry-After {retryAfterMs:F0}ms (> {MaxDelayMs}ms), giving up");
+                                return response;
                             }
-                            else if (DateTime.TryParse(first, out DateTime retryDate))
-                            {
-                                int ms = (int)Math.Max(0, (retryDate - DateTime.UtcNow).TotalMilliseconds);
-                                delayMs = Math.Max(delayMs, Math.Min(ms, MaxDelayMs));
-                            }
+
+                            delayMs = Math.Max(delayMs, (int)retryAfterMs);
                         }
 
                         // Log and wait

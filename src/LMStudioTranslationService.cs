@@ -56,6 +56,7 @@ namespace RSTGameTranslation
                     if (response.IsSuccessStatusCode)
                     {
                         string jsonResponse = await response.Content.ReadAsStringAsync();
+                        TranslationErrorNotifier.Reset("LM Studio");
                         
                         // Parse the LM Studio response which has a different format from Gemini
                         try
@@ -204,13 +205,9 @@ namespace RSTGameTranslation
                                 string detailedError = errorElement.GetString() ?? errorMessage;
                                 
                                 // Show error message to user
-                                System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                                    System.Windows.MessageBox.Show(
-                                        string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioError"], detailedError),
-                                        LocalizationManager.Instance.Strings["Title_LMStudioError"],
-                                        System.Windows.MessageBoxButton.OK,
-                                        System.Windows.MessageBoxImage.Error);
-                                });
+                                TranslationErrorNotifier.ShowOnce("LM Studio",
+                                    string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioError"], detailedError),
+                                    LocalizationManager.Instance.Strings["Title_LMStudioError"]);
                                 
                                 return null;
                             }
@@ -221,13 +218,9 @@ namespace RSTGameTranslation
                         }
                         
                         // Show general error if JSON parsing failed
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                            System.Windows.MessageBox.Show(
-                                string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioApiErrorStatus"], response.StatusCode, errorMessage),
-                                LocalizationManager.Instance.Strings["Title_LMStudioError"],
-                                System.Windows.MessageBoxButton.OK,
-                                System.Windows.MessageBoxImage.Error);
-                        });
+                        TranslationErrorNotifier.ShowOnce("LM Studio",
+                            string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioApiErrorStatus"], response.StatusCode, errorMessage),
+                            LocalizationManager.Instance.Strings["Title_LMStudioError"]);
                         
                         return null;
                     }
@@ -238,13 +231,9 @@ namespace RSTGameTranslation
                 Console.WriteLine($"LM Studio API error: {ex.Message}");
                 
                 // Show error message to user for other exceptions
-                System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioApiException"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_LMStudioError"],
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error);
-                });
+                TranslationErrorNotifier.ShowOnce("LM Studio",
+                    string.Format(LocalizationManager.Instance.Strings["Msg_LMStudioApiException"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_LMStudioError"]);
                 
                 return null;
             }
