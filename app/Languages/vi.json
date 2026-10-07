@@ -554,7 +554,7 @@
   "Welcome_ReadyTitle": "Sẵn sàng sử dụng",
   "Welcome_ReadyDesc": "Nhận diện chữ: {0}. Dịch vụ dịch: {1}. Bạn có thể đổi phương thức OCR hoặc dùng dịch bằng AI (ChatGPT, Gemini, model chạy local...) bất cứ lúc nào trong \"{2}\".",
   "Welcome_NextTitle": "Bước tiếp theo",
-  "Welcome_NextDesc": "1. (Tuỳ chọn) Bấm \"{1}\" để chọn cửa sổ game.\n2. Bấm \"{0}\" rồi kéo khung quanh vùng chữ trong game.\n3. Bấm \"{2}\" là bản dịch sẽ hiện ra.",
+  "Welcome_NextDesc": "1. (Tuỳ chọn) Bấm \"{1}\" để chọn cửa sổ game.\n2. Bấm \"{0}\" rồi kéo khung quanh vùng chữ trong game.\n3. Bấm \"{2}\" để bắt đầu dịch.\n4. Bật \"{3}\" (bản dịch đè lên game) hoặc \"{4}\" (danh sách bản dịch) để xem kết quả.",
   "Welcome_ReopenHint": "Bạn có thể mở lại màn hình này bất cứ lúc nào bằng nút \"{0}\".",
   "Welcome_Btn_OpenSettings": "Mở cài đặt",
   "Welcome_Btn_GetStarted": "Bắt đầu",
@@ -567,6 +567,8 @@
   "Tip_FirstTranslation_Title": "Đã dịch thành công!",
   "Tip_FirstTranslation_Message": "Phím tắt: {0} bật/tắt dịch, {1} ẩn/hiện overlay, {2} mở ChatBox (lịch sử dịch). Có thể đổi trong \"{3}\" → \"{4}\".",
   "Coach_SelectArea": "Bước 1: Bấm \"{0}\" rồi kéo khung quanh vùng chữ trong game. Nếu game chạy ở chế độ cửa sổ, bạn có thể chọn cửa sổ game trước bằng \"{1}\".",
-  "Coach_Start": "Bước 2: Bấm \"{0}\" để bắt đầu dịch.",
-  "Coach_GotIt": "Đã hiểu"
+  "Coach_Start": "Bước 2: Bấm \"{0}\" để bắt đầu dịch. Đang ở trong game thì có thể bấm {1}.",
+  "Coach_GotIt": "Đã hiểu",
+  "Coach_ShowResult": "Bước 3: Bật \"{0}\" để hiện bản dịch đè lên game, hoặc \"{1}\" để xem bản dịch dạng danh sách. Phím tắt: {2} / {3}.",
+  "Coach_NextStepTitle": "Bước tiếp theo"
 }

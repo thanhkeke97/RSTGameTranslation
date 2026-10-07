@@ -551,7 +551,7 @@
   "Welcome_ReadyTitle": "Pronto para usar",
   "Welcome_ReadyDesc": "Reconhecimento de texto: {0}. Serviço de tradução: {1}. Você pode trocar o método de OCR ou usar tradução por IA (ChatGPT, Gemini, modelos locais...) a qualquer momento em \"{2}\".",
   "Welcome_NextTitle": "Próximos passos",
-  "Welcome_NextDesc": "1. (Opcional) Clique em \"{1}\" para escolher a janela do jogo.\n2. Clique em \"{0}\" e arraste um retângulo ao redor do texto do jogo.\n3. Clique em \"{2}\" e a tradução vai aparecer.",
+  "Welcome_NextDesc": "1. (Opcional) Clique em \"{1}\" para escolher a janela do jogo.\n2. Clique em \"{0}\" e arraste um retângulo ao redor do texto do jogo.\n3. Clique em \"{2}\" para começar a traduzir.\n4. Ative \"{3}\" (tradução sobre o jogo) ou \"{4}\" (lista de traduções) para ver o resultado.",
   "Welcome_ReopenHint": "Você pode reabrir esta tela a qualquer momento pelo botão \"{0}\".",
   "Welcome_Btn_OpenSettings": "Abrir configurações",
   "Welcome_Btn_GetStarted": "Começar",
@@ -564,6 +564,8 @@
   "Tip_FirstTranslation_Title": "A tradução está funcionando!",
   "Tip_FirstTranslation_Message": "Atalhos: {0} iniciar/parar, {1} mostrar/ocultar a sobreposição, {2} abrir o ChatBox (histórico). Altere-os em \"{3}\" → \"{4}\".",
   "Coach_SelectArea": "Passo 1: clique em \"{0}\" e arraste um retângulo ao redor do texto do jogo. Se o jogo estiver em modo janela, você pode escolher a janela antes com \"{1}\".",
-  "Coach_Start": "Passo 2: clique em \"{0}\" para começar a traduzir.",
-  "Coach_GotIt": "Entendi"
+  "Coach_Start": "Passo 2: clique em \"{0}\" para começar a traduzir. Dentro do jogo, você também pode pressionar {1}.",
+  "Coach_GotIt": "Entendi",
+  "Coach_ShowResult": "Passo 3: ative \"{0}\" para mostrar as traduções sobre o jogo, ou \"{1}\" para vê-las em lista. Atalhos: {2} / {3}.",
+  "Coach_NextStepTitle": "Próximo passo"
 }

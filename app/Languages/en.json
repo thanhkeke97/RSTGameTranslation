@@ -552,7 +552,7 @@
   "Welcome_ReadyTitle": "Ready to go",
   "Welcome_ReadyDesc": "Text recognition: {0}. Translation service: {1}. You can switch the OCR method or use AI translation (ChatGPT, Gemini, local models...) at any time in \"{2}\".",
   "Welcome_NextTitle": "Next steps",
-  "Welcome_NextDesc": "1. (Optional) Click \"{1}\" to pick the game window.\n2. Click \"{0}\" and drag a box around the game's text.\n3. Click \"{2}\" and the translation will appear.",
+  "Welcome_NextDesc": "1. (Optional) Click \"{1}\" to pick the game window.\n2. Click \"{0}\" and drag a box around the game's text.\n3. Click \"{2}\" to start translating.\n4. Turn on \"{3}\" (translation over the game) or \"{4}\" (translation list) to see the results.",
   "Welcome_ReopenHint": "You can reopen this screen anytime with the \"{0}\" button.",
   "Welcome_Btn_OpenSettings": "Open Settings",
   "Welcome_Btn_GetStarted": "Get started",
@@ -565,6 +565,8 @@
   "Tip_FirstTranslation_Title": "Translation is working!",
   "Tip_FirstTranslation_Message": "Shortcuts: {0} start/stop, {1} show/hide the overlay, {2} open the ChatBox (history). Change them in \"{3}\" → \"{4}\".",
   "Coach_SelectArea": "Step 1: Click \"{0}\" and drag a box around the game's text. If the game runs in a window, you can pick it first with \"{1}\".",
-  "Coach_Start": "Step 2: Press \"{0}\" to start translating.",
-  "Coach_GotIt": "Got it"
+  "Coach_Start": "Step 2: Press \"{0}\" to start translating. You can also press {1} while in the game.",
+  "Coach_GotIt": "Got it",
+  "Coach_ShowResult": "Step 3: Turn on \"{0}\" to show translations over the game, or \"{1}\" to see them as a list. Hotkeys: {2} / {3}.",
+  "Coach_NextStepTitle": "Next step"
 }

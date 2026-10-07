@@ -175,7 +175,8 @@ namespace RSTGameTranslation
                 strings["Btn_Settings"]);
 
             NextStepsText.Text = string.Format(strings["Welcome_NextDesc"],
-                strings["Btn_SelectArea"], strings["Btn_SelectWindow"], strings["Btn_Start"]);
+                strings["Btn_SelectArea"], strings["Btn_SelectWindow"], strings["Btn_Start"],
+                strings["Btn_Overlay"], strings["Btn_ChatBox"]);
 
             ReopenHintText.Text = string.Format(strings["Welcome_ReopenHint"], strings["Lbl_QuickStart"]);
         }

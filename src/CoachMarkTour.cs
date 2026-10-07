@@ -11,14 +11,15 @@ using HorizontalAlignment = System.Windows.HorizontalAlignment;
 namespace RSTGameTranslation
 {
     /// <summary>
-    /// First-run walkthrough: points at "Select Area" and then "Start" with popups anchored to the real buttons,
+    /// First-run walkthrough: Select Area → Start → turn on Overlay/ChatBox, with popups anchored to the real buttons,
     /// advancing as the user actually performs each step.
     /// </summary>
     public sealed class CoachMarkTour
     {
         private const string TourTipId = "coach_mark_tour";
+        private const int BalloonDurationMs = 10000;
 
-        private enum Step { SelectArea, Start }
+        private enum Step { SelectArea, Start, ShowResult }
 
         private readonly MainWindow _window;
         private readonly Popup _popup;
@@ -65,16 +66,17 @@ namespace RSTGameTranslation
                     Background = (Brush)window.FindResource("AccentBrush"),
                     CornerRadius = new CornerRadius(8),
                     Padding = new Thickness(12),
-                    MaxWidth = 300,
+                    MaxWidth = 320,
                     Child = panel
                 }
             };
 
             // A popup stays where it was opened, so follow the main window when it moves
             _window.LocationChanged += Window_LocationChanged;
-            // Popups are topmost; hide while the user is in the game or the area selector
+            // Popups are topmost; only show while the main window is in front (it minimizes during area selection)
             _window.Deactivated += Window_Deactivated;
             _window.Activated += Window_Activated;
+            _window.StateChanged += Window_StateChanged;
         }
 
         /// <summary>
@@ -101,32 +103,70 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
-        /// Call when translation is started.
+        /// Call when translation is started (button, hotkey or tray menu).
         /// </summary>
         public void OnTranslationStarted()
         {
-            Finish();
+            if (_step == Step.ShowResult)
+                return;
+
+            if (_window.IsTranslationResultVisible)
+            {
+                Finish();
+            }
+            else
+            {
+                ShowStep(Step.ShowResult);
+            }
+        }
+
+        /// <summary>
+        /// Call after the Overlay or ChatBox has been turned on.
+        /// </summary>
+        public void OnResultViewOpened()
+        {
+            if (_step == Step.ShowResult)
+            {
+                Finish();
+            }
         }
 
         private void ShowStep(Step step)
         {
             _step = step;
             var strings = LocalizationManager.Instance.Strings;
+            var config = ConfigManager.Instance;
 
-            if (step == Step.SelectArea)
+            switch (step)
             {
-                _message.Text = string.Format(strings["Coach_SelectArea"], strings["Btn_SelectArea"], strings["Btn_SelectWindow"]);
-                _popup.PlacementTarget = _window.selectAreaButton;
-            }
-            else
-            {
-                _message.Text = string.Format(strings["Coach_Start"], strings["Btn_Start"]);
-                _popup.PlacementTarget = _window.toggleButton;
+                case Step.SelectArea:
+                    _message.Text = string.Format(strings["Coach_SelectArea"], strings["Btn_SelectArea"], strings["Btn_SelectWindow"]);
+                    _popup.PlacementTarget = _window.selectAreaButton;
+                    break;
+                case Step.Start:
+                    _message.Text = string.Format(strings["Coach_Start"], strings["Btn_Start"], config.GetHotKey("Start/Stop"));
+                    _popup.PlacementTarget = _window.toggleButton;
+                    break;
+                case Step.ShowResult:
+                    _message.Text = string.Format(strings["Coach_ShowResult"], strings["Btn_Overlay"], strings["Btn_ChatBox"],
+                        config.GetHotKey("Overlay"), config.GetHotKey("ChatBox"));
+                    _popup.PlacementTarget = _window.monitorButton;
+                    break;
             }
 
             _popup.IsOpen = false;
-            _popup.IsOpen = true;
+            if (IsWindowInFront)
+            {
+                _popup.IsOpen = true;
+            }
+            else if (step != Step.SelectArea)
+            {
+                // The main window is minimized after selecting an area, so tell the user in the game where they are
+                _window.ShowFastNotification(strings["Coach_NextStepTitle"], _message.Text, BalloonDurationMs);
+            }
         }
+
+        private bool IsWindowInFront => _window.IsActive && _window.IsVisible && _window.WindowState != WindowState.Minimized;
 
         private void Window_LocationChanged(object? sender, EventArgs e)
         {
@@ -142,7 +182,15 @@ namespace RSTGameTranslation
 
         private void Window_Activated(object? sender, EventArgs e)
         {
-            _popup.IsOpen = true;
+            if (_window.WindowState != WindowState.Minimized)
+            {
+                _popup.IsOpen = true;
+            }
+        }
+
+        private void Window_StateChanged(object? sender, EventArgs e)
+        {
+            _popup.IsOpen = IsWindowInFront;
         }
 
         private void Finish()
@@ -151,6 +199,7 @@ namespace RSTGameTranslation
             _window.LocationChanged -= Window_LocationChanged;
             _window.Deactivated -= Window_Deactivated;
             _window.Activated -= Window_Activated;
+            _window.StateChanged -= Window_StateChanged;
             ConfigManager.Instance.MarkOnboardingTipShown(TourTipId);
             Current = null;
         }

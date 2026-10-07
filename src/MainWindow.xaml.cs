@@ -2431,8 +2431,19 @@ namespace RSTGameTranslation
             else
             {
                 ToggleMonitorWindow();
+                if (IsTranslationResultVisible)
+                {
+                    CoachMarkTour.Current?.OnResultViewOpened();
+                }
             }
         }
+
+        /// <summary>
+        /// True when translations are visible to the user, either as the overlay or in the ChatBox.
+        /// </summary>
+        public bool IsTranslationResultVisible =>
+            (MonitorWindow.Instance.imageScrollViewer.Visibility == Visibility.Visible && MonitorWindow.Instance.IsVisible)
+            || isChatBoxVisible;
 
         // Handler for the Log button click
         private void LogButton_Click(object sender, RoutedEventArgs e)
@@ -2760,6 +2771,11 @@ namespace RSTGameTranslation
         private void ChatBoxButton_Click(object sender, RoutedEventArgs e)
         {
             ToggleChatBox();
+            // The first time, the ChatBox opens a selector to place it; that also counts as turning it on
+            if (isChatBoxVisible || isSelectingChatBoxArea)
+            {
+                CoachMarkTour.Current?.OnResultViewOpened();
+            }
         }
 
         // Toggle ChatBox visibility and position

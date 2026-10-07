@@ -549,7 +549,7 @@
   "Welcome_ReadyTitle": "可以直接使用",
   "Welcome_ReadyDesc": "文字识别：{0}。翻译服务：{1}。你可以随时在“{2}”中更换 OCR 方式或使用 AI 翻译（ChatGPT、Gemini、本地模型等）。",
   "Welcome_NextTitle": "下一步",
-  "Welcome_NextDesc": "1.（可选）点击“{1}”选择游戏窗口。\n2. 点击“{0}”框选游戏中的文字区域。\n3. 点击“{2}”，译文就会显示出来。",
+  "Welcome_NextDesc": "1.（可选）点击“{1}”选择游戏窗口。\n2. 点击“{0}”框选游戏中的文字区域。\n3. 点击“{2}”开始翻译。\n4. 打开“{3}”（在游戏画面上显示译文）或“{4}”（译文列表）查看结果。",
   "Welcome_ReopenHint": "你可以随时通过“{0}”按钮重新打开此界面。",
   "Welcome_Btn_OpenSettings": "打开设置",
   "Welcome_Btn_GetStarted": "开始使用",
@@ -562,6 +562,8 @@
   "Tip_FirstTranslation_Title": "翻译成功！",
   "Tip_FirstTranslation_Message": "快捷键：{0} 开始/停止，{1} 显示/隐藏覆盖层，{2} 打开聊天框（翻译历史）。可在“{3}”→“{4}”中修改。",
   "Coach_SelectArea": "第 1 步：点击“{0}”框选游戏中的文字区域。如果游戏是窗口模式，可以先用“{1}”选择游戏窗口。",
-  "Coach_Start": "第 2 步：点击“{0}”开始翻译。",
-  "Coach_GotIt": "知道了"
+  "Coach_Start": "第 2 步：点击“{0}”开始翻译。在游戏中也可以按 {1}。",
+  "Coach_GotIt": "知道了",
+  "Coach_ShowResult": "第 3 步：打开“{0}”在游戏画面上显示译文，或打开“{1}”以列表形式查看。快捷键：{2} / {3}。",
+  "Coach_NextStepTitle": "下一步"
 }
