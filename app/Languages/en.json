@@ -552,8 +552,19 @@
   "Welcome_ReadyTitle": "Ready to go",
   "Welcome_ReadyDesc": "Text recognition: {0}. Translation service: {1}. You can switch the OCR method or use AI translation (ChatGPT, Gemini, local models...) at any time in \"{2}\".",
   "Welcome_NextTitle": "Next steps",
-  "Welcome_NextDesc": "1. On the main window, click \"{0}\" and drag a box around the game's text, or click \"{1}\" to pick the game window.\n2. Click \"{2}\" and the translation will appear.",
+  "Welcome_NextDesc": "1. (Optional) Click \"{1}\" to pick the game window.\n2. Click \"{0}\" and drag a box around the game's text.\n3. Click \"{2}\" and the translation will appear.",
   "Welcome_ReopenHint": "You can reopen this screen anytime with the \"{0}\" button.",
   "Welcome_Btn_OpenSettings": "Open Settings",
-  "Welcome_Btn_GetStarted": "Get started"
+  "Welcome_Btn_GetStarted": "Get started",
+  "Tip_NoArea_Title": "No area selected",
+  "Tip_NoArea_Message": "You haven't selected a translation area yet. Click \"{0}\" and drag a box around the game's text.",
+  "Tip_NoText_Title": "No text found yet",
+  "Tip_NoText_Message": "Make sure the selected area covers the game's text and the game language is correct. If nothing is found, try another OCR method in \"{0}\".",
+  "Tip_TranslationFailed_Title": "Translation is failing",
+  "Tip_TranslationFailed_Message": "{0} did not return a translation. Check your internet connection or API key, or choose another translation service in \"{1}\".",
+  "Tip_FirstTranslation_Title": "Translation is working!",
+  "Tip_FirstTranslation_Message": "Shortcuts: {0} start/stop, {1} show/hide the overlay, {2} open the ChatBox (history). Change them in \"{3}\" → \"{4}\".",
+  "Coach_SelectArea": "Step 1: Click \"{0}\" and drag a box around the game's text. If the game runs in a window, you can pick it first with \"{1}\".",
+  "Coach_Start": "Step 2: Press \"{0}\" to start translating.",
+  "Coach_GotIt": "Got it"
 }

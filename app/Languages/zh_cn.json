@@ -549,8 +549,19 @@
   "Welcome_ReadyTitle": "可以直接使用",
   "Welcome_ReadyDesc": "文字识别：{0}。翻译服务：{1}。你可以随时在“{2}”中更换 OCR 方式或使用 AI 翻译（ChatGPT、Gemini、本地模型等）。",
   "Welcome_NextTitle": "下一步",
-  "Welcome_NextDesc": "1. 在主窗口点击“{0}”框选游戏中的文字区域，或点击“{1}”选择游戏窗口。\n2. 点击“{2}”，译文就会显示出来。",
+  "Welcome_NextDesc": "1.（可选）点击“{1}”选择游戏窗口。\n2. 点击“{0}”框选游戏中的文字区域。\n3. 点击“{2}”，译文就会显示出来。",
   "Welcome_ReopenHint": "你可以随时通过“{0}”按钮重新打开此界面。",
   "Welcome_Btn_OpenSettings": "打开设置",
-  "Welcome_Btn_GetStarted": "开始使用"
+  "Welcome_Btn_GetStarted": "开始使用",
+  "Tip_NoArea_Title": "尚未选择区域",
+  "Tip_NoArea_Message": "尚未选择翻译区域。请点击“{0}”框选游戏中的文字区域。",
+  "Tip_NoText_Title": "还没有识别到文字",
+  "Tip_NoText_Message": "请确认所选区域覆盖了游戏文字，并且游戏语言设置正确。如果仍然识别不到，请在“{0}”中尝试其他 OCR 方式。",
+  "Tip_TranslationFailed_Title": "翻译失败",
+  "Tip_TranslationFailed_Message": "{0} 没有返回译文。请检查网络连接或 API 密钥，或在“{1}”中选择其他翻译服务。",
+  "Tip_FirstTranslation_Title": "翻译成功！",
+  "Tip_FirstTranslation_Message": "快捷键：{0} 开始/停止，{1} 显示/隐藏覆盖层，{2} 打开聊天框（翻译历史）。可在“{3}”→“{4}”中修改。",
+  "Coach_SelectArea": "第 1 步：点击“{0}”框选游戏中的文字区域。如果游戏是窗口模式，可以先用“{1}”选择游戏窗口。",
+  "Coach_Start": "第 2 步：点击“{0}”开始翻译。",
+  "Coach_GotIt": "知道了"
 }

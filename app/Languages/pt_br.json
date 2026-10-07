@@ -551,8 +551,19 @@
   "Welcome_ReadyTitle": "Pronto para usar",
   "Welcome_ReadyDesc": "Reconhecimento de texto: {0}. Serviço de tradução: {1}. Você pode trocar o método de OCR ou usar tradução por IA (ChatGPT, Gemini, modelos locais...) a qualquer momento em \"{2}\".",
   "Welcome_NextTitle": "Próximos passos",
-  "Welcome_NextDesc": "1. Na janela principal, clique em \"{0}\" e arraste um retângulo ao redor do texto do jogo, ou clique em \"{1}\" para escolher a janela do jogo.\n2. Clique em \"{2}\" e a tradução vai aparecer.",
+  "Welcome_NextDesc": "1. (Opcional) Clique em \"{1}\" para escolher a janela do jogo.\n2. Clique em \"{0}\" e arraste um retângulo ao redor do texto do jogo.\n3. Clique em \"{2}\" e a tradução vai aparecer.",
   "Welcome_ReopenHint": "Você pode reabrir esta tela a qualquer momento pelo botão \"{0}\".",
   "Welcome_Btn_OpenSettings": "Abrir configurações",
-  "Welcome_Btn_GetStarted": "Começar"
+  "Welcome_Btn_GetStarted": "Começar",
+  "Tip_NoArea_Title": "Nenhuma área selecionada",
+  "Tip_NoArea_Message": "Você ainda não selecionou uma área de tradução. Clique em \"{0}\" e arraste um retângulo ao redor do texto do jogo.",
+  "Tip_NoText_Title": "Nenhum texto encontrado ainda",
+  "Tip_NoText_Message": "Verifique se a área selecionada cobre o texto do jogo e se o idioma do jogo está correto. Se ainda não encontrar nada, tente outro método de OCR em \"{0}\".",
+  "Tip_TranslationFailed_Title": "A tradução está falhando",
+  "Tip_TranslationFailed_Message": "{0} não retornou uma tradução. Verifique sua conexão com a internet ou a chave de API, ou escolha outro serviço de tradução em \"{1}\".",
+  "Tip_FirstTranslation_Title": "A tradução está funcionando!",
+  "Tip_FirstTranslation_Message": "Atalhos: {0} iniciar/parar, {1} mostrar/ocultar a sobreposição, {2} abrir o ChatBox (histórico). Altere-os em \"{3}\" → \"{4}\".",
+  "Coach_SelectArea": "Passo 1: clique em \"{0}\" e arraste um retângulo ao redor do texto do jogo. Se o jogo estiver em modo janela, você pode escolher a janela antes com \"{1}\".",
+  "Coach_Start": "Passo 2: clique em \"{0}\" para começar a traduzir.",
+  "Coach_GotIt": "Entendi"
 }

@@ -552,8 +552,19 @@
   "Welcome_ReadyTitle": "すぐに使えます",
   "Welcome_ReadyDesc": "文字認識: {0}。翻訳サービス: {1}。OCR の方式や AI 翻訳（ChatGPT、Gemini、ローカルモデルなど）は「{2}」からいつでも変更できます。",
   "Welcome_NextTitle": "次のステップ",
-  "Welcome_NextDesc": "1. メインウィンドウで「{0}」をクリックしてゲームのテキストを囲むか、「{1}」でゲームのウィンドウを選びます。\n2. 「{2}」を押すと翻訳が表示されます。",
+  "Welcome_NextDesc": "1.（任意）「{1}」でゲームのウィンドウを選びます。\n2. 「{0}」をクリックしてゲームのテキストを囲みます。\n3. 「{2}」を押すと翻訳が表示されます。",
   "Welcome_ReopenHint": "この画面は「{0}」ボタンからいつでも開けます。",
   "Welcome_Btn_OpenSettings": "設定を開く",
-  "Welcome_Btn_GetStarted": "はじめる"
+  "Welcome_Btn_GetStarted": "はじめる",
+  "Tip_NoArea_Title": "範囲が選択されていません",
+  "Tip_NoArea_Message": "翻訳範囲がまだ選択されていません。「{0}」をクリックしてゲームのテキストを囲んでください。",
+  "Tip_NoText_Title": "テキストがまだ見つかりません",
+  "Tip_NoText_Message": "選択範囲がゲームのテキストを覆っているか、ゲームの言語が正しいか確認してください。それでも見つからない場合は「{0}」で別の OCR 方式を試してください。",
+  "Tip_TranslationFailed_Title": "翻訳に失敗しています",
+  "Tip_TranslationFailed_Message": "{0} から翻訳が返ってきませんでした。インターネット接続や API キーを確認するか、「{1}」で別の翻訳サービスを選んでください。",
+  "Tip_FirstTranslation_Title": "翻訳できました！",
+  "Tip_FirstTranslation_Message": "ショートカット: {0} 開始/停止、{1} オーバーレイの表示/非表示、{2} チャットボックス（履歴）を開く。「{3}」→「{4}」で変更できます。",
+  "Coach_SelectArea": "ステップ 1: 「{0}」をクリックしてゲームのテキストを囲みます。ゲームがウィンドウモードの場合は、先に「{1}」でウィンドウを選ぶこともできます。",
+  "Coach_Start": "ステップ 2: 「{0}」を押すと翻訳が始まります。",
+  "Coach_GotIt": "OK"
 }

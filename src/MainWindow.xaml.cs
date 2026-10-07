@@ -894,6 +894,8 @@ namespace RSTGameTranslation
             UpdateCustomCaptureRect();
 
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+
+            CoachMarkTour.Current?.OnAreaChosen();
         }
 
         public void SwitchToTranslationArea(int index)
@@ -1460,6 +1462,9 @@ namespace RSTGameTranslation
                     ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStarted"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStarted_Details"]);
                     StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
                     StartStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+
+                    CoachMarkTour.Current?.OnTranslationStarted();
+                    OnboardingTips.OnTranslationStarted(hasSelectedTranslationArea);
                 }
                 else
                 {
@@ -1620,12 +1625,13 @@ namespace RSTGameTranslation
             return IntPtr.Zero;
         }
 
-        private void ShowFastNotification(string title, string message)
+        // Must be called on the UI thread
+        public void ShowFastNotification(string title, string message, int durationMs = 4000)
         {
             MyNotifyIcon.CloseBalloon();
 
             FancyBalloon balloon = new FancyBalloon(title, message, MyNotifyIcon);
-            MyNotifyIcon.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, 4000);
+            MyNotifyIcon.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, durationMs);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -3661,6 +3667,9 @@ namespace RSTGameTranslation
             if (ConfigManager.Instance.IsNeedShowQuickStart())
             {
                 ShowWelcomeWindow();
+
+                // Wait until the main window has been laid out so the tour can anchor to its buttons
+                Dispatcher.BeginInvoke(() => CoachMarkTour.StartIfNeeded(this), DispatcherPriority.ApplicationIdle);
             }
         }
 

@@ -521,6 +521,7 @@ namespace RSTGameTranslation
                                 // Generate content hash AFTER block detection and filtering
                                 string contentHash = GenerateContentHash(modifiedResults);
                                 string textContent = ExtractTextContent(modifiedResults);
+                                OnboardingTips.OnOcrResult(!string.IsNullOrWhiteSpace(textContent));
 
                                 // Handle settle time if enabled
                                 double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
@@ -2282,6 +2283,7 @@ namespace RSTGameTranslation
 
                     if (!hadSuccessfulTranslation)
                     {
+                        OnboardingTips.OnTranslationResult(currentService, false);
                         OnFinishedThings(true);
                         return;
                     }
@@ -2308,12 +2310,16 @@ namespace RSTGameTranslation
                     if (string.IsNullOrEmpty(translationResponse))
                     {
                         Console.WriteLine($"Translation failed with {currentService} - empty response");
+                        OnboardingTips.OnTranslationResult(currentService, false);
                         OnFinishedThings(true);
                         return;
                     }
 
                     ProcessTranslatedJSON(translationResponse);
                 }
+
+                // A response that could not be parsed into any translated text also counts as a failure
+                OnboardingTips.OnTranslationResult(currentService, _textObjects.Any(t => !string.IsNullOrEmpty(t.TextTranslated)));
 
                 _translationStopwatch.Stop();
                 Console.WriteLine($"Translation took {_translationStopwatch.ElapsedMilliseconds} ms");
@@ -2326,6 +2332,7 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error translating text objects: {ex.Message}");
+                OnboardingTips.OnTranslationResult(ConfigManager.Instance.GetCurrentTranslationService(), false);
                 OnFinishedThings(true);
             }
 

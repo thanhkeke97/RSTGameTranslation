@@ -552,8 +552,19 @@
   "Welcome_ReadyTitle": "바로 사용할 수 있습니다",
   "Welcome_ReadyDesc": "문자 인식: {0}. 번역 서비스: {1}. OCR 방식이나 AI 번역(ChatGPT, Gemini, 로컬 모델 등)은 \"{2}\"에서 언제든지 바꿀 수 있습니다.",
   "Welcome_NextTitle": "다음 단계",
-  "Welcome_NextDesc": "1. 메인 창에서 \"{0}\"을(를) 눌러 게임 텍스트 주위를 드래그하거나, \"{1}\"을(를) 눌러 게임 창을 선택하세요.\n2. \"{2}\"을(를) 누르면 번역이 표시됩니다.",
+  "Welcome_NextDesc": "1. (선택) \"{1}\"을(를) 눌러 게임 창을 선택하세요.\n2. \"{0}\"을(를) 눌러 게임 텍스트 주위를 드래그하세요.\n3. \"{2}\"을(를) 누르면 번역이 표시됩니다.",
   "Welcome_ReopenHint": "이 화면은 \"{0}\" 버튼으로 언제든지 다시 열 수 있습니다.",
   "Welcome_Btn_OpenSettings": "설정 열기",
-  "Welcome_Btn_GetStarted": "시작하기"
+  "Welcome_Btn_GetStarted": "시작하기",
+  "Tip_NoArea_Title": "영역이 선택되지 않았습니다",
+  "Tip_NoArea_Message": "아직 번역 영역을 선택하지 않았습니다. \"{0}\"을(를) 눌러 게임 텍스트 주위를 드래그하세요.",
+  "Tip_NoText_Title": "아직 텍스트를 찾지 못했습니다",
+  "Tip_NoText_Message": "선택한 영역이 게임 텍스트를 덮고 있는지, 게임 언어가 올바른지 확인하세요. 그래도 찾지 못하면 \"{0}\"에서 다른 OCR 방식을 사용해 보세요.",
+  "Tip_TranslationFailed_Title": "번역에 실패하고 있습니다",
+  "Tip_TranslationFailed_Message": "{0}에서 번역 결과를 받지 못했습니다. 인터넷 연결이나 API 키를 확인하거나, \"{1}\"에서 다른 번역 서비스를 선택하세요.",
+  "Tip_FirstTranslation_Title": "번역이 작동합니다!",
+  "Tip_FirstTranslation_Message": "단축키: {0} 시작/중지, {1} 오버레이 표시/숨기기, {2} 채팅 박스(기록) 열기. \"{3}\" → \"{4}\"에서 바꿀 수 있습니다.",
+  "Coach_SelectArea": "1단계: \"{0}\"을(를) 눌러 게임 텍스트 주위를 드래그하세요. 게임이 창 모드라면 먼저 \"{1}\"로 게임 창을 선택할 수 있습니다.",
+  "Coach_Start": "2단계: \"{0}\"을(를) 눌러 번역을 시작하세요.",
+  "Coach_GotIt": "확인"
 }

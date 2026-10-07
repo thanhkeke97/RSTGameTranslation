@@ -45,6 +45,7 @@ namespace RSTGameTranslation
         public const string GOOGLE_TTS_API_KEYS = "google_tts_api_keys";
         public const string OPENAI_REALTIME_API_KEYS = "openai_realtime_api_keys";
         public const string SHOW_QUICK_START = "show_quick_start";
+        public const string ONBOARDING_TIPS_SHOWN = "onboarding_tips_shown";
 
         // HotKey manager
         public const string HOTKEY_START_STOP = "hotkey_start_stop";
@@ -1746,6 +1747,24 @@ namespace RSTGameTranslation
             _configValues[SHOW_QUICK_START] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Show quick start: {enabled}");
+        }
+
+        // One-time onboarding tips that were already shown, stored as a comma-separated list of tip IDs
+        public bool IsOnboardingTipShown(string tipId)
+        {
+            return GetValue(ONBOARDING_TIPS_SHOWN, "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Contains(tipId);
+        }
+
+        public void MarkOnboardingTipShown(string tipId)
+        {
+            if (IsOnboardingTipShown(tipId))
+                return;
+
+            string current = GetValue(ONBOARDING_TIPS_SHOWN, "");
+            _configValues[ONBOARDING_TIPS_SHOWN] = string.IsNullOrEmpty(current) ? tipId : $"{current},{tipId}";
+            SaveConfig();
         }
 
         // Check if auto translate is enabled
