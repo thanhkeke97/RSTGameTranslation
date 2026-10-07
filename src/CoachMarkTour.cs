@@ -17,7 +17,7 @@ namespace RSTGameTranslation
     public sealed class CoachMarkTour
     {
         private const string TourTipId = "coach_mark_tour";
-        private const int BalloonDurationMs = 10000;
+        private const int BalloonDurationMs = 15000;
 
         private enum Step { SelectArea, Start, ShowResult }
 

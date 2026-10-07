@@ -8,23 +8,27 @@ namespace RSTGameTranslation
 {
     public partial class FancyBalloon : System.Windows.Controls.UserControl
     {
-        private TaskbarIcon _taskbarIcon;
+        private readonly TaskbarIcon _taskbarIcon;
+        private readonly DispatcherTimer _closeTimer;
 
-        public FancyBalloon(string title, string message, TaskbarIcon taskbarIcon)
+        public FancyBalloon(string title, string message, TaskbarIcon taskbarIcon, int durationMs)
         {
             InitializeComponent();
             txtTitle.Text = title;
             txtMessage.Text = message;
             _taskbarIcon = taskbarIcon;
 
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(2); 
-            timer.Tick += (s, e) =>
+            _closeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(durationMs) };
+            _closeTimer.Tick += (s, e) =>
             {
-                timer.Stop();
-                _taskbarIcon.CloseBalloon(); 
+                _closeTimer.Stop();
+                _taskbarIcon.CloseBalloon();
             };
-            timer.Start();
+            _closeTimer.Start();
+
+            // Keep the balloon open while the user is reading it, restart the countdown when the mouse leaves
+            MouseEnter += (s, e) => _closeTimer.Stop();
+            MouseLeave += (s, e) => _closeTimer.Start();
         }
     }
 }

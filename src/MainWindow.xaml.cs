@@ -1630,8 +1630,9 @@ namespace RSTGameTranslation
         {
             MyNotifyIcon.CloseBalloon();
 
-            FancyBalloon balloon = new FancyBalloon(title, message, MyNotifyIcon);
-            MyNotifyIcon.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, durationMs);
+            // The balloon closes itself after durationMs (paused while hovered), so no timeout is passed here
+            FancyBalloon balloon = new FancyBalloon(title, message, MyNotifyIcon, durationMs);
+            MyNotifyIcon.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, null);
         }
 
         protected override void OnClosed(EventArgs e)

@@ -14,7 +14,7 @@ namespace RSTGameTranslation
         // A single failure is often a transient network error
         private const int FailuresBeforeTranslationTip = 2;
 
-        private const int TipDurationMs = 8000;
+        private const int TipDurationMs = 12000;
 
         private static readonly object _lock = new object();
         private static int _emptyFramesThisSession;
