@@ -200,23 +200,8 @@ namespace RSTGameTranslation
             {
                 return configured.ToLowerInvariant();
             }
-            return MapLanguageToSenseVoice(ConfigManager.Instance.GetSourceLanguage());
-        }
-
-        /// <summary>
-        /// SenseVoice supports zh/en/ja/ko/yue; anything else falls back to "auto".
-        /// </summary>
-        private string MapLanguageToSenseVoice(string language)
-        {
-            return language.ToLower() switch
-            {
-                "japanese" or "japan" or "ja" => "ja",
-                "english" or "en" => "en",
-                "chinese" or "zh" or "ch_sim" or "traditional chinese" or "ch_tra" => "zh",
-                "korean" or "ko" => "ko",
-                "cantonese" or "yue" => "yue",
-                _ => "auto"
-            };
+            // SenseVoice supports zh/en/ja/ko/yue; anything else falls back to "auto"
+            return SpeechLanguageCodes.ToSenseVoiceCode(ConfigManager.Instance.GetSourceLanguage());
         }
     }
 }

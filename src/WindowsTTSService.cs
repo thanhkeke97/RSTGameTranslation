@@ -9,7 +9,6 @@ using System.Windows;
 using NAudio.Wave;
 using Windows.Media.SpeechSynthesis;
 using Windows.Storage.Streams;
-using MessageBox = System.Windows.MessageBox;
 using SystemSpeech = System.Speech.Synthesis;
 
 namespace RSTGameTranslation
@@ -19,54 +18,25 @@ namespace RSTGameTranslation
         private static WindowsTTSService? _instance;
         private SpeechSynthesizer? _synthesizer;
         private SystemSpeech.SpeechSynthesizer? _systemSynthesizer;
-        
+
         // Dictionary of available voices with their names
         // This will be populated dynamically based on installed voices
         public static readonly Dictionary<string, string> AvailableVoices = new Dictionary<string, string>();
-        
+
         // Dictionary to track which API each voice belongs to (UWP or System.Speech)
         // true = UWP (Windows.Media.SpeechSynthesis), false = System.Speech
         private static readonly Dictionary<string, bool> _voiceApiSource = new Dictionary<string, bool>();
-        
-        // Semaphore to ensure only one playback runs at a time (but allows multiple synthesis)
-        private static readonly SemaphoreSlim _playbackSemaphore = new SemaphoreSlim(1, 1);
-        
-        // Queue for pending audio files to play
-        private static readonly Queue<string> _audioFileQueue = new Queue<string>();
-        
-        // Flag to track if we're currently playing audio
-        private static bool _isPlayingAudio = false;
-        
-        // Current audio player
-        private static IWavePlayer? _currentPlayer = null;
-        // private string audioFile;
-        
-        // Current audio file reader
-        private static AudioFileReader? _currentAudioFile = null;
-        
-        // Speech rate (from -10 to 10, where 0 is normal speed)
-        private static int _speechRate = 2;
-        
-        // Default speech rate values
+
+        // Serializes synthesis: the UWP synthesizer is shared and its Voice/Options are mutated per call
+        private static readonly SemaphoreSlim _synthesisSemaphore = new SemaphoreSlim(1, 1);
+
+        // Clips play from memory, in order; SpeakText returns once its clip is queued
+        private static readonly TtsPlaybackQueue _playback = new TtsPlaybackQueue("Windows TTS");
+
+        // Speech rate range (-10 to 10, where 0 is normal speed); the value lives in config
         public const int MinSpeechRate = -10;
         public const int MaxSpeechRate = 10;
-        // public const int DefaultSpeechRate = 2;
-        
-        // Path to temp directory
-        private static readonly string _tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-        
-        // List to track temporary files that need to be deleted
-        private static readonly List<string> _tempFilesToDelete = new List<string>();
-        
-        // Timer to periodically clean up temp files
-        private static System.Timers.Timer? _cleanupTimer;
-        
-        // Flag to track if we're currently processing the audio queue
-        private static bool _isProcessingQueue = false;
-        
-        // Cancellation token source for stopping current playback
-        private static CancellationTokenSource? _playbackCancellationTokenSource = null;
-        private static readonly HashSet<string> _activeAudioFiles = new HashSet<string>();
+
         public static WindowsTTSService Instance
         {
             get
@@ -78,7 +48,7 @@ namespace RSTGameTranslation
                 return _instance;
             }
         }
-        
+
         private WindowsTTSService()
         {
             try
@@ -100,211 +70,11 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Failed to initialize System.Speech SpeechSynthesizer: {ex.Message}");
                 _systemSynthesizer = null;
             }
-            
-            // Ensure temp directory exists
-            Directory.CreateDirectory(_tempDir);
-            
-            // Clean up any old temp files
-            CleanupTempFiles();
-            
+
             // Initialize available voices
             InitializeVoices();
-            
-            // Set up a timer to periodically clean up temp files
-            _cleanupTimer = new System.Timers.Timer(30000); // 30 seconds
-            _cleanupTimer.Elapsed += (sender, e) => CleanupTempFiles();
-            _cleanupTimer.Start();
-            
-            // Load speech rate from config
-            // _speechRate = ConfigManager.Instance.GetWindowsTtsSpeechRate();
-            
-            // Register for application exit event to clean up
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) => CleanupAllTempFiles();
         }
 
-        // Force cleanup of all temp files, including active ones when application exits
-        private void CleanupAllTempFiles()
-        {
-            try
-            {
-                Console.WriteLine("Application closing - cleaning up all temporary audio files");
-                
-                // Stop current playback
-                StopCurrentPlayback();
-                
-                // Clear the audio queue
-                lock (_audioFileQueue)
-                {
-                    _audioFileQueue.Clear();
-                }
-                
-                // Clear active files list
-                lock (_activeAudioFiles)
-                {
-                    _activeAudioFiles.Clear();
-                }
-                
-                // Delete all files in the temp directory
-                if (Directory.Exists(_tempDir))
-                {
-                    string[] tempFiles = Directory.GetFiles(_tempDir, "tts_*.wav");
-                    
-                    foreach (string file in tempFiles)
-                    {
-                        try
-                        {
-                            // Ensure the file isn't locked
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-                            
-                            File.Delete(file);
-                            Console.WriteLine($"Deleted temp file on exit: {file}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Failed to delete temp file on exit {file}: {ex.Message}");
-                        }
-                    }
-                    
-                    Console.WriteLine($"Cleaned up {tempFiles.Length} temporary audio files on application exit");
-                }
-                
-                // Clear the tracking list
-                lock (_tempFilesToDelete)
-                {
-                    _tempFilesToDelete.Clear();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during final temp file cleanup: {ex.Message}");
-            }
-        }
-        
-        // Clean up any old temporary audio files
-        private void CleanupTempFiles()
-        {
-            try
-            {
-                // First, try to delete files in our tracking list
-                lock (_tempFilesToDelete)
-                {
-                    if (_tempFilesToDelete.Count > 0)
-                    {
-                        Console.WriteLine($"Attempting to delete {_tempFilesToDelete.Count} tracked temp files");
-                        
-                        List<string> successfullyDeleted = new List<string>();
-                        
-                        foreach (string file in _tempFilesToDelete)
-                        {
-                            // Check if the file is currently active
-                            bool isActive = false;
-                            lock (_activeAudioFiles)
-                            {
-                                isActive = _activeAudioFiles.Contains(file);
-                            }
-                            
-                            // If the file is active, skip it
-                            if (isActive)
-                            {
-                                Console.WriteLine($"Skipping active audio file: {file}");
-                                continue;
-                            }
-                            
-                            try
-                            {
-                                if (File.Exists(file))
-                                {
-                                    // Ensure the file isn't locked
-                                    GC.Collect();
-                                    GC.WaitForPendingFinalizers();
-                                    
-                                    File.Delete(file);
-                                    Console.WriteLine($"Deleted tracked temp file: {file}");
-                                    successfullyDeleted.Add(file);
-                                }
-                                else
-                                {
-                                    // File doesn't exist anymore, remove from tracking
-                                    successfullyDeleted.Add(file);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Failed to delete tracked temp file {file}: {ex.Message}");
-                            }
-                        }
-                        
-                        // Remove successfully deleted files from tracking list
-                        foreach (string file in successfullyDeleted)
-                        {
-                            _tempFilesToDelete.Remove(file);
-                        }
-                    }
-                }
-                
-                // Then, search for any other .wav files in the temp directory
-                if (Directory.Exists(_tempDir))
-                {
-                    string[] tempFiles = Directory.GetFiles(_tempDir, "tts_*.wav");
-                    
-                    int count = 0;
-                    foreach (string file in tempFiles)
-                    {
-                        // Check if the file is currently active
-                        bool isActive = false;
-                        lock (_activeAudioFiles)
-                        {
-                            isActive = _activeAudioFiles.Contains(file);
-                        }
-                        
-                        // If the file is active, skip it
-                        if (isActive)
-                        {
-                            continue;
-                        }
-                        
-                        // Check if the file is older than 10 minutes
-                        FileInfo fileInfo = new FileInfo(file);
-                        if (DateTime.Now - fileInfo.CreationTime > TimeSpan.FromMinutes(10))
-                        {
-                            try
-                            {
-                                // Ensure the file isn't locked
-                                GC.Collect();
-                                GC.WaitForPendingFinalizers();
-                                
-                                File.Delete(file);
-                                count++;
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Failed to delete old temp file {file}: {ex.Message}");
-                                
-                                // Add to tracking list for future deletion
-                                lock (_tempFilesToDelete)
-                                {
-                                    if (!_tempFilesToDelete.Contains(file))
-                                    {
-                                        _tempFilesToDelete.Add(file);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (count > 0)
-                    {
-                        Console.WriteLine($"Cleaned up {count} old temporary audio files");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during temp file cleanup: {ex.Message}");
-            }
-        }
-        
         private void InitializeVoices()
         {
             try
@@ -413,18 +183,18 @@ namespace RSTGameTranslation
                     Console.WriteLine("Cannot speak empty text");
                     return false;
                 }
-                
+
                 // Process text to reduce pauses between lines
                 string processedText = ProcessTextForSpeech(text);
-                
+
                 // Get voice name from config
                 string voiceName = ConfigManager.Instance.GetWindowsTtsVoice();
-                
+
                 // Check if this voice exists in our dictionary
                 if (!AvailableVoices.ContainsKey(voiceName))
                 {
                     Console.WriteLine($"Voice '{voiceName}' not found in available voices");
-                    
+
                     // Use the first available voice as default
                     if (AvailableVoices.Count > 0)
                     {
@@ -438,486 +208,112 @@ namespace RSTGameTranslation
                         return false;
                     }
                 }
-                
+
                 // Get the voice ID for the selected voice
                 string voiceId = AvailableVoices[voiceName];
-                
+
                 // Check which API this voice belongs to
                 bool isUwpVoice = _voiceApiSource.TryGetValue(voiceId, out bool isUwp) && isUwp;
-                
-                // Add log for debugging
-                if (!_voiceApiSource.ContainsKey(voiceId))
+
+                int rate = GetSpeechRate();
+                double speedFactor = TtsPlaybackQueue.GetAutoSpeedFactor();
+                Console.WriteLine($"Using TTS voice: {voiceName} (ID: {voiceId}, UWP: {isUwpVoice}) with speech rate: {rate}, auto speed x{speedFactor:F2}");
+
+                byte[]? wav;
+                await _synthesisSemaphore.WaitAsync();
+                try
                 {
-                    Console.WriteLine($"WARNING: Voice ID '{voiceId}' not found in _voiceApiSource dictionary");
-                    Console.WriteLine($"Available keys in _voiceApiSource: {string.Join(", ", _voiceApiSource.Keys.Take(5))}...");
+                    wav = isUwpVoice
+                        ? await SynthesizeUwpAsync(processedText, voiceId, rate, speedFactor)
+                        : await Task.Run(() => SynthesizeSapi(processedText, voiceId, rate, speedFactor));
                 }
-                
-                Console.WriteLine($"Using TTS voice: {voiceName} (ID: {voiceId}, UWP: {isUwpVoice}) with speech rate: {_speechRate}");
-                
-                // Generate audio file asynchronously (can happen in parallel)
-                string audioFilePath = await GenerateAudioFileAsync(processedText, voiceId, isUwpVoice);
-                
-                if (string.IsNullOrEmpty(audioFilePath))
+                finally
                 {
-                    Console.WriteLine("Failed to generate audio file");
+                    _synthesisSemaphore.Release();
+                }
+
+                if (wav == null || wav.Length == 0)
+                {
+                    Console.WriteLine("Failed to synthesize speech");
                     return false;
                 }
-                
-                // Add to audio playback queue
-                EnqueueAudioFile(audioFilePath);
-                
+
+                _playback.Enqueue(() => new WaveFileReader(new MemoryStream(wav, writable: false)));
                 return true;
             }
             catch (Exception ex)
             {
                 TtsErrorNotifier.ShowError("Windows", $"Error with Text-to-Speech: {ex.Message}");
-                
                 return false;
             }
         }
-        
-        // Generate audio file asynchronously
-        private async Task<string> GenerateAudioFileAsync(string text, string voiceId, bool isUwpVoice)
-        {
-            try
-            {
-                string audioFile = string.Empty;
-                
-                if (isUwpVoice)
-                {
-                    if (_synthesizer == null)
-                    {
-                        Console.WriteLine("UWP SpeechSynthesizer is not available on this system");
-                        return string.Empty;
-                    }
 
-                    // Use Windows.Media.SpeechSynthesis (UWP API)
-                    // Find the voice object by ID
-                    var selectedVoice = SpeechSynthesizer.AllVoices
-                        .FirstOrDefault(v => v.Id == voiceId);
-                    
-                    if (selectedVoice == null)
-                    {
-                        Console.WriteLine($"Could not find UWP voice with ID: {voiceId}");
-                        return string.Empty;
-                    }
-                    
-                    // Set the voice
-                    _synthesizer.Voice = selectedVoice;
-                    
-                    // Set speech rate for UWP API (convert our -10 to 10 scale to UWP's scale)
-                    // UWP uses a double from 0.5 (half speed) to 2.0 (double speed)
-                    double uwpRate = 1.0; // Default normal speed
-                    
-                    if (_speechRate > 0)
-                    {
-                        // Map 1-10 to 1.0-2.0 (faster)
-                        uwpRate = 1.0 + (_speechRate / 10.0);
-                    }
-                    else if (_speechRate < 0)
-                    {
-                        // Map -1 to -10 to 1.0-0.5 (slower)
-                        uwpRate = 1.0 + (_speechRate / 20.0); // Divide by 20 to map -10 to -0.5
-                    }
-                    
-                    // Apply the speech rate
-                    _synthesizer.Options.SpeakingRate = uwpRate;
-                    
-                    Console.WriteLine($"UWP speech rate set to: {uwpRate}");
-                    
-                    // Create a temp file path for the audio
-                    string tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-                    Directory.CreateDirectory(tempDir); // Create directory if it doesn't exist
-                    audioFile = Path.Combine(tempDir, $"tts_windows_{DateTime.Now.Ticks}.wav");
-                    
-                    Console.WriteLine($"Generating audio for text: {text.Substring(0, Math.Min(50, text.Length))}...");
-                    
-                    // Generate speech stream (WinRT objects: dispose them, or every line leaks
-                    // the synthesized audio buffer until finalization)
-                    using SpeechSynthesisStream stream = await _synthesizer.SynthesizeTextToStreamAsync(text);
-                    
-                    // Save to WAV file
-                    using (var fileStream = new FileStream(audioFile, FileMode.Create, FileAccess.Write))
-                    using (var inputStream = stream.GetInputStreamAt(0))
-                    using (var dataReader = new DataReader(inputStream))
-                    {
-                        // Convert the stream to a byte array
-                        await dataReader.LoadAsync((uint)stream.Size);
-                        byte[] buffer = new byte[stream.Size];
-                        dataReader.ReadBytes(buffer);
-                        
-                        // Write to file
-                        fileStream.Write(buffer, 0, buffer.Length);
-                    }
-                }
-                else
-                {
-                    // Use Task.Run to run SAPI file generation in a separate thread
-                    // because SAPI doesn't support async/await
-                    await Task.Run(() =>
-                    {
-                        // Use System.Speech.Synthesis API (SAPI 5, which Narrator typically uses)
-                        audioFile = Path.Combine(_tempDir, $"tts_system_{DateTime.Now.Ticks}.wav");
-                        
-                        Console.WriteLine($"Generating audio with SAPI for text: {text.Substring(0, Math.Min(50, text.Length))}...");
-                        
-                        // Create a new instance to avoid conflicts when generating multiple files simultaneously
-                        using (var synthesizer = new SystemSpeech.SpeechSynthesizer())
-                        {
-                            // Set the voice
-                            synthesizer.SelectVoice(voiceId);
-                            
-                            // Set speech rate for SAPI
-                            synthesizer.Rate = _speechRate;
-                            
-                            Console.WriteLine($"SAPI speech rate set to: {_speechRate}");
-                            
-                            // Set output to audio file
-                            synthesizer.SetOutputToWaveFile(audioFile);
-                            
-                            // Speak the text directly without using SSML
-                            synthesizer.Speak(text);
-                            
-                            // Reset output to null to close the file
-                            synthesizer.SetOutputToNull();
-                        }
-                    });
-                }
-                
-                // Track this file for deletion
-                lock (_tempFilesToDelete)
-                {
-                    if (!_tempFilesToDelete.Contains(audioFile))
-                    {
-                        _tempFilesToDelete.Add(audioFile);
-                    }
-                }
-                
-                Console.WriteLine($"Audio file generated: {audioFile}");
-                return audioFile;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error generating audio file: {ex.Message}");
-                return string.Empty;
-            }
-        }
-        
-        // Add audio file to playback queue
-        private void EnqueueAudioFile(string audioFilePath)
+        // Windows.Media.SpeechSynthesis (UWP API) -> WAV bytes
+        private async Task<byte[]?> SynthesizeUwpAsync(string text, string voiceId, int rate, double speedFactor)
         {
-            if (string.IsNullOrEmpty(audioFilePath) || !File.Exists(audioFilePath))
+            if (_synthesizer == null)
             {
-                Console.WriteLine($"Cannot enqueue invalid audio file: {audioFilePath}");
-                return;
+                Console.WriteLine("UWP SpeechSynthesizer is not available on this system");
+                return null;
             }
-            
-            lock (_audioFileQueue)
+
+            var selectedVoice = SpeechSynthesizer.AllVoices.FirstOrDefault(v => v.Id == voiceId);
+            if (selectedVoice == null)
             {
-                // Mark file as active
-                lock (_activeAudioFiles)
-                {
-                    _activeAudioFiles.Add(audioFilePath);
-                }
-                
-                // Add file to queue
-                _audioFileQueue.Enqueue(audioFilePath);
-                Console.WriteLine($"Audio file enqueued: {audioFilePath}. Queue size: {_audioFileQueue.Count}");
-                
-                // If no queue processing is running, start a new one
-                if (!_isProcessingQueue)
-                {
-                    Task.Run(ProcessAudioQueueAsync);
-                }
+                Console.WriteLine($"Could not find UWP voice with ID: {voiceId}");
+                return null;
             }
+            _synthesizer.Voice = selectedVoice;
+
+            // UWP takes a multiplier (0.5-6.0): map the -10..10 rate onto 0.5x..2x as before, then
+            // apply the auto speed-up on top.
+            double uwpRate = rate >= 0 ? 1.0 + rate / 10.0 : 1.0 + rate / 20.0;
+            _synthesizer.Options.SpeakingRate = Math.Clamp(uwpRate * speedFactor, 0.5, 6.0);
+
+            // WinRT objects: dispose them, or every line leaks the synthesized audio buffer
+            using SpeechSynthesisStream stream = await _synthesizer.SynthesizeTextToStreamAsync(text);
+            using var inputStream = stream.GetInputStreamAt(0);
+            using var dataReader = new DataReader(inputStream);
+            await dataReader.LoadAsync((uint)stream.Size);
+            byte[] buffer = new byte[stream.Size];
+            dataReader.ReadBytes(buffer);
+            return buffer;
         }
-        
-        // Process audio playback queue
-        private async Task ProcessAudioQueueAsync()
+
+        // System.Speech (SAPI 5, which Narrator typically uses) -> WAV bytes
+        private static byte[]? SynthesizeSapi(string text, string voiceId, int rate, double speedFactor)
         {
-            lock (_audioFileQueue)
+            // SAPI rate is roughly logarithmic: +10 is about 3x, so one step is about 3^(1/10)
+            int speedSteps = (int)Math.Round(10 * Math.Log(speedFactor) / Math.Log(3));
+            using var output = new MemoryStream();
+            // A new instance per call: SAPI synthesizers are not safe to share across threads
+            using (var synthesizer = new SystemSpeech.SpeechSynthesizer())
             {
-                if (_isProcessingQueue)
-                {
-                    return; // A processing task is already running
-                }
-                _isProcessingQueue = true;
+                synthesizer.SelectVoice(voiceId);
+                synthesizer.Rate = Math.Clamp(rate + speedSteps, MinSpeechRate, MaxSpeechRate);
+                synthesizer.SetOutputToWaveStream(output);
+                synthesizer.Speak(text);
+                synthesizer.SetOutputToNull();
             }
-            
-            try
-            {
-                while (true)
-                {
-                    string? audioFilePath = null;
-                    
-                    lock (_audioFileQueue)
-                    {
-                        if (_audioFileQueue.Count == 0)
-                        {
-                            _isProcessingQueue = false;
-                            return; // Queue is empty, end processing
-                        }
-                        
-                        // Get next file from queue
-                        audioFilePath = _audioFileQueue.Dequeue();
-                    }
-                    
-                    if (!string.IsNullOrEmpty(audioFilePath) && File.Exists(audioFilePath))
-                    {
-                        // Stop current playback (if any)
-                        StopCurrentPlayback();
-                        
-                        // Wait for semaphore to ensure only one playback process at a time
-                        await _playbackSemaphore.WaitAsync();
-                        
-                        try
-                        {
-                            // Play the audio file
-                            await PlayAudioFileAsync(audioFilePath);
-                        }
-                        finally
-                        {
-                            // Release semaphore
-                            _playbackSemaphore.Release();
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Skipping invalid audio file: {audioFilePath}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error processing audio queue: {ex.Message}");
-                
-                lock (_audioFileQueue)
-                {
-                    _isProcessingQueue = false;
-                }
-            }
+            return output.ToArray();
         }
-        
+
         // Process text to optimize for speech with minimal pauses
         private string ProcessTextForSpeech(string text)
         {
             // Replace multiple newlines with a single space to reduce pauses
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\n+", " ");
-            
+
             // Replace multiple spaces with a single space
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
-            
+
             // Remove extra punctuation that might cause delays
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\.{2,}", ".");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([.,;:!?])\s*", "$1 ");
-            
+
             return text.Trim();
         }
-        
-        // Stop any current playback
-        private void StopCurrentPlayback()
-        {
-            if (_isPlayingAudio)
-            {
-                try
-                {
-                    Console.WriteLine("Stopping current audio playback");
-                    
-                    // Cancel token to signal playback stop
-                    if (_playbackCancellationTokenSource != null)
-                    {
-                        _playbackCancellationTokenSource.Cancel();
-                        _playbackCancellationTokenSource.Dispose();
-                        _playbackCancellationTokenSource = null;
-                    }
-                    
-                    if (_currentPlayer != null)
-                    {
-                        _currentPlayer.Stop();
-                        _currentPlayer.Dispose();
-                        _currentPlayer = null;
-                    }
-                    
-                    if (_currentAudioFile != null)
-                    {
-                        _currentAudioFile.Dispose();
-                        _currentAudioFile = null;
-                    }
-                    
-                    _isPlayingAudio = false;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error stopping current playback: {ex.Message}");
-                }
-            }
-        }
-        
-        // New async version that returns a Task<bool> for completion status
-        private async Task<bool> PlayAudioFileAsync(string filePath)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            
-            try
-            {
-                // Mark as playing audio
-                _isPlayingAudio = true;
-                
-                // Create a new cancellation token source
-                _playbackCancellationTokenSource = new CancellationTokenSource();
-                var cancellationToken = _playbackCancellationTokenSource.Token;
-                
-                // Create a WaveOut device with low latency settings
-                _currentPlayer = new WaveOutEvent
-                {
-                    DesiredLatency = 100 // Reduce latency to 100ms (default is 300ms)
-                };
-                
-                // Set up playback stopped event
-                _currentPlayer.PlaybackStopped += (sender, args) =>
-                {
-                    Console.WriteLine("Audio playback completed");
-                    _isPlayingAudio = false;
-                    
-                    // Clean up resources
-                    if (_currentPlayer != null)
-                    {
-                        _currentPlayer.Dispose();
-                        _currentPlayer = null;
-                    }
-                    
-                    if (_currentAudioFile != null)
-                    {
-                        _currentAudioFile.Dispose();
-                        _currentAudioFile = null;
-                    }
-                    
-                    // Remove file from active files list
-                    lock (_activeAudioFiles)
-                    {
-                        _activeAudioFiles.Remove(filePath);
-                    }
-                    
-                    // Delete the temp file with retry mechanism
-                    DeleteFileWithRetry(filePath);
-                    
-                    // Signal completion
-                    tcs.TrySetResult(true);
-                };
-                
-                // Open the audio file
-                _currentAudioFile = new AudioFileReader(filePath);
-                
-                // Hook up the audio file to the WaveOut device
-                _currentPlayer.Init(_currentAudioFile);
-                
-                // Start playback
-                Console.WriteLine($"Starting audio playback of file: {filePath}");
-                AudioTiming.Log("9. Playback start", "Windows TTS");
-                _currentPlayer.Play();
-                
-                // Register cancellation
-                cancellationToken.Register(() =>
-                {
-                    if (_currentPlayer != null && _isPlayingAudio)
-                    {
-                        Console.WriteLine("Playback cancelled");
-                        _currentPlayer.Stop();
-                    }
-                });
-                
-                // Wait for the playback to complete
-                return await tcs.Task;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error playing audio file: {ex.Message}");
-                
-                // Clean up
-                _isPlayingAudio = false;
-                
-                if (_currentAudioFile != null)
-                {
-                    _currentAudioFile.Dispose();
-                    _currentAudioFile = null;
-                }
-                
-                if (_currentPlayer != null)
-                {
-                    _currentPlayer.Dispose();
-                    _currentPlayer = null;
-                }
-                
-                // Remove file from active files list
-                lock (_activeAudioFiles)
-                {
-                    _activeAudioFiles.Remove(filePath);
-                }
-                
-                // Delete the temp file with retry mechanism
-                DeleteFileWithRetry(filePath);
-                
-                // Signal failure
-                tcs.TrySetResult(false);
-                return false;
-            }
-        }
-        
-        // Delete a file with retry mechanism
-        private void DeleteFileWithRetry(string filePath, int maxRetries = 3)
-        {
-            Task.Run(async () =>
-            {
-                if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-                {
-                    return;
-                }
-                
-                for (int i = 0; i < maxRetries; i++)
-                {
-                    try
-                    {
-                        // Force garbage collection to release any file handles
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
-                        
-                        // Try to delete the file
-                        File.Delete(filePath);
-                        Console.WriteLine($"Temp audio file deleted: {filePath}");
-                        
-                        // Remove from tracking list if it was there
-                        lock (_tempFilesToDelete)
-                        {
-                            _tempFilesToDelete.Remove(filePath);
-                        }
-                        
-                        return; // Success
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to delete temp file (attempt {i+1}/{maxRetries}): {ex.Message}");
-                        
-                        if (i < maxRetries - 1)
-                        {
-                            // Wait before retrying
-                            await Task.Delay(500 * (i + 1)); // Exponential backoff
-                        }
-                        else
-                        {
-                            // Add to tracking list for future cleanup
-                            lock (_tempFilesToDelete)
-                            {
-                                if (!_tempFilesToDelete.Contains(filePath))
-                                {
-                                    _tempFilesToDelete.Add(filePath);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
+
         // Method to get the list of installed voices for settings UI
         public static List<string> GetInstalledVoiceNames()
         {
@@ -1012,164 +408,29 @@ namespace RSTGameTranslation
             try
             {
                 Console.WriteLine("Stopping all TTS activities");
-
-                // Stop current playback
-                if (_instance != null)
-                {
-                    _instance.StopCurrentPlayback();
-                }
-
-                // Clear the audio queue
-                lock (_audioFileQueue)
-                {
-                    Console.WriteLine($"Clearing audio queue due to stop request. {_audioFileQueue.Count} items removed.");
-
-                    // Get all files in the queue for deletion
-                    List<string> filesToDelete = new List<string>(_audioFileQueue);
-
-                    // Remove all files in the queue from active files list
-                    lock (_activeAudioFiles)
-                    {
-                        foreach (string file in _audioFileQueue)
-                        {
-                            _activeAudioFiles.Remove(file);
-                        }
-                    }
-
-                    _audioFileQueue.Clear();
-
-                    // Delete all queued audio files
-                    foreach (string file in filesToDelete)
-                    {
-                        if (File.Exists(file))
-                        {
-                            try
-                            {
-                                // Force garbage collection to release any file handles
-                                GC.Collect();
-                                GC.WaitForPendingFinalizers();
-                                
-                                File.Delete(file);
-                                Console.WriteLine($"Deleted queued audio file: {file}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Failed to delete queued audio file {file}: {ex.Message}");
-                                
-                                // Add to tracking list for future cleanup
-                                lock (_tempFilesToDelete)
-                                {
-                                    if (!_tempFilesToDelete.Contains(file))
-                                    {
-                                        _tempFilesToDelete.Add(file);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Reset processing flag to allow new playback
-                _isProcessingQueue = false;
-
-                // Force immediate cleanup of all temp files
-                Task.Run(() => {
-                    try
-                    {
-                        // Delete all files in the temp directory that match our pattern
-                        if (Directory.Exists(_tempDir))
-                        {
-                            string[] tempFiles = Directory.GetFiles(_tempDir, "tts_*.wav");
-                            
-                            foreach (string file in tempFiles)
-                            {
-                                // Skip files that are still active
-                                bool isActive = false;
-                                lock (_activeAudioFiles)
-                                {
-                                    isActive = _activeAudioFiles.Contains(file);
-                                }
-                                
-                                if (!isActive)
-                                {
-                                    try
-                                    {
-                                        // Ensure the file isn't locked
-                                        GC.Collect();
-                                        GC.WaitForPendingFinalizers();
-                                        
-                                        File.Delete(file);
-                                        Console.WriteLine($"Deleted temp audio file during stop: {file}");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine($"Failed to delete temp file during stop {file}: {ex.Message}");
-                                        
-                                        // Add to tracking list for future cleanup
-                                        lock (_tempFilesToDelete)
-                                        {
-                                            if (!_tempFilesToDelete.Contains(file))
-                                            {
-                                                _tempFilesToDelete.Add(file);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            Console.WriteLine($"Cleaned up temp files during stop: {tempFiles.Length - _activeAudioFiles.Count} files processed");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error during temp file cleanup on stop: {ex.Message}");
-                    }
-                });
+                _playback.Stop();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error stopping TTS activities: {ex.Message}");
             }
         }
-        
-        // Force cleanup of all temp files
-        public static void ForceCleanupTempFiles()
-        {
-            if (_instance != null)
-            {
-                _instance.CleanupTempFiles();
-            }
-        }
-        
-        // Method to get and set speech rate
+
+        // Speech rate (-10..10), stored in config
         public static int GetSpeechRate()
         {
-            return _speechRate;
+            return Math.Clamp(ConfigManager.Instance.GetWindowsTtsSpeechRate(), MinSpeechRate, MaxSpeechRate);
         }
-        
+
         public static void SetSpeechRate(int rate)
         {
-            _speechRate = Math.Clamp(rate, MinSpeechRate, MaxSpeechRate);
+            ConfigManager.Instance.SetWindowsTtsSpeechRate(Math.Clamp(rate, MinSpeechRate, MaxSpeechRate));
         }
-        
+
         // Method to clear the audio queue
         public static void ClearAudioQueue()
         {
-            lock (_audioFileQueue)
-            {
-                Console.WriteLine($"Clearing audio queue. {_audioFileQueue.Count} items removed.");
-                
-                // Remove all files in the queue from active files list
-                lock (_activeAudioFiles)
-                {
-                    foreach (string file in _audioFileQueue)
-                    {
-                        _activeAudioFiles.Remove(file);
-                    }
-                }
-                
-                _audioFileQueue.Clear();
-            }
+            _playback.Stop();
         }
     }
 }

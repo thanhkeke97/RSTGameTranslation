@@ -849,7 +849,10 @@ namespace RSTGameTranslation
             }
         }
 
-        // Check if a text should be ignored based on ignore phrases
+        // Check if a text should be ignored based on ignore phrases.
+        // Contains phrases are removed first; exact-match and regex phrases are then checked
+        // against both the original text and what is left after those removals, so "HP Menu"
+        // with Contains "HP" and Exact "Menu" is dropped.
         private (bool ShouldIgnore, string FilteredText) ShouldIgnoreText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -861,8 +864,15 @@ namespace RSTGameTranslation
             if (ignorePhrases.Count == 0)
                 return (false, text); // No phrases to check, keep the text as is
 
+            // 1. Remove "Contains" phrases
             string filteredText = text;
+            foreach (var (phrase, matchType) in ignorePhrases)
+            {
+                if (matchType == IgnorePhraseMatchType.Contains && !string.IsNullOrEmpty(phrase))
+                    filteredText = filteredText.Replace(phrase, "", StringComparison.OrdinalIgnoreCase);
+            }
 
+            // 2. Exact-match and regex phrases drop the whole block
             foreach (var (phrase, matchType) in ignorePhrases)
             {
                 if (string.IsNullOrEmpty(phrase))
@@ -871,13 +881,8 @@ namespace RSTGameTranslation
                 switch (matchType)
                 {
                     case IgnorePhraseMatchType.ExactMatch:
-                        if (text.Equals(phrase, StringComparison.OrdinalIgnoreCase))
+                        if (IsExactIgnoreMatch(text, phrase) || IsExactIgnoreMatch(filteredText, phrase))
                             return (true, string.Empty);
-                        break;
-
-                    case IgnorePhraseMatchType.Contains:
-                        string before = filteredText;
-                        filteredText = filteredText.Replace(phrase, "", StringComparison.OrdinalIgnoreCase);
                         break;
 
                     case IgnorePhraseMatchType.RegularExpression:
@@ -885,7 +890,7 @@ namespace RSTGameTranslation
                         {
                             try
                             {
-                                if (regex.IsMatch(text))
+                                if (regex.IsMatch(text) || (filteredText != text && regex.IsMatch(filteredText)))
                                     return (true, string.Empty);
                             }
                             catch (RegexMatchTimeoutException)
@@ -912,6 +917,25 @@ namespace RSTGameTranslation
             }
 
             return (false, text);
+        }
+
+        // Exact match that tolerates what OCR adds around a word: surrounding whitespace and
+        // punctuation ("Menu " / "Menu." match "Menu"). A phrase made only of punctuation
+        // ("...") is compared on whitespace-trimmed text instead.
+        private static bool IsExactIgnoreMatch(string text, string phrase)
+        {
+            string core = TrimIgnoreNoise(phrase);
+            if (core.Length == 0)
+                return text.Trim().Equals(phrase.Trim(), StringComparison.OrdinalIgnoreCase);
+            return TrimIgnoreNoise(text).Equals(core, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string TrimIgnoreNoise(string value)
+        {
+            int start = 0, end = value.Length;
+            while (start < end && (char.IsWhiteSpace(value[start]) || char.IsPunctuation(value[start]))) start++;
+            while (end > start && (char.IsWhiteSpace(value[end - 1]) || char.IsPunctuation(value[end - 1]))) end--;
+            return value.Substring(start, end - start);
         }
 
         // Display OCR results from JSON - processes character-level blocks

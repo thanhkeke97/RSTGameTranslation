@@ -673,19 +673,11 @@ namespace RSTGameTranslation
         private string? _styleLoadedFor;
         private readonly object _initLock = new object();
 
-        // ---- Static playback state (mirrors WindowsTTSService) ----
+        // Serializes synthesis (one ONNX pipeline, CPU bound)
         private static readonly SemaphoreSlim _speechSemaphore = new SemaphoreSlim(1, 1);
-        private static readonly SemaphoreSlim _playbackSemaphore = new SemaphoreSlim(1, 1);
-        private static readonly Queue<string> _audioFileQueue = new Queue<string>();
-        private static readonly HashSet<string> _activeAudioFiles = new HashSet<string>();
-        private static readonly List<string> _tempFilesToDelete = new List<string>();
-        private static IWavePlayer? _currentPlayer = null;
-        private static AudioFileReader? _currentAudioFile = null;
-        private static CancellationTokenSource? _playbackCancellationTokenSource = null;
-        private static bool _isPlayingAudio = false;
-        private static bool _isProcessingQueue = false;
-        private static readonly string _tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-        private static System.Timers.Timer? _cleanupTimer;
+
+        // Clips play from memory, in order; each sentence is queued as soon as it is synthesized
+        private static readonly TtsPlaybackQueue _playback = new TtsPlaybackQueue("Supertonic");
 
         // Extra silence appended after every synthesized utterance (seconds).
         private const float TailPadSeconds = 0.35f;
@@ -703,15 +695,6 @@ namespace RSTGameTranslation
 
         private SupertonicTTSService()
         {
-            try
-            {
-                Directory.CreateDirectory(_tempDir);
-                StartCleanupTimer();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"SupertonicTTSService init: {ex.Message}");
-            }
         }
 
         // ===================== Public API =====================
@@ -897,6 +880,10 @@ namespace RSTGameTranslation
                     if (speed < ConfigManager.SUPERTONIC_MIN_SPEED) speed = ConfigManager.SUPERTONIC_MIN_SPEED;
                     if (speed > ConfigManager.SUPERTONIC_MAX_SPEED) speed = ConfigManager.SUPERTONIC_MAX_SPEED;
 
+                    // Auto speed-up when lines pile up, decided once per line so every sentence
+                    // of it is read at the same pace.
+                    speed = Math.Min(ConfigManager.SUPERTONIC_MAX_SPEED, speed * (float)TtsPlaybackQueue.GetAutoSpeedFactor());
+
                     // Synthesize sentence by sentence and queue each clip as soon as it is ready,
                     // so playback starts after the first sentence instead of after the whole
                     // text (tts.Call synthesizes every chunk before returning anything).
@@ -947,16 +934,7 @@ namespace RSTGameTranslation
                         var padded = new float[wav.Length + tailPad];
                         Array.Copy(wav, padded, wav.Length);
 
-                        string audioFilePath = Path.Combine(_tempDir, $"tts_supertonic_{DateTime.Now.Ticks}_{i}.wav");
-                        await Task.Run(() => Supertonic.StHelper.WriteWavFile(audioFilePath, padded, sampleRate));
-
-                        lock (_tempFilesToDelete)
-                        {
-                            if (!_tempFilesToDelete.Contains(audioFilePath))
-                                _tempFilesToDelete.Add(audioFilePath);
-                        }
-
-                        EnqueueAudioFile(audioFilePath);
+                        _playback.Enqueue(() => CreateClip(padded, sampleRate));
                         queued++;
                         AudioTiming.Log("   Supertonic chunk", $"{i + 1}/{chunks.Count} synthesized in {chunkTimer.ElapsedMilliseconds} ms " +
                                                               $"({chunk.Length} chars, {wav.Length / (double)sampleRate:F1}s audio)");
@@ -982,39 +960,7 @@ namespace RSTGameTranslation
             try
             {
                 Console.WriteLine("Stopping all Supertonic TTS activities");
-
-                if (_instance != null) _instance.StopCurrentPlayback();
-
-                lock (_audioFileQueue)
-                {
-                    var filesToDelete = new List<string>(_audioFileQueue);
-                    lock (_activeAudioFiles)
-                    {
-                        foreach (var f in _audioFileQueue) _activeAudioFiles.Remove(f);
-                    }
-                    _audioFileQueue.Clear();
-                    foreach (var f in filesToDelete)
-                    {
-                        try
-                        {
-                            if (File.Exists(f)) File.Delete(f);
-                        }
-                        catch
-                        {
-                            lock (_tempFilesToDelete)
-                            {
-                                if (!_tempFilesToDelete.Contains(f)) _tempFilesToDelete.Add(f);
-                            }
-                        }
-                    }
-                }
-                // NOTE: do NOT reset _isProcessingQueue here. The queue processor
-                // task resets it itself when it observes the emptied queue. If we
-                // cleared the flag while a processor is still draining, the next
-                // EnqueueAudioFile would spawn a SECOND processor task and the two
-                // could fight over playback (each loop iteration calls
-                // StopCurrentPlayback before playing), which manifests as a
-                // sentence being cut mid-way when new text arrives.
+                _playback.Stop();
             }
             catch (Exception ex)
             {
@@ -1091,266 +1037,13 @@ namespace RSTGameTranslation
             return text?.Trim() ?? string.Empty;
         }
 
-        // ===================== Playback queue (mirrors WindowsTTSService) =====================
-
-        private void EnqueueAudioFile(string audioFilePath)
+        // 32-bit float mono samples -> playable stream, no temp file
+        private static WaveStream CreateClip(float[] samples, int sampleRate)
         {
-            if (string.IsNullOrEmpty(audioFilePath) || !File.Exists(audioFilePath))
-            {
-                Console.WriteLine($"Supertonic: cannot enqueue invalid audio file: {audioFilePath}");
-                return;
-            }
-            lock (_audioFileQueue)
-            {
-                lock (_activeAudioFiles) _activeAudioFiles.Add(audioFilePath);
-                _audioFileQueue.Enqueue(audioFilePath);
-                Console.WriteLine($"Supertonic: audio enqueued ({_audioFileQueue.Count} in queue)");
-                if (!_isProcessingQueue) Task.Run(ProcessAudioQueueAsync);
-            }
-        }
-
-        private async Task ProcessAudioQueueAsync()
-        {
-            lock (_audioFileQueue)
-            {
-                if (_isProcessingQueue) return;
-                _isProcessingQueue = true;
-            }
-            try
-            {
-                while (true)
-                {
-                    string? audioFilePath = null;
-                    lock (_audioFileQueue)
-                    {
-                        if (_audioFileQueue.Count == 0)
-                        {
-                            _isProcessingQueue = false;
-                            return;
-                        }
-                        audioFilePath = _audioFileQueue.Dequeue();
-                    }
-                    if (!string.IsNullOrEmpty(audioFilePath) && File.Exists(audioFilePath))
-                    {
-                        StopCurrentPlayback();
-                        await _playbackSemaphore.WaitAsync();
-                        try { await PlayAudioFileAsync(audioFilePath); }
-                        finally { _playbackSemaphore.Release(); }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Supertonic queue error: {ex.Message}");
-                lock (_audioFileQueue) _isProcessingQueue = false;
-            }
-        }
-
-        private async Task<bool> PlayAudioFileAsync(string filePath)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            try
-            {
-                _isPlayingAudio = true;
-                var cts = new CancellationTokenSource();
-                _playbackCancellationTokenSource = cts;
-                var cancellationToken = cts.Token;
-
-                _currentPlayer = new WaveOutEvent { DesiredLatency = 100 };
-                _currentPlayer.PlaybackStopped += (sender, args) =>
-                {
-                    Console.WriteLine("Supertonic: audio playback completed");
-                    _isPlayingAudio = false;
-                    _currentPlayer?.Dispose();
-                    _currentPlayer = null;
-                    _currentAudioFile?.Dispose();
-                    _currentAudioFile = null;
-                    // Release this playback's CTS so cancelled instances never
-                    // linger in the static field (see StopCurrentPlayback).
-                    if (ReferenceEquals(_playbackCancellationTokenSource, cts))
-                        _playbackCancellationTokenSource = null;
-                    try { cts.Dispose(); } catch { }
-                    lock (_activeAudioFiles) _activeAudioFiles.Remove(filePath);
-                    DeleteFileWithRetry(filePath);
-                    tcs.TrySetResult(true);
-                };
-
-                _currentAudioFile = new AudioFileReader(filePath);
-                _currentPlayer.Init(_currentAudioFile);
-                Console.WriteLine($"Supertonic: playing {filePath}");
-                AudioTiming.Log("9. Playback start", "Supertonic");
-                _currentPlayer.Play();
-
-                cancellationToken.Register(() =>
-                {
-                    if (_currentPlayer != null && _isPlayingAudio)
-                    {
-                        Console.WriteLine("Supertonic: playback cancelled");
-                        try { _currentPlayer.Stop(); } catch { }
-                    }
-                });
-                return await tcs.Task;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Supertonic playback error: {ex.Message}");
-                _isPlayingAudio = false;
-                _currentAudioFile?.Dispose(); _currentAudioFile = null;
-                _currentPlayer?.Dispose();   _currentPlayer = null;
-                lock (_activeAudioFiles) _activeAudioFiles.Remove(filePath);
-                DeleteFileWithRetry(filePath);
-                tcs.TrySetResult(false);
-                return false;
-            }
-        }
-
-        private void StopCurrentPlayback()
-        {
-            // Mirror WindowsTTSService.StopCurrentPlayback: cancel + dispose the
-            // CTS (never leave a cancelled instance behind - PlayAudioFileAsync
-            // overwrites the field on every play, so a stale cancelled CTS here
-            // could orphan the *next* playback's token and make StopAllTTS miss
-            // it), then synchronously stop and release the player.
-            if (!_isPlayingAudio) return;
-
-            try
-            {
-                Console.WriteLine("Supertonic: stopping current audio playback");
-
-                if (_playbackCancellationTokenSource != null)
-                {
-                    try { _playbackCancellationTokenSource.Cancel(); } catch { }
-                    _playbackCancellationTokenSource.Dispose();
-                    _playbackCancellationTokenSource = null;
-                }
-
-                if (_currentPlayer != null)
-                {
-                    try { _currentPlayer.Stop(); } catch { }
-                    _currentPlayer.Dispose();
-                    _currentPlayer = null;
-                }
-
-                if (_currentAudioFile != null)
-                {
-                    _currentAudioFile.Dispose();
-                    _currentAudioFile = null;
-                }
-
-                _isPlayingAudio = false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"StopCurrentPlayback: {ex.Message}");
-                _isPlayingAudio = false;
-            }
-        }
-
-        private static void DeleteFileWithRetry(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return;
-            try
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                File.Delete(filePath);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Supertonic temp delete failed: {ex.Message}");
-                lock (_tempFilesToDelete)
-                {
-                    if (!_tempFilesToDelete.Contains(filePath))
-                        _tempFilesToDelete.Add(filePath);
-                }
-            }
-        }
-
-        private void StartCleanupTimer()
-        {
-            try
-            {
-                _cleanupTimer = new System.Timers.Timer(30000);
-                _cleanupTimer.Elapsed += (s, e) => CleanupTempFiles();
-                _cleanupTimer.Start();
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupAllTempFiles();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Cleanup timer start failed: {ex.Message}");
-            }
-        }
-
-        private static void CleanupTempFiles()
-        {
-            try
-            {
-                lock (_tempFilesToDelete)
-                {
-                    var toRemove = new List<string>();
-                    foreach (var file in _tempFilesToDelete)
-                    {
-                        bool active;
-                        lock (_activeAudioFiles) active = _activeAudioFiles.Contains(file);
-                        if (active) continue;
-                        try
-                        {
-                            if (File.Exists(file))
-                            {
-                                GC.Collect(); GC.WaitForPendingFinalizers();
-                                File.Delete(file);
-                                toRemove.Add(file);
-                            }
-                        }
-                        catch
-                        {
-                            // keep on list, retry next tick
-                        }
-                    }
-                    foreach (var f in toRemove) _tempFilesToDelete.Remove(f);
-                }
-
-                if (!Directory.Exists(_tempDir)) return;
-                foreach (var file in Directory.GetFiles(_tempDir, "tts_supertonic_*.wav"))
-                {
-                    bool active;
-                    lock (_activeAudioFiles) active = _activeAudioFiles.Contains(file);
-                    if (active) continue;
-                    var info = new FileInfo(file);
-                    if (DateTime.Now - info.CreationTime > TimeSpan.FromMinutes(10))
-                    {
-                        try
-                        {
-                            GC.Collect(); GC.WaitForPendingFinalizers();
-                            File.Delete(file);
-                        }
-                        catch
-                        {
-                            lock (_tempFilesToDelete)
-                            {
-                                if (!_tempFilesToDelete.Contains(file)) _tempFilesToDelete.Add(file);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"CleanupTempFiles error: {ex.Message}");
-            }
-        }
-
-        private static void CleanupAllTempFiles()
-        {
-            try
-            {
-                if (!Directory.Exists(_tempDir)) return;
-                foreach (var file in Directory.GetFiles(_tempDir, "tts_supertonic_*.wav"))
-                {
-                    try { File.Delete(file); } catch { }
-                }
-            }
-            catch { }
+            var bytes = new byte[samples.Length * sizeof(float)];
+            Buffer.BlockCopy(samples, 0, bytes, 0, bytes.Length);
+            return new RawSourceWaveStream(new MemoryStream(bytes, writable: false),
+                WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, 1));
         }
     }
 }

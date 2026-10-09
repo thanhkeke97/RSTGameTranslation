@@ -36,6 +36,11 @@ namespace RSTGameTranslation
         private readonly Queue<string> _recentTexts = new Queue<string>();
         private const int RecentTextHistory = 5;
         private ISpeechRecognitionEngine? _engine;
+        // Device loopback (the fallback) also records our own TTS. While it is in use, audio is
+        // dropped while TTS plays (plus a short tail) so the app does not transcribe and
+        // re-translate its own speech in an endless loop. Process loopback needs no gate.
+        private volatile bool _gateWhileTtsPlays;
+        private static readonly TimeSpan TtsGateTail = TimeSpan.FromMilliseconds(300);
         // Neural speech detector; null means the RMS threshold is used instead.
         private SileroFrameVad? frameVad;
         private readonly List<float> audioBuffer = new List<float>();
@@ -67,16 +72,17 @@ namespace RSTGameTranslation
         private int voiceFrameCount = 0;
 
         // Lines Whisper/SenseVoice emit when fed silence or music rather than speech.
-        // NOTE: deliberately does not blanket-drop text starting with "thank"/"please" — that
-        // discarded ordinary speech. Only the known full-phrase hallucinations are matched.
+        // The known hallucination phrases only match as the WHOLE line: matching them anywhere
+        // dropped real dialogue that merely contains the words ("Thanks for watching over me").
         private static readonly System.Text.RegularExpressions.Regex NoisePattern =
             new System.Text.RegularExpressions.Regex(
                 @"^\s*[\[\(][^\]\)]*[\]\)]\s*$"                    // [Music], (laughter)
                 + @"|^[\s\.\-–—_·、。，,!?！？~♪]*$"                  // punctuation / music-only
-                + @"|inaudible|blank_audio"
-                + @"|thank(s| you) for watching|please subscribe|subscribe to (my|our) channel"
-                + @"|ご視聴ありがとうございました|字幕(by|を提供)"
-                + @"|请不吝点赞|订阅 ?转发|打赏支持|明镜与点点",
+                + @"|^\W*(inaudible|blank_audio)\W*$"
+                + @"|^\W*(thank(s| you)( so much| very much)? for watching|please (like and )?subscribe|subscribe to (my|our) channel)\W*$"
+                + @"|^\W*ご視聴ありがとうございました\W*$"
+                + @"|^\W*字幕(by|を提供)"                             // subtitle credit lines
+                + @"|请不吝点赞|订阅 ?转发|打赏支持|明镜与点点",          // channel promo (never game dialogue)
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase
             );
 
@@ -221,12 +227,13 @@ namespace RSTGameTranslation
                 {
                     var capture = await ProcessLoopbackCapture.CreateExcludingProcessAsync(Environment.ProcessId);
                     Console.WriteLine("[Audio] Capturing all system audio except this app (process loopback)");
+                    _gateWhileTtsPlays = false;
                     return capture;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[Audio] Process loopback unavailable ({ex.Message}), " +
-                                      "falling back to device loopback — TTS output will be captured too");
+                                      "falling back to device loopback — capture pauses while TTS is speaking");
                 }
             }
 
@@ -240,6 +247,7 @@ namespace RSTGameTranslation
             }
             var defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
+            _gateWhileTtsPlays = true;
             return new WasapiLoopbackCapture(defaultDevice);
         }
 
@@ -311,6 +319,10 @@ namespace RSTGameTranslation
         {
             // Console.WriteLine($"[DEBUG] Audio received: {e.BytesRecorded} bytes");
             if (e.BytesRecorded == 0) return;
+
+            // Device loopback fallback: skip our own TTS. The VAD sees no data during the gap,
+            // so an utterance in progress is closed by the idle-stream cut.
+            if (_gateWhileTtsPlays && TtsPlaybackQueue.IsPlayingOrRecent(TtsGateTail)) return;
 
             // Write raw debug audio
             debugWriter?.Write(e.Buffer, 0, e.BytesRecorded);

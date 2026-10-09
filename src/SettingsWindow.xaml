@@ -1439,6 +1439,18 @@
                                          Unchecked="GoogleTranslateMappingCheckBox_CheckedChanged"
                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplateToolTip]}"/>
                                 
+                                <!-- Free Google Translate fallback while rate limited - Only visible when Google Translate is selected -->
+                                <TextBlock x:Name="googleFreeFallbackLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GoogleFreeFallback]}" Grid.Row="4" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_GoogleFreeFallback]}"/>
+                                <ComboBox x:Name="googleFreeFallbackComboBox" Grid.Row="4" Grid.Column="1"
+                                         Margin="0,5" Visibility="Collapsed" SelectionChanged="GoogleFreeFallbackComboBox_SelectionChanged"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_GoogleFreeFallback]}">
+                                    <ComboBoxItem Content="Microsoft" Tag="Microsoft"/>
+                                    <ComboBoxItem Content="Yandex" Tag="Yandex"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[GoogleFallback_None]}" Tag="none"/>
+                                </ComboBox>
+
                                 <!-- Prompt Label -->
                                 <TextBlock x:Name="promptLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplate]}" Grid.Row="5" Grid.Column="0" 
                                           VerticalAlignment="Top" Margin="0,10,10,0"/>
@@ -1489,6 +1501,9 @@
                                     <RowDefinition Height="Auto"/> <!-- Row 5: Model -->
                                     <RowDefinition Height="Auto"/> <!-- Row 6: spacer -->
                                     <RowDefinition Height="Auto"/> <!-- Row 7: Exclude Character Name -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 8: Windows TTS speech rate -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 9: Auto speed-up -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 10: Auto speed-up tip -->
                                 </Grid.RowDefinitions>
 
                                 <!-- TTS Enabled -->
@@ -1506,6 +1521,34 @@
                                          Margin="0,5"
                                          Checked="ExcludeCharacterNameCheckBox_CheckedChanged"
                                          Unchecked="ExcludeCharacterNameCheckBox_CheckedChanged"/>
+
+                                <!-- Windows TTS speech rate - Only visible when Windows TTS is selected -->
+                                <TextBlock x:Name="windowsTtsRateLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WindowsTtsRate]}" Grid.Row="8" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"/>
+                                <Grid x:Name="windowsTtsRateGrid" Grid.Row="8" Grid.Column="1" Margin="0,5" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="40"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Slider x:Name="windowsTtsRateSlider" Grid.Column="0" Minimum="-10" Maximum="10" Value="2"
+                                            TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                            ValueChanged="WindowsTtsRateSlider_ValueChanged"/>
+                                    <TextBlock x:Name="windowsTtsRateValueText" Grid.Column="1" Text="2" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <!-- Auto speed-up when TTS falls behind -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TtsAutoSpeedUp]}" Grid.Row="9" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="ttsAutoSpeedUpCheckBox" Grid.Row="9" Grid.Column="1" Margin="0,5"
+                                         Checked="TtsAutoSpeedUpCheckBox_CheckedChanged"
+                                         Unchecked="TtsAutoSpeedUpCheckBox_CheckedChanged"/>
+                                <TextBlock Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="2"
+                                        Margin="0,0,0,5"
+                                        FontStyle="Italic"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource MutedBrush}"
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TtsAutoSpeedUp]}"/>
                                 
                                 <!-- TTS Service -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TTSService]}" Grid.Row="1" Grid.Column="0" 
@@ -2173,6 +2216,69 @@
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[FunAsrPrecision_fp32]}" Tag="fp32"/>
                                     <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[FunAsrPrecision_int8]}" Tag="int8"/>
                                 </ComboBox>
+                            </Grid>
+                        </GroupBox>
+                        <!-- Speech capture & detection -->
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_SpeechCapture]}" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AudioCaptureMode]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="audioCaptureModeComboBox" Grid.Row="0" Grid.Column="1" Margin="0,5" SelectionChanged="AudioCaptureModeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[AudioCapture_ExcludeSelf]}" Tag="exclude_self"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[AudioCapture_Device]}" Tag="device"/>
+                                </ComboBox>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                        Margin="0,0,0,5"
+                                        FontStyle="Italic"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource MutedBrush}"
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_AudioCaptureMode]}"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_VadMode]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="vadModeComboBox" Grid.Row="2" Grid.Column="1" Margin="0,5" SelectionChanged="VadModeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[VadMode_Silero]}" Tag="silero"/>
+                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[VadMode_Rms]}" Tag="rms"/>
+                                </ComboBox>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                                        Margin="0,0,0,5"
+                                        FontStyle="Italic"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource MutedBrush}"
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_VadMode]}"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SileroThreshold]}" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="sileroThresholdTextBox" Grid.Row="4" Grid.Column="1" Margin="0,5" Text="0.5" LostFocus="SileroThresholdTextBox_LostFocus"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2"
+                                        Margin="0,0,0,5"
+                                        FontStyle="Italic"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource MutedBrush}"
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SileroThreshold]}"/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WhisperReducedContext]}" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="whisperReducedContextCheckBox" Grid.Row="6" Grid.Column="1" Margin="0,5"
+                                          Checked="WhisperReducedContextCheckBox_CheckedChanged"
+                                          Unchecked="WhisperReducedContextCheckBox_CheckedChanged"/>
+                                <TextBlock Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"
+                                        Margin="0,0,0,5"
+                                        FontStyle="Italic"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource MutedBrush}"
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WhisperReducedContext]}"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>

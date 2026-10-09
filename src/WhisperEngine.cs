@@ -53,7 +53,7 @@ namespace RSTGameTranslation
             // Create factory with specified runtime
             factory = CreateFactoryWithRuntime(fullPath, runtime);
 
-            language = MapLanguageToWhisper(ConfigManager.Instance.GetSourceLanguage());
+            language = SpeechLanguageCodes.ToIsoCode(ConfigManager.Instance.GetSourceLanguage());
 
             // Get thread count from config (0 = auto, use all available cores)
             int configThreadCount = ConfigManager.Instance.GetWhisperThreadCount();
@@ -174,47 +174,6 @@ namespace RSTGameTranslation
             fullProcessor = null;
             try { factory?.Dispose(); } catch { }
             factory = null;
-        }
-
-        private string MapLanguageToWhisper(string language)
-        {
-            return language.ToLower() switch
-            {
-                "japanese" or "japan" or "ja" => "ja",
-                "english" or "en" => "en",
-                "chinese" or "zh" or "ch_sim" => "zh",
-                "korean" or "ko" => "ko",
-                "vietnamese" or "vi" => "vi",
-                "french" or "fr" => "fr",
-                "german" or "de" => "de",
-                "spanish" or "es" => "es",
-                "italian" or "it" => "it",
-                "portuguese" or "pt" => "pt",
-                "russian" or "ru" => "ru",
-                "hindi" or "hi" => "hi",
-                "indonesian" or "id" => "id",
-                "polish" or "pl" => "pl",
-                "arabic" or "ar" => "ar",
-                "dutch" or "nl" => "nl",
-                "romanian" or "ro" => "ro",
-                "persian" or "farsi" or "fa" => "fa",
-                "czech" or "cs" => "cs",
-                "bulgarian" or "bg" => "bg",
-                "thai" or "th" or "thailand" => "th",
-                "traditional chinese" or "ch_tra" => "zh",
-                "croatian" or "hr" => "hr",
-                "hungarian" or "hu" => "hu",
-                "turkish" or "tr" => "tr",
-                "sinhala" or "si" => "si",
-                "danish" or "da" => "da",
-                "ukrainian" or "uk" => "uk",
-                "finnish" or "fi" => "fi",
-                "central kurdish" or "ckb" => "ckb",
-                "bengali" or "bn" => "bn",
-                "greek" or "el" => "el",
-                "hebrew" or "he" or "iw" => "he",
-                _ => language
-            };
         }
 
         /// <summary>

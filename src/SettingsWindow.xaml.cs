@@ -987,6 +987,10 @@ namespace RSTGameTranslation
             silenceDurationTextBox.Text = ConfigManager.Instance.GetSilenceDurationMs().ToString(CultureInfo.InvariantCulture);
             maxBufferSamplesTextBox.Text = ConfigManager.Instance.GetMaxBufferSamples().ToString(CultureInfo.InvariantCulture);
             whisperThreadCountTextBox.Text = ConfigManager.Instance.GetWhisperThreadCount().ToString(CultureInfo.InvariantCulture);
+            SelectComboBoxItemByTag(audioCaptureModeComboBox, ConfigManager.Instance.GetAudioCaptureMode());
+            SelectComboBoxItemByTag(vadModeComboBox, ConfigManager.Instance.GetAudioVadMode());
+            sileroThresholdTextBox.Text = ConfigManager.Instance.GetSileroVadThreshold().ToString("0.##", CultureInfo.InvariantCulture);
+            whisperReducedContextCheckBox.IsChecked = ConfigManager.Instance.GetWhisperReducedAudioContext();
 
             audioProcessingModelComboBox.SelectionChanged -= AudioProcessingModelComboBox_SelectionChanged;
 
@@ -1167,6 +1171,11 @@ namespace RSTGameTranslation
 
             // Set Exclude character name
             excludeCharacterNameCheckBox.IsChecked = ConfigManager.Instance.IsExcludeCharacterNameEnabled();
+
+            // Windows TTS speech rate and auto speed-up
+            windowsTtsRateSlider.Value = WindowsTTSService.GetSpeechRate();
+            windowsTtsRateValueText.Text = WindowsTTSService.GetSpeechRate().ToString(CultureInfo.InvariantCulture);
+            ttsAutoSpeedUpCheckBox.IsChecked = ConfigManager.Instance.IsTtsAutoSpeedUpEnabled();
 
             // Set TTS service
             string ttsService = ConfigManager.Instance.GetTtsService();
@@ -2019,6 +2028,8 @@ namespace RSTGameTranslation
                 googleTranslateServiceTypeComboBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateMappingLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateMappingCheckBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
+                googleFreeFallbackLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
+                googleFreeFallbackComboBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Hide prompt template for Google Translate / Yandex / Microsoft
                 bool showPromptTemplate = !isGoogleTranslateSelected && !isYandexSelected && !isMicrosoftSelected;
@@ -2212,6 +2223,11 @@ namespace RSTGameTranslation
 
                     // Set language mapping checkbox
                     googleTranslateMappingCheckBox.IsChecked = ConfigManager.Instance.GetGoogleTranslateAutoMapLanguages();
+
+                    // Fallback service while the free service is rate limited
+                    googleFreeFallbackComboBox.SelectionChanged -= GoogleFreeFallbackComboBox_SelectionChanged;
+                    SelectComboBoxItemByTag(googleFreeFallbackComboBox, ConfigManager.Instance.GetGoogleFreeFallbackService());
+                    googleFreeFallbackComboBox.SelectionChanged += GoogleFreeFallbackComboBox_SelectionChanged;
                 }
             }
             catch (Exception ex)
@@ -2338,6 +2354,8 @@ namespace RSTGameTranslation
                 windowTTSVoiceLabel.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 windowTTSVoiceComboBox.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
                 windowsTTSGuide.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
+                windowsTtsRateLabel.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
+                windowsTtsRateGrid.Visibility = isWindowTtsSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Supertonic TTS-specific settings
                 if (supertonicSettingsGroupBox != null)
@@ -4727,6 +4745,27 @@ namespace RSTGameTranslation
             }
         }
 
+        // An invalid pattern used to be saved silently and then never matched (the compile error
+        // only reached the console). Tell the user instead.
+        private static bool ValidateIgnoreRegex(string pattern)
+        {
+            try
+            {
+                _ = new System.Text.RegularExpressions.Regex(pattern);
+                return true;
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_InvalidRegex"], ex.Message),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return false;
+            }
+        }
+
         // Add a new ignore phrase
         private void AddIgnorePhraseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -4759,6 +4798,9 @@ namespace RSTGameTranslation
                 var matchType = newMatchTypeComboBox.SelectedValue is IgnorePhraseMatchType mt
                     ? mt
                     : IgnorePhraseMatchType.ExactMatch;
+
+                if (matchType == IgnorePhraseMatchType.RegularExpression && !ValidateIgnoreRegex(phrase))
+                    return;
 
                 _ignorePhrases.Add(new IgnorePhrase(phrase, matchType));
 
@@ -4847,6 +4889,21 @@ namespace RSTGameTranslation
                     {
                         if (ignorePhrase.Phrase == phrase)
                         {
+                            if (matchType == IgnorePhraseMatchType.RegularExpression && !ValidateIgnoreRegex(phrase))
+                            {
+                                // Keep the previous match type for a phrase that is not a valid regex.
+                                // SelectedValue is two-way bound, so MatchType already holds the new
+                                // value; the previous one comes from the removed item.
+                                var previous = e.RemovedItems.Count > 0 && e.RemovedItems[0] is KeyValuePair<string, IgnorePhraseMatchType> removed
+                                    ? removed.Value
+                                    : IgnorePhraseMatchType.ExactMatch;
+                                ignorePhrase.MatchType = previous;
+                                _isInitializing = true;
+                                try { comboBox.SelectedValue = previous; }
+                                finally { _isInitializing = false; }
+                                break;
+                            }
+
                             ignorePhrase.MatchType = matchType;
 
                             SaveIgnorePhrases();
@@ -5214,6 +5271,82 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error updating silence threshold: {ex.Message}");
             }
+        }
+
+        // Select the item whose Tag matches (case-insensitive); falls back to the first item
+        private static void SelectComboBoxItemByTag(ComboBox comboBox, string tag)
+        {
+            foreach (var item in comboBox.Items)
+            {
+                if (item is ComboBoxItem cbItem && string.Equals(cbItem.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase))
+                {
+                    comboBox.SelectedItem = cbItem;
+                    return;
+                }
+            }
+            if (comboBox.Items.Count > 0) comboBox.SelectedIndex = 0;
+        }
+
+        private static string? SelectedTag(ComboBox comboBox) =>
+            (comboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+
+        private void AudioCaptureModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            string? mode = SelectedTag(audioCaptureModeComboBox);
+            if (mode == null) return;
+            ConfigManager.Instance.SetAudioCaptureMode(mode);
+            Console.WriteLine($"Audio capture mode set to: {mode} (applies the next time audio translation starts)");
+        }
+
+        private void VadModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            string? mode = SelectedTag(vadModeComboBox);
+            if (mode == null) return;
+            ConfigManager.Instance.SetAudioVadMode(mode);
+            Console.WriteLine($"Speech detection set to: {mode} (applies the next time audio translation starts)");
+        }
+
+        private void SileroThresholdTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (float.TryParse(sileroThresholdTextBox.Text?.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out float threshold))
+            {
+                ConfigManager.Instance.SetSileroVadThreshold(threshold);
+            }
+            // Show the stored (clamped) value, or restore it after invalid input
+            sileroThresholdTextBox.Text = ConfigManager.Instance.GetSileroVadThreshold().ToString("0.##", CultureInfo.InvariantCulture);
+        }
+
+        private void WhisperReducedContextCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetWhisperReducedAudioContext(whisperReducedContextCheckBox.IsChecked ?? true);
+        }
+
+        private void WindowsTtsRateSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            int rate = (int)Math.Round(e.NewValue);
+            if (windowsTtsRateValueText != null)
+                windowsTtsRateValueText.Text = rate.ToString(CultureInfo.InvariantCulture);
+            if (_isInitializing) return;
+            WindowsTTSService.SetSpeechRate(rate);
+        }
+
+        private void TtsAutoSpeedUpCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetTtsAutoSpeedUpEnabled(ttsAutoSpeedUpCheckBox.IsChecked ?? true);
+        }
+
+        private void GoogleFreeFallbackComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            string? service = SelectedTag(googleFreeFallbackComboBox);
+            if (service == null) return;
+            ConfigManager.Instance.SetGoogleFreeFallbackService(service);
+            Console.WriteLine($"Google Translate (free) fallback set to: {service}");
         }
 
         private void SilenceDurationTextBox_LostFocus(object sender, RoutedEventArgs e)

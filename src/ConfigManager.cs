@@ -186,6 +186,10 @@ namespace RSTGameTranslation
         public const string WHISPER_REDUCED_AUDIO_CTX = "whisper_reduced_audio_ctx";
         public const string AUDIO_CAPTURE_MODE = "audio_capture_mode";
         public const string GOOGLE_FREE_FALLBACK_SERVICE = "google_free_fallback_service";
+        public const string WINDOWS_TTS_SPEECH_RATE = "windows_tts_speech_rate";
+        public const string TTS_AUTO_SPEEDUP = "tts_auto_speedup";
+        // One-time migration markers
+        private const string MIGRATED_SILENCE_DURATION_300 = "migrated_silence_duration_300";
         public const string WHISPER_THREAD_COUNT = "whisper_thread_count";
         public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
         public const string AUTO_CLEAR_CHAT_TIMEOUT = "auto_clear_chat_timeout";
@@ -431,6 +435,20 @@ namespace RSTGameTranslation
                 SaveConfig();
             }
 
+            // The default pause before an utterance is cut went from 500 to 300 ms (the Silero VAD
+            // finds the end of speech precisely, so the shorter wait is safe and cuts latency).
+            // Configs written with the old default still say 500: move them over once.
+            if (!_configValues.ContainsKey(MIGRATED_SILENCE_DURATION_300))
+            {
+                if (_configValues.TryGetValue(SILENCE_DURATION_MS, out string? pause) && pause.Trim() == "500")
+                {
+                    _configValues[SILENCE_DURATION_MS] = "300";
+                    Console.WriteLine("Migrated Silence_Duration_Ms from the old default 500 to 300");
+                }
+                _configValues[MIGRATED_SILENCE_DURATION_300] = "true";
+                SaveConfig();
+            }
+
             // Create service-specific config files if they don't exist
             EnsureServiceConfigFilesExist();
         }
@@ -630,6 +648,9 @@ namespace RSTGameTranslation
             _configValues[WHISPER_REDUCED_AUDIO_CTX] = "true";
             _configValues[AUDIO_CAPTURE_MODE] = "exclude_self";
             _configValues[GOOGLE_FREE_FALLBACK_SERVICE] = "Microsoft";
+            _configValues[WINDOWS_TTS_SPEECH_RATE] = "2";
+            _configValues[TTS_AUTO_SPEEDUP] = "true";
+            _configValues[MIGRATED_SILENCE_DURATION_300] = "true";
             _configValues[WHISPER_THREAD_COUNT] = "0"; // 0 = auto (use all cores)
             _configValues[CLIPBOARD_AUTO_TRANSLATE_ENABLED] = "false";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = "true";
@@ -858,6 +879,61 @@ namespace RSTGameTranslation
         public string GetGoogleFreeFallbackService()
         {
             return GetValue(GOOGLE_FREE_FALLBACK_SERVICE, "Microsoft").Trim();
+        }
+
+        public void SetGoogleFreeFallbackService(string service)
+        {
+            _configValues[GOOGLE_FREE_FALLBACK_SERVICE] = service;
+            SaveConfig();
+        }
+
+        // Windows TTS speech rate, -10 (slow) .. 10 (fast), 0 = normal
+        public int GetWindowsTtsSpeechRate()
+        {
+            return int.TryParse(GetValue(WINDOWS_TTS_SPEECH_RATE, "2"), NumberStyles.Integer, CultureInfo.InvariantCulture, out int rate)
+                ? rate : 2;
+        }
+
+        public void SetWindowsTtsSpeechRate(int rate)
+        {
+            _configValues[WINDOWS_TTS_SPEECH_RATE] = rate.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+        }
+
+        // Speak faster when TTS falls behind the game (clips waiting to play)
+        public bool IsTtsAutoSpeedUpEnabled()
+        {
+            return GetBoolValue(TTS_AUTO_SPEEDUP, true);
+        }
+
+        public void SetTtsAutoSpeedUpEnabled(bool enabled)
+        {
+            _configValues[TTS_AUTO_SPEEDUP] = enabled.ToString().ToLowerInvariant();
+            SaveConfig();
+        }
+
+        public void SetAudioCaptureMode(string mode)
+        {
+            _configValues[AUDIO_CAPTURE_MODE] = mode;
+            SaveConfig();
+        }
+
+        public void SetAudioVadMode(string mode)
+        {
+            _configValues[AUDIO_VAD_MODE] = mode;
+            SaveConfig();
+        }
+
+        public void SetSileroVadThreshold(float threshold)
+        {
+            _configValues[SILERO_VAD_THRESHOLD] = Math.Clamp(threshold, 0.05f, 0.95f).ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+        }
+
+        public void SetWhisperReducedAudioContext(bool enabled)
+        {
+            _configValues[WHISPER_REDUCED_AUDIO_CTX] = enabled.ToString().ToLowerInvariant();
+            SaveConfig();
         }
 
         // Audio capture: "exclude_self" (all system audio except this app, so TTS is not
@@ -3246,6 +3322,7 @@ namespace RSTGameTranslation
                             matchType = IgnorePhraseMatchType.ExactMatch;
                         }
 
+                        phrase = DecodeIgnorePhrase(phrase);
                         if (!string.IsNullOrEmpty(phrase))
                         {
                             result.Add((phrase, matchType));
@@ -3273,6 +3350,27 @@ namespace RSTGameTranslation
             return result;
         }
 
+        // The list is stored as "phrase|type|phrase|type|" on one config line, so a phrase
+        // containing '|' (e.g. the regex "Skip|Next") split into extra fields and shifted every
+        // later entry: phrases became match types and vice versa. '%', '|' and line breaks are
+        // percent-encoded; decoding is a single pass so "%257C" round-trips as "%7C".
+        private static string EncodeIgnorePhrase(string phrase)
+        {
+            return phrase.Replace("%", "%25").Replace("|", "%7C").Replace("\r", "%0D").Replace("\n", "%0A");
+        }
+
+        private static string DecodeIgnorePhrase(string encoded)
+        {
+            // Case-sensitive on purpose: only the exact sequences the encoder writes
+            return Regex.Replace(encoded, "%(25|7C|0D|0A)", m => m.Groups[1].Value switch
+            {
+                "25" => "%",
+                "7C" => "|",
+                "0D" => "\r",
+                _ => "\n"
+            });
+        }
+
         public bool TryGetCompiledRegex(string phrase, out Regex? regex)
         {
             return _cachedCompiledRegexes.TryGetValue(phrase, out regex);
@@ -3287,7 +3385,7 @@ namespace RSTGameTranslation
             {
                 if (!string.IsNullOrEmpty(phrase))
                 {
-                    sb.Append(phrase);
+                    sb.Append(EncodeIgnorePhrase(phrase));
                     sb.Append('|');
                     sb.Append(matchType.ToString());
                     sb.Append('|');
@@ -3298,41 +3396,6 @@ namespace RSTGameTranslation
             _ignorePhrasesCacheValid = false;
             SaveConfig();
             Console.WriteLine($"Saved {phrases.Count} ignore phrases: {sb.ToString()}");
-        }
-
-        // Add a single ignore phrase
-        public void AddIgnorePhrase(string phrase, IgnorePhraseMatchType matchType)
-        {
-            if (string.IsNullOrEmpty(phrase))
-                return;
-
-            var phrases = GetIgnorePhrases();
-
-            // Check if the phrase already exists
-            if (!phrases.Any(p => p.Phrase == phrase))
-            {
-                phrases.Add((phrase, matchType));
-                SaveIgnorePhrases(phrases);
-                Console.WriteLine($"Added ignore phrase: '{phrase}' (Match Type: {matchType})");
-            }
-        }
-
-        // Remove a single ignore phrase
-        public void RemoveIgnorePhrase(string phrase)
-        {
-            if (string.IsNullOrEmpty(phrase))
-                return;
-
-            var phrases = GetIgnorePhrases();
-            var originalCount = phrases.Count;
-
-            phrases.RemoveAll(p => p.Phrase == phrase);
-
-            if (phrases.Count < originalCount)
-            {
-                SaveIgnorePhrases(phrases);
-                Console.WriteLine($"Removed ignore phrase: '{phrase}'");
-            }
         }
 
         // Get/set language font size min
@@ -3367,24 +3430,6 @@ namespace RSTGameTranslation
             SaveConfig();
         }
 
-        public void UpdateIgnorePhraseMatchType(string phrase, IgnorePhraseMatchType matchType)
-        {
-            if (string.IsNullOrEmpty(phrase))
-                return;
-
-            var phrases = GetIgnorePhrases();
-
-            for (int i = 0; i < phrases.Count; i++)
-            {
-                if (phrases[i].Phrase == phrase)
-                {
-                    phrases[i] = (phrase, matchType);
-                    SaveIgnorePhrases(phrases);
-                    Console.WriteLine($"Updated ignore phrase: '{phrase}' (Match Type: {matchType})");
-                    break;
-                }
-            }
-        }
         public string GetGoogleTranslateApiKey()
         {
             return GetValue(GOOGLE_TRANSLATE_API_KEY, "");
