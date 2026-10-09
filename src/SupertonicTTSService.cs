@@ -690,6 +690,10 @@ namespace RSTGameTranslation
         // Extra silence appended after every synthesized utterance (seconds).
         private const float TailPadSeconds = 0.35f;
 
+        // Max characters per synthesized clip. Sentences are packed up to this length; smaller
+        // clips mean the first audio is heard sooner on long lines.
+        private const int SentenceChunkMaxLen = 120;
+
         private static readonly string[] RequiredOnnxFiles =
         {
             "duration_predictor.onnx", "text_encoder.onnx",
@@ -893,67 +897,73 @@ namespace RSTGameTranslation
                     if (speed < ConfigManager.SUPERTONIC_MIN_SPEED) speed = ConfigManager.SUPERTONIC_MIN_SPEED;
                     if (speed > ConfigManager.SUPERTONIC_MAX_SPEED) speed = ConfigManager.SUPERTONIC_MAX_SPEED;
 
-                    // Ensure model + style are loaded (lazy). Catches errors
-                    // here so the user gets a clear MessageBox instead of
-                    // a silent failure that gets swallowed by callers.
-                    float[] wav;
-                    try
+                    // Synthesize sentence by sentence and queue each clip as soon as it is ready,
+                    // so playback starts after the first sentence instead of after the whole
+                    // text (tts.Call synthesizes every chunk before returning anything).
+                    var chunks = Supertonic.StHelper.ChunkText(processedText, SentenceChunkMaxLen);
+                    int queued = 0;
+                    for (int i = 0; i < chunks.Count; i++)
                     {
-                        wav = await Task.Run(() =>
-                        {
-                            var tts = EnsureLoaded();
-                            if (tts == null) throw new InvalidOperationException("Failed to load Supertonic TTS");
-                            EnsureStyle(voiceStyle);
-                            if (_style == null) throw new InvalidOperationException("Failed to load voice style");
-                            var (samples, _) = tts.Call(processedText, lang, _style, totalSteps, speed, 0.3f);
-                            return samples;
-                        });
-                    }
-                    catch (Exception synthEx)
-                    {
-                        // Reset the missing-model notice so the user can
-                        // re-trigger a popup after fixing the install.
-                        ResetMissingModelNotice();
-                        Console.WriteLine($"Supertonic synthesis error: {synthEx.Message}");
+                        string chunk = chunks[i];
+                        float[] wav;
+                        var chunkTimer = System.Diagnostics.Stopwatch.StartNew();
                         try
                         {
-                            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-                                MessageBox.Show(
-                                    $"Supertonic failed to synthesize speech.\n\n{synthEx.Message}\n\nThe model may be corrupted - try re-downloading in Settings → TTS.",
-                                    "Supertonic synthesis error",
-                                    MessageBoxButton.OK, MessageBoxImage.Warning));
+                            // Ensure model + style are loaded (lazy). Catches errors here so the
+                            // user gets a clear MessageBox instead of a silent failure.
+                            wav = await Task.Run(() =>
+                            {
+                                var tts = EnsureLoaded();
+                                if (tts == null) throw new InvalidOperationException("Failed to load Supertonic TTS");
+                                EnsureStyle(voiceStyle);
+                                if (_style == null) throw new InvalidOperationException("Failed to load voice style");
+                                var (samples, _) = tts.Call(chunk, lang, _style, totalSteps, speed, 0.3f);
+                                return samples;
+                            });
                         }
-                        catch { }
-                        return false;
+                        catch (Exception synthEx)
+                        {
+                            // Reset the missing-model notice so the user can
+                            // re-trigger a popup after fixing the install.
+                            ResetMissingModelNotice();
+                            TtsErrorNotifier.ShowError("Supertonic",
+                                $"Supertonic failed to synthesize speech.\n\n{synthEx.Message}\n\nThe model may be corrupted - try re-downloading in Settings → TTS.",
+                                "Supertonic synthesis error");
+                            return queued > 0;
+                        }
+
+                        if (wav == null || wav.Length == 0)
+                        {
+                            Console.WriteLine("Supertonic: synthesis returned no audio for a chunk");
+                            continue;
+                        }
+
+                        // Pad a short silence tail so the final word can decay naturally and
+                        // consecutive sentences keep a natural pause between them. Without this
+                        // the vocoder output ends exactly at the last latent chunk boundary and
+                        // the tail of the last syllable can feel clipped.
+                        int sampleRate = _tts!.SampleRate;
+                        int tailPad = (int)(TailPadSeconds * sampleRate);
+                        var padded = new float[wav.Length + tailPad];
+                        Array.Copy(wav, padded, wav.Length);
+
+                        string audioFilePath = Path.Combine(_tempDir, $"tts_supertonic_{DateTime.Now.Ticks}_{i}.wav");
+                        await Task.Run(() => Supertonic.StHelper.WriteWavFile(audioFilePath, padded, sampleRate));
+
+                        lock (_tempFilesToDelete)
+                        {
+                            if (!_tempFilesToDelete.Contains(audioFilePath))
+                                _tempFilesToDelete.Add(audioFilePath);
+                        }
+
+                        EnqueueAudioFile(audioFilePath);
+                        queued++;
+                        AudioTiming.Log("   Supertonic chunk", $"{i + 1}/{chunks.Count} synthesized in {chunkTimer.ElapsedMilliseconds} ms " +
+                                                              $"({chunk.Length} chars, {wav.Length / (double)sampleRate:F1}s audio)");
                     }
 
-                    if (wav == null || wav.Length == 0)
-                    {
-                        Console.WriteLine("Supertonic: synthesis returned no audio");
-                        return false;
-                    }
-
-                    // Pad a short silence tail so the final word can decay
-                    // naturally. Without this the vocoder output ends exactly at
-                    // the last latent chunk boundary and the tail of the last
-                    // syllable can feel clipped, especially right before the
-                    // player switches to the next queued file.
-                    int sampleRate = _tts!.SampleRate;
-                    int tailPad = (int)(TailPadSeconds * sampleRate);
-                    var padded = new float[wav.Length + tailPad];
-                    Array.Copy(wav, padded, wav.Length);
-
-                    string audioFilePath = Path.Combine(_tempDir, $"tts_supertonic_{DateTime.Now.Ticks}.wav");
-                    await Task.Run(() => Supertonic.StHelper.WriteWavFile(audioFilePath, padded, sampleRate));
-
-                    lock (_tempFilesToDelete)
-                    {
-                        if (!_tempFilesToDelete.Contains(audioFilePath))
-                            _tempFilesToDelete.Add(audioFilePath);
-                    }
-
-                    EnqueueAudioFile(audioFilePath);
-                    return true;
+                    if (queued == 0) Console.WriteLine("Supertonic: synthesis returned no audio");
+                    return queued > 0;
                 }
                 finally
                 {
@@ -962,18 +972,7 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Supertonic SpeakText error: {ex.Message}");
-                try
-                {
-                    System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-                        MessageBox.Show(
-                            $"Error with Supertonic Text-to-Speech: {ex.Message}",
-                            "TTS Error", MessageBoxButton.OK, MessageBoxImage.Warning));
-                }
-                catch (Exception mbx)
-                {
-                    Console.WriteLine($"Supertonic: failed to show TTS error MessageBox: {mbx.Message}");
-                }
+                TtsErrorNotifier.ShowError("Supertonic", $"Error with Supertonic Text-to-Speech: {ex.Message}");
                 return false;
             }
         }
@@ -1179,6 +1178,7 @@ namespace RSTGameTranslation
                 _currentAudioFile = new AudioFileReader(filePath);
                 _currentPlayer.Init(_currentAudioFile);
                 Console.WriteLine($"Supertonic: playing {filePath}");
+                AudioTiming.Log("9. Playback start", "Supertonic");
                 _currentPlayer.Play();
 
                 cancellationToken.Register(() =>

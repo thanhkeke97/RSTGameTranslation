@@ -15,7 +15,8 @@ namespace RSTGameTranslation
 {
     public class localWhisperService
     {
-        private WasapiLoopbackCapture? loopbackCapture;
+        // Process loopback (all audio except this app's own TTS), or plain device loopback as fallback
+        private IWaveIn? loopbackCapture;
         private BufferedWaveProvider? bufferedProvider;
         private ISampleProvider? processedProvider;
         private WaveFileWriter? debugWriter;
@@ -25,7 +26,12 @@ namespace RSTGameTranslation
         // Computed from the real capture format in StartServiceAsync — a hard-coded value is
         // wrong because the capture format varies per device.
         private int minSourceBytesPerFrame = 4096;
-        public bool IsRunning => loopbackCapture != null && loopbackCapture.CaptureState == CaptureState.Capturing;
+        public bool IsRunning => loopbackCapture switch
+        {
+            ProcessLoopbackCapture p => p.IsCapturing,
+            WasapiLoopbackCapture w => w.CaptureState == CaptureState.Capturing,
+            _ => false
+        };
         // Last few emitted lines, used for exact-duplicate suppression.
         private readonly Queue<string> _recentTexts = new Queue<string>();
         private const int RecentTextHistory = 5;
@@ -154,6 +160,10 @@ namespace RSTGameTranslation
                 Stop();
                 int generation = Volatile.Read(ref _generation);
 
+                // Prepare the translation service while the model loads, so the first line does
+                // not also pay the connection setup (or, for Ollama, the model load).
+                TranslationWarmUp.Start();
+
                 // Loading a model takes seconds (up to ~1 GB for large Whisper / SenseVoice fp32),
                 // so it must not run on the caller's (UI) thread.
                 ISpeechRecognitionEngine engine = CreateEngine();
@@ -178,7 +188,7 @@ namespace RSTGameTranslation
 
                 try
                 {
-                    StartCapture(onResult, engine);
+                    await StartCaptureAsync(onResult, engine);
                 }
                 catch
                 {
@@ -198,8 +208,28 @@ namespace RSTGameTranslation
             }
         }
 
-        private void StartCapture(Action<string, string> onResult, ISpeechRecognitionEngine engine)
+        /// <summary>
+        /// Capture everything the system plays except this process (so our own TTS is not
+        /// transcribed back). Falls back to loopback of the default output device when process
+        /// loopback is unavailable (Windows older than 10 2004) or disabled in config.
+        /// </summary>
+        private async Task<IWaveIn> CreateLoopbackCaptureAsync()
         {
+            if (ConfigManager.Instance.GetAudioCaptureMode() != "device")
+            {
+                try
+                {
+                    var capture = await ProcessLoopbackCapture.CreateExcludingProcessAsync(Environment.ProcessId);
+                    Console.WriteLine("[Audio] Capturing all system audio except this app (process loopback)");
+                    return capture;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Audio] Process loopback unavailable ({ex.Message}), " +
+                                      "falling back to device loopback — TTS output will be captured too");
+                }
+            }
+
             deviceEnumerator = new MMDeviceEnumerator();
             var devices = deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
 
@@ -210,8 +240,12 @@ namespace RSTGameTranslation
             }
             var defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
             Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
+            return new WasapiLoopbackCapture(defaultDevice);
+        }
 
-            loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
+        private async Task StartCaptureAsync(Action<string, string> onResult, ISpeechRecognitionEngine engine)
+        {
+            loopbackCapture = await CreateLoopbackCaptureAsync();
             // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
             bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
             bufferedProvider.DiscardOnBufferOverflow = true;
@@ -666,6 +700,8 @@ namespace RSTGameTranslation
                                   "segments queued), dropping the oldest. Consider a smaller model or GPU runtime.");
             }
             segmentChannel.Writer.TryWrite(segment);
+            AudioTiming.Log("1. Segment ready", $"{segment.Length / 16000.0:F1}s audio, {voiced / 16000.0:F1}s speech, " +
+                                                $"{segmentChannel.Reader.Count} waiting for recognition");
         }
 
         /// <summary>
@@ -911,7 +947,10 @@ namespace RSTGameTranslation
                     return;
                 }
 
+                var decodeTimer = System.Diagnostics.Stopwatch.StartNew();
                 IReadOnlyList<string> segments = await engine.RecognizeAsync(samples, token);
+                AudioTiming.Log("2. Recognized", $"{decodeTimer.ElapsedMilliseconds} ms for {samples.Length / 16000.0:F1}s audio, " +
+                                                 $"{segments.Count} segment(s)");
 
                 // Stopped while decoding: drop the result rather than emit a stale line or touch
                 // the duplicate history a new run may already be using.
@@ -945,6 +984,7 @@ namespace RSTGameTranslation
                 // translation now starts as soon as a line arrives, so emitting them separately
                 // would translate the halves of a sentence on their own.
                 string utterance = string.Join(" ", lines);
+                AudioTiming.Log("3. Sent to translation", AudioTiming.Preview(utterance));
                 await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     Logic.Instance.AddAudioTextObject(utterance);

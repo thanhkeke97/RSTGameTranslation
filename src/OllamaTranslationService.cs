@@ -14,6 +14,21 @@ namespace RSTGameTranslation
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
 
         /// <summary>
+        /// Load the configured model into memory before the first translation. A request with a
+        /// model and no prompt only loads it; a cold model load takes seconds for larger models.
+        /// </summary>
+        internal static async Task PreloadModelAsync()
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            string endpoint = ConfigManager.Instance.GetOllamaApiEndpoint();
+            string model = ConfigManager.Instance.GetOllamaModel();
+            string json = System.Text.Json.JsonSerializer.Serialize(new { model, keep_alive = "30m" });
+            using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            using var response = await _httpClient.PostAsync(endpoint, content);
+            Console.WriteLine($"[WarmUp] Ollama: model '{model}' loaded in {timer.ElapsedMilliseconds} ms ({(int)response.StatusCode})");
+        }
+
+        /// <summary>
         /// Translate text using the Ollama API
         /// </summary>
         /// <param name="jsonData">The JSON data to translate</param>

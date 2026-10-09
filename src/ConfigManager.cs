@@ -184,6 +184,8 @@ namespace RSTGameTranslation
         public const string AUDIO_VAD_MODE = "audio_vad_mode";
         public const string SILERO_VAD_THRESHOLD = "silero_vad_threshold";
         public const string WHISPER_REDUCED_AUDIO_CTX = "whisper_reduced_audio_ctx";
+        public const string AUDIO_CAPTURE_MODE = "audio_capture_mode";
+        public const string GOOGLE_FREE_FALLBACK_SERVICE = "google_free_fallback_service";
         public const string WHISPER_THREAD_COUNT = "whisper_thread_count";
         public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
         public const string AUTO_CLEAR_CHAT_TIMEOUT = "auto_clear_chat_timeout";
@@ -626,6 +628,8 @@ namespace RSTGameTranslation
             _configValues[AUDIO_VAD_MODE] = "silero";
             _configValues[SILERO_VAD_THRESHOLD] = "0.5";
             _configValues[WHISPER_REDUCED_AUDIO_CTX] = "true";
+            _configValues[AUDIO_CAPTURE_MODE] = "exclude_self";
+            _configValues[GOOGLE_FREE_FALLBACK_SERVICE] = "Microsoft";
             _configValues[WHISPER_THREAD_COUNT] = "0"; // 0 = auto (use all cores)
             _configValues[CLIPBOARD_AUTO_TRANSLATE_ENABLED] = "false";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = "true";
@@ -847,6 +851,20 @@ namespace RSTGameTranslation
         public string GetAudioVadMode()
         {
             return GetValue(AUDIO_VAD_MODE, "silero").Trim().ToLowerInvariant();
+        }
+
+        // Service used while free Google Translate is rate limited (HTTP 429): "Microsoft",
+        // "Yandex" (same response format, no API key needed) or "none"
+        public string GetGoogleFreeFallbackService()
+        {
+            return GetValue(GOOGLE_FREE_FALLBACK_SERVICE, "Microsoft").Trim();
+        }
+
+        // Audio capture: "exclude_self" (all system audio except this app, so TTS is not
+        // transcribed back) or "device" (plain loopback of the default output device)
+        public string GetAudioCaptureMode()
+        {
+            return GetValue(AUDIO_CAPTURE_MODE, "exclude_self").Trim().ToLowerInvariant();
         }
 
         // Whisper: encode clips up to 10s with a reduced audio context (much faster on short lines)

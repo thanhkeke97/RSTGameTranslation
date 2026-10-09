@@ -434,8 +434,7 @@ namespace RSTGameTranslation
                     else
                     {
                         // No voices available
-                        MessageBox.Show("No Windows TTS voices are available on this system.",
-                            "No Voices Available", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        TtsErrorNotifier.ShowError("Windows", "No Windows TTS voices are available on this system.", "No Voices Available");
                         return false;
                     }
                 }
@@ -471,14 +470,7 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error preparing TTS: {ex.Message}");
-                
-                // Show a message to the user on the UI thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    MessageBox.Show($"Error with Text-to-Speech: {ex.Message}",
-                        "TTS Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                });
+                TtsErrorNotifier.ShowError("Windows", $"Error with Text-to-Speech: {ex.Message}");
                 
                 return false;
             }
@@ -540,14 +532,16 @@ namespace RSTGameTranslation
                     
                     Console.WriteLine($"Generating audio for text: {text.Substring(0, Math.Min(50, text.Length))}...");
                     
-                    // Generate speech stream
-                    SpeechSynthesisStream stream = await _synthesizer.SynthesizeTextToStreamAsync(text);
+                    // Generate speech stream (WinRT objects: dispose them, or every line leaks
+                    // the synthesized audio buffer until finalization)
+                    using SpeechSynthesisStream stream = await _synthesizer.SynthesizeTextToStreamAsync(text);
                     
                     // Save to WAV file
                     using (var fileStream = new FileStream(audioFile, FileMode.Create, FileAccess.Write))
+                    using (var inputStream = stream.GetInputStreamAt(0))
+                    using (var dataReader = new DataReader(inputStream))
                     {
                         // Convert the stream to a byte array
-                        var dataReader = new DataReader(stream.GetInputStreamAt(0));
                         await dataReader.LoadAsync((uint)stream.Size);
                         byte[] buffer = new byte[stream.Size];
                         dataReader.ReadBytes(buffer);
@@ -819,6 +813,7 @@ namespace RSTGameTranslation
                 
                 // Start playback
                 Console.WriteLine($"Starting audio playback of file: {filePath}");
+                AudioTiming.Log("9. Playback start", "Windows TTS");
                 _currentPlayer.Play();
                 
                 // Register cancellation

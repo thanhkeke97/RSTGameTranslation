@@ -11,6 +11,10 @@ namespace RSTGameTranslation
     public class ChatGptTranslationService : ITranslationService
     {
         private static readonly HttpClient _httpClient = CreateHttpClient();
+
+        /// <summary>Open the HTTPS connection before the first translation (see TranslationWarmUp).</summary>
+        internal static Task WarmUpConnectionAsync() =>
+            TranslationWarmUp.OpenConnectionsAsync(_httpClient, "ChatGPT", "https://api.openai.com/");
         private static int _retryCount = 0;
         private static readonly object _keySwitchLock = new object();
         private const int MAX_RETRIES = 3;

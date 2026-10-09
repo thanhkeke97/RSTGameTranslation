@@ -313,12 +313,9 @@ namespace RSTGameTranslation
         
         public async Task<bool> SpeakText(string text)
         {
-            // Try to acquire the semaphore to ensure only one speech request runs at a time
-            if (!await _speechSemaphore.WaitAsync(0))
-            {
-                Console.WriteLine("Another speech request is already in progress. Skipping this one.");
-                return false;
-            }
+            // Wait for an in-flight request instead of dropping this one: with WaitAsync(0), a
+            // manual "Speak" during auto speech was silently skipped and reported as an API error.
+            await _speechSemaphore.WaitAsync();
             
             try
             {
@@ -335,8 +332,7 @@ namespace RSTGameTranslation
                 string apiKey = ConfigManager.Instance.GetGoogleTtsApiKey();
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
-                    MessageBox.Show("Google Cloud API key is not set. Please configure it in Settings.", 
-                        "API Key Missing", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TtsErrorNotifier.ShowError("Google", "Google Cloud API key is not set. Please configure it in Settings.", "API Key Missing");
                     return false;
                 }
                 
@@ -384,14 +380,7 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during Google TTS: {ex.Message}");
-                
-                // Show a message to the user on the UI thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    MessageBox.Show($"Error with Google Text-to-Speech: {ex.Message}",
-                        "TTS Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                });
+                TtsErrorNotifier.ShowError("Google", $"Error with Google Text-to-Speech: {ex.Message}");
                 
                 return false;
             }
@@ -510,7 +499,7 @@ namespace RSTGameTranslation
                 else
                 {
                     string errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Google TTS request failed: {response.StatusCode}. Details: {errorContent}");
+                    TtsErrorNotifier.ShowError("Google", $"Google TTS request failed: {(int)response.StatusCode} {response.StatusCode}\n\n{errorContent}");
                     return string.Empty;
                 }
             }
@@ -715,6 +704,7 @@ namespace RSTGameTranslation
                 
                 // Start playback
                 Console.WriteLine($"Starting audio playback of file: {filePath}");
+                AudioTiming.Log("9. Playback start", "Google TTS");
                 _currentPlayer.Play();
                 
                 // Register cancellation
@@ -732,14 +722,7 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error playing audio file: {ex.Message}");
-                
-                // Show a message to the user
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    MessageBox.Show($"Error playing audio: {ex.Message}",
-                        "Audio Playback Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                });
+                TtsErrorNotifier.ShowError("Google", $"Error playing audio: {ex.Message}", "Audio Playback Error");
                 
                 // Clean up
                 _isPlayingAudio = false;

@@ -10,6 +10,10 @@ namespace RSTGameTranslation
     public class MistralTranslationService : ITranslationService
     {
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+
+        /// <summary>Open the HTTPS connection before the first translation (see TranslationWarmUp).</summary>
+        internal static Task WarmUpConnectionAsync() =>
+            TranslationWarmUp.OpenConnectionsAsync(_httpClient, "Mistral", "https://api.mistral.ai/");
         private static int _consecutiveFailures = 0;
         private static int _retryCount = 0;
         private static readonly object _keySwitchLock = new object();

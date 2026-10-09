@@ -19,6 +19,10 @@ namespace RSTGameTranslation
         // Shared across instances (a new service is created per translation) so connections are reused
         private static readonly HttpClient _httpClient = CreateHttpClient();
 
+        /// <summary>Open the HTTPS connection before the first translation (see TranslationWarmUp).</summary>
+        internal static Task WarmUpConnectionAsync() =>
+            TranslationWarmUp.OpenConnectionsAsync(_httpClient, "Yandex", "https://browser.translate.yandex.net/");
+
         private static HttpClient CreateHttpClient()
         {
             var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };

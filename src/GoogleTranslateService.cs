@@ -21,6 +21,17 @@ namespace RSTGameTranslation
         // Creating a new instance per service can lead to socket exhaustion under load.
         private static readonly HttpClient _httpClient = CreateSharedHttpClient();
 
+        /// <summary>
+        /// Open the HTTPS connections before the first translation (see TranslationWarmUp).
+        /// The free client tries translate.googleapis.com first and falls back to the web
+        /// endpoint, whose seed comes from translate.google.com.hk — warm both.
+        /// </summary>
+        internal static Task WarmUpConnectionAsync() =>
+            ConfigManager.Instance.GetGoogleTranslateUseCloudApi()
+                ? TranslationWarmUp.OpenConnectionsAsync(_httpClient, "Google Translate", "https://translation.googleapis.com/")
+                : TranslationWarmUp.OpenConnectionsAsync(_httpClient, "Google Translate",
+                    "https://translate.googleapis.com/", "https://translate.google.com.hk/");
+
         // Allow time for every part while still bounding an entire failed OCR batch.
         private const int MaxFreePartDurationMs = 6000;
         private const int MaxFreeTranslationDurationMs = 30000;
@@ -72,6 +83,14 @@ namespace RSTGameTranslation
                 JsonElement root = doc.RootElement;
                 if (!_useCloudApi)
                     freeBudget.CancelAfter(GetFreeTranslationBudgetMs(root));
+
+                // Rate limited right now: every request would be refused, so go straight to the
+                // fallback service instead of returning untranslated text.
+                if (!_useCloudApi && _freeClient.IsCoolingDown)
+                {
+                    string? viaFallback = await TranslateWithFallbackAsync(jsonData, prompt);
+                    if (viaFallback != null) return viaFallback;
+                }
 
                 // Create a new JSON object for the output
                 // We will copy the metadata if exists, and then add the translations
@@ -163,6 +182,14 @@ namespace RSTGameTranslation
                 outputJson.Flush();
                 string result = Encoding.UTF8.GetString(memoryStream.ToArray());
 
+                // Hit a 429 during this request: some blocks came back untranslated, so redo the
+                // whole request with the fallback service.
+                if (!_useCloudApi && _freeClient.IsCoolingDown)
+                {
+                    string? viaFallback = await TranslateWithFallbackAsync(jsonData, prompt);
+                    if (viaFallback != null) return viaFallback;
+                }
+
                 // If every block failed to translate, signal a complete failure
                 // so the caller (Logic) can surface the error instead of silently
                 // displaying the source language as if it were the translation.
@@ -225,13 +252,7 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    translatedBatch = new List<string?>(translatableParts.Count);
-                    foreach (string part in translatableParts)
-                    {
-                        if (cancellationToken.IsCancellationRequested)
-                            break;
-                        translatedBatch.Add(await TranslateFreePartAsync(part, sourceLanguage, targetLanguage, cancellationToken));
-                    }
+                    translatedBatch = await TranslateFreePartsBatchedAsync(translatableParts, sourceLanguage, targetLanguage, cancellationToken);
                 }
 
                 for (int i = 0; i < originalParts.Length; i++)
@@ -272,6 +293,91 @@ namespace RSTGameTranslation
             }
 
             return await TranslateFreePartAsync(normalizedText, sourceLanguage, targetLanguage, cancellationToken);
+        }
+
+        // Upper bound on characters per batched free request (the text goes in the URL).
+        private const int MaxFreeBatchChars = 1000;
+
+        /// <summary>
+        /// Translate OCR blocks with as few free requests as possible: parts are joined with
+        /// newlines into one request per ~1000 characters and split back by line. Previously each
+        /// block was its own request, which got the IP rate limited (HTTP 429) quickly.
+        /// Parts never contain newlines (NormalizeText). If Google returns a different number of
+        /// lines, that group falls back to one request per part.
+        /// </summary>
+        private async Task<List<string?>> TranslateFreePartsBatchedAsync(List<string> parts, string source, string target, CancellationToken cancellationToken)
+        {
+            var results = new List<string?>(new string?[parts.Count]);
+            int start = 0;
+            while (start < parts.Count && !cancellationToken.IsCancellationRequested)
+            {
+                int end = start, chars = 0;
+                while (end < parts.Count && (end == start || chars + parts[end].Length + 1 <= MaxFreeBatchChars))
+                {
+                    chars += parts[end].Length + 1;
+                    end++;
+                }
+
+                bool groupDone = false;
+                if (end - start > 1)
+                {
+                    var group = parts.GetRange(start, end - start);
+                    string? joined = await TranslateFreePartAsync(string.Join("\n", group), source, target, cancellationToken);
+                    if (joined != null)
+                    {
+                        var lines = joined.Split('\n').Select(line => line.Trim()).ToList();
+                        while (lines.Count > group.Count && lines[^1].Length == 0)
+                            lines.RemoveAt(lines.Count - 1);
+                        if (lines.Count == group.Count && lines.All(line => line.Length > 0))
+                        {
+                            for (int i = 0; i < lines.Count; i++)
+                                results[start + i] = lines[i];
+                            groupDone = true;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Google Translate: batch returned {lines.Count} lines for {group.Count} blocks, translating them one by one");
+                        }
+                    }
+                    else if (_freeClient.IsCoolingDown)
+                    {
+                        // Rate limited: per-part requests would be refused too; caller falls back.
+                        groupDone = true;
+                    }
+                }
+
+                if (!groupDone)
+                {
+                    for (int i = start; i < end && !cancellationToken.IsCancellationRequested && !_freeClient.IsCoolingDown; i++)
+                        results[i] = await TranslateFreePartAsync(parts[i], source, target, cancellationToken);
+                }
+                start = end;
+            }
+            return results;
+        }
+
+        /// <summary>
+        /// Translate the whole request with the configured fallback service while free Google
+        /// Translate is rate limited, so lines are not lost or shown untranslated. Only services
+        /// returning the same {"translations": [...]} format are allowed (Logic parses the
+        /// response as Google's). Returns null when disabled or when the fallback fails too.
+        /// </summary>
+        private static async Task<string?> TranslateWithFallbackAsync(string jsonData, string prompt)
+        {
+            string fallback = ConfigManager.Instance.GetGoogleFreeFallbackService();
+            if (fallback != "Microsoft" && fallback != "Yandex")
+                return null;
+            try
+            {
+                Console.WriteLine($"Google Translate is rate limited (HTTP 429), translating with {fallback} meanwhile");
+                ITranslationService service = TranslationServiceFactory.CreateService(fallback);
+                return await service.TranslateAsync(jsonData, prompt);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Google Translate fallback ({fallback}) failed: {ex.Message}");
+                return null;
+            }
         }
 
         internal static int GetFreeTranslationBudgetMs(JsonElement root)

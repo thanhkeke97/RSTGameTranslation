@@ -280,12 +280,13 @@ namespace RSTGameTranslation
         }
 
         // Process the speech queue
-        private static async Task ProcessSpeechQueueAsync(CancellationToken cancellationToken)
+        // _isProcessingSpeech is set by EnqueueSpeechRequest (under _speechStartLock) before this
+        // task starts, and cleared here under the same lock only once the queue is seen empty.
+        // Setting it inside the task, and clearing it outside the lock, let a line enqueued at
+        // the wrong moment either wait for the next line or start a second processor.
+        private static async Task ProcessSpeechQueueAsync(CancellationTokenSource cts)
         {
-            if (_isProcessingSpeech)
-                return;
-
-            _isProcessingSpeech = true;
+            var cancellationToken = cts.Token;
             Console.WriteLine("Starting speech queue processing");
             
             try
@@ -293,8 +294,17 @@ namespace RSTGameTranslation
                 
                 await Task.Delay(5, cancellationToken);
                 
-                while (!_speechQueue.IsEmpty && !cancellationToken.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested)
                 {
+                    lock (_speechStartLock)
+                    {
+                        if (_speechQueue.IsEmpty)
+                        {
+                            if (ReferenceEquals(_speechCancellationTokenSource, cts)) _isProcessingSpeech = false;
+                            return;
+                        }
+                    }
+
                     StringBuilder combinedText = new StringBuilder();
                     int queueSize = _speechQueue.Count;
                     Console.WriteLine($"Processing {queueSize} speech requests as one batch");
@@ -348,7 +358,12 @@ namespace RSTGameTranslation
             }
             finally
             {
-                _isProcessingSpeech = false;
+                // Only the current processor may clear the flag: after StopSpeechQueue a newer
+                // processor may already be running.
+                lock (_speechStartLock)
+                {
+                    if (ReferenceEquals(_speechCancellationTokenSource, cts)) _isProcessingSpeech = false;
+                }
                 Console.WriteLine("Speech queue processing completed");
             }
         }
@@ -366,6 +381,7 @@ namespace RSTGameTranslation
 
                 // Add the processed text to the queue
                 _speechQueue.Enqueue(processedText);
+                AudioTiming.Log("6. TTS queued", AudioTiming.Preview(processedText));
                 Console.WriteLine($"Speech request enqueued. Queue size: {_speechQueue.Count}");
 
                 // Atomically check whether a processor task needs to be started.
@@ -377,17 +393,15 @@ namespace RSTGameTranslation
                 {
                     if (!_isProcessingSpeech)
                     {
-                        if (_speechCancellationTokenSource != null)
-                        {
-                            _speechCancellationTokenSource.Cancel();
-                            _speechCancellationTokenSource.Dispose();
-                        }
-
-                        // Create a new cancellation token source
-                        _speechCancellationTokenSource = new CancellationTokenSource();
+                        // No processor is running, so the previous token source (if any) is
+                        // no longer in use.
+                        _speechCancellationTokenSource?.Dispose();
+                        var cts = new CancellationTokenSource();
+                        _speechCancellationTokenSource = cts;
+                        _isProcessingSpeech = true;
 
                         // Start the processing task
-                        Task.Run(() => ProcessSpeechQueueAsync(_speechCancellationTokenSource.Token));
+                        Task.Run(() => ProcessSpeechQueueAsync(cts));
                     }
                     else
                     {
@@ -441,6 +455,8 @@ namespace RSTGameTranslation
                     try
                     {
                         bool success = false;
+                        AudioTiming.Log("7. TTS synthesis start", $"{ttsService}, {trimmedText.Length} chars");
+                        var ttsTimer = System.Diagnostics.Stopwatch.StartNew();
 
                         if (ttsService == "ElevenLabs")
                         {
@@ -464,6 +480,7 @@ namespace RSTGameTranslation
                             return false;
                         }
 
+                        AudioTiming.Log("8. TTS synthesis done", $"{ttsTimer.ElapsedMilliseconds} ms (audio queued for playback)");
                         if (!success)
                         {
                             Console.WriteLine($"Failed to generate speech using {ttsService}");
@@ -1014,21 +1031,21 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine("Stopping speech queue processing");
                 
-                // Cancel the current speech processing task
-                if (_speechCancellationTokenSource != null)
+                lock (_speechStartLock)
                 {
-                    _speechCancellationTokenSource.Cancel();
-                    _speechCancellationTokenSource.Dispose();
+                    // Cancel the current speech processing task. Not disposed here: the
+                    // processor may still observe the token; it is released by the next start.
+                    _speechCancellationTokenSource?.Cancel();
                     _speechCancellationTokenSource = null;
+
+                    // Clear the speech queue
+                    while (_speechQueue.TryDequeue(out _))
+                    {
+                        // Just dequeue to clear
+                    }
+
+                    _isProcessingSpeech = false;
                 }
-                
-                // Clear the speech queue
-                while (_speechQueue.TryDequeue(out _))
-                {
-                    // Just dequeue to clear
-                }
-                
-                _isProcessingSpeech = false;
                 
                 Console.WriteLine("Speech queue cleared and processing stopped");
             }
@@ -1199,11 +1216,13 @@ namespace RSTGameTranslation
             }
             else
             {
-                // Only enqueue TTS if translation is still running (Start button active)
-                // This prevents TTS from playing old translations after Stop is pressed
-                if (!string.IsNullOrEmpty(translatedText) && 
-                    ConfigManager.Instance.IsTtsEnabled() && 
-                    MainWindow.Instance.GetIsStarted()) 
+                // Only enqueue TTS while a translation source is still running — OCR (Start
+                // button) or audio translation — so old translations are not read out after
+                // both are stopped. Audio-only use (e.g. dubbing game speech) must be spoken
+                // too, so OCR being off alone is not a reason to stay silent.
+                if (!string.IsNullOrEmpty(translatedText) &&
+                    ConfigManager.Instance.IsTtsEnabled() &&
+                    (MainWindow.Instance.GetIsStarted() || localWhisperService.Instance.IsRunning))
                 {
                     if (ConfigManager.Instance.IsExcludeCharacterNameEnabled())
                     {

@@ -17,6 +17,21 @@ namespace RSTGameTranslation
         private readonly object _throttleLock = new object();
         private DateTime _nextRequestUtc = DateTime.MinValue;
         private DateTime _cooldownUntilUtc = DateTime.MinValue;
+        // Consecutive 429s without a Retry-After header; drives our own backoff.
+        private int _rateLimitStrikes;
+        private static readonly TimeSpan MinRateLimitCooldown = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan MaxRateLimitCooldown = TimeSpan.FromMinutes(5);
+        // Spacing between requests. 200 ms (5 req/s) was enough to get an IP rate limited.
+        private const int MinRequestIntervalMs = 1000;
+
+        /// <summary>
+        /// True while Google has rate limited us and every request would be refused without
+        /// being sent. Callers use it to switch to a fallback service instead of waiting.
+        /// </summary>
+        internal bool IsCoolingDown
+        {
+            get { lock (_throttleLock) return DateTime.UtcNow < _cooldownUntilUtc; }
+        }
         private string? _seed;
         private DateTime _seedRefreshAfterUtc = DateTime.MinValue;
 
@@ -64,7 +79,10 @@ namespace RSTGameTranslation
                                 string body = await response.Content.ReadAsStringAsync(requestCts.Token);
                                 string? translated = ParseResponse(body);
                                 if (!string.IsNullOrWhiteSpace(translated))
+                                {
+                                    lock (_throttleLock) _rateLimitStrikes = 0;
                                     return translated;
+                                }
                                 Console.WriteLine($"Google Translate endpoint {endpoint + 1}: invalid/empty response.");
                                 break;
                             }
@@ -77,7 +95,16 @@ namespace RSTGameTranslation
                                 continue;
                             }
 
-                            if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+                            if ((int)response.StatusCode == 429)
+                            {
+                                // Rate limited. The endpoints share one quota, so retrying or
+                                // moving on to the next endpoint only sends more requests and
+                                // keeps the block in place: back off everywhere instead.
+                                ApplyRateLimitCooldown(response);
+                                return null;
+                            }
+
+                            if ((int)response.StatusCode >= 500)
                             {
                                 if (ApplyServerCooldown(response))
                                     return null;
@@ -131,7 +158,9 @@ namespace RSTGameTranslation
                     if (!response.IsSuccessStatusCode)
                     {
                         Console.WriteLine($"Google Web: seed request returned HTTP {(int)response.StatusCode}; skipping signed fallback.");
-                        if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+                        if ((int)response.StatusCode == 429)
+                            ApplyRateLimitCooldown(response);
+                        else if ((int)response.StatusCode >= 500)
                             ApplyServerCooldown(response);
                         return null;
                     }
@@ -190,6 +219,31 @@ namespace RSTGameTranslation
             VersionPolicy = HttpVersionPolicy.RequestVersionOrLower
         };
 
+        /// <summary>
+        /// Stop all requests after a 429: for the server's Retry-After if given, otherwise our
+        /// own backoff (30 s, doubling per consecutive 429, capped at 5 min; reset on success).
+        /// The free endpoints rarely send Retry-After, and without a cooldown every new line kept
+        /// hitting all endpoints — 5-6 requests per line while already blocked.
+        /// </summary>
+        private void ApplyRateLimitCooldown(HttpResponseMessage response)
+        {
+            if (ApplyServerCooldown(response))
+            {
+                Console.WriteLine("Google Translate: HTTP 429, honoring Retry-After");
+                return;
+            }
+            lock (_throttleLock)
+            {
+                _rateLimitStrikes++;
+                double seconds = MinRateLimitCooldown.TotalSeconds * Math.Pow(2, Math.Min(_rateLimitStrikes - 1, 10));
+                var cooldown = TimeSpan.FromSeconds(Math.Min(seconds, MaxRateLimitCooldown.TotalSeconds));
+                DateTime until = DateTime.UtcNow.Add(cooldown);
+                if (until > _cooldownUntilUtc)
+                    _cooldownUntilUtc = until;
+                Console.WriteLine($"Google Translate: HTTP 429 (rate limited), pausing all requests for {cooldown.TotalSeconds:F0}s");
+            }
+        }
+
         private bool ApplyServerCooldown(HttpResponseMessage response)
         {
             TimeSpan? delay = response.Headers.RetryAfter?.Delta;
@@ -218,7 +272,7 @@ namespace RSTGameTranslation
                     return false;
                 DateTime scheduled = now > _nextRequestUtc ? now : _nextRequestUtc;
                 delay = scheduled - now;
-                _nextRequestUtc = scheduled.AddMilliseconds(200);
+                _nextRequestUtc = scheduled.AddMilliseconds(MinRequestIntervalMs);
             }
             if (delay > TimeSpan.Zero)
                 await Task.Delay(delay, cancellationToken);

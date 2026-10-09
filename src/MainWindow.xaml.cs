@@ -1471,6 +1471,8 @@ namespace RSTGameTranslation
                 {
                     isStarted = true;
                     isStopOCR = false;
+                    // Prepare the translation service so the first OCR line is not slower
+                    TranslationWarmUp.Start();
                     btn.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("Strings[Btn_Stop]") { Source = LocalizationManager.Instance });
                     UpdateCaptureRect();
                     SetOCRCheckIsWanted(true);

@@ -1649,7 +1649,10 @@ namespace RSTGameTranslation
 
                 _textObjects.Add(audioTextObject);
 
+                AudioTiming.Log("4. Translation start", $"{batchToProcess.Count} line(s), {ConfigManager.Instance.GetCurrentTranslationService()}");
+                var translateTimer = System.Diagnostics.Stopwatch.StartNew();
                 await TranslateTextObjectsAsync();
+                AudioTiming.Log("5. Translation done", $"{translateTimer.ElapsedMilliseconds} ms");
             }
             catch (Exception ex)
             {
