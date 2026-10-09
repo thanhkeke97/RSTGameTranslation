@@ -2133,7 +2133,7 @@
                                         TextWrapping="Wrap"
                                         Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_VolumeThreshold]}"/>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SilenceDuration]}" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox x:Name="silenceDurationTextBox" Grid.Row="8" Grid.Column="1" Margin="0,5" Text="500" LostFocus="SilenceDurationTextBox_LostFocus"/>
+                                <TextBox x:Name="silenceDurationTextBox" Grid.Row="8" Grid.Column="1" Margin="0,5" Text="300" LostFocus="SilenceDurationTextBox_LostFocus"/>
                                 <TextBlock Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2" 
                                         Margin="0,0,0,0" 
                                         FontStyle="Italic" 

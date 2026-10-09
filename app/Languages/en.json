@@ -424,6 +424,7 @@
   "Msg_OcrNoStartRequired": "{0} doesn't require starting a server.",
   "Msg_ServerStartupTimeout": "Server startup timeout {0}. Please check if the environment has been installed and try again.",
   "Msg_ErrorStartingOcrServer": "Error starting OCR server: {0}",
+  "Msg_ErrorStartingAudioService": "Could not start speech recognition: {0}",
   "Status_StartingOcrServer": "Starting {0} server...",
   "Status_CannotStartOcrServer": "Cannot start {0} server",
   "Status_OcrServerStopped": "OCR server has been stopped",

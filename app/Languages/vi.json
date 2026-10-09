@@ -430,6 +430,7 @@
   "Msg_OcrNoStartRequired": "{0} không yêu cầu khởi động máy chủ.",
   "Msg_ServerStartupTimeout": "Hết thời gian khởi động máy chủ {0}. Vui lòng kiểm tra xem môi trường đã được cài đặt chưa và thử lại.",
   "Msg_ErrorStartingOcrServer": "Lỗi khởi động máy chủ OCR: {0}",
+  "Msg_ErrorStartingAudioService": "Không thể khởi động nhận dạng giọng nói: {0}",
   "Status_StartingOcrServer": "Đang khởi động máy chủ {0}...",
   "Status_CannotStartOcrServer": "Không thể khởi động máy chủ {0}",
   "Status_OcrServerStopped": "Máy chủ OCR đã được dừng",

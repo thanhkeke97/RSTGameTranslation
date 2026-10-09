@@ -429,6 +429,7 @@
   "Msg_OcrNoStartRequired": "{0}은(는) 서버 시작이 필요하지 않습니다.",
   "Msg_ServerStartupTimeout": "서버 시작 시간 초과 {0}. 환경이 설치되었는지 확인하고 다시 시도하세요.",
   "Msg_ErrorStartingOcrServer": "OCR 서버 시작 오류: {0}",
+  "Msg_ErrorStartingAudioService": "음성 인식을 시작할 수 없습니다: {0}",
   "Status_StartingOcrServer": "{0} 서버 시작 중...",
   "Status_CannotStartOcrServer": "{0} 서버를 시작할 수 없습니다",
   "Status_OcrServerStopped": "OCR 서버가 중지되었습니다",

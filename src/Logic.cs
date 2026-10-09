@@ -28,8 +28,6 @@ namespace RSTGameTranslation
 
         private readonly List<string> _audioBatch = new List<string>();
         private readonly object _audioBatchLock = new object();
-        private System.Threading.Timer? _audioBatchTimer;
-        private const int AudioBatchDelayMs = 500;
         private bool _isProcessingAudioBatch = false;
         private bool _hasNewAudioSinceLastTranslation = false;
 
@@ -1582,22 +1580,17 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Added audio to batch: '{audioText}'. Batch size: {_audioBatch.Count}");
                 _hasNewAudioSinceLastTranslation = true;
 
-                if (_audioBatch.Count >= 5)
+                // Lines that arrive while a translation is in flight are batched and sent together
+                // as soon as it finishes (see ProcessAudioBatchAsync). No fixed debounce: the VAD
+                // already cuts at sentence pauses, so waiting here only added latency.
+                if (_isProcessingAudioBatch)
                 {
-                    Console.WriteLine("[FORCE] Batch size reached 10, processing immediately");
-                    _audioBatchTimer?.Dispose();
-                    ProcessAudioBatchCallback(null);
+                    Console.WriteLine("Translation in progress, line queued for the next batch");
                     return;
                 }
-
-                _audioBatchTimer?.Dispose();
-                _audioBatchTimer = new System.Threading.Timer(
-                    ProcessAudioBatchCallback,
-                    null,
-                    AudioBatchDelayMs,
-                    System.Threading.Timeout.Infinite
-                );
             }
+
+            ProcessAudioBatchCallback(null);
         }
 
         private void ProcessAudioBatchCallback(object? state)
@@ -1664,10 +1657,16 @@ namespace RSTGameTranslation
             }
             finally
             {
+                bool hasPending;
                 lock (_audioBatchLock)
                 {
                     _isProcessingAudioBatch = false;
+                    hasPending = _audioBatch.Count > 0;
                 }
+
+                // Lines queued during this translation would otherwise wait for the next line
+                // of dialogue to trigger them — forever, if the game goes quiet.
+                if (hasPending) ProcessAudioBatchCallback(null);
             }
         }
 
@@ -1807,10 +1806,6 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Cleanup audio batch timer
-                _audioBatchTimer?.Dispose();
-                _audioBatchTimer = null;
-
                 // Clean up resources
                 Console.WriteLine("Logic finalized");
 

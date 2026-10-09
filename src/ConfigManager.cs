@@ -181,6 +181,9 @@ namespace RSTGameTranslation
         public const string SILENT_THRESHOLD = "silent_threshold";
         public const string SILENCE_DURATION_MS = "Silence_Duration_Ms";
         public const string MAX_BUFFER_SAMPLES = "MaxBufferSamples";
+        public const string AUDIO_VAD_MODE = "audio_vad_mode";
+        public const string SILERO_VAD_THRESHOLD = "silero_vad_threshold";
+        public const string WHISPER_REDUCED_AUDIO_CTX = "whisper_reduced_audio_ctx";
         public const string WHISPER_THREAD_COUNT = "whisper_thread_count";
         public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
         public const string AUTO_CLEAR_CHAT_TIMEOUT = "auto_clear_chat_timeout";
@@ -618,8 +621,11 @@ namespace RSTGameTranslation
             _configValues[FUNASR_LANGUAGE] = "auto";
             _configValues[FUNASR_MODEL_PRECISION] = "fp32";
             _configValues[SILENT_THRESHOLD] = "0.02f";
-            _configValues[SILENCE_DURATION_MS] = "500";
+            _configValues[SILENCE_DURATION_MS] = "300";
             _configValues[MAX_BUFFER_SAMPLES] = "3";
+            _configValues[AUDIO_VAD_MODE] = "silero";
+            _configValues[SILERO_VAD_THRESHOLD] = "0.5";
+            _configValues[WHISPER_REDUCED_AUDIO_CTX] = "true";
             _configValues[WHISPER_THREAD_COUNT] = "0"; // 0 = auto (use all cores)
             _configValues[CLIPBOARD_AUTO_TRANSLATE_ENABLED] = "false";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = "true";
@@ -820,11 +826,11 @@ namespace RSTGameTranslation
         // Get SilenceDurationMs
         public int GetSilenceDurationMs()
         {
-            if (int.TryParse(GetValue(SILENCE_DURATION_MS, "500"), NumberStyles.Any, CultureInfo.InvariantCulture, out int silenceDurationMs))
+            if (int.TryParse(GetValue(SILENCE_DURATION_MS, "300"), NumberStyles.Any, CultureInfo.InvariantCulture, out int silenceDurationMs))
             {
                 return silenceDurationMs;
             }
-            return 500;
+            return 300;
         }
 
         // Get MaxBufferSamples
@@ -835,6 +841,28 @@ namespace RSTGameTranslation
                 return maxBufferSamples;
             }
             return 5;
+        }
+
+        // Get VAD mode: "silero" (neural, tells speech from game music/SFX) or "rms" (energy only)
+        public string GetAudioVadMode()
+        {
+            return GetValue(AUDIO_VAD_MODE, "silero").Trim().ToLowerInvariant();
+        }
+
+        // Whisper: encode clips up to 10s with a reduced audio context (much faster on short lines)
+        public bool GetWhisperReducedAudioContext()
+        {
+            return !string.Equals(GetValue(WHISPER_REDUCED_AUDIO_CTX, "true").Trim(), "false", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Get Silero VAD speech probability threshold (0-1)
+        public float GetSileroVadThreshold()
+        {
+            if (float.TryParse(GetValue(SILERO_VAD_THRESHOLD, "0.5"), NumberStyles.Any, CultureInfo.InvariantCulture, out float threshold))
+            {
+                return Math.Clamp(threshold, 0.05f, 0.95f);
+            }
+            return 0.5f;
         }
 
         // Set SilenceThreshold

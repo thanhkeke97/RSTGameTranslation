@@ -435,6 +435,7 @@
   "Msg_OcrNoStartRequired": "{0} 不需要启动服务器。",
   "Msg_ServerStartupTimeout": "服务器启动超时 {0}。请检查环境是否已安装并重试。",
   "Msg_ErrorStartingOcrServer": "启动 OCR 服务器时出错：{0}",
+  "Msg_ErrorStartingAudioService": "无法启动语音识别：{0}",
   "Status_StartingOcrServer": "正在启动 {0} 服务器...",
   "Status_CannotStartOcrServer": "无法启动 {0} 服务器",
   "Status_OcrServerStopped": "OCR 服务器已停止",

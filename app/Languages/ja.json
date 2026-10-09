@@ -429,6 +429,7 @@
   "Msg_OcrNoStartRequired": "{0} はサーバーの起動を必要としません。",
   "Msg_ServerStartupTimeout": "サーバー起動タイムアウト {0}。環境がインストールされているか確認して再試行してください。",
   "Msg_ErrorStartingOcrServer": "OCRサーバー起動エラー: {0}",
+  "Msg_ErrorStartingAudioService": "音声認識を開始できませんでした: {0}",
   "Status_StartingOcrServer": "{0} サーバーを起動中...",
   "Status_CannotStartOcrServer": "{0} サーバーを起動できません",
   "Status_OcrServerStopped": "OCRサーバーが停止しました",

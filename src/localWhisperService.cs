@@ -30,6 +30,8 @@ namespace RSTGameTranslation
         private readonly Queue<string> _recentTexts = new Queue<string>();
         private const int RecentTextHistory = 5;
         private ISpeechRecognitionEngine? _engine;
+        // Neural speech detector; null means the RMS threshold is used instead.
+        private SileroFrameVad? frameVad;
         private readonly List<float> audioBuffer = new List<float>();
         private readonly object bufferLock = new object();
         private CancellationTokenSource? _cancellationTokenSource;
@@ -83,6 +85,12 @@ namespace RSTGameTranslation
         private MMDeviceEnumerator? deviceEnumerator;
         // Flag to indicate Stop() is in progress to avoid races with processing task
         private volatile bool _isStopping = false;
+        // Bumped by every Stop(). A start whose model load finishes after a Stop() (user turned
+        // the service off while the model was still loading) sees a changed value and backs out
+        // instead of starting capture behind the user's back.
+        private int _generation;
+        // Serializes StartServiceAsync calls, which now await the model load.
+        private readonly SemaphoreSlim _startLock = new SemaphoreSlim(1, 1);
 
         // Singleton
         private static localWhisperService? instance;
@@ -109,8 +117,9 @@ namespace RSTGameTranslation
                 }
             }
             catch { }
-
-            TaskScheduler.UnobservedTaskException += (s, e) => Stop();
+            // NOTE: do not hook TaskScheduler.UnobservedTaskException here. It fires for any
+            // faulted task anywhere in the app (e.g. a failed translation request), which
+            // silently stopped audio capture while the UI still showed the service as on.
         }
 
         /// <summary>
@@ -130,86 +139,138 @@ namespace RSTGameTranslation
             return new WhisperEngine();
         }
 
-        public Task StartServiceAsync(Action<string, string> onResult)
+        /// <summary>
+        /// Load the speech engine and start capturing. Throws if the engine or the audio device
+        /// cannot be started, so the caller can tell the user instead of showing the service as
+        /// running. Returns without starting if Stop() was called while the model was loading —
+        /// check <see cref="IsRunning"/> afterwards.
+        /// </summary>
+        public async Task StartServiceAsync(Action<string, string> onResult)
         {
-            // Ensure previous run is stopped
-            Stop();
-
+            await _startLock.WaitAsync();
             try
             {
-                // Create and initialize the speech recognition engine
-                _engine = CreateEngine();
-                Console.WriteLine($"[Audio] Speech engine: {_engine.GetType().Name}");
-                _engine.Initialize();
+                // Ensure previous run is stopped
+                Stop();
+                int generation = Volatile.Read(ref _generation);
 
-                deviceEnumerator = new MMDeviceEnumerator();
-                var devices = deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-
-                Console.WriteLine("=== Available Audio Devices ===");
-                foreach (var device in devices)
+                // Loading a model takes seconds (up to ~1 GB for large Whisper / SenseVoice fp32),
+                // so it must not run on the caller's (UI) thread.
+                ISpeechRecognitionEngine engine = CreateEngine();
+                Console.WriteLine($"[Audio] Speech engine: {engine.GetType().Name}");
+                try
                 {
-                    Console.WriteLine($"Device: {device.FriendlyName}");
+                    await Task.Run(engine.Initialize);
                 }
-                var defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-                Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
-
-                loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
-                // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
-                bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
-                bufferedProvider.DiscardOnBufferOverflow = true;
-                bufferedProvider.BufferDuration = TimeSpan.FromSeconds(60);
-                // CRITICAL: ReadFully defaults to true, which makes Read() pad the request with
-                // zeroes whenever the capture buffer is short. That injected fabricated silence
-                // into the middle of speech, diluted the VAD's RMS, and fed Whisper shredded
-                // audio — the root cause of truncated and endlessly repeated transcriptions.
-                bufferedProvider.ReadFully = false;
-
-                // Build pipeline: Buffered -> Sample -> Resample (16k) -> Mono
-                var sampleProvider = bufferedProvider.ToSampleProvider();
-                var resampler = new WdlResamplingSampleProvider(sampleProvider, 16000);
-                processedProvider = resampler.ToMono();
-
-                // One 30ms 16kHz frame needs this many bytes of source audio. Reading before that
-                // much has arrived yields short frames and a noisier VAD.
-                minSourceBytesPerFrame = Math.Max(
-                    loopbackCapture.WaveFormat.BlockAlign,
-                    (int)((long)VadFrameSamples * loopbackCapture.WaveFormat.AverageBytesPerSecond / 16000));
-                Console.WriteLine($"[Audio] Capture format: {loopbackCapture.WaveFormat}, " +
-                                  $"{minSourceBytesPerFrame} src bytes per 30ms frame");
-                Console.WriteLine($"[Audio] VAD: threshold={SilenceThreshold:F4} (RMS), " +
-                                  $"pause={SilenceDurationMs}ms, max segment={HardLimitSamples / 16000.0:F0}s " +
-                                  $"(config {ConfigManager.Instance.GetMaxBufferSamples()}s, clamped to 10-28s)");
-
-                // Setup debug writer for 16k 16bit mono
-                var targetFormat = new WaveFormat(16000, 16, 1);
-                // debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
-
-                loopbackCapture.DataAvailable += OnGameAudioReceived;
-                loopbackCapture.StartRecording();
-
-                _cancellationTokenSource = new CancellationTokenSource();
-                var token = _cancellationTokenSource.Token;
-
-                // Bounded queue with a single reader: decoding stays strictly sequential and in
-                // order, while the capture loop is never blocked by a slow decode.
-                segmentChannel = Channel.CreateBounded<float[]>(new BoundedChannelOptions(MaxQueuedSegments)
+                catch
                 {
-                    FullMode = BoundedChannelFullMode.DropOldest,
-                    SingleReader = true,
-                    SingleWriter = true
-                });
+                    try { engine.Dispose(); } catch { }
+                    throw;
+                }
 
-                recognizeTask = Task.Run(() => RecognizeLoop(onResult, token));
-                processingTask = Task.Run(() => ProcessLoop(token));
+                if (generation != Volatile.Read(ref _generation))
+                {
+                    Console.WriteLine("[Audio] Service was stopped while the model was loading, discarding engine");
+                    try { engine.Dispose(); } catch { }
+                    return;
+                }
+                _engine = engine;
+
+                try
+                {
+                    StartCapture(onResult, engine);
+                }
+                catch
+                {
+                    Stop();
+                    throw;
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"StartServiceAsync failed: {ex.Message}");
-                Console.WriteLine($"[Whisper] Stack trace: {ex.StackTrace}");
-                try { Stop(); } catch { }
+                Console.WriteLine($"[Audio] Stack trace: {ex.StackTrace}");
+                throw;
             }
+            finally
+            {
+                _startLock.Release();
+            }
+        }
 
-            return Task.CompletedTask;
+        private void StartCapture(Action<string, string> onResult, ISpeechRecognitionEngine engine)
+        {
+            deviceEnumerator = new MMDeviceEnumerator();
+            var devices = deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+            Console.WriteLine("=== Available Audio Devices ===");
+            foreach (var device in devices)
+            {
+                Console.WriteLine($"Device: {device.FriendlyName}");
+            }
+            var defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            Console.WriteLine($"Using default device: {defaultDevice.FriendlyName}");
+
+            loopbackCapture = new WasapiLoopbackCapture(defaultDevice);
+            // debugWriter = new WaveFileWriter("debug_audio_raw.wav", loopbackCapture.WaveFormat);
+            bufferedProvider = new BufferedWaveProvider(loopbackCapture.WaveFormat);
+            bufferedProvider.DiscardOnBufferOverflow = true;
+            bufferedProvider.BufferDuration = TimeSpan.FromSeconds(60);
+            // CRITICAL: ReadFully defaults to true, which makes Read() pad the request with
+            // zeroes whenever the capture buffer is short. That injected fabricated silence
+            // into the middle of speech, diluted the VAD's RMS, and fed Whisper shredded
+            // audio — the root cause of truncated and endlessly repeated transcriptions.
+            bufferedProvider.ReadFully = false;
+
+            // Build pipeline: Buffered -> Sample -> Mono -> Resample (16k)
+            // Downmix first: NAudio's ToMono() throws on 5.1/7.1 devices, and resampling one
+            // channel instead of six or eight is cheaper.
+            var sampleProvider = bufferedProvider.ToSampleProvider();
+            var mono = new MultiChannelToMonoSampleProvider(sampleProvider);
+            processedProvider = new WdlResamplingSampleProvider(mono, 16000);
+
+            // One 30ms 16kHz frame needs this many bytes of source audio. Reading before that
+            // much has arrived yields short frames and a noisier VAD.
+            minSourceBytesPerFrame = Math.Max(
+                loopbackCapture.WaveFormat.BlockAlign,
+                (int)((long)VadFrameSamples * loopbackCapture.WaveFormat.AverageBytesPerSecond / 16000));
+            Console.WriteLine($"[Audio] Capture format: {loopbackCapture.WaveFormat}, " +
+                              $"{minSourceBytesPerFrame} src bytes per 30ms frame");
+            // Silero tells speech apart from the music/SFX under it; RMS is kept as the fallback
+            // (vad mode "rms", or the model file is missing).
+            frameVad = ConfigManager.Instance.GetAudioVadMode() == "rms"
+                ? null
+                : SileroFrameVad.TryCreate(ConfigManager.Instance.GetSileroVadThreshold());
+            string vadDescription = frameVad != null
+                ? $"Silero (threshold={ConfigManager.Instance.GetSileroVadThreshold():F2})"
+                : $"RMS (threshold={SilenceThreshold:F4})";
+            Console.WriteLine($"[Audio] VAD: {vadDescription}, " +
+                              $"pause={SilenceDurationMs}ms, max segment={HardLimitSamples / 16000.0:F0}s " +
+                              $"(config {ConfigManager.Instance.GetMaxBufferSamples()}s, clamped to 10-28s)");
+
+            // Setup debug writer for 16k 16bit mono
+            var targetFormat = new WaveFormat(16000, 16, 1);
+            // debugWriterProcessed = new WaveFileWriter("debug_audio_16k.wav", targetFormat);
+
+            loopbackCapture.DataAvailable += OnGameAudioReceived;
+            loopbackCapture.StartRecording();
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = _cancellationTokenSource.Token;
+
+            // Bounded queue with a single reader: decoding stays strictly sequential and in
+            // order, while the capture loop is never blocked by a slow decode.
+            segmentChannel = Channel.CreateBounded<float[]>(new BoundedChannelOptions(MaxQueuedSegments)
+            {
+                FullMode = BoundedChannelFullMode.DropOldest,
+                SingleReader = true,
+                SingleWriter = true
+            });
+
+            var channel = segmentChannel;
+            recognizeTask = Task.Run(() => RecognizeLoop(engine, channel, onResult, token));
+            var vad = frameVad;
+            processingTask = Task.Run(() => ProcessLoop(vad, token));
         }
 
         private void OnGameAudioReceived(object? sender, WaveInEventArgs e)
@@ -236,6 +297,7 @@ namespace RSTGameTranslation
             try
             {
                 _isStopping = true;
+                Interlocked.Increment(ref _generation);
 
                 // Cancel processing loop
                 try { _cancellationTokenSource?.Cancel(); } catch { }
@@ -259,13 +321,46 @@ namespace RSTGameTranslation
                     catch (AggregateException) { }
                     catch (Exception) { }
                 }
+                var pendingRecognize = recognizeTask;
+                var pendingProcessing = processingTask;
                 processingTask = null;
                 recognizeTask = null;
                 segmentChannel = null;
 
-                // Dispose token source only after the loops observed the cancellation
-                try { _cancellationTokenSource?.Dispose(); } catch { }
+                var engine = _engine;
+                _engine = null;
+                var cts = _cancellationTokenSource;
                 _cancellationTokenSource = null;
+
+                if (pendingRecognize != null && !pendingRecognize.IsCompleted)
+                {
+                    // A native decode cannot be interrupted (sherpa-onnx Decode ignores the token,
+                    // and a long Whisper segment on CPU can outlast the timeout). Disposing the
+                    // engine under it is an access violation, so hand the cleanup to the task.
+                    Console.WriteLine("[Audio] A decode is still running, engine will be disposed when it finishes");
+                    pendingRecognize.ContinueWith(_ =>
+                    {
+                        try { engine?.Dispose(); } catch { }
+                        try { cts?.Dispose(); } catch { }
+                    }, TaskScheduler.Default);
+                }
+                else
+                {
+                    try { engine?.Dispose(); } catch { }
+                    try { cts?.Dispose(); } catch { }
+                }
+
+                // Same rule for the VAD: native, so only dispose once the capture loop is done with it
+                var vad = frameVad;
+                frameVad = null;
+                if (pendingProcessing != null && !pendingProcessing.IsCompleted)
+                {
+                    pendingProcessing.ContinueWith(_ => vad?.Dispose(), TaskScheduler.Default);
+                }
+                else
+                {
+                    vad?.Dispose();
+                }
 
                 // Unregister event and stop loopback
                 if (loopbackCapture != null)
@@ -291,10 +386,6 @@ namespace RSTGameTranslation
                 bufferedProvider = null;
                 processedProvider = null;
 
-                // Dispose speech engine (after waiting for processingTask)
-                try { _engine?.Dispose(); } catch { }
-                _engine = null;
-
                 lock (bufferLock)
                 {
                     audioBuffer.Clear();
@@ -318,13 +409,17 @@ namespace RSTGameTranslation
         /// voice or silence, accumulates an utterance, and enqueues it for recognition once the
         /// speaker pauses. Never calls the engine directly, so a slow decode cannot stall capture.
         /// </summary>
-        private async Task ProcessLoop(CancellationToken cancellationToken)
+        private async Task ProcessLoop(SileroFrameVad? vad, CancellationToken cancellationToken)
         {
             float[] frame = new float[VadFrameSamples];
             // Silence is tracked in samples, not wall-clock time, so the measurement stays correct
             // regardless of how long a decode takes.
             int silenceSamples = 0;
             int framesSinceLog = 0;
+            long lastFrameTick = Environment.TickCount64;
+            // Speech frames in the current utterance, as judged by the active VAD. Used to drop
+            // segments with too little speech without re-running the VAD over the segment.
+            int voicedSamples = 0;
 
             while (loopbackCapture != null && !cancellationToken.IsCancellationRequested && !_isStopping)
             {
@@ -350,6 +445,7 @@ namespace RSTGameTranslation
                     }
 
                     if (samplesRead <= 0) break;
+                    lastFrameTick = Environment.TickCount64;
 
                     WriteDebugFrame(frame, samplesRead);
 
@@ -361,7 +457,7 @@ namespace RSTGameTranslation
                         sumSq += v * v;
                     }
                     float rms = (float)Math.Sqrt(sumSq / samplesRead);
-                    bool isVoice = rms > SilenceThreshold;
+                    bool isVoice = vad != null ? vad.IsVoice(frame, samplesRead) : rms > SilenceThreshold;
 
                     if (isVoice)
                     {
@@ -371,6 +467,7 @@ namespace RSTGameTranslation
                             // Sustained voice: this is speech, restart the silence window.
                             isSpeaking = true;
                             silenceSamples = 0;
+                            voicedSamples += samplesRead;
                         }
                         else
                         {
@@ -420,7 +517,8 @@ namespace RSTGameTranslation
                         framesSinceLog = 0;
                         int bufCount;
                         lock (bufferLock) bufCount = audioBuffer.Count;
-                        Console.WriteLine($"[VAD] rms={rms:F4} thr={SilenceThreshold:F4} " +
+                        string vadState = vad != null ? $"silero={(isVoice ? "speech" : "-")}" : $"thr={SilenceThreshold:F4}";
+                        Console.WriteLine($"[VAD] rms={rms:F4} {vadState} " +
                                           $"silence={silenceSamples / 16000.0:F2}s/{SilenceDurationMs / 1000.0:F2}s " +
                                           $"buf={bufCount / 16000.0:F1}s");
                     }
@@ -429,11 +527,23 @@ namespace RSTGameTranslation
                     if (cutNow) break;
                 }
 
+                // WASAPI loopback delivers no packets at all while nothing is playing. If the game
+                // goes fully quiet right after a line, silenceSamples never advances and the line
+                // would sit in the buffer until audio resumes — treat a stalled stream as silence.
+                if (!cutNow && isSpeaking && Environment.TickCount64 - lastFrameTick >= SilenceDurationMs)
+                {
+                    Console.WriteLine("[Audio] Audio stream went idle, closing the pending utterance");
+                    cutNow = true;
+                }
+
                 // 2. An utterance ended (pause detected) or hit the hard ceiling.
                 if (cutNow)
                 {
                     float[] segment = ExtractSegment(hardCut, ref silenceSamples);
-                    if (segment.Length > 0) EnqueueSegment(segment);
+                    if (segment.Length > 0) EnqueueSegment(segment, voicedSamples);
+                    // After a hard cut the retained tail is mid-speech, so it counts as voiced;
+                    // after a normal cut the buffer is empty.
+                    lock (bufferLock) voicedSamples = audioBuffer.Count;
                 }
 
                 try
@@ -530,7 +640,7 @@ namespace RSTGameTranslation
         /// Hand a finished utterance to the recognition consumer, dropping segments that hold
         /// too little actual speech (they only ever produced hallucinated filler).
         /// </summary>
-        private void EnqueueSegment(float[] segment)
+        private void EnqueueSegment(float[] segment, int voicedSamples)
         {
             if (_engine == null || _isStopping || segmentChannel == null)
             {
@@ -538,7 +648,7 @@ namespace RSTGameTranslation
                 return;
             }
 
-            int voiced = CountVoicedSamples(segment);
+            int voiced = Math.Min(voicedSamples, segment.Length);
             if (voiced < MinVoicedSamples)
             {
                 Console.WriteLine($"[Audio] Discarding {segment.Length / 16000.0:F1}s segment: " +
@@ -559,32 +669,15 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
-        /// Total duration of frames in the segment that are above the silence threshold.
-        /// </summary>
-        private int CountVoicedSamples(float[] segment)
-        {
-            float threshold = SilenceThreshold;
-            int voiced = 0;
-            for (int start = 0; start + VadFrameSamples <= segment.Length; start += VadFrameSamples)
-            {
-                double sumSq = 0;
-                for (int i = start; i < start + VadFrameSamples; i++)
-                {
-                    sumSq += (double)segment[i] * segment[i];
-                }
-                if (Math.Sqrt(sumSq / VadFrameSamples) > threshold) voiced += VadFrameSamples;
-            }
-            return voiced;
-        }
-
-        /// <summary>
         /// Single consumer of the segment queue: decodes one segment at a time, in order.
         /// Running decodes concurrently (the previous fire-and-forget approach) interleaved
         /// results and raced the duplicate-suppression state, duplicating lines.
+        /// The engine and channel are passed in rather than read from fields: a decode still
+        /// running after Stop() must keep using its own engine, not one a later start created.
         /// </summary>
-        private async Task RecognizeLoop(Action<string, string> onResult, CancellationToken cancellationToken)
+        private async Task RecognizeLoop(ISpeechRecognitionEngine engine, Channel<float[]>? channel,
+                                         Action<string, string> onResult, CancellationToken cancellationToken)
         {
-            var channel = segmentChannel;
             if (channel == null) return;
 
             try
@@ -592,7 +685,7 @@ namespace RSTGameTranslation
                 await foreach (var segment in channel.Reader.ReadAllAsync(cancellationToken))
                 {
                     if (_isStopping || cancellationToken.IsCancellationRequested) break;
-                    await ProcessAudioAsync(segment, onResult, cancellationToken);
+                    await ProcessAudioAsync(engine, segment, onResult, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -807,18 +900,24 @@ namespace RSTGameTranslation
             return false;
         }
 
-        private async Task ProcessAudioAsync(float[] samples, Action<string, string> onResult, CancellationToken token)
+        private async Task ProcessAudioAsync(ISpeechRecognitionEngine engine, float[] samples,
+                                             Action<string, string> onResult, CancellationToken token)
         {
             try
             {
-                if (_engine == null || _isStopping)
+                if (_isStopping)
                 {
-                    Console.WriteLine("ProcessAudioAsync: engine null or stopping, returning");
+                    Console.WriteLine("ProcessAudioAsync: stopping, returning");
                     return;
                 }
 
-                IReadOnlyList<string> segments = await _engine.RecognizeAsync(samples, token);
+                IReadOnlyList<string> segments = await engine.RecognizeAsync(samples, token);
 
+                // Stopped while decoding: drop the result rather than emit a stale line or touch
+                // the duplicate history a new run may already be using.
+                if (token.IsCancellationRequested) return;
+
+                var lines = new List<string>();
                 foreach (var rawText in segments)
                 {
                     if (string.IsNullOrWhiteSpace(rawText)) continue;
@@ -837,14 +936,21 @@ namespace RSTGameTranslation
 
                     if (IsDuplicate(originalText)) continue;
 
-                    await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        Logic.Instance.AddAudioTextObject(originalText);
-                        // _ = Logic.Instance.TranslateTextObjectsAsync();
-                    });
-
-                    onResult(originalText, "");
+                    lines.Add(originalText);
                 }
+
+                if (lines.Count == 0) return;
+
+                // One utterance -> one line. Whisper can split a sentence into several segments;
+                // translation now starts as soon as a line arrives, so emitting them separately
+                // would translate the halves of a sentence on their own.
+                string utterance = string.Join(" ", lines);
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    Logic.Instance.AddAudioTextObject(utterance);
+                });
+
+                onResult(utterance, "");
             }
             catch (OperationCanceledException)
             {

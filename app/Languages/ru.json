@@ -429,6 +429,7 @@
   "Msg_OcrNoStartRequired": "{0} не требует запуска сервера.",
   "Msg_ServerStartupTimeout": "Тайм-аут запуска сервера {0}. Пожалуйста, проверьте, установлено ли окружение, и попробуйте снова.",
   "Msg_ErrorStartingOcrServer": "Ошибка запуска сервера OCR: {0}",
+  "Msg_ErrorStartingAudioService": "Не удалось запустить распознавание речи: {0}",
   "Status_StartingOcrServer": "Запуск сервера {0}...",
   "Status_CannotStartOcrServer": "Не удается запустить сервер {0}",
   "Status_OcrServerStopped": "Сервер OCR был остановлен",

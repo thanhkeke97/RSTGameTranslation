@@ -423,6 +423,7 @@
   "Msg_OcrNoStartRequired": "O {0} não requer a inicialização de um servidor.",
   "Msg_ServerStartupTimeout": "Tempo limite de inicialização do servidor {0}. Verifique se o ambiente foi instalado e tente novamente.",
   "Msg_ErrorStartingOcrServer": "Erro ao iniciar o servidor de OCR: {0}",
+  "Msg_ErrorStartingAudioService": "Não foi possível iniciar o reconhecimento de fala: {0}",
   "Status_StartingOcrServer": "Iniciando servidor {0}...",
   "Status_CannotStartOcrServer": "Não é possível iniciar o servidor {0}",
   "Status_OcrServerStopped": "O servidor de OCR foi parado",

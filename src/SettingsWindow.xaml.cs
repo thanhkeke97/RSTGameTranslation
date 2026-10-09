@@ -5003,15 +5003,29 @@ namespace RSTGameTranslation
             if (enabled && !localWhisperService.Instance.IsRunning)
             {
                 // Start the local Whisper service if not already running
-                await localWhisperService.Instance.StartServiceAsync((original, translated) =>
+                try
                 {
-                    Console.WriteLine($"Whisper detected: {original}");
-                });
-                Console.WriteLine("Local Whisper Service started");
+                    await localWhisperService.Instance.StartServiceAsync((original, translated) =>
+                    {
+                        Console.WriteLine($"Whisper detected: {original}");
+                    });
+                    Console.WriteLine("Local Whisper Service started");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error starting Whisper service: {ex.Message}");
+                    audioServiceAutoTranslateCheckBox.IsChecked = false;
+                    MessageBox.Show(
+                        string.Format(LocalizationManager.Instance.Strings["Msg_ErrorStartingAudioService"], ex.Message),
+                        LocalizationManager.Instance.Strings["Title_Error"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
             }
-            else if (!enabled && localWhisperService.Instance.IsRunning)
+            else if (!enabled)
             {
-                // Stop the local Whisper service if it was running
+                // Stop unconditionally: a start may still be loading its model (IsRunning is
+                // false until capture begins) and must be cancelled.
                 localWhisperService.Instance.Stop();
                 Console.WriteLine("Local Whisper Service stopped");
             }

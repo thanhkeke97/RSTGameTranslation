@@ -793,17 +793,33 @@ namespace RSTGameTranslation
                         {
                             Console.WriteLine($"Whisper detected: {original}");
                         });
-                        Console.WriteLine("Local Whisper Service started");
-                        AudioStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
-                        AudioStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+                        // Not running without an exception means the user turned it off while
+                        // the model was loading — the off branch already updated the UI.
+                        if (localWhisperService.Instance.IsRunning)
+                        {
+                            Console.WriteLine("Local Whisper Service started");
+                            AudioStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+                            AudioStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+                        }
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error starting Whisper service: {ex.Message}");
+                        ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(false);
+                        UpdateAudioServiceButtonUI(false);
+                        AudioStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                        AudioStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+                        System.Windows.MessageBox.Show(
+                            string.Format(LocalizationManager.Instance.Strings["Msg_ErrorStartingAudioService"], ex.Message),
+                            LocalizationManager.Instance.Strings["Title_Error"],
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                     }
                 }
-                else if (!enabled && localWhisperService.Instance.IsRunning)
+                else if (!enabled)
                 {
+                    // Stop unconditionally: the service may still be loading its model, in which
+                    // case IsRunning is false but the pending start must be cancelled.
                     localWhisperService.Instance.Stop();
                     Console.WriteLine("Local Whisper Service stopped");
                     AudioStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
