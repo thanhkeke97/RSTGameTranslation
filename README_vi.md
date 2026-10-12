@@ -8,7 +8,7 @@
 [![Nền tảng](https://img.shields.io/badge/platform-Windows%2010+-lightgrey.svg)]()
 
 
-*Dịch game của bạn theo thời gian thực với công nghệ OCR và LLM*
+*Dịch game, truyện tranh và lời thoại trong game theo thời gian thực bằng OCR và AI*
 
 [📥 Tải xuống](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [⚙️ Hướng dẫn cài đặt (Tất cả cài đặt)](https://thanhkeke97.github.io/RSTGameTranslation/index_vi.html#settings) • [📖 English Guide](README.md) • [🐛 Báo lỗi](https://github.com/thanhkeke97/RSTGameTranslation/issues)
 
@@ -18,116 +18,165 @@
 
 ## ✨ Tính năng
 
-- **Dịch thời gian thực** với nhiều tùy chọn OCR (OneOCR, Windows OCR)
-- **Dịch thuật bằng AI** với Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
-- **Nhận dạng thông minh** với nhận biết ngữ cảnh game và phát hiện tên nhân vật
-- **Hiển thị linh hoạt** với overlay và cửa sổ chat
-- **Chức năng Text-to-Speech** với 4 backend: ElevenLabs (cloud), Google Cloud TTS (cloud), Windows TTS (local), và **Supertonic** (miễn phí, on-device, 31 ngôn ngữ, model OpenRAIL-M)
-- **Chức năng Speech-to-Text** (Nhận dạng giọng nói từ âm thanh game và dịch nó)
+- **Dịch mọi game theo thời gian thực**: đọc chữ trên màn hình (OneOCR hoặc Windows OCR, có sẵn) và hiện bản dịch ngay trên đó
+- **Nhiều dịch vụ dịch**: Google Dịch (miễn phí, không cần key), Gemini, Groq, ChatGPT, Mistral, hoặc dịch hoàn toàn offline với Ollama và LM Studio
+- **Lớp phủ tự nhiên**: chữ gốc được xóa đi, bản dịch được vẽ lên nền gốc với màu chữ phù hợp
+- **Chế độ Manga**: nhận diện từng bóng thoại, đọc chữ dọc tiếng Nhật từ phải sang trái, dùng được cả với truyện tiếng Anh
+- **Dịch lời thoại trong game**: chuyển giọng nói thành chữ rồi dịch (Whisper hoặc FunASR, chạy trên máy bạn)
+- **Đọc bản dịch thành tiếng** (Text-to-Speech): ElevenLabs, Google Cloud TTS, Windows TTS, hoặc Supertonic (miễn phí, offline)
+- **Dịch thông minh**: dùng các câu trước đó và thông tin về game để dịch chính xác hơn
+- **Dịch Clipboard**: tự động dịch bất kỳ đoạn chữ nào bạn sao chép
 
-![Xem trước](media/preview_video.gif)
-
----
-
-## 🔊 Text-to-Speech (TTS)
-
-RST hỗ trợ 4 backend TTS. Chọn backend phù hợp với nhu cầu:
-
-| Backend | Chi phí | Internet | Riêng tư | Ngôn ngữ | Phù hợp cho |
-|---|---|---|---|---|---|
-| **ElevenLabs** | Free tier + trả phí | Cần | Cloud | Nhiều | Giọng tự nhiên nhất |
-| **Google Cloud TTS** | Trả theo ký tự | Cần | Cloud | 50+ | Phủ ngôn ngữ rộng |
-| **Windows TTS** | Miễn phí | Không cần | Local | Giọng hệ thống | Không cài đặt, không mạng |
-| **Supertonic** (mới) | **Miễn phí** | **Không cần** | **100% local** | **31** | Offline, đa ngôn ngữ, không cần API key |
-
-### Supertonic (khuyên dùng cho offline / miễn phí)
-
-[Supertonic](https://github.com/supertone-inc/supertonic) là hệ thống TTS đa ngôn ngữ on-device, tốc độ cực nhanh của [Supertone](https://www.supertone.ai/). Chạy hoàn toàn trên CPU qua ONNX Runtime — không cần cloud, không cần API key, không lo lộ dữ liệu. Sau khi tải model ~400 MB một lần, dùng offline hoàn toàn.
-
-**Cách bật:**
-
-1. Mở **Cài đặt → TTS**
-2. Đặt **TTS Service** = `Supertonic`
-3. Nhấn **Download model** (≈400 MB, tải từ Hugging Face)
-4. Chọn voice style (M1, F1, M2, F2, M3, M3, M4, M5, F3, F4, F5)
-5. Tùy chỉnh **Quality** (denoise steps, mặc định 8) và **Speech speed** (mặc định 1.05)
-
-**Ngôn ngữ hỗ trợ** (31): `en, ko, ja, ar, bg, cs, da, de, el, es, et, fi, fr, hi, hr, hu, id, it, lt, lv, nl, pl, pt, ro, ru, sk, sl, sv, tr, uk, vi` và `na` (tự động nhận diện).
-
-**Lưu ý:**
-- Lần đầu gọi SpeakText sau khi mở app có thể mất 1-2s để load model; app sẽ tự warm-up ở background nếu Supertonic đang được chọn, các lần sau phản hồi tức thì.
-- License: SDK **MIT**, model **OpenRAIL-M** (miễn phí dùng thương mại với điều kiện responsible-AI).
-- Model files: https://huggingface.co/Supertone/supertonic-3
+![Preview](media/preview_video.gif)
 
 ---
 
-## 🚀 Bắt đầu nhanh
+## 🚀 Bắt đầu nhanh (khoảng 3 phút)
 
-### Yêu cầu hệ thống
-- Windows 10 trở lên và game ở chế độ cửa sổ/không viền
-- Khuyến nghị có GPU NVIDIA (không bắt buộc)
+**Yêu cầu:** Windows 10 hoặc 11. Chạy game ở chế độ **cửa sổ** hoặc **cửa sổ không viền (borderless)**; chế độ toàn màn hình độc quyền (exclusive fullscreen) sẽ che mất bản dịch.
 
-### Cài đặt
-1. Tải về từ [Trang Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases) và giải nén
+1. **Tải về** bản mới nhất ở [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases), giải nén ra thư mục bất kỳ và chạy `rst.exe`
+2. **Chọn ngôn ngữ**: **Cài đặt → Ngôn ngữ**, chọn ngôn ngữ của game và ngôn ngữ của bạn
+3. **Chọn dịch vụ dịch**: **Cài đặt → Dịch thuật**, chọn **Google Translate** (miễn phí, không cần API key)
+4. **Chọn chỗ cần dịch**:
+   - Nhấn **Chọn ứng dụng** và chọn cửa sổ game, **hoặc**
+   - Nhấn **Alt+Q** rồi kéo chuột khoanh vùng có chữ
+5. Nhấn **Alt+F** để bật **Lớp phủ**, rồi **Alt+G** để **Bắt đầu**
 
-### Tùy chọn thiết lập
+Xong. Bản dịch hiện đè lên game và tự cập nhật khi chữ thay đổi. Nhấn **Alt+G** lần nữa để dừng.
 
-#### 🔵 Thiết lập đơn giản (Không cần cài đặt thêm)
-1. Chạy `rst.exe`
-2. Vào **Cài đặt** → **OCR**: Chọn **OneOCR**
-3. Vào **Cài đặt** → **Language**: Chọn ngôn ngữ nguồn và đích
-4. Vào **Cài đặt** → **Translation**: Chọn **Google Translate**
-5. Nhấn nút ***Chọn ứng dụng***: Chọn ứng dụng bạn muốn chụp
-6. Nhấn **Alt+Q** để chọn vùng, sau đó **Alt+F** để bật Overlay
-7. Nhấn **Alt+G** để bắt đầu/dừng dịch
-
-#### 🔴 Thiết lập nâng cao (Cần cài đặt thêm)
-1. **Tùy chọn OCR**: (Chỉ cài đặt ở lần đầu tiên OCR được chọn trên thiết bị, không cần cài đặt lại)
-   - Tích hợp sẵn: OneOCR, Windows OCR (không cần thiết lập)
-
-2. **Dịch vụ dịch thuật**:
-   - Không cần API: Google Translate
-   - Cần API: Gemini, Groq, Mistral, ChatGPT (thêm khóa API trong Cài đặt)
-   - Tùy chọn cục bộ: Ollama, LM Studio
-   
-3. **Bắt đầu dịch**:
-   - Nhấn **StartOCR** (nếu sử dụng OCR bên thứ 3) và đợi cho đến khi khởi động thành công (Bạn sẽ thấy một dòng thông báo màu đỏ ở góc dưới bên phải)
-   - Nhấn nút ***Chọn ứng dụng***: Chọn ứng dụng bạn muốn chụp
-   - Chọn vùng (Alt+Q) sau đó bật overlay (Alt+F)
-   - Bắt đầu dịch (Alt+G)
+> 💡 Trên **Windows 10**, hãy nhấn **Chọn ứng dụng** trước khi bật lớp phủ.
 
 ---
 
-## 🔄 Cách cập nhật phiên bản
+## ⌨️ Phím tắt
 
-RSTGameTranslation sẽ tự động kiểm tra cập nhật khi bạn khởi động. Nếu có phiên bản mới, bạn sẽ thấy thông báo hỏi xem bạn có muốn tải xuống không. Để cập nhật:
+| Phím tắt | Chức năng |
+|---|---|
+| **Alt+G** | Bắt đầu / dừng dịch |
+| **Alt+Q** | Chọn vùng cần dịch |
+| **Alt+F** | Bật / tắt lớp phủ |
+| **Alt+C** | Bật / tắt Hộp thoại (cửa sổ lịch sử bản dịch) |
+| **Alt+T** | Dịch lại đoạn chữ hiện tại |
+| **Alt+K** | Bật / tắt dịch âm thanh |
+| **Alt+1** … **Alt+5** | Chuyển giữa các vùng đã lưu |
+| **Alt+B** | Hiện các vùng đã chọn |
+| **Alt+P** | Mở Cài đặt |
+| **Alt+L** | Mở cửa sổ log |
 
-1. Tải phiên bản mới nhất từ thông báo hoặc từ [Trang Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases)
-2. Đóng RSTGameTranslation nếu đang chạy
-3. Giải nén các tệp mới vào thư mục cài đặt hiện tại
-4. Xong! Các cài đặt và tùy chọn của bạn sẽ được giữ nguyên
+Bạn có thể đổi mọi phím tắt trong **Cài đặt → Phím tắt**.
+
+---
+
+## 📖 Hướng dẫn
+
+### 🎮 Dịch game
+
+- **Chọn ứng dụng** bám theo cửa sổ game, kể cả khi bạn di chuyển cửa sổ. **Chọn vùng (Alt+Q)** dịch một phần cố định của màn hình. Bạn có thể lưu tối đa 5 vùng và chuyển nhanh bằng **Alt+1…5**.
+- **Lớp phủ** hiện bản dịch đè lên chữ gốc. **Hộp thoại (Alt+C)** hiện bản dịch dạng danh sách, dễ theo dõi hơn với visual novel hoặc khi vùng chữ nhỏ.
+- Bật **Cài đặt → Ngữ cảnh/Lớp phủ → Tự động đặt màu nền lớp phủ** để xóa chữ gốc và cho bản dịch hòa vào game.
+- Mô tả game và các nhân vật chính ở **Cài đặt → Ngữ cảnh/Lớp phủ → Thông tin về game** để dịch chính xác hơn khi dùng dịch vụ AI. Lưu cài đặt riêng cho từng game bằng **Cài đặt → Hồ sơ Game**.
+- Nếu một số chữ trên màn hình (menu, HUD) cứ bị dịch, hãy đánh dấu chúng trong **Cài đặt → Vùng loại trừ** hoặc **Cụm từ bỏ qua**.
+
+### 📚 Đọc manga và truyện tranh
+
+1. **Cài đặt → OCR/Chọn màn hình**: chọn **OneOCR**, rồi bật **Manga Mode**
+2. **Cài đặt → Ngôn ngữ**: chọn ngôn ngữ gốc của truyện (tiếng Nhật, tiếng Anh, …)
+3. Nhấn **Alt+Q** và khoanh cả trang truyện (hoặc chọn cửa sổ trình đọc bằng **Chọn ứng dụng**)
+4. **Alt+F** để bật lớp phủ, **Alt+G** để bắt đầu
+
+Chế độ Manga tìm từng bóng thoại trong ảnh, nên chữ ở các bóng thoại cạnh nhau không bị trộn lẫn. Với tiếng Nhật, chữ dọc được đọc theo cột từ phải sang trái và furigana được bỏ qua. Cả trang được dịch một lần, nhưng mỗi bóng thoại vẫn có bản dịch riêng.
+
+### 🎙️ Dịch lời thoại trong game (giọng nói thành chữ)
+
+1. **Cài đặt → Âm thanh**: chọn **Nhà cung cấp**
+   - **Whisper**: nhiều ngôn ngữ. Nhấn **Tải model Whisper...** và chọn một model (hộp thoại có đánh dấu model khuyên dùng)
+   - **FunASR**: tiếng Nhật, Trung, Hàn, Anh, Quảng Đông. Nhanh và chính xác. Nhấn **Tải model FunASR**
+2. Khuyên dùng trong mục **Thu âm & phát hiện giọng nói**: **Nguồn thu** = *Toàn bộ âm thanh trừ ứng dụng này* và **Phát hiện giọng nói** = *Silero VAD*
+3. Nhấn **Alt+K** (hoặc nút **Dịch âm thanh**) để bắt đầu. Bản dịch hiện trong Hộp thoại
+
+### 🔊 Đọc bản dịch thành tiếng (Text-to-Speech)
+
+Chọn dịch vụ trong **Cài đặt → TTS**:
+
+| Dịch vụ | Chi phí | Internet | Ngôn ngữ | Phù hợp cho |
+|---|---|---|---|---|
+| **Supertonic** | Miễn phí | Không cần | 31 | Offline, không cần API key |
+| **Windows TTS** | Miễn phí | Không cần | Giọng đã cài trong Windows | Không cần thiết lập |
+| **ElevenLabs** | Có gói miễn phí + trả phí | Cần | Nhiều | Giọng tự nhiên nhất |
+| **Google Cloud TTS** | Trả theo số ký tự | Cần | 50+ | Nhiều ngôn ngữ nhất |
+
+Khi bản dịch đến nhanh hơn tốc độ đọc, **Tăng tốc khi đọc chậm** sẽ đọc các câu tiếp theo nhanh hơn (tối đa 1.5 lần) để bắt kịp game.
+
+<details>
+<summary><b>Thiết lập Supertonic (miễn phí, offline)</b></summary>
+
+[Supertonic](https://github.com/supertone-inc/supertonic) của [Supertone](https://www.supertone.ai/) chạy hoàn toàn trên CPU: không cần cloud, không cần API key. Sau khi tải model một lần (khoảng 400 MB) là dùng được offline.
+
+1. **Cài đặt → TTS**, đặt **Dịch vụ TTS** là `Supertonic`
+2. Nhấn **Download model** (tải từ Hugging Face)
+3. Chọn giọng đọc (M1–M5, F1–F5)
+4. Tùy chọn: chỉnh **Quality** (mặc định 8) và **Speech speed** (mặc định 1.05)
+
+**Ngôn ngữ:** `en, ko, ja, ar, bg, cs, da, de, el, es, et, fi, fr, hi, hr, hu, id, it, lt, lv, nl, pl, pt, ro, ru, sk, sl, sv, tr, uk, vi` và `na` (tự nhận diện).
+
+Câu đầu tiên sau khi mở ứng dụng có thể mất 1–2 giây để nạp model. Giấy phép: SDK MIT, model OpenRAIL-M ([file model](https://huggingface.co/Supertone/supertonic-3)).
+
+</details>
+
+### 📋 Dịch chữ đã sao chép
+
+Bật **Cài đặt → Clipboard → Bật dịch Clipboard**. Mọi đoạn chữ bạn sao chép (Ctrl+C) sẽ được dịch tự động.
 
 ---
 
 ## ⚙️ Thiết lập đề xuất
 
-### Cho sử dụng nhanh
-- **OCR**: OneOCR hoặc Windows OCR (tích hợp sẵn, không cần thiết lập)
-- **Dịch thuật**: Google Translate (không cần khóa API)
+| Mục đích | OCR | Dịch |
+|---|---|---|
+| **Dùng nhanh, miễn phí** | OneOCR | Google Translate (không cần key) |
+| **Chất lượng tốt nhất** | OneOCR | Gemini, model `gemini-flash-lite-latest` (API key miễn phí từ Google AI Studio) |
+| **Hoàn toàn offline / riêng tư** | OneOCR hoặc Windows OCR | Ollama hoặc LM Studio |
 
-### Cho chất lượng tốt nhất
-- **OCR**: OneOCR (khuyến nghị) hoặc Windows OCR
-- **Dịch thuật**: Gemini Flash lite 2.5 (Cần khóa API)
-- **Phần cứng**: Khuyến nghị GPU NVIDIA
+**Mẹo để dịch nhanh hơn:** chỉ khoanh vùng có chữ thay vì cả màn hình, và thêm nhiều API key để khi một key hết lượt thì tự chuyển sang key khác.
 
-### Cho quyền riêng tư
-- **OCR**: OneOCR hoặc Windows OCR
-- **Dịch thuật**: Ollama hoặc LM Studio (100% cục bộ)
+---
 
-### Mẹo tăng hiệu suất
-- Vùng chọn nhỏ hơn = xử lý nhanh hơn
-- Thêm nhiều khóa API để dự phòng
-- Tải ngôn ngữ lần đầu mất 1-2 phút (OCR bên ngoài)
+## ❓ Xử lý sự cố
+
+<details>
+<summary><b>Bản dịch không hiện lên trên game</b></summary>
+
+- Chuyển game sang chế độ **cửa sổ** hoặc **cửa sổ không viền (borderless)**. Chế độ toàn màn hình độc quyền sẽ vẽ đè lên mọi thứ.
+- Kiểm tra lớp phủ đã bật chưa (**Alt+F**).
+- Trên Windows 10, nhấn **Chọn ứng dụng** và chọn game trước.
+
+</details>
+
+<details>
+<summary><b>Google Dịch ngừng dịch (lỗi "429" / bị giới hạn)</b></summary>
+
+Google Dịch miễn phí giới hạn số lần gửi yêu cầu từ một máy. Ứng dụng sẽ tự chờ và trong lúc đó dùng dịch vụ được chọn ở **Cài đặt → Dịch thuật → Khi bị giới hạn**. Nếu bị thường xuyên, hãy chuyển sang Gemini (có API key miễn phí) hoặc model chạy trên máy (Ollama, LM Studio).
+
+</details>
+
+<details>
+<summary><b>Chữ ở các bóng thoại manga bị trộn vào nhau</b></summary>
+
+Bật **Manga Mode** (cần dùng **OneOCR**) và chọn đúng ngôn ngữ gốc. Nhận diện bóng thoại hoạt động tốt nhất với bóng thoại nền trắng hoặc nền sáng.
+
+</details>
+
+<details>
+<summary><b>Dịch chậm</b></summary>
+
+- Khoanh vùng nhỏ hơn, chỉ chứa phần có chữ.
+- Dịch vụ AI online (Gemini, Groq) thường nhanh hơn model chạy trên máy yếu.
+- Với dịch âm thanh, giữ bật **Chế độ nhanh cho câu ngắn** và thử model Whisper nhỏ hơn hoặc FunASR.
+
+</details>
+
+Vẫn chưa được? Hỏi trên [Discord](https://discord.gg/FusrDU5tdn) hoặc [báo lỗi](https://github.com/thanhkeke97/RSTGameTranslation/issues).
 
 ---
 
@@ -149,7 +198,7 @@ Nếu bạn thấy RST hữu ích và muốn hỗ trợ phát triển, bạn có
 
 ---
 
-## �️ Công nghệ Mã nguồn mở
+## 🛠️ Công nghệ Mã nguồn mở
 
 Dự án này được xây dựng dựa trên sự đóng góp của cộng đồng mã nguồn mở. Chúng tôi xin gửi lời cảm ơn chân thành đến các dự án sau:
 
@@ -171,12 +220,13 @@ Dự án này được xây dựng dựa trên sự đóng góp của cộng đ�
 
 ---
 
-## �📄 Giấy phép
+## 📄 Giấy phép
 
 Giấy phép kiểu BSD - xem chi tiết tại [LICENSE.md](LICENSE.md)
 
 **Ghi nhận**: Bao gồm phần mềm được phát triển bởi Seth A. Robinson - [UGTLive](https://github.com/SethRobinson/UGTLive)
-| <img src="https://signpath.org/assets/favicon.png" width="25" height="25" align="center"> | Chữ ký số được cung cấp miễn phí bới [SignPath.io](https://about.signpath.io/), chứng nhận bởi [SignPath Foundation](https://signpath.org/). |
+
+| <img src="https://signpath.org/assets/favicon.png" width="25" height="25" align="center"> | Chữ ký số được cung cấp miễn phí bởi [SignPath.io](https://about.signpath.io/), chứng nhận bởi [SignPath Foundation](https://signpath.org/). |
 | :--- | :--- |
 
 <div align="center">

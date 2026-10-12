@@ -8,7 +8,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%2010+-lightgrey.svg)]()
 
 
-*Translate your games in real-time with AI-powered OCR and LLM technology*
+*Translate games, manga and game voices in real time with OCR and AI translation*
 
 [📥 Download](https://github.com/thanhkeke97/RSTGameTranslation/releases) • [⚙️ Settings guide](https://thanhkeke97.github.io/RSTGameTranslation/#settings) • [📖 Vietnamese Guide](README_vi.md) • [🐛 Report Bug](https://github.com/thanhkeke97/RSTGameTranslation/issues)
 
@@ -18,116 +18,165 @@
 
 ## ✨ Features
 
-- **Real-time Translation** with multiple OCR options (OneOCR, Windows OCR)
-- **AI-Powered Translation** with Gemini, Groq, ChatGPT, Google Translate, Ollama, Mistral, LM Studio
-- **Smart Recognition** with game context awareness and character name detection
-- **Flexible Display** options with overlay and chat window
-- **Text-to-Speech** feature with 4 backends: ElevenLabs (cloud), Google Cloud TTS (cloud), Windows TTS (local), and **Supertonic** (free, on-device, 31 languages, OpenRAIL-M model)
-- **Speech-to-Text** functionality (Recognize speech from game audio and translate it)
+- **Translate any game in real time**: reads the text on screen (OneOCR or Windows OCR, built in) and shows the translation right on top of it
+- **Many translation services**: Google Translate (free, no key), Gemini, Groq, ChatGPT, Mistral, or fully offline with Ollama and LM Studio
+- **Natural-looking overlay**: the original text is erased and the translation is drawn on the original background, in a matching color
+- **Manga Mode**: recognizes speech bubbles, reads Japanese vertical text right to left, and also works with English comics
+- **Translate game voices**: turns spoken dialogue into translated text (Whisper or FunASR, runs on your PC)
+- **Read translations aloud** (Text-to-Speech): ElevenLabs, Google Cloud TTS, Windows TTS, or Supertonic (free, offline)
+- **Smart translation**: uses previous lines and game information for more accurate results
+- **Clipboard translation**: translates any text you copy
 
 ![Preview](media/preview_video.gif)
 
 ---
 
-## � Text-to-Speech (TTS)
+## 🚀 Quick Start (about 3 minutes)
 
-RST supports four TTS backends. Pick the one that fits your needs:
+**You need:** Windows 10 or 11. Run your game in **windowed** or **borderless windowed** mode (exclusive fullscreen hides the translation).
 
-| Backend | Cost | Internet | Privacy | Languages | Best for |
-|---|---|---|---|---|---|
-| **ElevenLabs** | Free tier + paid | Required | Cloud | Many | Highest naturalness |
-| **Google Cloud TTS** | Pay-per-character | Required | Cloud | 50+ | Wide language coverage |
-| **Windows TTS** | Free | Not required | Local | System voices | No setup, no network |
-| **Supertonic** (new) | **Free** | **Not required** | **100% local** | **31** | Offline, multilingual, no API key |
+1. **Download** the latest version from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases), extract it anywhere, and run `rst.exe`
+2. **Choose languages**: **Settings → Language**, pick the game's language and your language
+3. **Choose a translator**: **Settings → Translation**, select **Google Translate** (free, no API key needed)
+4. **Choose what to translate**:
+   - Click **Select Application** and pick your game window, **or**
+   - Press **Alt+Q** and drag a box around the text area
+5. Press **Alt+F** to show the **Overlay**, then **Alt+G** to **Start**
 
-### Supertonic (recommended for offline / free TTS)
+That's it. The translation appears over the game and updates as the text changes. Press **Alt+G** again to stop.
 
-[Supertonic](https://github.com/supertone-inc/supertonic) is a lightning-fast, on-device multilingual TTS by [Supertone](https://www.supertone.ai/). It runs entirely on your CPU via ONNX Runtime - no cloud, no API key, no privacy concerns. After the one-time ~400 MB model download, it works completely offline.
-
-**How to enable:**
-
-1. Open **Settings → TTS**
-2. Set **TTS Service** = `Supertonic`
-3. Click **Download model** (≈400 MB, downloaded from Hugging Face)
-4. Pick a voice style (M1, F1, M2, F2, M3, M3, M4, M5, F3, F4, F5)
-5. Optionally tune **Quality** (denoise steps, default 8) and **Speech speed** (default 1.05)
-
-**Supported languages** (31): `en, ko, ja, ar, bg, cs, da, de, el, es, et, fi, fr, hi, hr, hu, id, it, lt, lv, nl, pl, pt, ro, ru, sk, sl, sv, tr, uk, vi` plus `na` (language-agnostic auto-detect).
-
-**Notes:**
-- First SpeakText call after app launch may take 1-2s while the model loads; the app will warm the engine in the background if Supertonic is already selected, so subsequent calls are instant.
-- License: SDK is **MIT**, model is **OpenRAIL-M** (free for commercial use with responsible-AI conditions).
-- Model files: https://huggingface.co/Supertone/supertonic-3
+> 💡 On **Windows 10**, click **Select Application** before turning on the overlay.
 
 ---
 
-## �🚀 Quick Start
+## ⌨️ Hotkeys
 
-### Prerequisites
-- Windows 10+ and game in windowed/borderless mode
-- NVIDIA GPU recommended but optional
+| Hotkey | Action |
+|---|---|
+| **Alt+G** | Start / stop translating |
+| **Alt+Q** | Select the area to translate |
+| **Alt+F** | Show / hide the overlay |
+| **Alt+C** | Show / hide the ChatBox (translation history window) |
+| **Alt+T** | Translate the current text again |
+| **Alt+K** | Start / stop voice translation |
+| **Alt+1** … **Alt+5** | Switch between saved areas |
+| **Alt+B** | Show the selected areas |
+| **Alt+P** | Open Settings |
+| **Alt+L** | Open the log window |
 
-### Installation
-1. Download from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases) and extract
-
-### Setup Options
-
-#### 🔵 Simple Setup (No Installation)
-1. Run `rst.exe`
-2. Go to **Settings** → **OCR**: Select **OneOCR** 
-3. Go to **Settings** → **Language**: Choose languages
-4. Go to **Settings** → **Translation**: Select **Google Translate**
-5. Press button ***Select Application***: Choose application which you want to capture
-6. Press **Alt+Q** to select area, then **Alt+F** to turn on Overlay
-7. Press **Alt+G** to start/stop
-
-#### 🔴 Advanced Setup (Need Installation)
-1. **OCR Options**: (Setup is only needed the first time the new OCR is chosen, no need to reinstall.)
-   - Built-in: OneOCR, Windows OCR (no setup needed)
-   
-2. **Translation Services**:
-   - No API needed: Google Translate
-   - API required: Gemini, Groq, Mistral, ChatGPT (add keys in Settings)
-   - Local options: Ollama, LM Studio
-
-3. **Start translating**:
-   - Click **StartOCR** (if using external OCR) and wait until it starts successfully (You will see a red notification line at the bottom right corner)
-   - Press button ***Select Application***: Choose application which you want to capture
-   - Select area (Alt+Q) then turn on overlay (Alt+F)
-   - Start translate (Alt+G)
+You can change every hotkey in **Settings → HotKeys**.
 
 ---
 
-## 🔄 How to Update
+## 📖 Guides
 
-RSTGameTranslation will automatically check for updates when you start it. If there's a new version, you'll see a notification asking if you want to download it. To update:
+### 🎮 Translating a game
 
-1. Download the latest version from the notification or from [Releases](https://github.com/thanhkeke97/RSTGameTranslation/releases)
-2. Close RSTGameTranslation if it's running
-3. Extract the new files to your current installation folder
-4. Done! Your settings and options will be preserved
+- **Select Application** follows the game window, even when you move it. **Select Area (Alt+Q)** translates a fixed part of the screen. You can save up to 5 areas and switch with **Alt+1…5**.
+- **Overlay** shows the translation on top of the original text. **ChatBox (Alt+C)** shows it as a list, which is easier for visual novels or when the text area is small.
+- Turn on **Settings → Context/Overlay → Auto Set Overlay Background Color** to erase the original text and blend the translation into the game.
+- Describe the game and its main characters in **Settings → Context/Overlay → Info about the game** for more accurate translations with AI services. Save your settings per game with **Settings → Game Profile**.
+- If some on-screen text (menus, HUD) keeps getting translated, mark it in **Settings → Exclude Regions** or **Ignore Phrases**.
+
+### 📚 Reading manga and comics
+
+1. **Settings → OCR/Screen Selection**: choose **OneOCR**, then turn on **Manga Mode**
+2. **Settings → Language**: set the source language (Japanese, English, …)
+3. Press **Alt+Q** and select the whole page (or the reader window with **Select Application**)
+4. **Alt+F** for the overlay, **Alt+G** to start
+
+Manga Mode finds each speech bubble in the image, so neighbouring bubbles are never mixed up. For Japanese it reads vertical columns right to left and skips furigana. The whole page is translated in one go, while every bubble keeps its own translation.
+
+### 🎙️ Translating game voices (speech-to-text)
+
+1. **Settings → Audio**: choose a **Provider**
+   - **Whisper**: many languages. Click **Download Whisper Model…** and pick a model (the dialog marks the recommended one)
+   - **FunASR**: Japanese, Chinese, Korean, English, Cantonese. Fast and accurate. Click **Download FunASR Model**
+2. Recommended under **Speech capture & detection**: **Capture source** = *All system audio except this app* and **Speech detection** = *Silero VAD*
+3. Press **Alt+K** (or the **Audio STT** button) to start. Translations appear in the ChatBox
+
+### 🔊 Reading translations aloud (Text-to-Speech)
+
+Choose a service in **Settings → TTS**:
+
+| Service | Cost | Internet | Languages | Best for |
+|---|---|---|---|---|
+| **Supertonic** | Free | Not needed | 31 | Offline, no API key |
+| **Windows TTS** | Free | Not needed | Voices installed in Windows | No setup |
+| **ElevenLabs** | Free tier + paid | Needed | Many | Most natural voices |
+| **Google Cloud TTS** | Pay per character | Needed | 50+ | Widest language coverage |
+
+When translations arrive faster than they can be read, **Speed up when behind** reads the next lines faster (up to 1.5x) to keep up with the game.
+
+<details>
+<summary><b>Setting up Supertonic (free, offline)</b></summary>
+
+[Supertonic](https://github.com/supertone-inc/supertonic) by [Supertone](https://www.supertone.ai/) runs entirely on your CPU: no cloud, no API key. After a one-time download (about 400 MB) it works offline.
+
+1. **Settings → TTS**, set **TTS Service** to `Supertonic`
+2. Click **Download model** (from Hugging Face)
+3. Pick a voice style (M1–M5, F1–F5)
+4. Optional: adjust **Quality** (default 8) and **Speech speed** (default 1.05)
+
+**Languages:** `en, ko, ja, ar, bg, cs, da, de, el, es, et, fi, fr, hi, hr, hu, id, it, lt, lv, nl, pl, pt, ro, ru, sk, sl, sv, tr, uk, vi` and `na` (auto-detect).
+
+The first sentence after starting the app may take 1–2 seconds while the model loads. License: SDK MIT, model OpenRAIL-M ([model files](https://huggingface.co/Supertone/supertonic-3)).
+
+</details>
+
+### 📋 Translating copied text
+
+Turn on **Settings → Clipboard → Enable Clipboard Translation**. Any text you copy (Ctrl+C) is translated automatically.
 
 ---
 
-## ⚙️ Recommended Setups
+## ⚙️ Recommended setups
 
-### For Quick Use
-- **OCR**: OneOCR or Windows OCR (built-in, no setup)
-- **Translation**: Google Translate (no API key needed)
+| Goal | OCR | Translation |
+|---|---|---|
+| **Quick start, free** | OneOCR | Google Translate (no key) |
+| **Best quality** | OneOCR | Gemini, model `gemini-flash-lite-latest` (free API key from Google AI Studio) |
+| **Fully offline / private** | OneOCR or Windows OCR | Ollama or LM Studio |
 
-### For Best Quality
-- **OCR**: OneOCR (recommended) or Windows OCR
-- **Translation**: Gemini Flash lite 2.5 (Need API key)
-- **Hardware**: NVIDIA GPU recommended
+**Tips for speed:** select only the text area instead of the whole screen, and add several API keys so another one is used when one hits its limit.
 
-### For Privacy
-- **OCR**: OneOCR or Windows OCR
-- **Translation**: Ollama or LM Studio (100% local)
+---
 
-### Performance Tips
-- Smaller areas = faster processing
-- Add multiple API keys for failover
-- First language download takes 1-2 minutes (external OCR)
+## ❓ Troubleshooting
+
+<details>
+<summary><b>The translation doesn't appear over the game</b></summary>
+
+- Switch the game to **windowed** or **borderless windowed**. Exclusive fullscreen draws over everything.
+- Make sure the overlay is on (**Alt+F**).
+- On Windows 10, click **Select Application** and pick the game first.
+
+</details>
+
+<details>
+<summary><b>Google Translate stops translating ("429" / rate limited)</b></summary>
+
+The free Google service limits how many requests one PC can send. The app waits automatically and meanwhile uses the service set in **Settings → Translation → When rate limited**. If it happens often, switch to Gemini (free API key) or a local model (Ollama, LM Studio).
+
+</details>
+
+<details>
+<summary><b>Manga text from different bubbles is mixed together</b></summary>
+
+Turn on **Manga Mode** (needs **OneOCR**) and set the correct source language. Bubble detection works best on white or light speech bubbles.
+
+</details>
+
+<details>
+<summary><b>Translations are slow</b></summary>
+
+- Select a smaller area that only contains the text.
+- Online AI services (Gemini, Groq) are usually faster than local models on a weak PC.
+- For voice translation, keep **Fast mode for short lines** on and try a smaller Whisper model or FunASR.
+
+</details>
+
+Still stuck? Ask on [Discord](https://discord.gg/FusrDU5tdn) or [report a bug](https://github.com/thanhkeke97/RSTGameTranslation/issues).
 
 ---
 
