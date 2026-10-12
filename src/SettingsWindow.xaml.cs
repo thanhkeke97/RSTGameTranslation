@@ -2745,12 +2745,12 @@ namespace RSTGameTranslation
                 // Handle both dropdown selection and manually typed values
                 if (geminiModelComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    model = selectedItem.Content?.ToString() ?? "gemini-2.0-flash-lite";
+                    model = selectedItem.Content?.ToString() ?? ConfigManager.DEFAULT_GEMINI_MODEL;
                 }
                 else
                 {
                     // For manually entered text
-                    model = geminiModelComboBox.Text?.Trim() ?? "gemini-2.0-flash-lite";
+                    model = geminiModelComboBox.Text?.Trim() ?? ConfigManager.DEFAULT_GEMINI_MODEL;
                 }
 
                 if (!string.IsNullOrWhiteSpace(model))

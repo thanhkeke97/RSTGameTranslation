@@ -449,6 +449,14 @@ namespace RSTGameTranslation
                 SaveConfig();
             }
 
+            // Google has shut down these Gemini models; a saved one would make every translation fail
+            if (_configValues.TryGetValue(GEMINI_MODEL, out string? geminiModel) && IsRetiredGeminiModel(geminiModel))
+            {
+                _configValues[GEMINI_MODEL] = DEFAULT_GEMINI_MODEL;
+                Console.WriteLine($"Migrated retired Gemini model '{geminiModel}' to '{DEFAULT_GEMINI_MODEL}'");
+                SaveConfig();
+            }
+
             // Create service-specific config files if they don't exist
             EnsureServiceConfigFilesExist();
         }
@@ -584,7 +592,7 @@ namespace RSTGameTranslation
             _configValues[MISTRAL_API_KEY] = "<your API key here>";
             _configValues[GROQ_MODEL] = "moonshotai/kimi-k2-instruct-0905";
             _configValues[GROQ_API_KEY] = "<your API key here>";
-            _configValues[GEMINI_MODEL] = "gemini-2.5-flash-lite";
+            _configValues[GEMINI_MODEL] = DEFAULT_GEMINI_MODEL;
             _configValues[BLOCK_DETECTION_SCALE] = (3.00).ToString(CultureInfo.InvariantCulture);
             _configValues[BLOCK_DETECTION_SETTLE_TIME] = (0.2).ToString(CultureInfo.InvariantCulture);
             _configValues[LINE_SPACING_FACTOR] = (0.63).ToString(CultureInfo.InvariantCulture);
@@ -2934,10 +2942,22 @@ namespace RSTGameTranslation
 
         // Gemini methods
 
+        // Alias Google keeps pointing at the newest Flash-Lite, so the default never goes stale
+        public const string DEFAULT_GEMINI_MODEL = "gemini-flash-lite-latest";
+
+        // Gemini 1.5 and 2.0 models are shut down (2.0: June 1, 2026)
+        private static bool IsRetiredGeminiModel(string model)
+        {
+            string id = model.Trim().ToLowerInvariant();
+            if (id.StartsWith("models/"))
+                id = id.Substring("models/".Length);
+            return id.StartsWith("gemini-1.5-") || id.StartsWith("gemini-2.0-");
+        }
+
         // Get Gemini model
         public string GetGeminiModel()
         {
-            return GetValue(GEMINI_MODEL, "gemini-2.0-flash-lite"); // Default to 2.0 Flash-lite
+            return GetValue(GEMINI_MODEL, DEFAULT_GEMINI_MODEL);
         }
 
         // Set Gemini model
