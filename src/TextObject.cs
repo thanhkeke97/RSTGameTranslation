@@ -66,6 +66,12 @@ namespace RSTGameTranslation
         // Whether the text fit the original box height at the chosen font size
         public bool TextFitsBox { get; private set; } = true;
 
+        // Feather width (DIPs) of the background edge when overlay colors are sampled automatically
+        private const double SoftEdgeRadius = 6;
+        // Glow around translated text drawn directly on the erased background
+        private const double TextHaloRadius = 6;
+        private System.Windows.Shapes.Rectangle? _softBackground;
+
         // Fallback chain used when no language font override is set
         private const string DefaultFontFamily = "Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS";
 
@@ -161,8 +167,19 @@ namespace RSTGameTranslation
             ResetLayout();
             ApplyBoxConstraints();
 
-            // Add the text block to the border
-            Border.Child = TextBlock;
+            // Background layer under the text, so its edges can be feathered without blurring the text
+            _softBackground = new System.Windows.Shapes.Rectangle
+            {
+                // Extend past the box by the blur radius so the box itself stays fully covered
+                Margin = new Thickness(-SoftEdgeRadius),
+                Effect = new System.Windows.Media.Effects.BlurEffect { Radius = SoftEdgeRadius },
+                IsHitTestVisible = false
+            };
+            var layers = new Grid();
+            layers.Children.Add(_softBackground);
+            layers.Children.Add(TextBlock);
+            Border.Child = layers;
+            ApplyBackground();
 
             // Add click event handler
             // Border.MouseLeftButtonDown += Border_MouseLeftButtonDown;
@@ -207,7 +224,7 @@ namespace RSTGameTranslation
                 //     TextBlock.Text = this.Text;
                 // }
                 TextBlock.Foreground = this.TextColor;
-                Border.Background = this.BackgroundColor;
+                ApplyBackground();
                 // The overlay positions borders with Canvas.Left/Top; a margin would add the offset twice
                 Border.Margin = new Thickness(0);
                 Canvas.SetLeft(Border, X);
@@ -229,6 +246,58 @@ namespace RSTGameTranslation
                 TextBlock.FontSize = 24; // Increased from 18 to 24 for better initial size
                 AdjustFontSize(Border, TextBlock);
             }
+        }
+
+        // Original background with the source text removed, placed on the overlay under all translations
+        public System.Windows.Controls.Image? EraserElement { get; private set; }
+        private Vector _eraserOffset;
+
+        public void SetErasedBackground(ImageSource patch, Rect bounds)
+        {
+            EraserElement = new System.Windows.Controls.Image
+            {
+                Source = patch,
+                Width = bounds.Width,
+                Height = bounds.Height,
+                Stretch = Stretch.Fill,
+                IsHitTestVisible = false
+            };
+            // Relative to the text position, so it follows when text objects are shifted
+            _eraserOffset = new Vector(bounds.X - X, bounds.Y - Y);
+        }
+
+        // The eraser stays over the original text even when the translation box is moved by the layout pass
+        public void PositionEraser()
+        {
+            if (EraserElement == null)
+                return;
+            Canvas.SetLeft(EraserElement, X + _eraserOffset.X);
+            Canvas.SetTop(EraserElement, Y + _eraserOffset.Y);
+        }
+
+        // With the original text erased, the translation needs no box: only a halo in the background
+        // color keeps it legible over busy art. Otherwise sampled colors get soft edges, and a
+        // user-chosen color keeps a crisp box.
+        private void ApplyBackground()
+        {
+            bool erased = EraserElement != null;
+            bool soft = !erased && _softBackground != null && ConfigManager.Instance.IsAutoSetOverlayBackground();
+            Border.Background = erased || soft ? null : BackgroundColor;
+            if (_softBackground != null)
+            {
+                _softBackground.Fill = BackgroundColor;
+                _softBackground.Visibility = soft ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            TextBlock.Effect = erased
+                ? new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    Color = BackgroundColor.Color,
+                    ShadowDepth = 0,
+                    BlurRadius = TextHaloRadius,
+                    Opacity = 1
+                }
+                : null;
         }
 
         private void ResetLayout()

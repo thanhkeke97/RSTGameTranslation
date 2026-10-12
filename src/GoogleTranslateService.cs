@@ -90,6 +90,11 @@ namespace RSTGameTranslation
                 {
                     string? viaFallback = await TranslateWithFallbackAsync(jsonData, prompt);
                     if (viaFallback != null) return viaFallback;
+
+                    // Google would refuse every part too: fail now instead of returning the source text
+                    // and trying the (just failed) fallback a second time
+                    Console.WriteLine("Google Translate is rate limited and the fallback failed; skipping this translation");
+                    return null;
                 }
 
                 // Create a new JSON object for the output

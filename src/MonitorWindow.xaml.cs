@@ -520,6 +520,14 @@ namespace RSTGameTranslation
 
                 // We need to create a NEW UI element with positioning appropriate for Canvas
                 // but we'll use the existing Border and TextBlock references so updates work
+                // Erased original background goes underneath every translation (index 0), so a translation
+                // that grows or is pushed over another box's original text never shows that text
+                if (textObject.EraserElement != null && textObject.TextBlock != null && textObject.EraserElement.Parent == null)
+                {
+                    textObject.PositionEraser();
+                    textOverlayCanvas.Children.Insert(0, textObject.EraserElement);
+                }
+
                 if (textObject.Border != null)
                 {
                     // Reset margin to zero - we'll position with Canvas instead

@@ -49,6 +49,28 @@ namespace RSTGameTranslation
         private const int DefaultMaxRetries = 5; // total attempts
         private const int BaseDelayMs = 500; // base for exponential backoff (ms)
         private const int MaxDelayMs = 10000; // cap backoff at 10s so a rate limit cannot stall translation for minutes
+        // A 429 usually lasts longer than a few retries: give up after this many 429 attempts and
+        // skip all requests for the cooldown, instead of every translation retrying for ~15 s
+        private const int MaxRateLimitedAttempts = 2;
+        private static readonly TimeSpan RateLimitCooldown = TimeSpan.FromSeconds(30);
+        private static readonly object _cooldownLock = new object();
+        private static DateTime _rateLimitedUntilUtc = DateTime.MinValue;
+
+        internal static bool IsCoolingDown
+        {
+            get { lock (_cooldownLock) return DateTime.UtcNow < _rateLimitedUntilUtc; }
+        }
+
+        private static void StartCooldown(TimeSpan duration)
+        {
+            lock (_cooldownLock)
+            {
+                DateTime until = DateTime.UtcNow + duration;
+                if (until > _rateLimitedUntilUtc)
+                    _rateLimitedUntilUtc = until;
+            }
+            Console.WriteLine($"Microsoft translator rate limited, pausing requests for {duration.TotalSeconds:F0}s");
+        }
 
         /// <summary>
         /// Compute signature 
@@ -395,6 +417,12 @@ namespace RSTGameTranslation
         // Send request with retries, exponential backoff, jitter and respecting Retry-After header
         private async Task<HttpResponseMessage?> SendWithRetriesAsync(string urlForSignature, byte[] privateKey, string jsonRequest, int maxRetries)
         {
+            if (IsCoolingDown)
+            {
+                Console.WriteLine("Microsoft translator is rate limited, skipping request");
+                return null;
+            }
+
             await _concurrencySemaphore.WaitAsync();
             try
             {
@@ -451,19 +479,22 @@ namespace RSTGameTranslation
                             if (retryAfterMs > MaxDelayMs)
                             {
                                 Console.WriteLine($"Received 429 with Retry-After {retryAfterMs:F0}ms (> {MaxDelayMs}ms), giving up");
+                                StartCooldown(TimeSpan.FromMilliseconds(retryAfterMs));
                                 return response;
                             }
 
                             delayMs = Math.Max(delayMs, (int)retryAfterMs);
                         }
 
-                        // Log and wait
-                        Console.WriteLine($"Received 429, attempt {attempt}, waiting {delayMs}ms before retry");
-                        if (attempt == maxRetries)
+                        if (attempt >= Math.Min(maxRetries, MaxRateLimitedAttempts))
                         {
-                            // final attempt failed
+                            Console.WriteLine($"Received 429, attempt {attempt}, giving up");
+                            StartCooldown(retryAfter.HasValue && retryAfter.Value > RateLimitCooldown ? retryAfter.Value : RateLimitCooldown);
                             return response;
                         }
+
+                        // Log and wait
+                        Console.WriteLine($"Received 429, attempt {attempt}, waiting {delayMs}ms before retry");
                         await Task.Delay(delayMs);
                         continue;
                     }

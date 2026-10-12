@@ -1140,6 +1140,8 @@ namespace RSTGameTranslation
                 // Configured colors are the default; auto background only overrides them when sampling succeeds
                 Color textColor = ConfigManager.Instance.GetOverlayTextColor();
                 Color bgColor = ConfigManager.Instance.GetOverlayBackgroundColor();
+                System.Windows.Media.Imaging.BitmapSource? erasedPatch = null;
+                Rect erasedBounds = Rect.Empty;
                 if (ConfigManager.Instance.IsAutoSetOverlayBackground() && sourceBitmap != null)
                 {
                     try
@@ -1151,17 +1153,18 @@ namespace RSTGameTranslation
                         int bitmapY = (int)(y * dpiScaleY);
                         int bitmapWidth = Math.Max(1, (int)(width * dpiScaleX));
                         int bitmapHeight = Math.Max(1, (int)(height * dpiScaleY));
+                        var textBox = new System.Drawing.Rectangle(bitmapX, bitmapY, bitmapWidth, bitmapHeight);
 
-                        System.Drawing.Color dominantColor = ColorUtils.GetDominantColor(
-                            sourceBitmap,
-                            bitmapX, bitmapY, bitmapWidth, bitmapHeight);
+                        (bgColor, textColor) = ColorUtils.SampleOverlayColors(sourceBitmap, textBox);
 
-                        bgColor = ColorUtils.CreateBackgroundColor(dominantColor);
-                        textColor = ColorUtils.GetContrastingTextColor(dominantColor);
+                        // Original text removed from its own background, shown under the translation
+                        erasedPatch = TextEraser.CreateErasedPatch(sourceBitmap, textBox, bgColor, out var patchPixels);
+                        erasedBounds = new Rect(patchPixels.X / dpiScaleX, patchPixels.Y / dpiScaleY,
+                                                patchPixels.Width / dpiScaleX, patchPixels.Height / dpiScaleY);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error getting dominant color: {ex.Message}");
+                        Console.WriteLine($"Error sampling overlay colors: {ex.Message}");
                     }
                 }
 
@@ -1177,6 +1180,10 @@ namespace RSTGameTranslation
                     captureX, captureY  // Store original capture coordinates
                 );
                 textObject.ID = "text_" + GetNextTextID();
+                if (erasedPatch != null)
+                {
+                    textObject.SetErasedBackground(erasedPatch, erasedBounds);
+                }
 
                 // Add to our collection
                 _textObjects.Add(textObject);
