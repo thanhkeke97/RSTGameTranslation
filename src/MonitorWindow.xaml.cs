@@ -27,6 +27,8 @@ namespace RSTGameTranslation
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_LAYERED = 0x00080000;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+        private const int WS_EX_NOACTIVATE = 0x08000000;
         
         [DllImport("user32.dll")]
         private static extern int GetWindowLong(IntPtr hwnd, int index);
@@ -164,7 +166,8 @@ namespace RSTGameTranslation
             
             // Add WS_EX_TRANSPARENT to allow click-through
             // Also add WS_EX_LAYERED to support transparency
-            SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+            // WS_EX_NOACTIVATE keeps focus on the game; WS_EX_TOOLWINDOW hides the overlay from Alt+Tab
+            SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW);
             
             Console.WriteLine("MonitorWindow click-through enabled");
         }
@@ -621,6 +624,8 @@ namespace RSTGameTranslation
                     }
                 }
 
+                ResolveOverlayCollisions(textObjects);
+
                 // Draw exclude regions if enabled
                 DrawExcludeRegions();
                 
@@ -631,6 +636,114 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error refreshing overlays: {ex.Message}");
             }
+        }
+
+        // Space kept between overlay boxes when widening or pushing them apart
+        private const double OverlayGap = 2;
+        // Last-resort minimum font size (fraction of the source size) for boxes pushed past the bottom edge
+        private const double LastResortMinSourceSizeRatio = 0.4;
+
+        // Translations that overflow their original box would cover the boxes below them, and the
+        // backgrounds are opaque. Widen overflowing boxes into free space along the reading direction
+        // (right for LTR, left for RTL, which stays anchored to its original right edge), then push
+        // overlapping boxes down top-to-bottom, and as a last resort shrink boxes that leave the overlay.
+        private void ResolveOverlayCollisions(IReadOnlyList<TextObject> textObjects)
+        {
+            try
+            {
+                var items = textObjects
+                    .Where(t => t != null && t.TextBlock != null && t.Width > 0 && t.Height > 0
+                                && ReferenceEquals(t.Border.Parent, textOverlayCanvas))
+                    .OrderBy(t => t.Y).ThenBy(t => t.X)
+                    .ToList();
+                if (items.Count == 0) return;
+
+                double overlayWidth = ActualWidth > 0 ? ActualWidth : double.PositiveInfinity;
+                double overlayHeight = ActualHeight > 0 ? ActualHeight : double.PositiveInfinity;
+
+                // Widen: let an overflowing box grow until the next box on the same rows or the overlay edge
+                foreach (var item in items)
+                {
+                    item.Relayout(item.Width, TextObject.DefaultMinSourceSizeRatio);
+                    if (item.TextFitsBox) continue;
+
+                    bool isRtl = item.FlowDirection == System.Windows.FlowDirection.RightToLeft;
+                    double right = isRtl ? item.X + item.Width : overlayWidth;
+                    double left = isRtl ? 0 : item.X;
+                    foreach (var other in items)
+                    {
+                        bool sharesRows = other.Y < item.Y + item.Height && other.Y + other.Height > item.Y;
+                        if (other == item || !sharesRows) continue;
+
+                        if (!isRtl && other.X >= item.X + item.Width)
+                        {
+                            right = Math.Min(right, other.X);
+                        }
+                        else if (isRtl && other.X + other.Width <= item.X)
+                        {
+                            left = Math.Max(left, other.X + other.Width);
+                        }
+                    }
+
+                    double availableWidth = isRtl ? right - (left + OverlayGap) : right - OverlayGap - left;
+                    if (!double.IsInfinity(availableWidth) && availableWidth > item.Width)
+                    {
+                        item.Relayout(availableWidth, TextObject.DefaultMinSourceSizeRatio);
+                    }
+                }
+
+                // Push down: place boxes top-to-bottom, moving each below any placed box it would overlap
+                var placed = new List<Rect>();
+                foreach (var item in items)
+                {
+                    Rect box = PlaceBelowOverlaps(item, placed);
+
+                    if (box.Bottom > overlayHeight)
+                    {
+                        item.Relayout(item.LayoutWidth, LastResortMinSourceSizeRatio);
+                        box = PlaceBelowOverlaps(item, placed);
+                    }
+
+                    Canvas.SetLeft(item.Border, box.Left);
+                    Canvas.SetTop(item.Border, box.Top);
+                    placed.Add(box);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error resolving overlay collisions: {ex.Message}");
+            }
+        }
+
+        private static Rect PlaceBelowOverlaps(TextObject item, List<Rect> placed)
+        {
+            item.Border.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+            System.Windows.Size size = item.Border.DesiredSize;
+            double top = item.Y;
+            // RTL boxes grow leftward, so keep their right edge on the original text's right edge
+            double left = item.FlowDirection == System.Windows.FlowDirection.RightToLeft
+                ? item.X + item.Width - size.Width
+                : item.X;
+
+            // Each move can create a new overlap with another placed box, so repeat until clear
+            bool moved = true;
+            while (moved)
+            {
+                moved = false;
+                foreach (Rect other in placed)
+                {
+                    bool overlapsX = left < other.Right && left + size.Width > other.Left;
+                    // Ignore slivers: adjacent OCR line boxes often overlap by a pixel or two
+                    bool overlapsY = top < other.Bottom - OverlayGap && top + size.Height > other.Top + OverlayGap;
+                    if (overlapsX && overlapsY)
+                    {
+                        top = other.Bottom + OverlayGap;
+                        moved = true;
+                    }
+                }
+            }
+
+            return new Rect(left, top, size.Width, size.Height);
         }
 
         // Draw exclude regions on the overlay
@@ -647,34 +760,17 @@ namespace RSTGameTranslation
                 if (excludeRegions == null || excludeRegions.Count == 0)
                     return;
 
-                // Check if we're in Select Window mode
-                bool isSelectingWindow = MainWindow.Instance.GetIsCapturingWindow();
-
                 // Get MonitorWindow's physical screen position via Win32 GetWindowRect
                 // This is reliable regardless of DPI — no WPF coordinate conversion needed
                 IntPtr hwnd = new WindowInteropHelper(this).Handle;
-                var (physLeft, physTop, physWidth, physHeight) = DpiHelper.GetWindowPhysicalRect(hwnd);
+                var (physLeft, physTop, _, _) = DpiHelper.GetWindowPhysicalRect(hwnd);
                 
                 // Get DPI scale for converting physical sizes to canvas (logical) units
                 DpiHelper.GetWindowRenderDpi(this, out double dpiScaleX, out double dpiScaleY);
 
-                Console.WriteLine($"=== DrawExcludeRegions ===");
-                Console.WriteLine($"isSelectingWindow: {isSelectingWindow}");
-                Console.WriteLine($"MonitorWindow (physical): Left={physLeft}, Top={physTop}, W={physWidth}, H={physHeight}, dpiScale={dpiScaleX:F2}x/{dpiScaleY:F2}y");
-
                 // Draw each exclude region
-                int regionIndex = 0;
                 foreach (Rect region in excludeRegions)
                 {
-                    Console.WriteLine($"Region[{regionIndex}]: Screen X={region.X}, Y={region.Y}, W={region.Width}, H={region.Height}");
-
-                    // Check if region is within MonitorWindow bounds (in physical pixels)
-                    bool isInBounds = region.X >= physLeft &&
-                                     region.Y >= physTop &&
-                                     (region.X + region.Width) <= (physLeft + physWidth) &&
-                                     (region.Y + region.Height) <= (physTop + physHeight);
-                    Console.WriteLine($"  -> In bounds: {isInBounds}");
-
                     // Create a border for the exclude region
                     // Canvas uses device-independent pixels, so we need to convert from physical pixels
                     System.Windows.Shapes.Rectangle excludeRect = new System.Windows.Shapes.Rectangle
@@ -691,15 +787,12 @@ namespace RSTGameTranslation
                     double canvasX = (region.X - physLeft) / dpiScaleX;
                     double canvasY = (region.Y - physTop) / dpiScaleY;
 
-                    Console.WriteLine($"  -> Canvas (logical): X={canvasX}, Y={canvasY}");
-
                     // Position the rectangle on the canvas
                     Canvas.SetLeft(excludeRect, canvasX);
                     Canvas.SetTop(excludeRect, canvasY);
 
                     // Add to canvas
                     textOverlayCanvas.Children.Add(excludeRect);
-                    regionIndex++;
                 }
             }
             catch (Exception ex)

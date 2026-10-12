@@ -1392,8 +1392,12 @@ namespace RSTGameTranslation
                     (windowRect.Bottom - windowRect.Top) - customTitleBarHeight - customFooterHeight - bottomBorderThickness);
             }
 
-            // If position changed and we have text objects, update their positions
-            if ((previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) &&
+            // If position changed and we have text objects, update their positions.
+            // Not in Select Window mode: the overlay follows the game window and text is relative to it,
+            // so shifting it would leave the text behind (e.g. after Alt+Enter or dragging the game).
+            bool isFollowingGameWindow = !hasSelectedTranslationArea && isCapturingWindow && capturedWindowHandle != IntPtr.Zero;
+            if (!isFollowingGameWindow &&
+                (previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) &&
                 Logic.Instance.TextObjects.Count > 0)
             {
                 // Calculate the offset

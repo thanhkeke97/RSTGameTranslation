@@ -59,6 +59,13 @@ namespace RSTGameTranslation
         public double CaptureX { get; set; }
         public double CaptureY { get; set; }
 
+        // Width the translation may wrap at; the overlay layout pass widens it into free space
+        public double LayoutWidth { get; private set; }
+        // Lowest font size allowed, as a fraction of the estimated source font size
+        public double MinSourceSizeRatio { get; private set; } = DefaultMinSourceSizeRatio;
+        // Whether the text fit the original box height at the chosen font size
+        public bool TextFitsBox { get; private set; } = true;
+
         // Fallback chain used when no language font override is set
         private const string DefaultFontFamily = "Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS";
 
@@ -151,21 +158,8 @@ namespace RSTGameTranslation
             }
             
 
-            // Set explicit width and height if provided
-            if (Width > 0)
-            {
-                Border.MaxWidth = Width + 20; // Increased padding for word wrap
-                Border.MinWidth = Width; // Increased padding for word wrap
-                TextBlock.MaxWidth = Border.MaxWidth - 20;
-            }
-
-            if (Height > 0)
-            {
-                // Set MinHeight to ensure background covers original area
-                Border.MinHeight = Height;
-                // Allow Border to grow taller if text wraps to multiple lines
-                Border.MaxHeight = double.PositiveInfinity;
-            }
+            ResetLayout();
+            ApplyBoxConstraints();
 
             // Add the text block to the border
             Border.Child = TextBlock;
@@ -219,18 +213,9 @@ namespace RSTGameTranslation
                 Canvas.SetLeft(Border, X);
                 Canvas.SetTop(Border, Y);
 
-                if (Width > 0)
-                {
-                    Border.MaxWidth = Width + 20; // Increased padding for word wrap
-                    Border.MinWidth = Width; // Increased padding for word wrap
-                    TextBlock.MaxWidth = Border.MaxWidth - 20;
-                }
-
-                if (Height > 0)
-                {
-                    Border.MinHeight = Height;
-                    Border.MaxHeight = double.PositiveInfinity;
-                }
+                // New text: start again from the original box; the overlay layout pass re-widens if needed
+                ResetLayout();
+                ApplyBoxConstraints();
                 if(ConfigManager.Instance.IsLanguageFontOverrideEnabled())
                 {
                     TextBlock.FontFamily = new FontFamily(ConfigManager.Instance.GetLanguageFontFamily());
@@ -246,14 +231,86 @@ namespace RSTGameTranslation
             }
         }
 
+        private void ResetLayout()
+        {
+            LayoutWidth = Width;
+            MinSourceSizeRatio = DefaultMinSourceSizeRatio;
+        }
+
+        private void ApplyBoxConstraints()
+        {
+            if (Width > 0)
+            {
+                // Cover at least the original text; wrap at the (possibly widened) layout width
+                Border.MinWidth = Width;
+                Border.MaxWidth = LayoutWidth + 20;
+                TextBlock.MaxWidth = LayoutWidth;
+            }
+
+            if (Height > 0)
+            {
+                // Set MinHeight to ensure background covers original area
+                Border.MinHeight = Height;
+                // Allow Border to grow taller if text wraps to multiple lines
+                Border.MaxHeight = double.PositiveInfinity;
+            }
+        }
+
+        // Re-fit the text with a wider wrap width and/or a lower minimum font size (used by the overlay layout pass)
+        public void Relayout(double layoutWidth, double minSourceSizeRatio)
+        {
+            if (TextBlock == null) return;
+            LayoutWidth = Math.Max(Width, layoutWidth);
+            MinSourceSizeRatio = minSourceSizeRatio;
+            ApplyBoxConstraints();
+            AdjustFontSize(Border, TextBlock);
+        }
+
         // Static cache for font size calculations
-        private static readonly Dictionary<string, double> _fontSizeCache = new Dictionary<string, double>();
+        private static readonly Dictionary<string, (double Size, bool Fits)> _fontSizeCache = new Dictionary<string, (double Size, bool Fits)>();
         public static void ClearCache()
         {
             _fontSizeCache.Clear();
         }
         
-        // Adjust font size to fit within the container using binary search
+        // Line spacing as a multiple of font size; WPF's default (~1.3x) wastes space in small boxes
+        private const double LineHeightRatio = 1.15;
+        // The translation may shrink to this fraction of the estimated source font size, no smaller
+        public const double DefaultMinSourceSizeRatio = 0.6;
+
+        private static void ApplyFontSize(TextBlock textBlock, double fontSize)
+        {
+            textBlock.FontSize = fontSize;
+            textBlock.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
+            textBlock.LineHeight = fontSize * LineHeightRatio;
+            textBlock.LayoutTransform = Transform.Identity;
+        }
+
+        // Whether the text, wrapped at the box width, fits inside the box at this font size
+        private bool FitsAt(TextBlock textBlock, double fontSize)
+        {
+            ApplyFontSize(textBlock, fontSize);
+            textBlock.Measure(new Size(LayoutWidth, double.PositiveInfinity));
+            return textBlock.DesiredSize.Height <= Height && textBlock.DesiredSize.Width <= LayoutWidth;
+        }
+
+        // Binary search for the largest font size in [minSize, maxSize] that fits; minSize if none does
+        private double FindLargestFittingSize(TextBlock textBlock, double minSize, double maxSize)
+        {
+            if (FitsAt(textBlock, maxSize)) return maxSize;
+            if (!FitsAt(textBlock, minSize)) return minSize;
+
+            double fits = minSize, tooBig = maxSize;
+            while (tooBig - fits > 0.5)
+            {
+                double mid = (fits + tooBig) / 2;
+                if (FitsAt(textBlock, mid)) fits = mid;
+                else tooBig = mid;
+            }
+            return fits;
+        }
+
+        // Size the text to fill the original text box, staying close to the game's own font size
         private void AdjustFontSize(Border border, TextBlock textBlock)
         {
             try
@@ -261,114 +318,68 @@ namespace RSTGameTranslation
                 // Check if auto sizing is enabled
                 if (!ConfigManager.Instance.IsAutoSizeTextBlocksEnabled())
                 {
-                    // Just set default font size and exit
-                    textBlock.FontSize = 24; 
-                    textBlock.LayoutTransform = Transform.Identity;
+                    // Fixed font size; still report whether it fits so the layout pass can widen the box
+                    TextFitsBox = Width <= 0 || Height <= 0 || FitsAt(textBlock, 24);
+                    ApplyFontSize(textBlock, 24);
                     return;
                 }
                 
                 // Exit early if dimensions aren't set or text is empty
                 if (Width <= 0 || Height <= 0 || string.IsNullOrWhiteSpace(textBlock.Text))
                 {
-                    textBlock.FontSize = 24;
-                    textBlock.LayoutTransform = Transform.Identity;
+                    TextFitsBox = true;
+                    ApplyFontSize(textBlock, 24);
                     return;
                 }
 
-                // Create a cache key
-                string cacheKey = $"{textBlock.Text.Length}_{Width}_{Height}_{ConfigManager.Instance.GetLanguageFontSizeMin()}_{ConfigManager.Instance.GetLanguageFontSizeMax()}";
+                double configMin = ConfigManager.Instance.GetLanguageFontSizeMin();
+                double configMax = ConfigManager.Instance.GetLanguageFontSizeMax();
+                if (configMin > configMax) (configMin, configMax) = (configMax, configMin);
+
+                // Same length doesn't mean same rendered size, so key on the actual text and font
+                string cacheKey = $"{textBlock.FontFamily.Source}_{Width}_{LayoutWidth}_{Height}_{MinSourceSizeRatio}_{configMin}_{configMax}_{Text}_{textBlock.Text}";
                 
                 // Check cache
-                if (_fontSizeCache.TryGetValue(cacheKey, out double cachedFontSize))
+                if (_fontSizeCache.TryGetValue(cacheKey, out var cached))
                 {
-                    textBlock.FontSize = cachedFontSize;
-                    textBlock.LayoutTransform = Transform.Identity;
+                    TextFitsBox = cached.Fits;
+                    ApplyFontSize(textBlock, cached.Size);
                     return;
                 }
 
-                double scaleFactor = 1.0;
-                // Third-party OCR engines removed; scaleFactor stays 1.0 for built-in OCR (OneOCR, Windows OCR)
-                
-                // Get Min/Max from Config
-                double minSize = ConfigManager.Instance.GetLanguageFontSizeMin() * scaleFactor;
-                double maxSize = ConfigManager.Instance.GetLanguageFontSizeMax() * scaleFactor;
-                
-                // Safety check: ensure min <= max
-                if (minSize > maxSize) 
+                // Estimate the game's font size: the largest size at which the source text fills its own box
+                var sourceProbe = new TextBlock
                 {
-                    double temp = minSize;
-                    minSize = maxSize;
-                    maxSize = temp;
-                }
+                    Text = Text,
+                    FontFamily = textBlock.FontFamily,
+                    FontWeight = textBlock.FontWeight,
+                    TextWrapping = TextWrapping.Wrap
+                };
+                // The source filled the original box, so measure it at the original width
+                double layoutWidth = LayoutWidth;
+                LayoutWidth = Width;
+                double sourceSize = FindLargestFittingSize(sourceProbe, 1, configMax);
+                LayoutWidth = layoutWidth;
 
-                double currentSize = Math.Max(minSize, Math.Min(maxSize, 24 * scaleFactor));
-                
-                int maxIterations = 8;
-                double lastDiff = double.MaxValue;
-                bool fitWidth = true;
+                // Keep the translation readable relative to the source and no larger than it
+                double minSize = Math.Min(configMax, Math.Max(configMin, sourceSize * MinSourceSizeRatio));
+                double maxSize = Math.Max(minSize, Math.Min(configMax, sourceSize));
 
-                for (int i = 0; i < maxIterations; i++)
-                {
-                    textBlock.FontSize = currentSize;
-                    textBlock.Measure(new Size(Width * 0.95, Double.PositiveInfinity));
-
-                    double minRequiredHeight = Height;
-
-                    if (textBlock.DesiredSize.Width >= Width * 0.9)
-                    {
-                        _ = true; // Width too large, will adjust
-                    }
-
-                    double heightDiff = Math.Abs(textBlock.DesiredSize.Height - minRequiredHeight);
-                    bool isWidthOk = textBlock.DesiredSize.Width <= Width;
-                    fitWidth = isWidthOk;
-
-                    double currentDiff = heightDiff + (isWidthOk ? 0 : 100);
-
-                    if ((heightDiff < 2 && isWidthOk) || Math.Abs(lastDiff - currentDiff) < 0.5)
-                    {
-                        break;
-                    }
-
-                    lastDiff = currentDiff;
-
-                    // Logic điều chỉnh tăng/giảm
-                    if (textBlock.DesiredSize.Height > minRequiredHeight * 0.95 || !isWidthOk)
-                    {
-                        // Too big
-                        maxSize = currentSize;
-                        currentSize = (minSize + currentSize) / 2;
-                    }
-                    else if (textBlock.DesiredSize.Height < minRequiredHeight * 0.85 && isWidthOk)
-                    {
-                        // Too small
-                        minSize = currentSize;
-                        currentSize = (currentSize + maxSize) / 2;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                // Adjust border height logic - Border will auto-expand due to MinHeight and Infinity MaxHeight
-                // Text will stretch to fill Border height
+                // If even minSize overflows, the border grows downward (MinHeight + infinite MaxHeight)
+                double finalSize = FindLargestFittingSize(textBlock, minSize, maxSize);
+                TextFitsBox = FitsAt(textBlock, finalSize);
                 textBlock.VerticalAlignment = VerticalAlignment.Stretch;
-
-                // Finalize
-                double finalSize = Math.Max(minSize, Math.Min(maxSize, currentSize));
-                textBlock.FontSize = finalSize;
-                textBlock.LayoutTransform = Transform.Identity;
+                ApplyFontSize(textBlock, finalSize);
                 
                 // Cache result
                 if (_fontSizeCache.Count > 100) _fontSizeCache.Clear();
-                _fontSizeCache[cacheKey] = finalSize;
+                _fontSizeCache[cacheKey] = (finalSize, TextFitsBox);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in AdjustFontSize: {ex.Message}");
-                textBlock.FontSize = 24;
-                textBlock.LayoutTransform = Transform.Identity;
+                TextFitsBox = true;
+                ApplyFontSize(textBlock, 24);
             }
         }
 
