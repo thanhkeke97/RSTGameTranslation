@@ -1043,9 +1043,8 @@ namespace RSTGameTranslation
                             }
                             else
                             {
-                                // Get fresh DPI scale from the screen where MonitorWindow is currently displayed
-                                // Don't use cached MonitorWindow.Instance.dpiScale as it may be stale
-                                DpiHelper.GetCurrentScreenDpi(out double dpiScaleX, out double dpiScaleY);
+                                // OCR boxes are in capture pixels; the overlay canvas is in MonitorWindow DIPs
+                                DpiHelper.GetWindowRenderDpi(MonitorWindow.Instance, out double dpiScaleX, out double dpiScaleY);
                                 CreateTextObjectAtPosition(text, x / dpiScaleX, y / dpiScaleY, width / dpiScaleX, height / dpiScaleY, confidence, sourceBitmap);
                             }
                         }
@@ -1055,8 +1054,8 @@ namespace RSTGameTranslation
                     if (autoMergeEnabled && tempBlocks.Count > 0)
                     {
                         var (mergedBlocks, blockOriginalBounds) = MergeOverlappingTextBlocks(tempBlocks);
-                        // Get fresh DPI scale from the screen where MonitorWindow is currently displayed
-                        DpiHelper.GetCurrentScreenDpi(out double dpiScaleX, out double dpiScaleY);
+                        // OCR boxes are in capture pixels; the overlay canvas is in MonitorWindow DIPs
+                        DpiHelper.GetWindowRenderDpi(MonitorWindow.Instance, out double dpiScaleX, out double dpiScaleY);
 
                         for (int i = 0; i < mergedBlocks.Count; i++)
                         {
@@ -1135,75 +1134,31 @@ namespace RSTGameTranslation
                     y = 10; // Default y position
                 }
 
-                // Create default font size based on height
-                int fontSize = 18;  // Default
-                if (height > 0)
-                {
-                    double fontSizeRatio = 0.9;
-
-
-                    string sourceLanguage = GetSourceLanguage().ToLowerInvariant();
-                    if (sourceLanguage == "ja" || sourceLanguage == "ch_sim" || sourceLanguage == "ko")
-                    {
-
-                        fontSizeRatio = 0.95;
-                    }
-                    else if (sourceLanguage == "vi" || sourceLanguage == "th")
-                    {
-
-                        fontSizeRatio = 0.85;
-                    }
-
-
-                    fontSize = Math.Max(10, (int)(height * fontSizeRatio));
-
-
-                    if (width > 0 && text.Length > 0)
-                    {
-                        double charDensity = text.Length / width;
-                        if (charDensity > 0.5)
-                        {
-                            fontSize = Math.Max(10, (int)(fontSize * 0.9));
-                        }
-                    }
-                }
-                Color textColor;
-                Color bgColor;
+                // Configured colors are the default; auto background only overrides them when sampling succeeds
+                Color textColor = ConfigManager.Instance.GetOverlayTextColor();
+                Color bgColor = ConfigManager.Instance.GetOverlayBackgroundColor();
                 if (ConfigManager.Instance.IsAutoSetOverlayBackground() && sourceBitmap != null)
                 {
                     try
                     {
-                        // Get fresh DPI scale for color sampling
-                        DpiHelper.GetCurrentScreenDpi(out double dpiScaleX, out double dpiScaleY);
+                        // Back from MonitorWindow DIPs to capture pixels (same scale as the conversion above)
+                        DpiHelper.GetWindowRenderDpi(MonitorWindow.Instance, out double dpiScaleX, out double dpiScaleY);
 
                         int bitmapX = (int)(x * dpiScaleX);
                         int bitmapY = (int)(y * dpiScaleY);
                         int bitmapWidth = Math.Max(1, (int)(width * dpiScaleX));
                         int bitmapHeight = Math.Max(1, (int)(height * dpiScaleY));
 
-                        if (bitmapWidth > 0 && bitmapHeight > 0)
-                        {
-                            // using sourceBitmap
-                            System.Drawing.Color dominantColor = ColorUtils.GetDominantColor(
-                                sourceBitmap,
-                                bitmapX, bitmapY, bitmapWidth, bitmapHeight);
+                        System.Drawing.Color dominantColor = ColorUtils.GetDominantColor(
+                            sourceBitmap,
+                            bitmapX, bitmapY, bitmapWidth, bitmapHeight);
 
-                            bgColor = ColorUtils.CreateBackgroundColor(dominantColor);
-                            textColor = ColorUtils.GetContrastingTextColor(dominantColor);
-                        }
-                        else
-                        {
-                            // Fallback if size is invalid
-                            textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
-                            bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
-                        }
+                        bgColor = ColorUtils.CreateBackgroundColor(dominantColor);
+                        textColor = ColorUtils.GetContrastingTextColor(dominantColor);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error getting dominant color: {ex.Message}");
-                        // Fallback to default colors
-                        textColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayTextColor()).Color;
-                        bgColor = new SolidColorBrush(ConfigManager.Instance.GetOverlayBackgroundColor()).Color;
                     }
                 }
 
@@ -1219,12 +1174,6 @@ namespace RSTGameTranslation
                     captureX, captureY  // Store original capture coordinates
                 );
                 textObject.ID = "text_" + GetNextTextID();
-
-                // Adjust font size
-                if (textObject.UIElement is Border border && border.Child is TextBlock textBlock)
-                {
-                    textBlock.FontSize = fontSize;
-                }
 
                 // Add to our collection
                 _textObjects.Add(textObject);

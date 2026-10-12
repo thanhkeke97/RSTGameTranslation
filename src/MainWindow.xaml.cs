@@ -124,7 +124,6 @@ namespace RSTGameTranslation
         public bool isCapturingWindow = false;
         private IntPtr capturedWindowHandle = IntPtr.Zero;
         private string capturedWindowTitle = string.Empty;
-        private bool _hasShownDpiMismatchWarning = false;
         private GraphicsCaptureService? _graphicsCaptureService;
         // private System.Windows.Controls.Button? selectWindowButton;
 
@@ -1787,31 +1786,8 @@ namespace RSTGameTranslation
                 {
                     var selectedArea = savedTranslationAreas[currentAreaIndex];
                     
-                    DpiHelper.GetCurrentScreenDpi(out double currentDpiX, out double currentDpiY);
-                    bool dpiMismatch = Math.Abs(selectedArea.DpiScaleX - currentDpiX) > 0.01 || Math.Abs(selectedArea.DpiScaleY - currentDpiY) > 0.01;
-                    
-                    if (dpiMismatch)
-                    {
-                        Console.WriteLine($"WARNING: DPI mismatch detected! Area was captured at DPI {selectedArea.DpiScaleX:F2}x/{selectedArea.DpiScaleY:F2}y, current DPI is {currentDpiX:F2}x/{currentDpiY:F2}y");
-                        double adjustScaleX = currentDpiX / selectedArea.DpiScaleX;
-                        double adjustScaleY = currentDpiY / selectedArea.DpiScaleY;
-                        Console.WriteLine($"Adjusting coordinates by scale: {adjustScaleX:F2}x/{adjustScaleY:F2}y");
-                        
-                        // Show warning notification to user (only once per session to avoid annoyance)
-                        if (!_hasShownDpiMismatchWarning)
-                        {
-                            _hasShownDpiMismatchWarning = true;
-                            Dispatcher.BeginInvoke(new Action(() =>
-                            {
-                                System.Windows.MessageBox.Show(
-                                    $"DPI mismatch detected!\n\nSelected area was captured at: {selectedArea.DpiScaleX:F2}x / {selectedArea.DpiScaleY:F2}y\nCurrent screen DPI: {currentDpiX:F2}x / {currentDpiY:F2}y\n\nThe capture area may be misaligned. Consider re-selecting the translation area.",
-                                    "DPI Mismatch Warning",
-                                    MessageBoxButton.OK,
-                                    MessageBoxImage.Warning);
-                            }), System.Windows.Threading.DispatcherPriority.Background);
-                        }
-                    }
-
+                    // Areas are stored in physical screen pixels, the same space as the window rect,
+                    // so no DPI adjustment is needed here (the DPI saved with the area is informational).
                     captureX = (int)selectedArea.X - rect.Left;
                     captureY = (int)selectedArea.Y - rect.Top;
                     captureWidth = (int)selectedArea.Width;
@@ -3006,20 +2982,47 @@ namespace RSTGameTranslation
             }
 
             // Position and size the ChatBox
-            chatBoxWindow!.Left = selectionRect.Left;
-            chatBoxWindow.Top = selectionRect.Top;
-            chatBoxWindow.Width = selectionRect.Width;
-            chatBoxWindow.Height = selectionRect.Height;
+            // selectionRect is in physical screen pixels. Start from an approximate DIP position
+            // (using the target monitor's DPI) and then place the window exactly with SetWindowPos,
+            // because WPF's Left/Top mapping is unreliable on secondary monitors with another DPI.
+            var targetScreen = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point(
+                (int)(selectionRect.Left + selectionRect.Width / 2), (int)(selectionRect.Top + selectionRect.Height / 2)));
+            DpiHelper.GetDpiForScreen(targetScreen, out double chatDpiX, out double chatDpiY);
+            chatBoxWindow!.Left = selectionRect.Left / chatDpiX;
+            chatBoxWindow.Top = selectionRect.Top / chatDpiY;
+            chatBoxWindow.Width = selectionRect.Width / chatDpiX;
+            chatBoxWindow.Height = selectionRect.Height / chatDpiY;
+            SaveChatBoxPositionToConfig(chatBoxWindow);
 
-            // Save position to config
-            ConfigManager.Instance.SetChatboxPositionLeft(selectionRect.Left);
-            ConfigManager.Instance.SetChatboxPositionTop(selectionRect.Top);
-            ConfigManager.Instance.SetChatboxPositionWidth(selectionRect.Width);
-            ConfigManager.Instance.SetChatboxPositionHeight(selectionRect.Height);
-            Console.WriteLine($"Saved chatbox position to config: Left={selectionRect.Left}, Top={selectionRect.Top}, Width={selectionRect.Width}, Height={selectionRect.Height}");
+            var physicalRect = selectionRect;
+            var placedWindow = chatBoxWindow;
+            void PlaceChatBoxPhysical()
+            {
+                IntPtr chatHwnd = new System.Windows.Interop.WindowInteropHelper(placedWindow).Handle;
+                DpiHelper.PositionWindowPhysical(chatHwnd,
+                    (int)Math.Round(physicalRect.Left), (int)Math.Round(physicalRect.Top),
+                    (int)Math.Round(physicalRect.Width), (int)Math.Round(physicalRect.Height));
+                // Save what WPF now reports, so restoring through Left/Top gives the same place
+                SaveChatBoxPositionToConfig(placedWindow);
+            }
 
-            // Show the ChatBox
-            chatBoxWindow.Show();
+            if (chatBoxWindow.IsLoaded)
+            {
+                chatBoxWindow.Show();
+                PlaceChatBoxPhysical();
+            }
+            else
+            {
+                // ChatBoxWindow_Loaded may apply the saved position; run after it
+                RoutedEventHandler? onLoaded = null;
+                onLoaded = (s, e) =>
+                {
+                    placedWindow.Loaded -= onLoaded;
+                    PlaceChatBoxPhysical();
+                };
+                chatBoxWindow.Loaded += onLoaded;
+                chatBoxWindow.Show();
+            }
             isChatBoxVisible = true;
             chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red when active
 
@@ -3030,6 +3033,36 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Updating ChatBox with {_translationHistory.Count} translation entries");
                 chatBoxWindow.UpdateChatHistory();
             }
+        }
+
+        // Work-area height (DIPs) of the monitor this window is on. SystemParameters.WorkArea is
+        // always the primary monitor, which is wrong when the window sits on another screen.
+        private double GetCurrentWorkAreaHeight()
+        {
+            try
+            {
+                IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+                if (hwnd != IntPtr.Zero)
+                {
+                    var screen = System.Windows.Forms.Screen.FromHandle(hwnd);
+                    double scaleY = VisualTreeHelper.GetDpi(this).DpiScaleY;
+                    return screen.WorkingArea.Height / scaleY;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting work area: {ex.Message}");
+            }
+            return SystemParameters.WorkArea.Height;
+        }
+
+        private static void SaveChatBoxPositionToConfig(ChatBoxWindow window)
+        {
+            ConfigManager.Instance.SetChatboxPositionLeft(window.Left);
+            ConfigManager.Instance.SetChatboxPositionTop(window.Top);
+            ConfigManager.Instance.SetChatboxPositionWidth(window.Width);
+            ConfigManager.Instance.SetChatboxPositionHeight(window.Height);
+            Console.WriteLine($"Saved chatbox position to config: Left={window.Left}, Top={window.Top}, Width={window.Width}, Height={window.Height}");
         }
 
         public void AddTranslationToHistory(string originalText, string translatedText, bool fromClipboard = false)
@@ -3471,7 +3504,7 @@ namespace RSTGameTranslation
                         double finalHeight = tentative;
                         if (this.ActualHeight < requiredClient || tentative < requiredClient)
                         {
-                            finalHeight = Math.Min(SystemParameters.WorkArea.Height, Math.Max(requiredClient, this.MinHeight));
+                            finalHeight = Math.Min(GetCurrentWorkAreaHeight(), Math.Max(requiredClient, this.MinHeight));
                         }
 
                         this.Height = finalHeight;
@@ -3490,7 +3523,7 @@ namespace RSTGameTranslation
                     if (!double.IsNaN(_savedWindowHeightForCompact) && _savedWindowHeightForCompact > 0)
                     {
                         // Clamp to work area
-                        this.Height = Math.Min(_savedWindowHeightForCompact, SystemParameters.WorkArea.Height);
+                        this.Height = Math.Min(_savedWindowHeightForCompact, GetCurrentWorkAreaHeight());
                         _savedWindowHeightForCompact = double.NaN;
                     }
                     else
@@ -3498,7 +3531,7 @@ namespace RSTGameTranslation
                         // If no saved height, ensure window is tall enough to show content
                         CollapsibleMainContent.Measure(new System.Windows.Size(this.ActualWidth, double.PositiveInfinity));
                         double desired = this.ActualHeight + CollapsibleMainContent.DesiredSize.Height;
-                        this.Height = Math.Min(Math.Max(this.MinHeight, desired), SystemParameters.WorkArea.Height);
+                        this.Height = Math.Min(Math.Max(this.MinHeight, desired), GetCurrentWorkAreaHeight());
                     }
                 }), System.Windows.Threading.DispatcherPriority.Loaded);
             }

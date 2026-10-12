@@ -191,25 +191,16 @@ namespace RSTGameTranslation
                         hwnd = new WindowInteropHelper(this).EnsureHandle();
                     }
                     
-                    // Set window position using Windows API
-                    // Note: WPF handles DPI scaling automatically, so we use physical pixels directly
+                    // Screen.Bounds are physical pixels, so position with SetWindowPos only.
+                    // Assigning them to Left/Width (DIPs) as well used to resize the window by the
+                    // DPI factor and spill it onto the neighbouring monitor. Re-applied on Loaded in
+                    // case showing the window or a DPI change moved it.
                     var activeScreen = GetActiveScreen();
                     var bounds = activeScreen.Bounds;
-                    SetWindowPos(
-                        hwnd,
-                        HWND_TOPMOST,
-                        bounds.Left,
-                        bounds.Top,
-                        bounds.Width,
-                        bounds.Height,
-                        SWP_SHOWWINDOW | SWP_NOACTIVATE
-                    );
-                    
-                    // Also set WPF properties for consistency (WPF handles DPI automatically)
-                    this.Left = bounds.Left;
-                    this.Top = bounds.Top;
-                    this.Width = bounds.Width;
-                    this.Height = bounds.Height;
+                    DpiHelper.PositionWindowPhysical(hwnd, bounds.Left, bounds.Top, bounds.Width, bounds.Height,
+                        HWND_TOPMOST, SWP_SHOWWINDOW);
+                    Loaded += (s, e) => DpiHelper.PositionWindowPhysical(new WindowInteropHelper(this).Handle,
+                        bounds.Left, bounds.Top, bounds.Width, bounds.Height, HWND_TOPMOST);
                     
                     Console.WriteLine($"Set selection window to cover screen {selectedScreenIndex}: " +
                         $"({bounds.Left}, {bounds.Top}, {bounds.Width}, {bounds.Height})");

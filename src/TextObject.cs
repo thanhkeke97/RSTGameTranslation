@@ -59,6 +59,9 @@ namespace RSTGameTranslation
         public double CaptureX { get; set; }
         public double CaptureY { get; set; }
 
+        // Fallback chain used when no language font override is set
+        private const string DefaultFontFamily = "Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS";
+
         // Audio player for click sound
         private static SoundPlayer? _soundPlayer;
 
@@ -141,7 +144,7 @@ namespace RSTGameTranslation
                     TextWrapping = TextWrapping.Wrap,
                     TextAlignment = TextAlignment.Left, // Changed from Justify for better readability of merged blocks
                     FontStretch = FontStretches.Normal, // Changed from Expanded for better readability
-                    FontFamily = new FontFamily("Arial, Noto Sans SC, Noto Sans JP, Noto Sans, Noto Sans KR, Noto Sans Devanagari, MS Gothic, Malgun Gothic, Yu Gothic, Microsoft YaHei, Arial Unicode MS"),
+                    FontFamily = new FontFamily(DefaultFontFamily),
                     Margin = new Thickness(0), // Increased margin for better text display
                     TextTrimming = TextTrimming.None
                 };
@@ -211,8 +214,10 @@ namespace RSTGameTranslation
                 // }
                 TextBlock.Foreground = this.TextColor;
                 Border.Background = this.BackgroundColor;
-                // Position at the upper left of the rectangle
-                Border.Margin = new Thickness(X, Y, 0, 0);
+                // The overlay positions borders with Canvas.Left/Top; a margin would add the offset twice
+                Border.Margin = new Thickness(0);
+                Canvas.SetLeft(Border, X);
+                Canvas.SetTop(Border, Y);
 
                 if (Width > 0)
                 {
@@ -232,7 +237,7 @@ namespace RSTGameTranslation
                 }
                 else 
                 {
-                    TextBlock.FontFamily = new FontFamily("Arial, Noto Sans SC, ..."); // List font mặc định
+                    TextBlock.FontFamily = new FontFamily(DefaultFontFamily);
                 }
 
                 // Reset font size to default and then adjust if needed

@@ -293,18 +293,70 @@ namespace RSTGameTranslation
         /// This bypasses WPF's coordinate system which can misinterpret positions on
         /// non-primary monitors with different DPI scaling.
         /// </summary>
-        public static void PositionWindowPhysical(IntPtr hwnd, int x, int y, int width, int height)
+        public static void PositionWindowPhysical(IntPtr hwnd, int x, int y, int width, int height,
+            IntPtr insertAfter = default, uint extraFlags = 0)
         {
             if (hwnd == IntPtr.Zero)
             {
                 Console.WriteLine("DpiHelper: Cannot position window - handle is null");
                 return;
             }
-            
-            SetWindowPos(hwnd, IntPtr.Zero, x, y, width, height,
-                SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
-            
+
+            uint flags = SWP_NOACTIVATE | SWP_NOOWNERZORDER | extraFlags;
+            if (insertAfter == IntPtr.Zero)
+                flags |= SWP_NOZORDER;
+
+            SetWindowPos(hwnd, insertAfter, x, y, width, height, flags);
+
+            // Moving onto a monitor with a different DPI sends WM_DPICHANGED during the call, and
+            // WPF then resizes the window to the "suggested" rect (old size scaled by the DPI ratio),
+            // so the window no longer matches the requested pixels. The window is on the target
+            // monitor now, so a second call applies the exact rect without another DPI change.
+            GetWindowRect(hwnd, out RECT rect);
+            if (rect.Left != x || rect.Top != y || rect.Right - rect.Left != width || rect.Bottom - rect.Top != height)
+            {
+                SetWindowPos(hwnd, insertAfter, x, y, width, height, flags);
+            }
+
             // Console.WriteLine($"DpiHelper: Positioned window at physical ({x}, {y}, {width}x{height})");
+        }
+
+        /// <summary>
+        /// Scale WPF uses to render the given window (device pixels per DIP). Under PerMonitorV2
+        /// this follows the monitor the window is on, which is what converts canvas units to the
+        /// physical pixels of a capture shown in that window.
+        /// </summary>
+        public static void GetWindowRenderDpi(Window window, out double scaleX, out double scaleY)
+        {
+            try
+            {
+                if (window.Dispatcher.CheckAccess())
+                {
+                    if (new System.Windows.Interop.WindowInteropHelper(window).Handle != IntPtr.Zero)
+                    {
+                        var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(window);
+                        scaleX = dpi.DpiScaleX;
+                        scaleY = dpi.DpiScaleY;
+                        return;
+                    }
+                }
+                else
+                {
+                    IntPtr hwnd = window.Dispatcher.Invoke(() => new System.Windows.Interop.WindowInteropHelper(window).Handle);
+                    if (hwnd != IntPtr.Zero)
+                    {
+                        GetDpiForWindowHandle(hwnd, out scaleX, out scaleY);
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DpiHelper: Error getting render DPI for window: {ex.Message}");
+            }
+
+            // Window not created yet: it will be placed on the selected capture screen
+            GetDpiForSelectedScreen(out scaleX, out scaleY);
         }
         
         /// <summary>

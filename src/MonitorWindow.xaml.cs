@@ -656,7 +656,7 @@ namespace RSTGameTranslation
                 var (physLeft, physTop, physWidth, physHeight) = DpiHelper.GetWindowPhysicalRect(hwnd);
                 
                 // Get DPI scale for converting physical sizes to canvas (logical) units
-                DpiHelper.GetDpiForWindowHandle(hwnd, out double dpiScaleX, out double dpiScaleY);
+                DpiHelper.GetWindowRenderDpi(this, out double dpiScaleX, out double dpiScaleY);
 
                 Console.WriteLine($"=== DrawExcludeRegions ===");
                 Console.WriteLine($"isSelectingWindow: {isSelectingWindow}");

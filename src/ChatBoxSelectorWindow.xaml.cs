@@ -159,20 +159,14 @@ namespace RSTGameTranslation
                     var activeScreen = GetActiveScreen();
                     var bounds = activeScreen.Bounds;
                     
-                    SetWindowPos(
-                        hwnd,
-                        HWND_TOPMOST,
-                        (int)(bounds.Left / _dpiScaleX),    
-                        (int)(bounds.Top / _dpiScaleY),
-                        (int)(bounds.Width / _dpiScaleX),
-                        (int)(bounds.Height / _dpiScaleY),
-                        SWP_SHOWWINDOW | SWP_NOACTIVATE
-                    );
-                    
-                    this.Left = bounds.Left / _dpiScaleX;
-                    this.Top = bounds.Top / _dpiScaleY;
-                    this.Width = bounds.Width / _dpiScaleX;
-                    this.Height = bounds.Height / _dpiScaleY;
+                    // Screen.Bounds are physical pixels: SetWindowPos takes them as-is. Dividing by
+                    // the DPI put the window on the wrong monitor when the screen is not the primary
+                    // one (e.g. X=2000 / 1.5 = 1333). Re-applied on Loaded in case showing the window
+                    // or a DPI change moved it.
+                    DpiHelper.PositionWindowPhysical(hwnd, bounds.Left, bounds.Top, bounds.Width, bounds.Height,
+                        HWND_TOPMOST, SWP_SHOWWINDOW);
+                    Loaded += (s, e) => DpiHelper.PositionWindowPhysical(new WindowInteropHelper(this).Handle,
+                        bounds.Left, bounds.Top, bounds.Width, bounds.Height, HWND_TOPMOST);
                     
                     this.Topmost = true;
                 }
@@ -382,30 +376,11 @@ namespace RSTGameTranslation
                 );
                 return;
             }
-            DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY, ConfigManager.Instance.GetSelectedScreenIndex());
-            
-            // Convert window coordinates to screen coordinates
-            // This ensures we use the actual screen coordinates for positioning
-            Point screenPoint = this.PointToScreen(new Point(left, top));
-            double logicalX = screenPoint.X / _dpiScaleX;
-            double logicalY = screenPoint.Y / _dpiScaleY;
-            
-            // Get the screen containing this point
-            Forms.Screen targetScreen = Forms.Screen.FromPoint(new System.Drawing.Point(
-                (int)logicalX, 
-                (int)logicalY
-            ));
-            
-            // // Create rectangle for the selection
-            // Rect physicalRect  = new Rect(
-            //     logicalX, 
-            //     logicalY, 
-            //     width, 
-            //     height
-            // );
-            
-            // Notify listeners
-            Rect selectionRect = new Rect(logicalX, logicalY, width, height);
+            // Report the selection in physical screen pixels; the caller positions the ChatBox
+            // with SetWindowPos so it lands on the right monitor whatever its DPI.
+            Point screenTopLeft = this.PointToScreen(new Point(left, top));
+            Point screenBottomRight = this.PointToScreen(new Point(left + width, top + height));
+            Rect selectionRect = new Rect(screenTopLeft, screenBottomRight);
             SelectionComplete?.Invoke(this, selectionRect);
             this.Close();
         }
