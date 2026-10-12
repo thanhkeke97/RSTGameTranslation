@@ -559,7 +559,7 @@
                                 <CheckBox x:Name="MangaModeCheckBox" Grid.Row="10" Grid.Column="1" 
                                          Checked="MangaModeCheckBox_CheckedChanged" 
                                          Unchecked="MangaModeCheckBox_CheckedChanged"
-                                         ToolTip="When enabled, OCR blocks are translated one-by-one instead of being merged into one batch. This is useful for manga speech bubbles, but can be slower."
+                                         ToolTip="When enabled, text is grouped by speech bubble (vertical columns for Japanese, horizontal lines otherwise) and each bubble is translated separately, all in one request."
                                          Visibility="Collapsed"/>
                             </Grid>
                         </GroupBox>

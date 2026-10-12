@@ -133,6 +133,7 @@ namespace RSTGameTranslation
 
                 if (root.TryGetProperty("text_blocks", out JsonElement textBlocks))
                 {
+                    var blocks = new List<(string Id, string Text)>();
                     foreach (JsonElement block in textBlocks.EnumerateArray())
                     {
                         string originalText = "";
@@ -154,24 +155,31 @@ namespace RSTGameTranslation
                             continue;
                         }
 
-                        attemptedCount++;
+                        blocks.Add((blockId, originalText));
+                    }
 
-                        var translation = await TranslatePreservingSeparatorsAsync(
-                            originalText, sourceLanguage, targetLanguage, freeBudget.Token);
-                        string translatedText = translation.Text;
+                    attemptedCount = blocks.Count;
+
+                    // All blocks share the batched requests, instead of at least one request per block
+                    var translations = await TranslatePreservingSeparatorsAsync(
+                        blocks.Select(b => b.Text).ToList(), sourceLanguage, targetLanguage, freeBudget.Token);
+
+                    for (int i = 0; i < blocks.Count; i++)
+                    {
+                        string translatedText = translations[i].Text;
                         // A valid translation can equal the source (names, numbers, same language).
-                        if (translation.Success)
+                        if (translations[i].Success)
                             successCount++;
 
                         // Write the translated text to the output JSON
                         outputJson.WriteStartObject();
-                        outputJson.WriteString("id", blockId);
-                        outputJson.WriteString("original_text", originalText);
+                        outputJson.WriteString("id", blocks[i].Id);
+                        outputJson.WriteString("original_text", blocks[i].Text);
                         outputJson.WriteString("translated_text", translatedText);
                         outputJson.WriteEndObject();
 
                         // Log for debugging
-                        Console.WriteLine($"Google translated: '{originalText}' -> '{translatedText}'");
+                        Console.WriteLine($"Google translated: '{blocks[i].Text}' -> '{translatedText}'");
                     }
                 }
 
@@ -211,38 +219,40 @@ namespace RSTGameTranslation
             }
         }
 
-        private async Task<(string Text, bool Success)> TranslatePreservingSeparatorsAsync(string text, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken)
+        /// <summary>
+        /// Translate several blocks together. Each block may itself hold parts joined with the combined
+        /// separator; all parts of all blocks go through one batched translation (few free requests, or
+        /// one Cloud API call), then each block is rebuilt with its separators in place.
+        /// </summary>
+        private async Task<List<(string Text, bool Success)>> TranslatePreservingSeparatorsAsync(IReadOnlyList<string> texts, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken)
         {
             try
             {
-                if (!text.Contains(CombinedBlockSeparator, StringComparison.Ordinal))
-                {
-                    string? single = await TranslateSingleTextAsync(text, sourceLanguage, targetLanguage, cancellationToken);
-                    return string.IsNullOrEmpty(single) ? (text, false) : (single, true);
-                }
-
-                string[] originalParts = text.Split(new[] { CombinedBlockSeparator }, StringSplitOptions.None);
-                string[] translatedParts = new string[originalParts.Length];
+                var originalParts = texts.Select(t => t.Split(new[] { CombinedBlockSeparator }, StringSplitOptions.None)).ToList();
                 var translatableParts = new List<string>();
-                var partMap = new List<int>(originalParts.Length);
+                var partMaps = new List<int[]>(texts.Count);
 
-                for (int i = 0; i < originalParts.Length; i++)
+                foreach (string[] parts in originalParts)
                 {
-                    string normalizedPart = NormalizeText(originalParts[i]);
-
-                    if (string.IsNullOrWhiteSpace(normalizedPart))
+                    var partMap = new int[parts.Length];
+                    for (int i = 0; i < parts.Length; i++)
                     {
-                        partMap.Add(-1);
-                        continue;
-                    }
+                        string normalizedPart = NormalizeText(parts[i]);
+                        if (string.IsNullOrWhiteSpace(normalizedPart))
+                        {
+                            partMap[i] = -1;
+                            continue;
+                        }
 
-                    partMap.Add(translatableParts.Count);
-                    translatableParts.Add(normalizedPart);
+                        partMap[i] = translatableParts.Count;
+                        translatableParts.Add(normalizedPart);
+                    }
+                    partMaps.Add(partMap);
                 }
 
                 if (translatableParts.Count == 0)
                 {
-                    return (text, false);
+                    return texts.Select(t => (t, false)).ToList();
                 }
 
                 List<string?> translatedBatch;
@@ -255,44 +265,43 @@ namespace RSTGameTranslation
                     translatedBatch = await TranslateFreePartsBatchedAsync(translatableParts, sourceLanguage, targetLanguage, cancellationToken);
                 }
 
-                for (int i = 0; i < originalParts.Length; i++)
+                var results = new List<(string Text, bool Success)>(texts.Count);
+                for (int t = 0; t < texts.Count; t++)
                 {
-                    int translatedIndex = partMap[i];
-                    if (translatedIndex < 0 || translatedIndex >= translatedBatch.Count)
+                    string[] parts = originalParts[t];
+                    int[] partMap = partMaps[t];
+                    var translatedParts = new string[parts.Length];
+                    bool anyTranslated = false;
+
+                    for (int i = 0; i < parts.Length; i++)
                     {
-                        translatedParts[i] = originalParts[i];
-                        continue;
+                        int translatedIndex = partMap[i];
+                        string? translatedPart = translatedIndex >= 0 && translatedIndex < translatedBatch.Count
+                            ? translatedBatch[translatedIndex]
+                            : null;
+
+                        if (string.IsNullOrWhiteSpace(translatedPart))
+                        {
+                            translatedParts[i] = parts[i];
+                        }
+                        else
+                        {
+                            translatedParts[i] = translatedPart;
+                            anyTranslated = true;
+                        }
                     }
 
-                    string? translatedPart = translatedBatch[translatedIndex];
-                    translatedParts[i] = string.IsNullOrWhiteSpace(translatedPart) ? originalParts[i] : translatedPart;
+                    results.Add((string.Join(CombinedBlockSeparator, translatedParts), anyTranslated));
                 }
 
-                string rebuiltText = string.Join(CombinedBlockSeparator, translatedParts);
-                Console.WriteLine($"Google Translate preserved separator across {translatedParts.Length} block(s)");
-                return (rebuiltText, translatedBatch.Any(value => !string.IsNullOrWhiteSpace(value)));
+                Console.WriteLine($"Google Translate: {texts.Count} block(s), {translatableParts.Count} part(s) translated together");
+                return results;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error preserving Google Translate separators: {ex.Message}");
-                return (text, false);
+                return texts.Select(t => (t, false)).ToList();
             }
-        }
-
-        private async Task<string?> TranslateSingleTextAsync(string text, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken)
-        {
-            string normalizedText = NormalizeText(text);
-            if (string.IsNullOrWhiteSpace(normalizedText))
-            {
-                return text;
-            }
-
-            if (_useCloudApi)
-            {
-                return await TranslateWithCloudApiAsync(normalizedText, sourceLanguage, targetLanguage);
-            }
-
-            return await TranslateFreePartAsync(normalizedText, sourceLanguage, targetLanguage, cancellationToken);
         }
 
         // Upper bound on characters per batched free request (the text goes in the URL).
@@ -478,27 +487,6 @@ namespace RSTGameTranslation
             }
 
             return normalizedText.Trim();
-        }
-        
-        /// <summary>
-        /// Translate a single text using Google Cloud Translation API (paid)
-        /// </summary>
-        private async Task<string?> TranslateWithCloudApiAsync(string text, string sourceLanguage, string targetLanguage)
-        {
-            try
-            {
-                List<string?> results = await TranslateBatchWithCloudApiAsync(new[] { text }, sourceLanguage, targetLanguage);
-                if (results.Count == 0)
-                {
-                    return null;
-                }
-                return string.IsNullOrEmpty(results[0]) ? null : results[0];
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error translating text with Cloud API: {ex.Message}");
-                return null;
-            }
         }
         
         /// <summary>

@@ -116,7 +116,10 @@ namespace RSTGameTranslation
                 // Vertical text is read top-to-bottom within a column, and columns are read
                 // right-to-left. We detect it when the source language is East Asian AND the
                 // majority of character/element boxes are taller than they are wide.
-                bool isVertical = IsVerticalText(characters);
+                // Japanese manga dialogue is almost always vertical; re-detecting every frame could
+                // flip to horizontal on some pages and then the columns would not be grouped at all.
+                bool isVertical = (ConfigManager.Instance.IsMangaModeEnabled() && ConfigManager.Instance.GetSourceLanguage() == "ja")
+                    || IsVerticalText(characters);
                 if (isVertical)
                 {
                     Console.WriteLine("Vertical (tategaki) text detected - using right-to-left column ordering");
@@ -150,6 +153,13 @@ namespace RSTGameTranslation
                 int lowConfidenceLineCount = lines.Count(l => l.Confidence < minLineConfidence);
                 lines = lines.Where(l => l.Confidence >= minLineConfidence).ToList();
                 Console.WriteLine($"Filtered out {lowConfidenceLineCount} lines with confidence < {minLineConfidence}");
+
+                // Furigana only repeats the reading of the kanji beside it; left in, it garbles the
+                // translation and breaks paragraph grouping (it looks like a much smaller font)
+                if (ConfigManager.Instance.GetSourceLanguage() == "ja")
+                {
+                    lines = RemoveFurigana(lines, isVertical);
+                }
 
                 // PHASE 4: Group lines into paragraphs
                 var paragraphs = GroupLinesIntoParagraphs(lines, blockPower, isVertical);
@@ -244,7 +254,10 @@ namespace RSTGameTranslation
                     IsCharacter = isCharacter,
                     IsProcessed = !isCharacter, // Mark non-characters as already processed
                     OriginalItem = item,
-                    ElementType = isCharacter ? ElementType.Character : ElementType.Other
+                    ElementType = isCharacter ? ElementType.Character : ElementType.Other,
+                    BubbleId = item.TryGetProperty("bubble_id", out JsonElement bubbleElement) && bubbleElement.ValueKind == JsonValueKind.Number
+                        ? bubbleElement.GetInt32()
+                        : null
                 };
 
                 characters.Add(element);
@@ -448,10 +461,14 @@ namespace RSTGameTranslation
                     if (isVertical)
                     {
                         // Vertical text: characters belong to the same column when their X
-                        // centers are close. Use the horizontal gap threshold for grouping.
+                        // centers are close. OCR engines that return whole column segments (OneOCR)
+                        // jitter by more than a couple of pixels, so also accept centers within half
+                        // the narrower element's width.
                         double diffX = Math.Abs((currentChar.Bounds.X + currentChar.Bounds.Width / 2.0) -
                                                 (lastCharInLine.Bounds.X + lastCharInLine.Bounds.Width / 2.0));
-                        if (diffX < horizontalGapThreshold)
+                        double columnTolerance = Math.Max(horizontalGapThreshold,
+                            Math.Min(currentChar.Bounds.Width, lastCharInLine.Bounds.Width) * 0.5);
+                        if (diffX < columnTolerance)
                         {
                             currentLine.Add(currentChar);
                         }
@@ -662,7 +679,12 @@ namespace RSTGameTranslation
                         }
 
                         // Check if the gap exceeds the threshold or is unusually large compared to character size
-                        if (gap > largeHorizontalGapThreshold || gap > (averageCharSize * 10))
+                        // Also split where the line crosses from one detected speech bubble into another
+                        int? wordBubble = GetBubbleId(word);
+                        int? previousBubble = GetBubbleId(previousWord);
+                        bool crossesBubbles = wordBubble != null && previousBubble != null && wordBubble != previousBubble;
+
+                        if (crossesBubbles || gap > largeHorizontalGapThreshold || gap > (averageCharSize * 10))
                         {
                             // Gap is large enough to split the line
                             if (currentSegment.Count > 0)
@@ -752,6 +774,37 @@ namespace RSTGameTranslation
         {
             if (lines.Count == 0)
                 return new List<TextElement>();
+
+            // Vertical text has its own rules: the horizontal ones below use fixed pixel thresholds
+            // and line-start indentation, which misfire on columns of varying width and centered bubbles
+            if (isVertical)
+            {
+                // Pages with vertical dialogue still have horizontal headings, captions and labels; as
+                // "columns" their large width would make every threshold huge and bridge whole bubbles
+                var horizontalLines = lines.Where(IsHorizontalLine).ToList();
+                var columns = lines.Where(l => !IsHorizontalLine(l)).ToList();
+                return GroupColumnsIntoParagraphs(columns)
+                    .Concat(GroupLinesIntoParagraphs(horizontalLines, blockPower, false))
+                    .OrderBy(p => p.Bounds.Y).ThenByDescending(p => p.Bounds.X)
+                    .ToList();
+            }
+
+            // Lines inside a detected speech bubble (manga mode) form one paragraph per bubble. The rules
+            // below compare each line with the previous one in Y order, so on a full page the lines of
+            // side-by-side bubbles interleave and get split or merged by distance alone.
+            var bubbleLines = lines.Where(l => GetBubbleId(l) != null).ToList();
+            if (bubbleLines.Count > 0)
+            {
+                var bubbleParagraphs = bubbleLines
+                    .GroupBy(l => GetBubbleId(l))
+                    .Select(g => BuildParagraph(g.OrderBy(l => l.Bounds.Y + l.Bounds.Height / 2).ThenBy(l => l.Bounds.X)))
+                    .ToList();
+                var looseLines = lines.Where(l => GetBubbleId(l) == null).ToList();
+                return bubbleParagraphs
+                    .Concat(GroupLinesIntoParagraphs(looseLines, blockPower, false))
+                    .OrderBy(p => p.Bounds.Y).ThenBy(p => p.Bounds.X)
+                    .ToList();
+            }
 
             // Get threshold values with scaling applied
             double lineVerticalGapThreshold = _config.GetScaledValue(_config.BaseLineVerticalGap, blockPower);
@@ -955,6 +1008,194 @@ namespace RSTGameTranslation
             return paragraphs;
         }
 
+        // Vertical (tategaki) grouping thresholds, relative to the columns' glyph size (em)
+        private const double ColumnMaxGapEm = 1.0;          // max horizontal gap between neighbouring columns of one paragraph
+        private const double ColumnSegmentMaxGapEm = 1.5;   // max vertical gap between two OCR segments of one column
+        private const double ColumnMinOverlapRatio = 0.5;   // neighbouring columns share at least this much of the shorter one's height
+        private const double ColumnSizeMinRatio = 0.6;      // min width ratio (narrower / wider) between two columns of one paragraph
+
+        /// <summary>
+        /// Group vertical columns into paragraphs (speech bubbles). Columns are compared pairwise and joined
+        /// transitively, so a paragraph's growing bounds can't swallow the next bubble, and bubbles that
+        /// interleave on a full page don't split each other. Bubble ids found in the image win over geometry.
+        /// </summary>
+        private List<TextElement> GroupColumnsIntoParagraphs(List<TextElement> lines)
+        {
+            int count = lines.Count;
+            int[] parent = Enumerable.Range(0, count).ToArray();
+            int Find(int i)
+            {
+                while (parent[i] != i)
+                    i = parent[i] = parent[parent[i]];
+                return i;
+            }
+
+            for (int i = 0; i < count; i++)
+                for (int j = i + 1; j < count; j++)
+                    if (Find(i) != Find(j) && CanJoinColumns(lines[i], lines[j]))
+                        parent[Find(i)] = Find(j);
+
+            var paragraphs = new List<TextElement>();
+            foreach (var group in Enumerable.Range(0, count).GroupBy(Find))
+            {
+                // Read columns right-to-left; OCR may split one column into segments, keep those top-to-bottom
+                var columns = new List<List<TextElement>>();
+                foreach (var line in group.Select(i => lines[i]).OrderByDescending(l => l.Bounds.X + l.Bounds.Width / 2))
+                {
+                    var column = columns.LastOrDefault();
+                    if (column != null && column.Any(c => IsSameColumn(c, line)))
+                        column.Add(line);
+                    else
+                        columns.Add(new List<TextElement> { line });
+                }
+
+                paragraphs.Add(BuildParagraph(columns.SelectMany(c => c.OrderBy(l => l.Bounds.Y))));
+            }
+
+            int inBubbles = lines.Count(l => GetBubbleId(l) != null);
+            Console.WriteLine($"Vertical grouping: {count} columns ({inBubbles} inside detected bubbles) -> {paragraphs.Count} paragraphs");
+
+            // Manga page order: top to bottom, then right to left
+            return paragraphs.OrderBy(p => p.Bounds.Y).ThenByDescending(p => p.Bounds.X).ToList();
+        }
+
+        // Whether two columns belong to the same paragraph
+        private static bool CanJoinColumns(TextElement a, TextElement b)
+        {
+            // Different speech bubbles never join, however close; the same bubble always does
+            int? bubbleA = GetBubbleId(a);
+            int? bubbleB = GetBubbleId(b);
+            if (bubbleA != null && bubbleB != null)
+                return bubbleA == bubbleB;
+
+            // Glyph size; 1-2 character columns (punctuation, small kana) have unreliable widths
+            bool aReliable = a.Text.Length > 2;
+            bool bReliable = b.Text.Length > 2;
+            double em = aReliable && !bReliable ? a.Bounds.Width
+                      : bReliable && !aReliable ? b.Bounds.Width
+                      : Math.Max(a.Bounds.Width, b.Bounds.Width);
+            if (em <= 0)
+                return false;
+
+            // Two OCR segments of one column: only the vertical gap matters
+            if (IsSameColumn(a, b))
+            {
+                var (upper, lower) = a.Bounds.Y <= b.Bounds.Y ? (a, b) : (b, a);
+                double gapY = lower.Bounds.Y - (upper.Bounds.Y + upper.Bounds.Height);
+                return gapY <= em * ColumnSegmentMaxGapEm;
+            }
+
+            var (right, left) = a.Bounds.X + a.Bounds.Width / 2 >= b.Bounds.X + b.Bounds.Width / 2 ? (a, b) : (b, a);
+            double gapX = right.Bounds.X - (left.Bounds.X + left.Bounds.Width);
+            if (gapX > em * ColumnMaxGapEm)
+                return false;
+
+            // Columns in a bubble overlap vertically even when centered or of different lengths
+            double overlapY = Math.Min(a.Bounds.Y + a.Bounds.Height, b.Bounds.Y + b.Bounds.Height) - Math.Max(a.Bounds.Y, b.Bounds.Y);
+            if (overlapY < Math.Min(a.Bounds.Height, b.Bounds.Height) * ColumnMinOverlapRatio)
+                return false;
+
+            if (aReliable && bReliable &&
+                Math.Min(a.Bounds.Width, b.Bounds.Width) < Math.Max(a.Bounds.Width, b.Bounds.Width) * ColumnSizeMinRatio)
+                return false;
+
+            return true;
+        }
+
+        // A multi-character line clearly wider than tall reads horizontally (1-character boxes are ambiguous)
+        private static bool IsHorizontalLine(TextElement line) =>
+            line.Text.Trim().Length >= 2 && line.Bounds.Width > line.Bounds.Height * 1.2;
+
+        // Bubble id of an element or, for grouped elements, of the first OCR element inside it
+        private static int? GetBubbleId(TextElement element) =>
+            element.BubbleId ?? element.Children.Select(GetBubbleId).FirstOrDefault(id => id != null);
+
+        // Two vertical segments belong to one column when they overlap horizontally by half the narrower one
+        private static bool IsSameColumn(TextElement a, TextElement b)
+        {
+            double overlapX = Math.Min(a.Bounds.X + a.Bounds.Width, b.Bounds.X + b.Bounds.Width) - Math.Max(a.Bounds.X, b.Bounds.X);
+            return overlapX >= Math.Min(a.Bounds.Width, b.Bounds.Width) * 0.5;
+        }
+
+        // One paragraph from lines already in reading order: texts joined by newlines, bounds unioned
+        private static TextElement BuildParagraph(IEnumerable<TextElement> orderedLines)
+        {
+            var lines = orderedLines.ToList();
+            double minX = lines.Min(l => l.Bounds.X);
+            double minY = lines.Min(l => l.Bounds.Y);
+            double maxX = lines.Max(l => l.Bounds.X + l.Bounds.Width);
+            double maxY = lines.Max(l => l.Bounds.Y + l.Bounds.Height);
+
+            return new TextElement
+            {
+                ElementType = ElementType.Paragraph,
+                Bounds = new Rect(minX, minY, maxX - minX, maxY - minY),
+                Children = lines,
+                Text = string.Join("\n", lines.Select(l => l.Text)),
+                Confidence = lines[0].Confidence
+            };
+        }
+
+        private static double Median(IEnumerable<double> values)
+        {
+            var sorted = values.OrderBy(v => v).ToList();
+            return sorted.Count == 0 ? 0 : sorted[sorted.Count / 2];
+        }
+
+        /// <summary>
+        /// Drop furigana lines: kana-only text about half the size of the line beside it
+        /// (right of a vertical column, above a horizontal line), spanning only part of that line.
+        /// </summary>
+        private static List<TextElement> RemoveFurigana(List<TextElement> lines, bool isVertical)
+        {
+            if (lines.Count < 2)
+                return lines;
+
+            var furigana = new HashSet<TextElement>();
+            foreach (var ruby in lines)
+            {
+                if (!IsKanaOnly(ruby.Text))
+                    continue;
+
+                double rubySize = isVertical ? ruby.Bounds.Width : ruby.Bounds.Height;
+                foreach (var main in lines)
+                {
+                    double mainSize = isVertical ? main.Bounds.Width : main.Bounds.Height;
+                    if (main == ruby || rubySize > mainSize * 0.6)
+                        continue;
+
+                    // Distance from the main line to the side where furigana is placed
+                    double gap = isVertical
+                        ? ruby.Bounds.X - (main.Bounds.X + main.Bounds.Width)
+                        : main.Bounds.Y - (ruby.Bounds.Y + ruby.Bounds.Height);
+                    if (gap < -rubySize * 0.5 || gap > mainSize * 0.5)
+                        continue;
+
+                    // Furigana lies within the main line along the reading axis
+                    double rubyStart = isVertical ? ruby.Bounds.Y : ruby.Bounds.X;
+                    double rubyLength = isVertical ? ruby.Bounds.Height : ruby.Bounds.Width;
+                    double mainStart = isVertical ? main.Bounds.Y : main.Bounds.X;
+                    double mainLength = isVertical ? main.Bounds.Height : main.Bounds.Width;
+                    double overlap = Math.Min(rubyStart + rubyLength, mainStart + mainLength) - Math.Max(rubyStart, mainStart);
+                    if (overlap < rubyLength * 0.7)
+                        continue;
+
+                    furigana.Add(ruby);
+                    Console.WriteLine($"Removed furigana '{ruby.Text}' beside '{main.Text}'");
+                    break;
+                }
+            }
+
+            return furigana.Count == 0 ? lines : lines.Where(l => !furigana.Contains(l)).ToList();
+        }
+
+        // Hiragana, katakana and the long vowel mark (U+3040-U+30FF)
+        private static bool IsKanaOnly(string text)
+        {
+            string trimmed = text.Trim();
+            return trimmed.Length > 0 && trimmed.All(c => c >= '぀' && c <= 'ヿ');
+        }
+
         #endregion
 
         #region Json Output Creation
@@ -1020,6 +1261,13 @@ namespace RSTGameTranslation
                         // Add metadata
                         writer.WriteNumber("line_count", paragraph.Children.Count);
                         writer.WriteString("element_type", "paragraph");
+
+                        // Lets later merging keep text from different speech bubbles apart
+                        int? bubbleId = GetBubbleId(paragraph);
+                        if (bubbleId != null)
+                        {
+                            writer.WriteNumber("bubble_id", bubbleId.Value);
+                        }
 
                         writer.WriteEndObject();
                     }
@@ -1266,6 +1514,14 @@ namespace RSTGameTranslation
                         shouldGroup = false;
                     }
 
+                    // Paragraphs inside two different detected bubbles never group, however close
+                    int? paraBubble = GetBubbleId(para);
+                    int? otherBubble = GetBubbleId(other);
+                    if (paraBubble != null && otherBubble != null && paraBubble != otherBubble)
+                    {
+                        shouldGroup = false;
+                    }
+
                     if (shouldGroup)
                     {
                         bubble.Add(other);
@@ -1473,6 +1729,9 @@ namespace RSTGameTranslation
 
             // Original JSON element
             public JsonElement OriginalItem { get; set; }
+
+            // Speech bubble this OCR element sits in (manga mode), null when unknown
+            public int? BubbleId { get; set; }
         }
 
         #endregion

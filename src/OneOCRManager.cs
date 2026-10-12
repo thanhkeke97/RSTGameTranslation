@@ -512,18 +512,43 @@ namespace RSTGameTranslation
         }
 
         // Process OneOCR results
-        public Task ProcessOneOcrResults(List<Line> textLines, string languageCode = "en")
+        public Task ProcessOneOcrResults(List<Line> textLines, string languageCode = "en", Bitmap? sourceBitmap = null)
         {
             try
             {
                 // Create a JSON response similar to what EasyOCR would return
                 var results = new List<object>();
-                
+
                 // Set to true to enable character-level processing
                 bool useCharacterLevel = false;
-                
-                foreach (var line in textLines)
+
+                // In manga mode, tag each line with its speech bubble so block detection
+                // doesn't merge text from bubbles that happen to sit close together
+                var bubbleIds = new int?[textLines.Count];
+                if (sourceBitmap != null && ConfigManager.Instance.IsMangaModeEnabled())
                 {
+                    try
+                    {
+                        var boxes = textLines.Select(l =>
+                        {
+                            float minX = Math.Min(Math.Min(l.X1, l.X2), Math.Min(l.X3, l.X4));
+                            float minY = Math.Min(Math.Min(l.Y1, l.Y2), Math.Min(l.Y3, l.Y4));
+                            float maxX = Math.Max(Math.Max(l.X1, l.X2), Math.Max(l.X3, l.X4));
+                            float maxY = Math.Max(Math.Max(l.Y1, l.Y2), Math.Max(l.Y3, l.Y4));
+                            return new RectangleF(minX, minY, maxX - minX, maxY - minY);
+                        }).ToList();
+                        bubbleIds = SpeechBubbleDetector.AssignBubbleIds(sourceBitmap, boxes);
+                        Console.WriteLine($"Speech bubbles: {bubbleIds.Count(id => id != null)}/{textLines.Count} lines inside {bubbleIds.Where(id => id != null).Distinct().Count()} bubbles");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Speech bubble detection failed: {ex.Message}");
+                    }
+                }
+
+                for (int lineIndex = 0; lineIndex < textLines.Count; lineIndex++)
+                {
+                    var line = textLines[lineIndex];
                     // Skip empty lines
                     if (line.Words == null || line.Words.Length == 0 || string.IsNullOrWhiteSpace(line.Text))
                     {
@@ -639,7 +664,8 @@ namespace RSTGameTranslation
                         {
                             text = processedText,
                             confidence = 0.9, // OneOCR doesn't provide confidence
-                            rect = box
+                            rect = box,
+                            bubble_id = bubbleIds[lineIndex]
                         });
                     }
                 }

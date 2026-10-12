@@ -1039,7 +1039,10 @@ namespace RSTGameTranslation
 
                             if (autoMergeEnabled)
                             {
-                                tempBlocks.Add(new TempTextBlock { Text = text, X = x, Y = y, Width = width, Height = height, Confidence = confidence });
+                                int? bubbleId = item.TryGetProperty("bubble_id", out JsonElement bubbleElement) && bubbleElement.ValueKind == JsonValueKind.Number
+                                    ? bubbleElement.GetInt32()
+                                    : null;
+                                tempBlocks.Add(new TempTextBlock { Text = text, X = x, Y = y, Width = width, Height = height, Confidence = confidence, BubbleId = bubbleId });
                             }
                             else
                             {
@@ -1657,7 +1660,7 @@ namespace RSTGameTranslation
                     var textLines = await OneOCRManager.Instance.GetOcrLinesFromBitmapAsync(bitmap);
 
                     // Process the OCR results with language code
-                    await OneOCRManager.Instance.ProcessOneOcrResults(textLines, sourceLanguage);
+                    await OneOCRManager.Instance.ProcessOneOcrResults(textLines, sourceLanguage, bitmap);
                 }
                 catch (Exception ex)
                 {
@@ -2184,6 +2187,12 @@ namespace RSTGameTranslation
         }
 
         //!Convert textobjects to json and send for translation
+        // Manga mode: a page up to this many bubbles goes in a single request
+        private const int MangaSingleRequestMaxBlocks = 15;
+        // Larger pages are split into batches of this size, in reading order
+        private const int MangaBatchSize = 10;
+        private const int MangaMaxParallelRequests = 3;
+
         public async Task TranslateTextObjectsAsync()
         {
             try
@@ -2227,29 +2236,58 @@ namespace RSTGameTranslation
 
                 if (mangaModeEnabled)
                 {
-                    foreach (var textObject in _textObjects)
+                    // Each bubble stays its own id-tagged block, so translations can't bleed into each other,
+                    // but the whole page goes in one request: faster, and the model sees the conversation.
+                    var blocks = _textObjects.ToList();
+                    var batches = blocks.Count <= MangaSingleRequestMaxBlocks
+                        ? new List<List<TextObject>> { blocks }
+                        : blocks.Chunk(MangaBatchSize).Select(c => c.ToList()).ToList();
+
+                    using var concurrency = new SemaphoreSlim(MangaMaxParallelRequests);
+                    var processLock = new object();
+
+                    async Task<bool> TranslateBatchAsync(List<TextObject> batch)
                     {
-                        var singleBlockPayload = new List<object>
+                        await concurrency.WaitAsync();
+                        try
                         {
-                            new
+                            var payload = batch.Select(t => (object)new { id = t.ID, text = t.Text }).ToList();
+                            string jsonToTranslate = BuildTranslationRequestJson(payload, previousContext, gameInfo);
+                            LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
+
+                            string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
+                            if (string.IsNullOrEmpty(translationResponse))
                             {
-                                id = textObject.ID,
-                                text = textObject.Text
+                                Console.WriteLine($"Translation failed with {currentService} for {batch.Count} block(s) - empty response");
+                                return false;
                             }
-                        };
 
-                        string jsonToTranslate = BuildTranslationRequestJson(singleBlockPayload, previousContext, gameInfo);
-                        LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
-
-                        string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
-                        if (string.IsNullOrEmpty(translationResponse))
-                        {
-                            Console.WriteLine($"Translation failed with {currentService} for block {textObject.ID} - empty response");
-                            continue;
+                            // Batches finish in any order; apply one response at a time
+                            lock (processLock)
+                            {
+                                ProcessTranslatedJSON(translationResponse, false);
+                            }
+                            return true;
                         }
+                        finally
+                        {
+                            concurrency.Release();
+                        }
+                    }
 
-                        ProcessTranslatedJSON(translationResponse, false);
-                        hadSuccessfulTranslation = true;
+                    Console.WriteLine($"Manga translation: {blocks.Count} block(s) in {batches.Count} request(s)");
+                    bool[] batchResults = await Task.WhenAll(batches.Select(TranslateBatchAsync));
+                    hadSuccessfulTranslation = batchResults.Any(ok => ok);
+
+                    // The model may skip or merge an id; translate whatever is still missing on its own
+                    var missing = blocks.Where(t => string.IsNullOrEmpty(t.TextTranslated)).ToList();
+                    if (missing.Count > 0)
+                    {
+                        Console.WriteLine($"Manga translation: retrying {missing.Count} untranslated block(s) one by one");
+                        foreach (var textObject in missing)
+                        {
+                            hadSuccessfulTranslation |= await TranslateBatchAsync(new List<TextObject> { textObject });
+                        }
                     }
 
                     if (!hadSuccessfulTranslation)
@@ -2702,6 +2740,8 @@ namespace RSTGameTranslation
             public double Width { get; set; }
             public double Height { get; set; }
             public double Confidence { get; set; }
+            // Manga speech bubble the block sits in, null when unknown
+            public int? BubbleId { get; set; }
         }
 
         /// <summary>
@@ -2889,6 +2929,10 @@ namespace RSTGameTranslation
             if (a.Width <= 0 || a.Height <= 0 || b.Width <= 0 || b.Height <= 0)
                 return false;
 
+            // Text in two different manga speech bubbles never merges, however close the bubbles are
+            if (a.BubbleId != null && b.BubbleId != null && a.BubbleId != b.BubbleId)
+                return false;
+
             // Larger threshold to better detect adjacent/overlapping text blocks
             double overlapThreshold = 5.0; // pixels
 
@@ -2934,7 +2978,8 @@ namespace RSTGameTranslation
                 Y = Math.Min(a.Y, b.Y),
                 Width = Math.Max(a.X + a.Width, b.X + b.Width) - Math.Min(a.X, b.X),
                 Height = Math.Max(a.Y + a.Height, b.Y + b.Height) - Math.Min(a.Y, b.Y),
-                Confidence = Math.Min(a.Confidence, b.Confidence)
+                Confidence = Math.Min(a.Confidence, b.Confidence),
+                BubbleId = a.BubbleId ?? b.BubbleId
             };
         }
 

@@ -106,8 +106,6 @@ namespace RSTGameTranslation
 
         // Show message for Auto OCR
         private bool isNeedShowWarningAutoOCR = false;
-        // Show message for Manga Mode
-        private bool isNeedShowWarningMangaMode = false;
 
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
@@ -1043,7 +1041,6 @@ namespace RSTGameTranslation
 
             // Set manga mode
             MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
-            isNeedShowWarningMangaMode = true;
 
             // Set WindowsOCR integration
             // windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
@@ -1621,7 +1618,6 @@ namespace RSTGameTranslation
                 {
                     MangaModeCheckBox.IsChecked = false;
                     ConfigManager.Instance.SetMangaMode(false);
-                    isNeedShowWarningMangaMode = true;
                 }
                 else
                 {
@@ -5633,20 +5629,6 @@ namespace RSTGameTranslation
             Logic.Instance.ResetHash();
             Logic.Instance.ClearAllTextObjects();
             MainWindow.Instance.SetOCRCheckIsWanted(true);
-
-            if (isNeedShowWarningMangaMode && enabled)
-            {
-                MessageBox.Show(
-                    "Manga Mode will send OCR blocks as separate translation requests instead of one merged batch. This improves speech-bubble handling, but can be slower.",
-                    "Manga Mode Enabled",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                isNeedShowWarningMangaMode = false;
-            }
-            else if (!enabled)
-            {
-                isNeedShowWarningMangaMode = true;
-            }
         }
     }
 }
