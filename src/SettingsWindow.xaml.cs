@@ -45,6 +45,19 @@ namespace RSTGameTranslation
         }
     }
 
+    // One row of the exclude region list in Settings
+    public class ExcludeRegionItem
+    {
+        public ExcludeRegionItem(int index, string text)
+        {
+            Index = index;
+            Text = text;
+        }
+
+        public int Index { get; }
+        public string Text { get; }
+    }
+
     // Entry of the ignore-phrase match type dropdowns; the label follows the interface language
     public class MatchTypeOption : System.ComponentModel.INotifyPropertyChanged
     {
@@ -165,6 +178,9 @@ namespace RSTGameTranslation
             _instance = this;
             InitializeHotkeyRows();
             LocalizationManager.Instance.PropertyChanged += (s, e) => MatchTypeOptions.ForEach(option => option.RefreshText());
+            // The list follows changes made anywhere: hotkey selection, profile load, Settings buttons
+            MainWindow.Instance.ExcludeRegionsChanged += (s, e) => LoadExcludeRegions();
+            LocalizationManager.Instance.PropertyChanged += (s, e) => LoadExcludeRegions();
             LoadAvailableScreens();
             LoadAllProfile();
             LoadAllAudioProcessingModel();
@@ -4629,8 +4645,9 @@ namespace RSTGameTranslation
                 string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
                 if (File.Exists(filePath))
                 {
-                    // Get saved areas from config
+                    // Get saved areas from config (this loads the whole profile config)
                     List<TranslationAreaInfo> areas = ConfigManager.Instance.GetTranslationAreas(filePath);
+                    MainWindow.Instance.ReloadExcludeRegionsFromConfig();
                     if (areas.Count > 0)
                     {
                         // Update our areas list
@@ -5124,21 +5141,25 @@ namespace RSTGameTranslation
             }
         }
 
-        // Load exclude regions from ConfigManager
+        // Load exclude regions from MainWindow (which loads them from ConfigManager)
         private void LoadExcludeRegions()
         {
             try
             {
-                // Get regions from MainWindow (which loads from ConfigManager)
                 var regions = MainWindow.Instance.excludeRegions;
-                
-                // Populate the list view
-                excludeRegionsListView.ItemsSource = regions;
-                
-                // Set the show exclude regions checkbox
+                excludeRegionsListView.ItemsSource = regions
+                    .Select((region, index) => new ExcludeRegionItem(index, string.Format(
+                        LocalizationManager.Instance["Lbl_ExcludeRegionItem"],
+                        index + 1,
+                        (int)Math.Round(region.Width), (int)Math.Round(region.Height),
+                        (int)Math.Round(region.X), (int)Math.Round(region.Y))))
+                    .ToList();
+
+                // Set the checkbox without saving the value back
+                bool wasInitializing = _isInitializing;
+                _isInitializing = true;
                 showExcludeRegionsCheckBox.IsChecked = MainWindow.Instance.GetShowExcludeRegions();
-                
-                Console.WriteLine($"Loaded {regions.Count} exclude regions from config");
+                _isInitializing = wasInitializing;
             }
             catch (Exception ex)
             {
@@ -5149,15 +5170,17 @@ namespace RSTGameTranslation
         // Add a new exclude region
         private void AddExcludeRegionButton_Click(object sender, RoutedEventArgs e)
         {
-            // Hide settings window
+            // Hide settings window; the list updates through ExcludeRegionsChanged once the region is drawn
             this.Hide();
-            
-            // Trigger exclude region selection
             MainWindow.Instance.ToggleExcludeRegionSelector();
-            
-            
-            // Reload to show the new region
-            LoadExcludeRegions();
+        }
+
+        private void RemoveExcludeRegionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext is ExcludeRegionItem item)
+            {
+                MainWindow.Instance.RemoveExcludeRegion(item.Index);
+            }
         }
 
         // Clear all exclude regions
@@ -5166,8 +5189,6 @@ namespace RSTGameTranslation
             try
             {
                 MainWindow.Instance.ClearExcludeRegions();
-                excludeRegionsListView.ItemsSource = null;
-                excludeRegionsListView.ItemsSource = MainWindow.Instance.excludeRegions;
                 Console.WriteLine("All exclude regions cleared from settings");
             }
             catch (Exception ex)

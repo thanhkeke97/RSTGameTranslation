@@ -960,15 +960,23 @@
                                          Background="{DynamicResource Surface2Brush}"
                                          Foreground="{DynamicResource TextBrush}"
                                          BorderBrush="{DynamicResource BorderBrush}">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Foreground="{DynamicResource TextBrush}">
-                                                <Run Text="Region: "/>
-                                                <Run Text="X="/><Run Text="{Binding X}"/><Run Text=", "/>
-                                                <Run Text="Y="/><Run Text="{Binding Y}"/><Run Text=", "/>
-                                                <Run Text="W="/><Run Text="{Binding Width}"/><Run Text=", "/>
-                                                <Run Text="H="/><Run Text="{Binding Height}"/>
-                                            </TextBlock>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Text}" VerticalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                                                <Button Grid.Column="1" Content="✕" Width="24" Height="24" MinHeight="0" Padding="0" Margin="8,0,0,0"
+                                                        Click="RemoveExcludeRegionButton_Click"
+                                                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Remove]}"/>
+                                            </Grid>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
@@ -981,7 +989,7 @@
                                     <Button x:Name="clearExcludeRegionsButton" 
                                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ClearExcludeRegions]}"
                                             Margin="0,0,10,0" Width="100" Click="ClearExcludeRegionsButton_Click"/>
-                                    <CheckBox x:Name="showExcludeRegionsCheckBox" Visibility="Collapsed"
+                                    <CheckBox x:Name="showExcludeRegionsCheckBox"
                                               Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowExcludeRegions]}"
                                               VerticalAlignment="Center" Margin="20,0,0,0"
                                               Checked="ShowExcludeRegionsCheckBox_Checked" Unchecked="ShowExcludeRegionsCheckBox_Unchecked"/>

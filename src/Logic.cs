@@ -1293,6 +1293,9 @@ namespace RSTGameTranslation
             _currentCaptureY = y;
         }
 
+        // Screen position of the top-left pixel of the last captured bitmap
+        public (int X, int Y) CurrentCapturePosition => (_currentCaptureX, _currentCaptureY);
+
         // Update text object positions based on capture position changes
         public void UpdateTextObjectPositions(int offsetX, int offsetY)
         {

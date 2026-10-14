@@ -82,6 +82,18 @@ namespace RSTGameTranslation
         
         // Track whether this window was cancelled
         public bool WasCancelled { get; set; } = false;
+
+        // What is being selected: the label shown while dragging and the smallest accepted size
+        private string _selectionLabelKey = "TranslationAreaSelector_Title";
+        private double _minimumSelectionSize = 50;
+
+        // Exclude regions are often small (an HP counter, an icon), so they accept a smaller box
+        public void ConfigureForExcludeRegion()
+        {
+            _selectionLabelKey = "Lbl_SelectExcludeRegion";
+            _minimumSelectionSize = 10;
+            instructionText.Text = LocalizationManager.Instance["ExcludeRegionSelector_Instruction"];
+        }
         
         // Static method to create or reuse the selector window
         public static TranslationAreaSelectorWindow GetInstance()
@@ -391,7 +403,7 @@ namespace RSTGameTranslation
             selectionRectangle.VerticalAlignment = System.Windows.VerticalAlignment.Top;
             
             // Display size information in the instruction text
-            instructionText.Text = $"Select translate area: {(int)width} x {(int)height}";
+            instructionText.Text = $"{LocalizationManager.Instance[_selectionLabelKey]}: {(int)width} x {(int)height}";
         }
         
         [DllImport("user32.dll")]
@@ -422,11 +434,11 @@ namespace RSTGameTranslation
             double top = Math.Min(currentPoint.Y, startPoint.Y);
             
             // Verify minimum size
-            if (width < 50 || height < 50)
+            if (width < _minimumSelectionSize || height < _minimumSelectionSize)
             {
-                MessageBox.Show("Please select a larger area (at least 50x50 pixels).", 
-                                "The selected area is too small", 
-                                MessageBoxButton.OK, 
+                MessageBox.Show(string.Format(LocalizationManager.Instance["Msg_AreaTooSmall"], _minimumSelectionSize),
+                                LocalizationManager.Instance["Title_AreaTooSmall"],
+                                MessageBoxButton.OK,
                                 MessageBoxImage.Warning);
                 return;
             }
