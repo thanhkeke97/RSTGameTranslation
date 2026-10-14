@@ -70,14 +70,61 @@ namespace RSTGameTranslation
             return client;
         }
 
+        // Free Google normally answers in well under a second. When it hasn't after this long (an
+        // endpoint hanging until its timeout, requests queued behind the rate-limit spacing), the
+        // fallback service is asked as well and the first good answer wins.
+        private const int HedgeDelayMs = 1500;
+
         /// <summary>
         /// Translate text using Google Translate API
         /// </summary>
         public async Task<string?> TranslateAsync(string jsonData, string prompt)
         {
+            bool canHedge = !_useCloudApi && IsFallbackServiceAvailable() && !_freeClient.IsCoolingDown;
+            if (!canHedge)
+                return await TranslateWithGoogleAsync(jsonData, prompt, allowFallback: true, CancellationToken.None);
+
+            using var cancelGoogle = new CancellationTokenSource();
+            Task<string?> googleTask = TranslateWithGoogleAsync(jsonData, prompt, allowFallback: false, cancelGoogle.Token);
+
+            if (await Task.WhenAny(googleTask, Task.Delay(HedgeDelayMs)) == googleTask)
+            {
+                string? fast = await googleTask;
+                // Google failed (rate limited, every endpoint down, ...): the fallback still gets the line on screen
+                return fast ?? await TranslateWithFallbackAsync(jsonData, prompt, "Google Translate failed");
+            }
+
+            Task<string?> fallbackTask = TranslateWithFallbackAsync(jsonData, prompt, $"Google Translate has not answered after {HedgeDelayMs} ms");
+            Task<string?> first = await Task.WhenAny(googleTask, fallbackTask);
+            string? result = await first;
+            if (result != null)
+            {
+                if (first == fallbackTask)
+                {
+                    // Stop the slow Google request so it doesn't hold a slot in the request spacing
+                    cancelGoogle.Cancel();
+                    Console.WriteLine("Google Translate: fallback answered first");
+                }
+                return result;
+            }
+
+            // The first to finish failed: wait for the other one
+            return await (first == googleTask ? fallbackTask : googleTask);
+        }
+
+        private static bool IsFallbackServiceAvailable()
+        {
+            string fallback = ConfigManager.Instance.GetGoogleFreeFallbackService();
+            return fallback == "Microsoft" || fallback == "Yandex";
+        }
+
+        // Translate with Google only. With allowFallback, a rate limit hands the request to the fallback
+        // service (the original behaviour); without it, null is returned so the caller decides.
+        private async Task<string?> TranslateWithGoogleAsync(string jsonData, string prompt, bool allowFallback, CancellationToken cancellationToken)
+        {
             try
             {
-                using var freeBudget = new CancellationTokenSource();
+                using var freeBudget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 // Analyze the input JSON data
                 using JsonDocument doc = JsonDocument.Parse(jsonData);
                 JsonElement root = doc.RootElement;
@@ -88,7 +135,10 @@ namespace RSTGameTranslation
                 // fallback service instead of returning untranslated text.
                 if (!_useCloudApi && _freeClient.IsCoolingDown)
                 {
-                    string? viaFallback = await TranslateWithFallbackAsync(jsonData, prompt);
+                    if (!allowFallback)
+                        return null;
+
+                    string? viaFallback = await TranslateWithFallbackAsync(jsonData, prompt, "Google Translate is rate limited (HTTP 429)");
                     if (viaFallback != null) return viaFallback;
 
                     // Google would refuse every part too: fail now instead of returning the source text
@@ -195,11 +245,18 @@ namespace RSTGameTranslation
                 outputJson.Flush();
                 string result = Encoding.UTF8.GetString(memoryStream.ToArray());
 
+                // Cancelled because the fallback already answered: the result is not needed
+                if (cancellationToken.IsCancellationRequested)
+                    return null;
+
                 // Hit a 429 during this request: some blocks came back untranslated, so redo the
                 // whole request with the fallback service.
                 if (!_useCloudApi && _freeClient.IsCoolingDown)
                 {
-                    string? viaFallback = await TranslateWithFallbackAsync(jsonData, prompt);
+                    if (!allowFallback)
+                        return null;
+
+                    string? viaFallback = await TranslateWithFallbackAsync(jsonData, prompt, "Google Translate is rate limited (HTTP 429)");
                     if (viaFallback != null) return viaFallback;
                 }
 
@@ -376,14 +433,14 @@ namespace RSTGameTranslation
         /// returning the same {"translations": [...]} format are allowed (Logic parses the
         /// response as Google's). Returns null when disabled or when the fallback fails too.
         /// </summary>
-        private static async Task<string?> TranslateWithFallbackAsync(string jsonData, string prompt)
+        private static async Task<string?> TranslateWithFallbackAsync(string jsonData, string prompt, string reason)
         {
             string fallback = ConfigManager.Instance.GetGoogleFreeFallbackService();
             if (fallback != "Microsoft" && fallback != "Yandex")
                 return null;
             try
             {
-                Console.WriteLine($"Google Translate is rate limited (HTTP 429), translating with {fallback} meanwhile");
+                Console.WriteLine($"{reason}, translating with {fallback} meanwhile");
                 ITranslationService service = TranslationServiceFactory.CreateService(fallback);
                 return await service.TranslateAsync(jsonData, prompt);
             }

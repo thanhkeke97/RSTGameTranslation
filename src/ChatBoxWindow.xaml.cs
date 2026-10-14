@@ -1185,7 +1185,9 @@ namespace RSTGameTranslation
             }
         }
 
-        public void OnTranslationWasAdded(string originalText, string translatedText, bool fromClipboard=false)
+        // textToSpeak: what TTS reads instead of the translation (only the new part of a completed
+        // typed-out line); empty reads nothing
+        public void OnTranslationWasAdded(string originalText, string translatedText, bool fromClipboard=false, string? textToSpeak=null)
         {
             // Hide translation status indicator if it was visible
             HideTranslationStatus();
@@ -1224,7 +1226,12 @@ namespace RSTGameTranslation
                     ConfigManager.Instance.IsTtsEnabled() &&
                     (MainWindow.Instance.GetIsStarted() || localWhisperService.Instance.IsRunning))
                 {
-                    if (ConfigManager.Instance.IsExcludeCharacterNameEnabled())
+                    if (textToSpeak != null)
+                    {
+                        // The name (if any) was at the start, which was already read
+                        EnqueueSpeechRequest(textToSpeak);
+                    }
+                    else if (ConfigManager.Instance.IsExcludeCharacterNameEnabled())
                     {
                         string[] text = translatedText.Split(':', 2);
                         if (text.Length > 1)

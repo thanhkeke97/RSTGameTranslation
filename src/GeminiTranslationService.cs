@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -48,6 +49,38 @@ namespace RSTGameTranslation
             return false;
         }
 
+        // Thinking settings tried in order, fastest first, until the model accepts one (see ReasoningFallback).
+        // thinkingLevel is used by Gemini 3.x (levels differ per model), thinkingBudget by 2.5; the last
+        // step sends nothing, for models without thinking control (e.g. Gemma).
+        private static readonly object?[] ThinkingOptions =
+        {
+            new { thinkingLevel = "minimal" },
+            new { thinkingLevel = "low" },
+            new { thinkingBudget = 0 },
+        };
+
+        // Log how many tokens went into thinking vs. the answer, to check that "prefer speed" works
+        private static void LogTokenUsage(string jsonResponse, string model)
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+                if (doc.RootElement.TryGetProperty("usageMetadata", out JsonElement usage))
+                {
+                    int thoughts = usage.TryGetProperty("thoughtsTokenCount", out JsonElement t) ? t.GetInt32() : 0;
+                    int output = usage.TryGetProperty("candidatesTokenCount", out JsonElement c) ? c.GetInt32() : 0;
+                    int input = usage.TryGetProperty("promptTokenCount", out JsonElement p) ? p.GetInt32() : 0;
+                    OcrTiming.Log("Gemini tokens", $"{model}: input={input}, thinking={thoughts}, output={output}");
+                }
+            }
+            catch (Exception)
+            {
+                // Usage info is only for diagnostics
+            }
+        }
+
+        private static string Truncate(string text, int max) => text.Length <= max ? text : text.Substring(0, max) + "...";
+
         /// <summary>
         /// Get masked API key for logging (show only first 4 and last 4 characters)
         /// </summary>
@@ -85,6 +118,25 @@ namespace RSTGameTranslation
                     return null;
                 }
 
+                // Get model from config
+                string model = ConfigManager.Instance.GetGeminiModel();
+
+                var generationConfig = new Dictionary<string, object>
+                {
+                    ["response_mime_type"] = "text/plain",
+                };
+
+                // Prefer speed: translation rarely benefits from thinking, which can dominate the latency
+                string modelKey = "Gemini:" + model;
+                int thinkingStep = ReasoningFallback.GetStep(modelKey);
+                object? thinkingConfig = ConfigManager.Instance.IsLlmPreferSpeedEnabled() && thinkingStep < ThinkingOptions.Length
+                    ? ThinkingOptions[thinkingStep]
+                    : null;
+                if (thinkingConfig != null)
+                {
+                    generationConfig["thinkingConfig"] = thinkingConfig;
+                }
+
                 var requestContent = new
                 {
                     contents = new[]
@@ -100,10 +152,7 @@ namespace RSTGameTranslation
                             }
                         }
                     },
-                    generationConfig = new
-                    {
-                        response_mime_type = "text/plain",
-                    }
+                    generationConfig
                 };
 
                 var jsonOptions = new JsonSerializerOptions
@@ -112,9 +161,6 @@ namespace RSTGameTranslation
                 };
                 string requestJson = JsonSerializer.Serialize(requestContent, jsonOptions);
                 var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
-
-                // Get model from config
-                string model = ConfigManager.Instance.GetGeminiModel();
                 string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
                 HttpResponseMessage response = await _httpClient.PostAsync(url, content);
 
@@ -128,12 +174,22 @@ namespace RSTGameTranslation
 
                     // Log the raw Gemini response before returning it
                     LogManager.Instance.LogLlmReply(jsonResponse);
+                    LogTokenUsage(jsonResponse, model);
 
                     return jsonResponse;
                 }
                 else
                 {
                     string errorMessage = await response.Content.ReadAsStringAsync();
+
+                    // This model doesn't accept the thinking option we sent: try the next one
+                    if (thinkingConfig != null &&
+                        response.StatusCode == HttpStatusCode.BadRequest &&
+                        errorMessage.Contains("thinking", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ReasoningFallback.StepDown(modelKey, thinkingStep, $"HTTP 400: {Truncate(errorMessage, 200)}");
+                        return await TranslateAsync(jsonData, prompt);
+                    }
                     _consecutiveFailures++;
                     Console.WriteLine($"Gemini API error: {response.StatusCode}, {errorMessage}, error count: {_consecutiveFailures}");
 

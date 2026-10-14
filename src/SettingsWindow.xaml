@@ -1496,6 +1496,27 @@
                                        HorizontalAlignment="Center" Margin="0,10,0,0" Padding="10,5"/>
                             </Grid>
                         </GroupBox>
+
+                        <!-- Translation speed -->
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_TranslationSpeed]}" Margin="0,0,0,15" Padding="10">
+                            <StackPanel>
+                                <CheckBox x:Name="llmPreferSpeedCheckBox" Margin="0,4"
+                                          Checked="LlmPreferSpeedCheckBox_Changed" Unchecked="LlmPreferSpeedCheckBox_Changed">
+                                    <TextBlock TextWrapping="Wrap" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_PreferSpeed]}"/>
+                                </CheckBox>
+                                <CheckBox x:Name="translationCacheCheckBox" Margin="0,4"
+                                          Checked="TranslationCacheCheckBox_Changed" Unchecked="TranslationCacheCheckBox_Changed">
+                                    <TextBlock TextWrapping="Wrap" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationCache]}"/>
+                                </CheckBox>
+                                <CheckBox x:Name="translationPrefetchCheckBox" Margin="20,4,0,4"
+                                          IsEnabled="{Binding IsChecked, ElementName=translationCacheCheckBox}"
+                                          Checked="TranslationPrefetchCheckBox_Changed" Unchecked="TranslationPrefetchCheckBox_Changed">
+                                    <TextBlock TextWrapping="Wrap" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationPrefetch]}"/>
+                                </CheckBox>
+                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationSpeedHint]}"/>
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

@@ -41,6 +41,9 @@ namespace RSTGameTranslation
         private int _currentCaptureX;
         private int _currentCaptureY;
         private DateTime _lastChangeTime = DateTime.MinValue;
+        // The last change was text typing out (typewriter dialogue) rather than new text appearing
+        private bool _textIsGrowing;
+        private const double TypewriterExtraWaitSeconds = 0.6;
 
         // Properties to expose to other classes
         public List<TextObject> TextObjects => _textObjects;
@@ -265,7 +268,8 @@ namespace RSTGameTranslation
                         return;
                     }
 
-                    Console.WriteLine("Retrying current translation (bypassing similarity checks).");
+                    Console.WriteLine("Retrying current translation (bypassing similarity checks and the translation cache).");
+                    _bypassTranslationCacheOnce = true;
 
                     // Clear the last-hash / last-text so similarity gating is bypassed
                     _lastOcrHash = string.Empty;
@@ -525,10 +529,13 @@ namespace RSTGameTranslation
                                 double settleTime = ConfigManager.Instance.GetBlockDetectionSettleTime();
                                 double similarThreshold = ConfigManager.Instance.GetTextSimilarThreshold();
                                 bool hashMatch = contentHash == _lastOcrHash;
+                                // Typewriter text: a few more characters per frame still scores as similar, which
+                                // settled (and translated) half a sentence, then skipped the rest as already shown
+                                bool growing = !hashMatch && TextGrowth.IsGrowth(_lastTextContent, textContent);
                                 double similarity = 0.0;
                                 if (settleTime > 0)
                                 {
-                                    if (hashMatch || IsTextSimilar(textContent, _lastTextContent, similarThreshold, out similarity))
+                                    if (hashMatch || (!growing && IsTextSimilar(textContent, _lastTextContent, similarThreshold, out similarity)))
                                     {
                                         if (_lastChangeTime == DateTime.MinValue)
                                         {
@@ -538,8 +545,12 @@ namespace RSTGameTranslation
                                         }
                                         else
                                         {
-                                            // Check if we are within the settling time
-                                            if ((DateTime.Now - _lastChangeTime).TotalSeconds < settleTime)
+                                            // Text that was typing out and stopped mid-sentence (a pause on a comma or
+                                            // an ellipsis) gets a little longer before it counts as settled
+                                            double requiredTime = _textIsGrowing && !TextGrowth.EndsSentence(textContent)
+                                                ? settleTime + TypewriterExtraWaitSeconds
+                                                : settleTime;
+                                            if ((DateTime.Now - _lastChangeTime).TotalSeconds < requiredTime)
                                             {
                                                 OnFinishedThings(false);
                                                 return;
@@ -553,10 +564,22 @@ namespace RSTGameTranslation
                                     }
                                     else
                                     {
+                                        _textIsGrowing = growing;
                                         _lastChangeTime = DateTime.Now;
                                         _lastOcrHash = contentHash;
                                         _lastTextContent = textContent;
                                         _lastSkipLoggedText = string.Empty;
+                                        // An empty frame (text disappeared) has nothing to time or translate
+                                        if (!string.IsNullOrWhiteSpace(textContent))
+                                        {
+                                            OcrTiming.NewTextDetected(growing
+                                                ? $"still typing out, waiting for it to settle: '{OcrTiming.Preview(textContent)}'"
+                                                : $"waiting {settleTime:F2}s for it to settle: '{OcrTiming.Preview(textContent)}'");
+                                            // A prefetch of text that is still typing out would be thrown away; the
+                                            // frame that completes the sentence is still prefetched
+                                            if (!growing || TextGrowth.EndsSentence(textContent))
+                                                StartTranslationPrefetch(modifiedResults);
+                                        }
 
                                         //only run if translation is still active
                                         if (MainWindow.Instance.GetIsStarted())
@@ -570,13 +593,21 @@ namespace RSTGameTranslation
                                         return; // Sure, it's new, but we probably aren't ready to show it yet
                                     }
                                 }
-                                else if (IsTextSimilar(textContent, _lastTextContent, similarThreshold, out similarity))
+                                else if (!growing && IsTextSimilar(textContent, _lastTextContent, similarThreshold, out similarity))
                                 {
                                     LogSimilaritySkip(false, similarity, similarThreshold, textContent);
                                     OnFinishedThings(true);
                                     return;
                                 }
                                 // Looks like new stuff
+                                if (string.IsNullOrWhiteSpace(textContent))
+                                {
+                                    // Text disappeared: nothing to time
+                                }
+                                else if (settleTime > 0)
+                                    OcrTiming.Log("2. Text settled");
+                                else
+                                    OcrTiming.NewTextDetected($"'{OcrTiming.Preview(textContent)}'");
                                 _lastOcrHash = contentHash;
                                 _lastTextContent = textContent;
                                 _lastSkipLoggedText = string.Empty;
@@ -1072,41 +1103,7 @@ namespace RSTGameTranslation
                             }
 
                             double confidence = confElement.GetDouble();
-                            double x = 0, y = 0, width = 0, height = 0;
-
-                            if (item.TryGetProperty("rect", out JsonElement boxElement) &&
-                                boxElement.ValueKind == JsonValueKind.Array)
-                            {
-                                try
-                                {
-                                    double minX = double.MaxValue, minY = double.MaxValue;
-                                    double maxX = double.MinValue, maxY = double.MinValue;
-
-                                    for (int p = 0; p < boxElement.GetArrayLength(); p++)
-                                    {
-                                        if (boxElement[p].ValueKind == JsonValueKind.Array &&
-                                            boxElement[p].GetArrayLength() >= 2)
-                                        {
-                                            double pointX = boxElement[p][0].GetDouble();
-                                            double pointY = boxElement[p][1].GetDouble();
-
-                                            minX = Math.Min(minX, pointX);
-                                            minY = Math.Min(minY, pointY);
-                                            maxX = Math.Max(maxX, pointX);
-                                            maxY = Math.Max(maxY, pointY);
-                                        }
-                                    }
-
-                                    x = minX;
-                                    y = minY;
-                                    width = maxX - minX;
-                                    height = maxY - minY;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine($"Error parsing rect: {ex.Message}");
-                                }
-                            }
+                            var (x, y, width, height) = ReadRect(item);
 
                             if (autoMergeEnabled)
                             {
@@ -1159,6 +1156,88 @@ namespace RSTGameTranslation
                     sourceBitmap.Dispose();
                 }
             }
+        }
+
+        // Bounding box of an OCR result item from its "rect" points (zero size when missing)
+        private static (double X, double Y, double Width, double Height) ReadRect(JsonElement item)
+        {
+            if (!item.TryGetProperty("rect", out JsonElement boxElement) || boxElement.ValueKind != JsonValueKind.Array)
+                return (0, 0, 0, 0);
+
+            try
+            {
+                double minX = double.MaxValue, minY = double.MaxValue;
+                double maxX = double.MinValue, maxY = double.MinValue;
+
+                for (int p = 0; p < boxElement.GetArrayLength(); p++)
+                {
+                    if (boxElement[p].ValueKind == JsonValueKind.Array &&
+                        boxElement[p].GetArrayLength() >= 2)
+                    {
+                        double pointX = boxElement[p][0].GetDouble();
+                        double pointY = boxElement[p][1].GetDouble();
+
+                        minX = Math.Min(minX, pointX);
+                        minY = Math.Min(minY, pointY);
+                        maxX = Math.Max(maxX, pointX);
+                        maxY = Math.Max(maxY, pointY);
+                    }
+                }
+
+                if (minX > maxX)
+                    return (0, 0, 0, 0);
+                return (minX, minY, maxX - minX, maxY - minY);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing rect: {ex.Message}");
+                return (0, 0, 0, 0);
+            }
+        }
+
+        // The texts DisplayOcrResults will turn into text objects, in the same order: same fragment-size
+        // filter and the same merging. The prefetch translates these, so its cache keys match.
+        private List<string> GetTranslatableTexts(JsonElement resultsElement)
+        {
+            var texts = new List<string>();
+            if (resultsElement.ValueKind != JsonValueKind.Array)
+                return texts;
+
+            int minTextFragmentSize = ConfigManager.Instance.GetMinTextFragmentSize();
+            bool autoMergeEnabled = ConfigManager.Instance.IsAutoMergeOverlappingTextEnabled();
+            var tempBlocks = new List<TempTextBlock>();
+
+            foreach (JsonElement item in resultsElement.EnumerateArray())
+            {
+                if (!item.TryGetProperty("text", out JsonElement textElement) ||
+                    !item.TryGetProperty("confidence", out JsonElement confElement))
+                    continue;
+
+                string text = textElement.GetString() ?? "";
+                if (text.Length < minTextFragmentSize)
+                    continue;
+
+                if (autoMergeEnabled)
+                {
+                    var (x, y, width, height) = ReadRect(item);
+                    int? bubbleId = item.TryGetProperty("bubble_id", out JsonElement bubbleElement) && bubbleElement.ValueKind == JsonValueKind.Number
+                        ? bubbleElement.GetInt32()
+                        : null;
+                    tempBlocks.Add(new TempTextBlock { Text = text, X = x, Y = y, Width = width, Height = height, Confidence = confElement.GetDouble(), BubbleId = bubbleId });
+                }
+                else
+                {
+                    texts.Add(text);
+                }
+            }
+
+            if (autoMergeEnabled && tempBlocks.Count > 0)
+            {
+                texts.AddRange(MergeOverlappingTextBlocks(tempBlocks).blocks.Select(b => b.Text));
+            }
+
+            // CreateTextObjectAtPosition skips blank text
+            return texts.Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
         }
 
         // Create a text object at the specified position with confidence info
@@ -2311,15 +2390,37 @@ namespace RSTGameTranslation
                 // Create translation service based on current configuration
                 ITranslationService translationService = TranslationServiceFactory.CreateService();
                 string currentService = ConfigManager.Instance.GetCurrentTranslationService();
+                string currentModel = ConfigManager.Instance.GetCurrentTranslationModel();
 
                 bool mangaModeEnabled = ConfigManager.Instance.IsMangaModeEnabled();
                 bool hadSuccessfulTranslation = false;
 
-                if (mangaModeEnabled)
+                // Text seen before under the same settings is shown at once from the cache
+                bool cacheEnabled = ConfigManager.Instance.IsTranslationCacheEnabled();
+                bool readCache = cacheEnabled && !_bypassTranslationCacheOnce;
+                _bypassTranslationCacheOnce = false;
+                if (cacheEnabled)
+                {
+                    TranslationCache.Instance.UseContext(BuildTranslationCacheContext(currentService, currentModel, prompt, gameInfo));
+                }
+                if (readCache)
+                {
+                    // The same text is already being translated in the background: use that result instead of a second request
+                    await WaitForMatchingPrefetchAsync();
+                }
+                var cachedObjects = readCache ? ApplyCachedTranslations() : new HashSet<TextObject>();
+
+                if (cachedObjects.Count == _textObjects.Count)
+                {
+                    OcrTiming.Log("3. Translation served from cache", $"{cachedObjects.Count} block(s)");
+                    AddTranslatedTextObjectsToChatBox();
+                }
+                else if (mangaModeEnabled)
                 {
                     // Each bubble stays its own id-tagged block, so translations can't bleed into each other,
                     // but the whole page goes in one request: faster, and the model sees the conversation.
-                    var blocks = _textObjects.ToList();
+                    // Bubbles already translated from the cache are not sent.
+                    var blocks = _textObjects.Where(t => !cachedObjects.Contains(t)).ToList();
                     var batches = blocks.Count <= MangaSingleRequestMaxBlocks
                         ? new List<List<TextObject>> { blocks }
                         : blocks.Chunk(MangaBatchSize).Select(c => c.ToList()).ToList();
@@ -2356,19 +2457,22 @@ namespace RSTGameTranslation
                         }
                     }
 
-                    Console.WriteLine($"Manga translation: {blocks.Count} block(s) in {batches.Count} request(s)");
+                    Console.WriteLine($"Manga translation: {blocks.Count} block(s) in {batches.Count} request(s), {cachedObjects.Count} from cache");
+                    LogTranslationRequest(currentService, currentModel, blocks, batches.Count, cachedObjects.Count);
+                    var requestStopwatch = Stopwatch.StartNew();
                     bool[] batchResults = await Task.WhenAll(batches.Select(TranslateBatchAsync));
-                    hadSuccessfulTranslation = batchResults.Any(ok => ok);
+                    hadSuccessfulTranslation = batchResults.Any(ok => ok) || cachedObjects.Count > 0;
+                    OcrTiming.Log("4. Translation received", $"{requestStopwatch.ElapsedMilliseconds} ms");
 
-                    // The model may skip or merge an id; translate whatever is still missing on its own
+                    // The model may skip or merge an id; translate whatever is still missing on its own.
+                    // These go out in parallel too, within the same concurrency limit.
                     var missing = blocks.Where(t => string.IsNullOrEmpty(t.TextTranslated)).ToList();
                     if (missing.Count > 0)
                     {
                         Console.WriteLine($"Manga translation: retrying {missing.Count} untranslated block(s) one by one");
-                        foreach (var textObject in missing)
-                        {
-                            hadSuccessfulTranslation |= await TranslateBatchAsync(new List<TextObject> { textObject });
-                        }
+                        bool[] retryResults = await Task.WhenAll(missing.Select(t => TranslateBatchAsync(new List<TextObject> { t })));
+                        hadSuccessfulTranslation |= retryResults.Any(ok => ok);
+                        OcrTiming.Log("4b. Missing blocks retried", $"{missing.Count} block(s)");
                     }
 
                     if (!hadSuccessfulTranslation)
@@ -2395,7 +2499,12 @@ namespace RSTGameTranslation
                     string jsonToTranslate = BuildTranslationRequestJson(textsToTranslate, previousContext, gameInfo);
                     LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
 
+                    // Blocks are matched back by position in one combined text, so a partial cache hit
+                    // still sends everything
+                    LogTranslationRequest(currentService, currentModel, _textObjects, 1, 0);
+                    var requestStopwatch = Stopwatch.StartNew();
                     string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
+                    OcrTiming.Log("4. Translation received", $"{requestStopwatch.ElapsedMilliseconds} ms");
 
                     if (string.IsNullOrEmpty(translationResponse))
                     {
@@ -2411,8 +2520,17 @@ namespace RSTGameTranslation
                 // A response that could not be parsed into any translated text also counts as a failure
                 OnboardingTips.OnTranslationResult(currentService, _textObjects.Any(t => !string.IsNullOrEmpty(t.TextTranslated)));
 
+                if (cacheEnabled)
+                {
+                    foreach (var textObject in _textObjects)
+                    {
+                        TranslationCache.Instance.Set(textObject.Text, textObject.TextTranslated);
+                    }
+                }
+
                 _translationStopwatch.Stop();
                 Console.WriteLine($"Translation took {_translationStopwatch.ElapsedMilliseconds} ms");
+                OcrTiming.Log("5. Translation shown", $"translation step took {_translationStopwatch.ElapsedMilliseconds} ms");
                 if (!ConfigManager.Instance.IsAutoOCREnabled())
                 {
                     MainWindow.Instance.isStopOCR = true;
@@ -2430,6 +2548,225 @@ namespace RSTGameTranslation
             OnFinishedThings(true);
         }
 
+        // Set when the user asks to retry, so that one translation goes to the service even if cached
+        private bool _bypassTranslationCacheOnce;
+
+        // Settings that change a translation: a cached one is only reused under the same settings
+        private string BuildTranslationCacheContext(string service, string model, string prompt, string gameInfo) =>
+            string.Join("\u001F", service, model, GetSourceLanguage(), GetTargetLanguage(), prompt, gameInfo);
+
+        // ----- Prefetch: translate new text while waiting for it to settle -----
+        // When OCR sees new text the pipeline waits for the next OCR pass to confirm it (the settle time,
+        // in practice one OCR cycle, ~0.4-0.5 s). The prefetch sends the translation request right away
+        // and only fills the cache; once the text has settled, the normal path finds it there (or waits
+        // for the request still in flight). Text that is still changing is never shown, it only costs
+        // a request. One prefetch runs at a time.
+        private Task? _prefetchTask;
+        private List<string>? _prefetchTexts;
+
+        private void StartTranslationPrefetch(JsonElement results)
+        {
+            try
+            {
+                if (!ConfigManager.Instance.IsTranslationPrefetchEnabled() ||
+                    !ConfigManager.Instance.IsTranslationCacheEnabled() ||
+                    !MainWindow.Instance.GetIsStarted() ||
+                    !MainWindow.Instance.GetTranslateEnabled() ||
+                    GetWaitingForTranslationToFinish() ||
+                    _prefetchTask is { IsCompleted: false })
+                    return;
+
+                List<string> texts = GetTranslatableTexts(results);
+                if (texts.Count == 0)
+                    return;
+
+                string service = ConfigManager.Instance.GetCurrentTranslationService();
+                string model = ConfigManager.Instance.GetCurrentTranslationModel();
+                string gameInfo = ConfigManager.Instance.GetGameInfo();
+                string prompt = GetLlmPrompt()
+                    .Replace("source_language", MapLanguageCode(GetSourceLanguage()))
+                    .Replace("target_language", MapLanguageCode(GetTargetLanguage()));
+                string cacheContext = BuildTranslationCacheContext(service, model, prompt, gameInfo);
+                TranslationCache.Instance.UseContext(cacheContext);
+
+                if (texts.All(t => TranslationCache.Instance.TryGet(t, out _)))
+                    return; // Nothing new to translate
+
+                bool mangaMode = ConfigManager.Instance.IsMangaModeEnabled();
+                // A large manga page is split into several requests by the normal path; leave it to that
+                if (mangaMode && texts.Count > MangaSingleRequestMaxBlocks)
+                    return;
+
+                var previousContext = GetPreviousContext();
+                _prefetchTexts = texts;
+                _prefetchTask = Task.Run(() => PrefetchTranslationsAsync(texts, mangaMode, prompt, gameInfo, previousContext, cacheContext));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error starting translation prefetch: {ex.Message}");
+            }
+        }
+
+        private async Task PrefetchTranslationsAsync(List<string> texts, bool mangaMode, string prompt, string gameInfo,
+                                                     List<string> previousContext, string cacheContext)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                ITranslationService translationService = TranslationServiceFactory.CreateService();
+                var cache = TranslationCache.Instance;
+                int stored = 0;
+
+                if (mangaMode)
+                {
+                    // Only bubbles not cached yet, each with its own id, as the normal path sends them
+                    var missing = texts.Where(t => !cache.TryGet(t, out _)).Distinct().ToList();
+                    var payload = missing.Select((t, i) => (object)new { id = "prefetch_" + i, text = t }).ToList();
+                    OcrTiming.Log("2a. Prefetch request", $"{missing.Count} block(s)");
+
+                    string? response = await translationService.TranslateAsync(BuildTranslationRequestJson(payload, previousContext, gameInfo), prompt);
+                    var translations = string.IsNullOrEmpty(response) ? new Dictionary<string, string>() : ParseTranslationsById(response);
+                    for (int i = 0; i < missing.Count; i++)
+                    {
+                        if (translations.TryGetValue("prefetch_" + i, out string? translated))
+                        {
+                            cache.SetIfContext(cacheContext, missing[i], FinalizeTranslation(translated, isCombinedPart: false));
+                            stored++;
+                        }
+                    }
+                }
+                else
+                {
+                    // One combined block, split back by position exactly like the normal path
+                    var payload = new List<object> { new { id = "999", text = string.Join("##|||##", texts) } };
+                    OcrTiming.Log("2a. Prefetch request", $"{texts.Count} block(s) combined");
+
+                    string? response = await translationService.TranslateAsync(BuildTranslationRequestJson(payload, previousContext, gameInfo), prompt);
+                    var translations = string.IsNullOrEmpty(response) ? new Dictionary<string, string>() : ParseTranslationsById(response);
+                    if (translations.TryGetValue("999", out string? combined))
+                    {
+                        string[] parts = combined.Split("##|||##");
+                        // A different number of parts would pair translations with the wrong text
+                        if (parts.Length == texts.Count)
+                        {
+                            for (int i = 0; i < texts.Count; i++)
+                            {
+                                cache.SetIfContext(cacheContext, texts[i], FinalizeTranslation(parts[i], isCombinedPart: true));
+                            }
+                            stored = texts.Count;
+                        }
+                    }
+                }
+
+                OcrTiming.Log("2b. Prefetch done", $"{stopwatch.ElapsedMilliseconds} ms, {stored} translation(s) cached");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Translation prefetch failed: {ex.Message}");
+            }
+        }
+
+        // If a prefetch for exactly the current text is still running, wait for it so its result is
+        // used instead of sending the same request again
+        private async Task WaitForMatchingPrefetchAsync()
+        {
+            var task = _prefetchTask;
+            var texts = _prefetchTexts;
+            if (task == null || task.IsCompleted || texts == null ||
+                !texts.SequenceEqual(_textObjects.Select(t => t.Text)))
+                return;
+
+            OcrTiming.Log("3a. Waiting for the prefetch of this text");
+            try
+            {
+                await task;
+            }
+            catch (Exception)
+            {
+                // A failed prefetch just means the normal request goes out
+            }
+        }
+
+        private static readonly HashSet<string> RtlLanguages = new HashSet<string> {
+            "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu"
+        };
+
+        // The same post-processing the normal path applies before it stores a translation, so a
+        // prefetched translation is identical to one produced by ProcessTranslatedJSON
+        private static string FinalizeTranslation(string translated, bool isCombinedPart)
+        {
+            if (isCombinedPart)
+            {
+                translated = System.Text.RegularExpressions.Regex.Replace(translated, @"\|{3}\s*RST\s*\|{3}|#{0,2}\s*\|{3}\s*#{0,2}", "");
+            }
+            if (RtlLanguages.Contains(ConfigManager.Instance.GetTargetLanguage().ToLower()) && !translated.StartsWith("\u200F"))
+            {
+                translated = "\u200F" + translated;
+            }
+            return translated;
+        }
+
+        // id -> translated text from a service response, in either response format
+        // ("text_blocks" from LLMs, "translations" from Google Translate / Yandex / Microsoft)
+        private Dictionary<string, string> ParseTranslationsById(string translationResponse)
+        {
+            var result = new Dictionary<string, string>();
+            try
+            {
+                var (innerContent, isTranslationsFormat) = ExtractInnerContentFromResponse(translationResponse);
+                if (string.IsNullOrEmpty(innerContent))
+                    return result;
+
+                using JsonDocument doc = JsonDocument.Parse(innerContent);
+                string arrayName = isTranslationsFormat ? "translations" : "text_blocks";
+                string textName = isTranslationsFormat ? "translated_text" : "text";
+                if (!doc.RootElement.TryGetProperty(arrayName, out JsonElement items) || items.ValueKind != JsonValueKind.Array)
+                    return result;
+
+                foreach (JsonElement item in items.EnumerateArray())
+                {
+                    if (item.TryGetProperty("id", out JsonElement idElement) &&
+                        item.TryGetProperty(textName, out JsonElement textElement))
+                    {
+                        string id = idElement.ValueKind == JsonValueKind.String ? idElement.GetString() ?? "" : idElement.ToString();
+                        string text = textElement.GetString() ?? "";
+                        if (id.Length > 0 && text.Length > 0)
+                            result[id] = text;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not read prefetch response: {ex.Message}");
+            }
+            return result;
+        }
+
+        // Fill text objects from the translation cache; returns the ones that were found
+        private HashSet<TextObject> ApplyCachedTranslations()
+        {
+            var found = new HashSet<TextObject>();
+            foreach (var textObject in _textObjects)
+            {
+                if (TranslationCache.Instance.TryGet(textObject.Text, out string translation))
+                {
+                    // Cached RTL translations keep the right-to-left mark added when they were first shown
+                    textObject.FlowDirection = translation.StartsWith("\u200F") ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+                    textObject.TextTranslated = translation;
+                    textObject.UpdateUIElement();
+                    found.Add(textObject);
+                }
+            }
+            return found;
+        }
+
+        private static void LogTranslationRequest(string service, string model, IEnumerable<TextObject> blocks, int requests, int fromCache)
+        {
+            int chars = blocks.Sum(t => t.Text?.Length ?? 0);
+            string modelPart = string.IsNullOrEmpty(model) ? "" : $" ({model})";
+            OcrTiming.Log("3. Translation request", $"{service}{modelPart}, {requests} request(s), {chars} chars{(fromCache > 0 ? $", {fromCache} block(s) from cache" : "")}");
+        }
+
         private string BuildTranslationRequestJson(List<object> textBlocks, List<string> previousContext, string gameInfo)
         {
             var ocrData = new
@@ -2441,9 +2778,9 @@ namespace RSTGameTranslation
                 game_info = gameInfo
             };
 
+            // Compact: indentation only adds input tokens
             var jsonOptions = new JsonSerializerOptions
             {
-                WriteIndented = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
 
@@ -2565,7 +2902,6 @@ namespace RSTGameTranslation
 
                 var jsonOptions = new JsonSerializerOptions
                 {
-                    WriteIndented = true,
                     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
                 };
                 string jsonToTranslate = JsonSerializer.Serialize(ocrData, jsonOptions);

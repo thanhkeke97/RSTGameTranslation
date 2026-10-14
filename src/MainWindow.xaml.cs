@@ -683,6 +683,7 @@ namespace RSTGameTranslation
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             SetOCRCheckIsWanted(false);
+            OcrTiming.MarkCaptureSent();
 
             image.Save(outputPath, ImageFormat.Png);
 
@@ -2947,6 +2948,9 @@ namespace RSTGameTranslation
                 }
             }
 
+            if (!fromClipboard && TryCompleteTypedOutEntry(originalText, translatedText))
+                return;
+
             // Create new entry
             var entry = new TranslationEntry
             {
@@ -2967,6 +2971,45 @@ namespace RSTGameTranslation
 
             //Console.WriteLine($"Translation added to history. History size: {_translationHistory.Count}");
             ChatBoxWindow.Instance!.OnTranslationWasAdded(originalText, translatedText, fromClipboard);
+        }
+
+        // Typewriter dialogue can be translated while it is still typing out, then again once complete.
+        // The complete line replaces the half-typed entry instead of adding a second one, and TTS reads
+        // only what the half-typed translation did not already say.
+        private const int TypedOutEntryMaxAgeSeconds = 20;
+        private const int TypedOutEntriesToCheck = 3;
+
+        private bool TryCompleteTypedOutEntry(string originalText, string translatedText)
+        {
+            // Several text blocks (a name box, the dialogue) are added per translation, so look a few back
+            var partial = _translationHistory.Reverse()
+                .Take(TypedOutEntriesToCheck)
+                .FirstOrDefault(e => (DateTime.Now - e.Timestamp).TotalSeconds <= TypedOutEntryMaxAgeSeconds &&
+                                     TextGrowth.IsGrowth(e.OriginalText, originalText));
+            if (partial == null)
+                return false;
+
+            string previousTranslation = partial.TranslatedText;
+            partial.OriginalText = originalText;
+            partial.TranslatedText = translatedText;
+            partial.Timestamp = DateTime.Now;
+            Console.WriteLine("Typed-out line completed: replacing its half-typed history entry");
+
+            ChatBoxWindow.Instance!.OnTranslationWasAdded(originalText, translatedText, false,
+                textToSpeak: GetUnspokenRemainder(previousTranslation, translatedText));
+            return true;
+        }
+
+        // The part of the complete translation after the half-typed one, when it extends it; otherwise
+        // null (read the whole line), since the half-typed one may have been worded differently
+        private static string? GetUnspokenRemainder(string spoken, string complete)
+        {
+            char[] trim = { ' ', '.', ',', '…', '、', '。', '-', '—' };
+            string spokenCore = spoken.Trim().TrimEnd(trim);
+            string completeText = complete.TrimStart();
+            if (spokenCore.Length > 0 && completeText.StartsWith(spokenCore, StringComparison.OrdinalIgnoreCase))
+                return completeText.Substring(spokenCore.Length).TrimStart(trim);
+            return null;
         }
 
         // Handle translation events from Logic

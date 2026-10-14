@@ -1042,6 +1042,11 @@ namespace RSTGameTranslation
             // Set hot key enable
             hotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsHotKeyEnabled();
 
+            // Translation speed
+            llmPreferSpeedCheckBox.IsChecked = ConfigManager.Instance.IsLlmPreferSpeedEnabled();
+            translationCacheCheckBox.IsChecked = ConfigManager.Instance.IsTranslationCacheEnabled();
+            translationPrefetchCheckBox.IsChecked = ConfigManager.Instance.IsTranslationPrefetchEnabled();
+
             // Set audio option
             silenceThresholdTextBox.Text = ConfigManager.Instance.GetSilenceThreshold().ToString(CultureInfo.InvariantCulture);
             silenceDurationTextBox.Text = ConfigManager.Instance.GetSilenceDurationMs().ToString(CultureInfo.InvariantCulture);
@@ -5459,6 +5464,24 @@ namespace RSTGameTranslation
             bool enabled = autoMergeOverlappingTextCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetAutoMergeOverlappingText(enabled);
             Console.WriteLine($"Auto merge overlapping text set to {enabled}");
+        }
+
+        private void LlmPreferSpeedCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetLlmPreferSpeedEnabled(llmPreferSpeedCheckBox.IsChecked == true);
+        }
+
+        private void TranslationPrefetchCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetTranslationPrefetchEnabled(translationPrefetchCheckBox.IsChecked == true);
+        }
+
+        private void TranslationCacheCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetTranslationCacheEnabled(translationCacheCheckBox.IsChecked == true);
         }
 
         private void SetHotKeyEnableCheckBox_CheckChange(object sender, RoutedEventArgs e)

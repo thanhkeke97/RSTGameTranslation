@@ -222,6 +222,9 @@ namespace RSTGameTranslation
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
+        public const string LLM_PREFER_SPEED = "llm_prefer_speed";
+        public const string TRANSLATION_CACHE_ENABLED = "translation_cache_enabled";
+        public const string TRANSLATION_PREFETCH = "translation_prefetch";
 
         // Default prompts
         public const string defaultGeminiPrompt = "You are an expert video game localizer. Your task is to translate the source_language text in the provided JSON to target_language.\n" +
@@ -585,7 +588,7 @@ namespace RSTGameTranslation
             // latent chunk boundary and the ending becomes inaudible.
             _configValues[SUPERTONIC_SPEED] = (1.05f).ToString(CultureInfo.InvariantCulture);
             _configValues[TTS_ENABLED] = "false";
-            _configValues[MAX_CONTEXT_PIECES] = (20).ToString(CultureInfo.InvariantCulture);
+            _configValues[MAX_CONTEXT_PIECES] = (10).ToString(CultureInfo.InvariantCulture);
             _configValues[MIN_CONTEXT_SIZE] = (8).ToString(CultureInfo.InvariantCulture);
             _configValues[GAME_INFO] = "We're playing an unspecified game.";
             _configValues[MIN_TEXT_FRAGMENT_SIZE] = (1).ToString(CultureInfo.InvariantCulture);
@@ -825,9 +828,16 @@ namespace RSTGameTranslation
                 return value;
             }
 
-            Console.WriteLine($"ConfigManager.GetValue: Key '{key}' not found, returning default value: '{defaultValue}'");
+            // Reported once per key: settings added after the config file was created are read on
+            // every translation and would otherwise flood the log
+            if (_reportedMissingKeys.TryAdd(key, 0))
+            {
+                Console.WriteLine($"ConfigManager.GetValue: Key '{key}' not found, returning default value: '{defaultValue}'");
+            }
             return defaultValue;
         }
+
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _reportedMissingKeys = new();
 
         // Set a configuration value
         public void SetValue(string key, string value)
@@ -3433,6 +3443,51 @@ namespace RSTGameTranslation
         }
 
         // Get whether hot key should be enabled
+        // Ask LLM services to think as little as possible (lower latency; see ReasoningFallback)
+        public bool IsLlmPreferSpeedEnabled() => GetBoolValue(LLM_PREFER_SPEED, true);
+
+        public void SetLlmPreferSpeedEnabled(bool enabled)
+        {
+            _configValues[LLM_PREFER_SPEED] = enabled.ToString().ToLower();
+            SaveConfig();
+        }
+
+        // Reuse translations of text seen before (see TranslationCache)
+        public bool IsTranslationCacheEnabled() => GetBoolValue(TRANSLATION_CACHE_ENABLED, true);
+
+        public void SetTranslationCacheEnabled(bool enabled)
+        {
+            _configValues[TRANSLATION_CACHE_ENABLED] = enabled.ToString().ToLower();
+            SaveConfig();
+            if (!enabled)
+                TranslationCache.Instance.Clear();
+        }
+
+        // Start translating new text while waiting for it to settle (see Logic.StartTranslationPrefetch)
+        public bool IsTranslationPrefetchEnabled() => GetBoolValue(TRANSLATION_PREFETCH, true);
+
+        public void SetTranslationPrefetchEnabled(bool enabled)
+        {
+            _configValues[TRANSLATION_PREFETCH] = enabled.ToString().ToLower();
+            SaveConfig();
+        }
+
+        // Model of the current translation service, or "" for services without a model choice
+        public string GetCurrentTranslationModel()
+        {
+            return GetCurrentTranslationService() switch
+            {
+                "Gemini" => GetGeminiModel(),
+                "ChatGPT" => GetChatGptModel(),
+                "Ollama" => GetOllamaModel(),
+                "LM Studio" => GetLMStudioModel(),
+                "Custom API" => GetCustomApiModel(),
+                "Groq" => GetGroqModel(),
+                "Mistral" => GetMistralModel(),
+                _ => ""
+            };
+        }
+
         public bool IsHotKeyEnabled()
         {
             string value = GetValue(HOT_KEY_ENABLE, "true");

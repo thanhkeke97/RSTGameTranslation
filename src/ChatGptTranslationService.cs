@@ -49,6 +49,52 @@ namespace RSTGameTranslation
             return false;
         }
 
+        // reasoning_effort values tried in order, fastest first; supported values differ per model
+        private static readonly string[] ReasoningEfforts = { "none", "minimal", "low" };
+
+        // Parameters this service sends that a model may not support
+        private static readonly HashSet<string> OptionalParameters = new() { "temperature", "max_completion_tokens", "reasoning_effort" };
+
+        // Read OpenAI's 400 error ({"error": {"param": ..., "code": ...}}). If it names one of our optional
+        // parameters, remember the adjustment for this model and return true so the request is retried.
+        // Only parameters that were actually sent are adjusted, so every retry sends strictly less.
+        private static bool TryAdjustRejectedParameter(string responseContent, string modelKey, int effortStep, ICollection<string> sentParameters)
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(responseContent);
+                if (!doc.RootElement.TryGetProperty("error", out JsonElement error) ||
+                    !error.TryGetProperty("param", out JsonElement paramElement) ||
+                    paramElement.ValueKind != JsonValueKind.String)
+                    return false;
+
+                string param = paramElement.GetString() ?? "";
+                if (!OptionalParameters.Contains(param) || !sentParameters.Contains(param))
+                    return false;
+
+                string code = error.TryGetProperty("code", out JsonElement codeElement) && codeElement.ValueKind == JsonValueKind.String
+                    ? codeElement.GetString() ?? ""
+                    : "";
+
+                if (param == "reasoning_effort")
+                {
+                    // A value this model doesn't support: try the next one; otherwise the model has no reasoning control
+                    if (code == "unsupported_value" && effortStep + 1 < ReasoningEfforts.Length)
+                    {
+                        ReasoningFallback.StepDown(modelKey, effortStep, $"reasoning_effort={ReasoningEfforts[effortStep]}");
+                        return true;
+                    }
+                }
+
+                ReasoningFallback.Drop(modelKey, param);
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Get masked API key for logging (show only first 4 and last 4 characters)
         /// </summary>
@@ -155,14 +201,35 @@ namespace RSTGameTranslation
                     { "content", "Here is the input JSON:\n\n" + jsonData }
                 });
 
-                // Create request body
+                // Create request body. Optional parameters that a model rejected earlier are left out
+                // (reasoning models refuse a custom temperature, older ones don't know reasoning_effort).
+                string modelKey = "ChatGPT:" + model;
                 var requestBody = new Dictionary<string, object>
                 {
                     { "model", model },
                     { "messages", messages },
-                    { "temperature", 0.3 },  // Lower temperature for more consistent translations
-                    { "max_tokens", 2000 }   // Increase max tokens for longer texts
                 };
+                if (!ReasoningFallback.IsDropped(modelKey, "temperature"))
+                {
+                    requestBody["temperature"] = 0.3; // Lower temperature for more consistent translations
+                }
+                if (!ReasoningFallback.IsDropped(modelKey, "max_completion_tokens"))
+                {
+                    // Replaces the deprecated max_tokens; on reasoning models it also covers reasoning tokens
+                    requestBody["max_completion_tokens"] = 4096;
+                }
+
+                // Prefer speed: as little reasoning as the model allows
+                int effortStep = ReasoningFallback.GetStep(modelKey);
+                string? reasoningEffort = ConfigManager.Instance.IsLlmPreferSpeedEnabled() &&
+                                          !ReasoningFallback.IsDropped(modelKey, "reasoning_effort") &&
+                                          effortStep < ReasoningEfforts.Length
+                    ? ReasoningEfforts[effortStep]
+                    : null;
+                if (reasoningEffort != null)
+                {
+                    requestBody["reasoning_effort"] = reasoningEffort;
+                }
 
                 // Serialize the request body
                 string requestJson = JsonSerializer.Serialize(requestBody);
@@ -355,6 +422,13 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Error calling ChatGPT API: {response.StatusCode}");
                     Console.WriteLine($"Response: {responseContent}");
+
+                    // A model-specific parameter was rejected: adjust it and try again
+                    if (response.StatusCode == HttpStatusCode.BadRequest &&
+                        TryAdjustRejectedParameter(responseContent, modelKey, effortStep, requestBody.Keys))
+                    {
+                        return await TranslateAsync(jsonData, prompt);
+                    }
 
                     // Check if we should switch API key
                     if (ShouldSwitchApiKey(response.StatusCode, responseContent))
