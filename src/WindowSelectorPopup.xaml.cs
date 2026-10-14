@@ -33,6 +33,15 @@ namespace RSTGameTranslation
             LoadWindowList();
         }
 
+        // Opened by itself at startup: explain why to pick the game window, and make cancelling a "skip"
+        public void ConfigureForStartup(bool isWindows10)
+        {
+            startupHintPanel.Visibility = Visibility.Visible;
+            win10HintText.Visibility = isWindows10 ? Visibility.Visible : Visibility.Collapsed;
+            cancelButton.Content = LocalizationManager.Instance.Strings["Common_Btn_Skip"];
+            this.Height = isWindows10 ? 480 : 440;
+        }
+
         private void LoadWindowList()
         {
           
@@ -89,6 +98,11 @@ namespace RSTGameTranslation
 
            
             if (string.IsNullOrEmpty(title.ToString()) || hWnd == new WindowInteropHelper(this).Handle)
+                return true;
+
+            // RST's own windows (main window, overlay, chat box) are never the game
+            GetWindowThreadProcessId(hWnd, out uint ownerProcessId);
+            if (ownerProcessId == (uint)Environment.ProcessId)
                 return true;
 
            
@@ -186,6 +200,7 @@ namespace RSTGameTranslation
             {
                 if (IsWindow(window.Handle))
                 {
+                    WindowWasSelected = true;
                     WindowSelected?.Invoke(window.Handle, window.Title);
                     this.Close();
                 }
@@ -202,6 +217,9 @@ namespace RSTGameTranslation
         {
             this.Close();
         }
+
+        // True once a window was picked (the dialog was not cancelled or closed)
+        public bool WindowWasSelected { get; private set; }
 
     
         private class WindowInfo

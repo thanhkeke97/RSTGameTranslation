@@ -592,5 +592,12 @@
   "Btn_ResetSettings": "Restore default settings",
   "Msg_ResetSettingsConfirm": "Restore all settings to their defaults?\n\nKept: API keys, the custom API address, the interface language, saved profiles and translation prompts.\n\nA backup of the current settings is saved first. The app will restart.",
   "Msg_ResetSettingsFailed": "Could not restore the default settings. Nothing was changed.\n\n{0}",
-  "Msg_ResetSettingsDone": "Settings were restored to their defaults. The app will now restart.\n\nBackup of the previous settings:\n{0}"
+  "Msg_ResetSettingsDone": "Settings were restored to their defaults. The app will now restart.\n\nBackup of the previous settings:\n{0}",
+  "Common_Btn_Skip": "Skip",
+  "SelectWindow_StartupHint": "Select the game window to translate. RST then captures only that window. You can skip this and choose later with the \"Select Application\" button.",
+  "SelectWindow_Win10Hint": "On Windows 10 the overlay can only be used while a game window is selected. Otherwise OCR would read the translations shown on screen instead of the game text.",
+  "Msg_Win10OverlayHiddenNoWindow": "The overlay was turned off: on Windows 10 it can only be used while a game window is selected. Click \"Select Application\" to select the game window again.",
+  "Welcome_GameWindowTitle": "Game window",
+  "Welcome_NoWindowSelected": "No window selected yet",
+  "Welcome_WindowSelected": "✓ Capturing: {0}"
 }

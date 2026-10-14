@@ -589,5 +589,12 @@
   "Btn_ResetSettings": "恢复默认设置",
   "Msg_ResetSettingsConfirm": "要将所有设置恢复为默认值吗？\n\n保留：API 密钥、自定义 API 地址、界面语言、已保存的配置文件和翻译提示词。\n\n会先备份当前设置。应用将重新启动。",
   "Msg_ResetSettingsFailed": "无法恢复默认设置。没有任何更改。\n\n{0}",
-  "Msg_ResetSettingsDone": "设置已恢复为默认值。应用现在将重新启动。\n\n之前设置的备份：\n{0}"
+  "Msg_ResetSettingsDone": "设置已恢复为默认值。应用现在将重新启动。\n\n之前设置的备份：\n{0}",
+  "Common_Btn_Skip": "跳过",
+  "SelectWindow_StartupHint": "请选择要翻译的游戏窗口。RST 将只捕获该窗口。也可以跳过，稍后通过\"选择应用程序\"按钮选择。",
+  "SelectWindow_Win10Hint": "在 Windows 10 上，只有选择了游戏窗口才能使用叠加层。否则 OCR 会读取屏幕上的译文，而不是游戏文字。",
+  "Msg_Win10OverlayHiddenNoWindow": "叠加层已关闭：在 Windows 10 上，只有选择了游戏窗口才能使用叠加层。请点击\"选择应用程序\"重新选择游戏窗口。",
+  "Welcome_GameWindowTitle": "游戏窗口",
+  "Welcome_NoWindowSelected": "尚未选择窗口",
+  "Welcome_WindowSelected": "✓ 正在捕获：{0}"
 }

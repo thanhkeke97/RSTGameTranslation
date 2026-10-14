@@ -38,6 +38,7 @@ namespace RSTGameTranslation
             PopulateLanguageComboBox(SourceLanguageComboBox, MainWindow.Instance.sourceLanguageComboBox, ConfigManager.Instance.GetSourceLanguage());
             PopulateLanguageComboBox(TargetLanguageComboBox, MainWindow.Instance.targetLanguageComboBox, ConfigManager.Instance.GetTargetLanguage());
             BuildCommonPairButtons();
+            Win10WindowHint.Visibility = MainWindow.Instance.IsWindows10 ? Visibility.Visible : Visibility.Collapsed;
             UpdateFormattedTexts();
 
             LocalizationManager.Instance.PropertyChanged += LocalizationManager_PropertyChanged;
@@ -141,6 +142,20 @@ namespace RSTGameTranslation
                 strings["Btn_Overlay"], strings["Btn_ChatBox"]);
 
             ReopenHintText.Text = string.Format(strings["Welcome_ReopenHint"], strings["Lbl_QuickStart"]);
+
+            bool hasWindow = MainWindow.Instance.IsCapturingGameWindow;
+            SelectedWindowText.Text = hasWindow
+                ? string.Format(strings["Welcome_WindowSelected"], MainWindow.Instance.CapturedWindowTitle)
+                : strings["Welcome_NoWindowSelected"];
+            SelectedWindowText.Foreground = (System.Windows.Media.Brush)FindResource(hasWindow ? "SuccessBrush" : "MutedBrush");
+        }
+
+        private void ChooseWindowButton_Click(object sender, RoutedEventArgs e)
+        {
+            var popup = new WindowSelectorPopup { Owner = this };
+            popup.WindowSelected += (handle, title) => MainWindow.Instance.SelectGameWindow(handle, title);
+            popup.ShowDialog();
+            UpdateFormattedTexts();
         }
 
         private void InterfaceLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -167,6 +167,25 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Game window (offered here on first run instead of a separate prompt) -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}"
+                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Welcome_GameWindowTitle]}"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,8"
+                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[SelectWindow_StartupHint]}"/>
+                        <TextBlock x:Name="Win10WindowHint" TextWrapping="Wrap" Foreground="{DynamicResource WarningBrush}" Margin="0,0,0,8"
+                                   Visibility="Collapsed"
+                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[SelectWindow_Win10Hint]}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource NeutralButton}" Click="ChooseWindowButton_Click"
+                                    Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectWindow]}"/>
+                            <TextBlock x:Name="SelectedWindowText" VerticalAlignment="Center" Margin="12,0,0,0" MaxWidth="400"
+                                       TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- Current setup -->
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>

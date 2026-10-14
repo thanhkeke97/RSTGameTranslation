@@ -594,5 +594,12 @@
   "Btn_ResetSettings": "Khôi phục cài đặt gốc",
   "Msg_ResetSettingsConfirm": "Khôi phục tất cả cài đặt về mặc định?\n\nĐược giữ lại: API key, địa chỉ API tùy chỉnh, ngôn ngữ giao diện, các profile đã lưu và prompt dịch.\n\nCài đặt hiện tại sẽ được sao lưu trước. Ứng dụng sẽ khởi động lại.",
   "Msg_ResetSettingsFailed": "Không thể khôi phục cài đặt gốc. Chưa có gì bị thay đổi.\n\n{0}",
-  "Msg_ResetSettingsDone": "Đã khôi phục cài đặt gốc. Ứng dụng sẽ khởi động lại ngay bây giờ.\n\nBản sao lưu cài đặt cũ:\n{0}"
+  "Msg_ResetSettingsDone": "Đã khôi phục cài đặt gốc. Ứng dụng sẽ khởi động lại ngay bây giờ.\n\nBản sao lưu cài đặt cũ:\n{0}",
+  "Common_Btn_Skip": "Bỏ qua",
+  "SelectWindow_StartupHint": "Chọn cửa sổ game cần dịch. RST sẽ chỉ chụp đúng cửa sổ đó. Bạn có thể bỏ qua và chọn sau bằng nút \"Chọn ứng dụng\".",
+  "SelectWindow_Win10Hint": "Trên Windows 10, overlay chỉ dùng được khi đã chọn cửa sổ game. Nếu không, OCR sẽ đọc lại chính bản dịch trên màn hình thay vì chữ trong game.",
+  "Msg_Win10OverlayHiddenNoWindow": "Overlay đã được tắt: trên Windows 10, overlay chỉ dùng được khi đã chọn cửa sổ game. Nhấn \"Chọn ứng dụng\" để chọn lại cửa sổ game.",
+  "Welcome_GameWindowTitle": "Cửa sổ game",
+  "Welcome_NoWindowSelected": "Chưa chọn cửa sổ",
+  "Welcome_WindowSelected": "✓ Đang chụp: {0}"
 }

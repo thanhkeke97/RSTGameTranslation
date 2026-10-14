@@ -592,5 +592,12 @@
   "Btn_ResetSettings": "初期設定に戻す",
   "Msg_ResetSettingsConfirm": "すべての設定を既定値に戻しますか？\n\n保持されるもの：APIキー、カスタムAPIのアドレス、表示言語、保存済みのプロファイル、翻訳プロンプト。\n\n現在の設定は先にバックアップされます。アプリは再起動します。",
   "Msg_ResetSettingsFailed": "初期設定に戻せませんでした。設定は変更されていません。\n\n{0}",
-  "Msg_ResetSettingsDone": "設定を既定値に戻しました。アプリを再起動します。\n\n以前の設定のバックアップ：\n{0}"
+  "Msg_ResetSettingsDone": "設定を既定値に戻しました。アプリを再起動します。\n\n以前の設定のバックアップ：\n{0}",
+  "Common_Btn_Skip": "スキップ",
+  "SelectWindow_StartupHint": "翻訳するゲームのウィンドウを選択してください。RST はそのウィンドウだけをキャプチャします。スキップして、後で「アプリケーションを選択」ボタンから選ぶこともできます。",
+  "SelectWindow_Win10Hint": "Windows 10 では、ゲームのウィンドウを選択している間だけオーバーレイを使用できます。選択しないと、OCR がゲームの文字ではなく画面上の翻訳を読み取ってしまいます。",
+  "Msg_Win10OverlayHiddenNoWindow": "オーバーレイをオフにしました。Windows 10 では、ゲームのウィンドウを選択している間だけ使用できます。「アプリケーションを選択」をクリックして、ゲームのウィンドウを選び直してください。",
+  "Welcome_GameWindowTitle": "ゲームのウィンドウ",
+  "Welcome_NoWindowSelected": "まだウィンドウが選択されていません",
+  "Welcome_WindowSelected": "✓ キャプチャ中：{0}"
 }

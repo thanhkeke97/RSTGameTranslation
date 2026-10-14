@@ -591,5 +591,12 @@
   "Btn_ResetSettings": "Restaurar configurações padrão",
   "Msg_ResetSettingsConfirm": "Restaurar todas as configurações para o padrão?\n\nMantidos: chaves de API, endereço da API personalizada, idioma da interface, perfis salvos e prompts de tradução.\n\nUm backup das configurações atuais é salvo antes. O aplicativo será reiniciado.",
   "Msg_ResetSettingsFailed": "Não foi possível restaurar as configurações padrão. Nada foi alterado.\n\n{0}",
-  "Msg_ResetSettingsDone": "As configurações foram restauradas para o padrão. O aplicativo será reiniciado agora.\n\nBackup das configurações anteriores:\n{0}"
+  "Msg_ResetSettingsDone": "As configurações foram restauradas para o padrão. O aplicativo será reiniciado agora.\n\nBackup das configurações anteriores:\n{0}",
+  "Common_Btn_Skip": "Pular",
+  "SelectWindow_StartupHint": "Selecione a janela do jogo a ser traduzida. O RST passa a capturar apenas essa janela. Você pode pular e escolher depois com o botão \"Selecionar aplicação\".",
+  "SelectWindow_Win10Hint": "No Windows 10, a sobreposição só pode ser usada com uma janela de jogo selecionada. Caso contrário, o OCR leria as traduções exibidas na tela em vez do texto do jogo.",
+  "Msg_Win10OverlayHiddenNoWindow": "A sobreposição foi desativada: no Windows 10 ela só pode ser usada com uma janela de jogo selecionada. Clique em \"Selecionar aplicação\" para selecionar a janela do jogo novamente.",
+  "Welcome_GameWindowTitle": "Janela do jogo",
+  "Welcome_NoWindowSelected": "Nenhuma janela selecionada ainda",
+  "Welcome_WindowSelected": "✓ Capturando: {0}"
 }

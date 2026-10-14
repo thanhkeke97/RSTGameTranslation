@@ -57,13 +57,21 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <TextBlock Grid.Row="0" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Header_SelectWindow]}" FontWeight="Bold" Margin="0,0,0,5"/>
+
+        <!-- Shown when the selector opens at startup: why to pick the game window -->
+        <StackPanel Grid.Row="1" x:Name="startupHintPanel" Visibility="Collapsed" Margin="0,0,0,5">
+            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[SelectWindow_StartupHint]}" TextWrapping="Wrap"/>
+            <TextBlock x:Name="win10HintText" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[SelectWindow_Win10Hint]}"
+                       TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource WarningBrush}" Visibility="Collapsed"/>
+        </StackPanel>
         
-        <ListView Grid.Row="1" Name="windowListView" Margin="0,5" MouseDoubleClick="windowListView_MouseDoubleClick"
+        <ListView Grid.Row="2" Name="windowListView" Margin="0,5" MouseDoubleClick="windowListView_MouseDoubleClick"
                   Background="{DynamicResource Surface2Brush}"
                   Foreground="{DynamicResource TextBrush}"
                   BorderBrush="{DynamicResource BorderBrush}">
@@ -74,7 +82,7 @@
             </ListView.View>
         </ListView>
         
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
             <Button Name="refreshButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Common_Btn_Refresh]}" Width="80" Margin="0,0,5,0" Click="RefreshButton_Click"/>
             <Button Name="selectButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Common_Btn_Select]}" Width="80" Margin="0,0,5,0" Click="SelectButton_Click"/>
             <Button Name="cancelButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Common_Btn_Cancel]}" Width="80" Click="CancelButton_Click"/>

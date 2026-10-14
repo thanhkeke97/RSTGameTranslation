@@ -592,5 +592,12 @@
   "Btn_ResetSettings": "기본 설정으로 복원",
   "Msg_ResetSettingsConfirm": "모든 설정을 기본값으로 복원하시겠습니까?\n\n유지되는 항목: API 키, 사용자 지정 API 주소, 인터페이스 언어, 저장된 프로필, 번역 프롬프트.\n\n현재 설정은 먼저 백업됩니다. 앱이 다시 시작됩니다.",
   "Msg_ResetSettingsFailed": "기본 설정으로 복원하지 못했습니다. 아무것도 변경되지 않았습니다.\n\n{0}",
-  "Msg_ResetSettingsDone": "설정이 기본값으로 복원되었습니다. 이제 앱이 다시 시작됩니다.\n\n이전 설정 백업:\n{0}"
+  "Msg_ResetSettingsDone": "설정이 기본값으로 복원되었습니다. 이제 앱이 다시 시작됩니다.\n\n이전 설정 백업:\n{0}",
+  "Common_Btn_Skip": "건너뛰기",
+  "SelectWindow_StartupHint": "번역할 게임 창을 선택하세요. RST는 해당 창만 캡처합니다. 건너뛰고 나중에 \"애플리케이션 선택\" 버튼으로 선택할 수도 있습니다.",
+  "SelectWindow_Win10Hint": "Windows 10에서는 게임 창을 선택한 동안에만 오버레이를 사용할 수 있습니다. 그렇지 않으면 OCR이 게임 텍스트 대신 화면에 표시된 번역을 읽게 됩니다.",
+  "Msg_Win10OverlayHiddenNoWindow": "오버레이가 꺼졌습니다. Windows 10에서는 게임 창을 선택한 동안에만 사용할 수 있습니다. \"애플리케이션 선택\"을 클릭하여 게임 창을 다시 선택하세요.",
+  "Welcome_GameWindowTitle": "게임 창",
+  "Welcome_NoWindowSelected": "아직 선택된 창이 없습니다",
+  "Welcome_WindowSelected": "✓ 캡처 중: {0}"
 }

@@ -1997,26 +1997,10 @@ namespace RSTGameTranslation
                     }
                     else
                     {
-
-                        isCapturingWindow = false;
-                        capturedWindowHandle = IntPtr.Zero;
-                        capturedWindowTitle = string.Empty;
-                        _graphicsCaptureService?.Dispose();
-                        _graphicsCaptureService = null;
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            selectWindowButton.Content = "Select Window";
-                            selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
-
-                            System.Windows.MessageBox.Show(
-                                LocalizationManager.Instance.Strings["Msg_WindowLost"],
-                                LocalizationManager.Instance.Strings["Title_WindowLost"],
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning);
-                        });
-
+                        StopWindowCapture(windowLost: true);
                         Console.WriteLine("Captured window no longer exists, reverting to normal capture mode");
+                        // Capture the screen area from the next tick, once the overlay is hidden (Windows 10)
+                        return;
                     }
                 }
                 catch (Exception ex)
@@ -2024,18 +2008,8 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Error capturing window: {ex.Message}");
                     Console.WriteLine($"Stack trace: {ex.StackTrace}");
 
-
-                    isCapturingWindow = false;
-                    capturedWindowHandle = IntPtr.Zero;
-                    capturedWindowTitle = string.Empty;
-                    _graphicsCaptureService?.Dispose();
-                    _graphicsCaptureService = null;
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        selectWindowButton.Content = "Select Window";
-                        selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
-                    });
+                    StopWindowCapture(windowLost: false);
+                    return;
                 }
             }
 
@@ -2265,7 +2239,8 @@ namespace RSTGameTranslation
         // Toggle the monitor window
         private void MonitorButton_Click(object sender, RoutedEventArgs e)
         {
-            if (Windows_Version == "Windows 10" && !isCapturingWindow)
+            // Hiding is always allowed; showing needs a game window on Windows 10 (see HideOverlayIfItWouldBeCaptured)
+            if (!IsOverlayKeptOutOfCapture && !IsOverlayShown)
             {
                 System.Windows.MessageBox.Show(
                         string.Format(LocalizationManager.Instance.Strings["Msg_Win10RequiresSelectWindow"]),
@@ -2419,19 +2394,24 @@ namespace RSTGameTranslation
         private double monitorWindowLeft = -1;
         private double monitorWindowTop = -1;
 
+        private void HideOverlay(bool notify)
+        {
+            MonitorWindow.Instance.imageScrollViewer.Visibility = Visibility.Collapsed;
+            Console.WriteLine("Monitor window hidden from MainWindow toggle");
+            monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+            if (notify)
+            {
+                ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayHidden"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayHidden_Details"]);
+            }
+            OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+            OverlayStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+        }
+
         private void ToggleMonitorWindow()
         {
-            if (MonitorWindow.Instance.imageScrollViewer.Visibility == Visibility.Visible && MonitorWindow.Instance.IsVisible)
+            if (IsOverlayShown)
             {
-
-                Console.WriteLine($"Saving monitor position: {monitorWindowLeft}, {monitorWindowTop}");
-
-                MonitorWindow.Instance.imageScrollViewer.Visibility = Visibility.Collapsed;
-                Console.WriteLine("Monitor window hidden from MainWindow toggle");
-                monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
-                ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayHidden"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayHidden_Details"]);
-                OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                OverlayStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
+                HideOverlay(notify: true);
             }
             // else 
             // {
@@ -3282,30 +3262,115 @@ namespace RSTGameTranslation
         {
             if (isCapturingWindow)
             {
-                isCapturingWindow = false;
-                capturedWindowHandle = IntPtr.Zero;
-                capturedWindowTitle = string.Empty;
-                _graphicsCaptureService?.Dispose();
-                _graphicsCaptureService = null;
-                selectWindowButton.Content = "Select Window";
-                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
-                UpdateCaptureRect();
-                if (Windows_Version != "Windows 10")
-                {
-                    MonitorWindow.Instance.EnableExcludeFromCapture();
-                }
-
+                StopWindowCapture(windowLost: false);
                 Console.WriteLine("Window capture mode disabled");
             }
             else
             {
-                WindowSelectorPopup popup = new WindowSelectorPopup();
-                popup.WindowSelected += OnWindowSelected;
+                WindowSelectorPopup popup = new WindowSelectorPopup { Owner = this };
+                popup.WindowSelected += (handle, title) => OnWindowSelected(handle, title);
                 popup.ShowDialog();
             }
         }
 
-        private void OnWindowSelected(IntPtr windowHandle, string windowTitle)
+        public bool IsWindows10 => Windows_Version == "Windows 10";
+
+        // For the welcome screen, which offers the game window choice on first run
+        public bool IsCapturingGameWindow => isCapturingWindow;
+        public string CapturedWindowTitle => capturedWindowTitle;
+        public void SelectGameWindow(IntPtr windowHandle, string windowTitle) =>
+            OnWindowSelected(windowHandle, windowTitle, showConfirmation: false);
+
+        private bool IsOverlayShown =>
+            MonitorWindow.Instance.imageScrollViewer.Visibility == Visibility.Visible && MonitorWindow.Instance.IsVisible;
+
+        // Whether the overlay stays out of the captured image. Windows 11 excludes it from capture. Windows 10
+        // cannot, so only Windows Graphics Capture of the game window leaves it out (the CopyFromScreen
+        // fallback used when WGC is unavailable copies the screen, overlay included).
+        private bool IsOverlayKeptOutOfCapture => !IsWindows10 || (isCapturingWindow && _graphicsCaptureService != null);
+
+        // While the overlay would be captured, OCR would read the translations back. Hides it in that case.
+        private bool HideOverlayIfItWouldBeCaptured()
+        {
+            if (IsOverlayKeptOutOfCapture || !IsOverlayShown)
+                return false;
+
+            HideOverlay(notify: false);
+            Console.WriteLine("Overlay hidden: Windows 10 is capturing the screen area, which would include it");
+            return true;
+        }
+
+        // Leaves window capture mode (turned off by the user, or the window went away) and goes back to
+        // capturing the screen area. The overlay is part of the screen again: Windows 11 excludes it from
+        // capture, Windows 10 cannot, so there it is hidden until a window is selected again.
+        private void StopWindowCapture(bool windowLost)
+        {
+            isCapturingWindow = false;
+            capturedWindowHandle = IntPtr.Zero;
+            capturedWindowTitle = string.Empty;
+            _graphicsCaptureService?.Dispose();
+            _graphicsCaptureService = null;
+
+            Dispatcher.Invoke(() =>
+            {
+                selectWindowButton.SetBinding(ContentControl.ContentProperty,
+                    new System.Windows.Data.Binding("Strings[Btn_SelectWindow]") { Source = LocalizationManager.Instance });
+                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+                UpdateCaptureRect();
+                if (!IsWindows10)
+                {
+                    MonitorWindow.Instance.EnableExcludeFromCapture();
+                }
+                bool overlayHidden = HideOverlayIfItWouldBeCaptured();
+
+                if (windowLost)
+                {
+                    System.Windows.MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_WindowLost"],
+                        LocalizationManager.Instance.Strings["Title_WindowLost"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+                if (overlayHidden)
+                {
+                    System.Windows.MessageBox.Show(
+                        LocalizationManager.Instance.Strings["Msg_Win10OverlayHiddenNoWindow"],
+                        LocalizationManager.Instance.Strings["Title_Information"],
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+            });
+        }
+
+        // At startup: ask for the game window, so that it (not the screen area) is captured from the start.
+        // Skipping keeps screen-area capture; on Windows 10 the overlay then stays off.
+        private void PromptForGameWindowAtStartup()
+        {
+            if (isCapturingWindow)
+                return;
+
+            var popup = new WindowSelectorPopup { Owner = this };
+            popup.ConfigureForStartup(IsWindows10);
+            popup.WindowSelected += (handle, title) => OnWindowSelected(handle, title, showConfirmation: false);
+            popup.ShowDialog();
+
+            WarnIfWindows10WithoutGameWindow();
+        }
+
+        // After the startup window choice was skipped: on Windows 10 the overlay stays off until a window is chosen
+        private void WarnIfWindows10WithoutGameWindow()
+        {
+            if (IsWindows10 && !isCapturingWindow)
+            {
+                System.Windows.MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_Win10RequiresSelectWindow"],
+                    LocalizationManager.Instance.Strings["Title_Information"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private void OnWindowSelected(IntPtr windowHandle, string windowTitle, bool showConfirmation = true)
         {
             if (windowHandle != IntPtr.Zero)
             {
@@ -3321,6 +3386,8 @@ namespace RSTGameTranslation
                     Console.WriteLine("WGC not available, will use screen capture fallback");
                     _graphicsCaptureService.Dispose();
                     _graphicsCaptureService = null;
+                    // The fallback copies the screen: on Windows 10 that includes the overlay
+                    HideOverlayIfItWouldBeCaptured();
                 }
 
                 // WGC captures the window directly, so the overlay doesn't need to be excluded.
@@ -3334,11 +3401,14 @@ namespace RSTGameTranslation
 
                 Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
 
-                System.Windows.MessageBox.Show(
-                    $"Now capturing window: {capturedWindowTitle}",
-                    "Window Selected",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                if (showConfirmation)
+                {
+                    System.Windows.MessageBox.Show(
+                        $"Now capturing window: {capturedWindowTitle}",
+                        "Window Selected",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
             }
         }
 
@@ -3458,10 +3528,17 @@ namespace RSTGameTranslation
         {
             if (ConfigManager.Instance.IsNeedShowQuickStart())
             {
+                // The welcome screen includes the game window choice, so the separate prompt is not shown too
                 ShowWelcomeWindow();
+                WarnIfWindows10WithoutGameWindow();
 
                 // Wait until the main window has been laid out so the tour can anchor to its buttons
                 Dispatcher.BeginInvoke(() => CoachMarkTour.StartIfNeeded(this), DispatcherPriority.ApplicationIdle);
+            }
+            else
+            {
+                // Once the main window is on screen
+                Dispatcher.BeginInvoke(PromptForGameWindowAtStartup, DispatcherPriority.ApplicationIdle);
             }
         }
 
