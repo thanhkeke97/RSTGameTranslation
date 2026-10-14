@@ -45,6 +45,96 @@ namespace RSTGameTranslation
         }
     }
 
+    // Entry of the ignore-phrase match type dropdowns; the label follows the interface language
+    public class MatchTypeOption : System.ComponentModel.INotifyPropertyChanged
+    {
+        private readonly string _labelKey;
+
+        public MatchTypeOption(IgnorePhraseMatchType value, string labelKey)
+        {
+            Value = value;
+            _labelKey = labelKey;
+        }
+
+        public IgnorePhraseMatchType Value { get; }
+        public string Label => LocalizationManager.Instance[_labelKey];
+
+        public void RefreshText() => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Label)));
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    }
+
+    // One row of the hotkey table in the HotKeys tab
+    public class HotkeySettingRow : System.ComponentModel.INotifyPropertyChanged
+    {
+        private string _hotkey = "";
+        private bool _isCapturing;
+        private string? _captureText;
+        private string? _conflictText;
+
+        public HotkeySettingRow(string functionName, string labelKey, string mainWindowLabelName)
+        {
+            FunctionName = functionName;
+            LabelKey = labelKey;
+            MainWindowLabelName = mainWindowLabelName;
+        }
+
+        public string FunctionName { get; }
+        public string LabelKey { get; }
+        public string MainWindowLabelName { get; }
+
+        public string Label => LocalizationManager.Instance[LabelKey];
+
+        public string Hotkey
+        {
+            get => _hotkey;
+            set { _hotkey = value; Notify(nameof(Hotkey), nameof(HasHotkey), nameof(DisplayText), nameof(ClearVisibility)); }
+        }
+
+        public bool HasHotkey => !string.IsNullOrEmpty(_hotkey);
+
+        public bool IsCapturing
+        {
+            get => _isCapturing;
+            set { _isCapturing = value; Notify(nameof(IsCapturing), nameof(DisplayText), nameof(ClearVisibility)); }
+        }
+
+        // Partial combination shown while recording, e.g. "Ctrl + Alt + ..."
+        public string? CaptureText
+        {
+            get => _captureText;
+            set { _captureText = value; Notify(nameof(CaptureText), nameof(DisplayText)); }
+        }
+
+        public string DisplayText =>
+            IsCapturing ? (CaptureText ?? LocalizationManager.Instance["Lbl_HotKeyPress"])
+            : HasHotkey ? KeyboardShortcuts.FormatForDisplay(_hotkey)
+            : LocalizationManager.Instance["Lbl_HotKeyNotSet"];
+
+        public Visibility ClearVisibility => HasHotkey && !IsCapturing ? Visibility.Visible : Visibility.Hidden;
+
+        public string? ConflictText
+        {
+            get => _conflictText;
+            set { _conflictText = value; Notify(nameof(ConflictText), nameof(ConflictVisibility)); }
+        }
+
+        public Visibility ConflictVisibility => string.IsNullOrEmpty(_conflictText) ? Visibility.Collapsed : Visibility.Visible;
+
+        // Re-read localized texts after a language change
+        public void RefreshText() => Notify(nameof(Label), nameof(DisplayText));
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+        private void Notify(params string[] names)
+        {
+            foreach (string name in names)
+            {
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+            }
+        }
+    }
+
     public partial class SettingsWindow : Window
     {
         private static SettingsWindow? _instance;
@@ -73,6 +163,8 @@ namespace RSTGameTranslation
 
             InitializeComponent();
             _instance = this;
+            InitializeHotkeyRows();
+            LocalizationManager.Instance.PropertyChanged += (s, e) => MatchTypeOptions.ForEach(option => option.RefreshText());
             LoadAvailableScreens();
             LoadAllProfile();
             LoadAllAudioProcessingModel();
@@ -85,6 +177,7 @@ namespace RSTGameTranslation
             this.Closing += (s, e) =>
             {
                 e.Cancel = true;  // Cancel the close
+                StopHotkeyCapture();
                 this.Hide();      // Just hide the window
                 MainWindow.Instance.settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
             };
@@ -113,11 +206,11 @@ namespace RSTGameTranslation
         // Collection to hold the ignore phrases
         private ObservableCollection<IgnorePhrase> _ignorePhrases = new ObservableCollection<IgnorePhrase>();
 
-        public List<KeyValuePair<string, IgnorePhraseMatchType>> MatchTypeOptions { get; } = new List<KeyValuePair<string, IgnorePhraseMatchType>>
+        public List<MatchTypeOption> MatchTypeOptions { get; } = new List<MatchTypeOption>
         {
-            new KeyValuePair<string, IgnorePhraseMatchType>(LocalizationManager.Instance.Strings["Cmb_MatchType_ExactMatch"], IgnorePhraseMatchType.ExactMatch),
-            new KeyValuePair<string, IgnorePhraseMatchType>(LocalizationManager.Instance.Strings["Cmb_MatchType_Contains"], IgnorePhraseMatchType.Contains),
-            new KeyValuePair<string, IgnorePhraseMatchType>(LocalizationManager.Instance.Strings["Cmb_MatchType_RegularExpression"], IgnorePhraseMatchType.RegularExpression),
+            new MatchTypeOption(IgnorePhraseMatchType.ExactMatch, "Cmb_MatchType_ExactMatch"),
+            new MatchTypeOption(IgnorePhraseMatchType.Contains, "Cmb_MatchType_Contains"),
+            new MatchTypeOption(IgnorePhraseMatchType.RegularExpression, "Cmb_MatchType_RegularExpression"),
         };
 
         private void SettingsWindow_Loaded(object? sender, RoutedEventArgs? e)
@@ -147,11 +240,6 @@ namespace RSTGameTranslation
                     checkLanguagePack.Visibility = Visibility.Collapsed;
                     checkLanguagePackButton.Visibility = Visibility.Collapsed;
                 }
-                // Set default values
-                hotKeyFunctionComboBox.SelectedIndex = 0;
-                combineKey2.SelectedIndex = 0;
-                combineKey1.SelectedIndex = 0;
-
                 // Set selected screen from config
                 int selectedScreenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
                 if (selectedScreenIndex >= 0 && selectedScreenIndex < screenComboBox.Items.Count)
@@ -907,50 +995,8 @@ namespace RSTGameTranslation
             lineSpacingFactorTextBox.LostFocus += LineSpacingFactorTextBox_LostFocus;
 
             textSimilarThresholdTextBox.LostFocus += TextSimilarThresholdTextBox_LostFocus;
-            // Load source language either from config or MainWindow as fallback
-            string configSourceLanguage = ConfigManager.Instance.GetSourceLanguage();
-            if (!string.IsNullOrEmpty(configSourceLanguage))
-            {
-                // First try to load from config
-                foreach (ComboBoxItem item in sourceLanguageComboBox.Items)
-                {
-                    if (string.Equals(item.Content.ToString(), configSourceLanguage, StringComparison.OrdinalIgnoreCase))
-                    {
-                        sourceLanguageComboBox.SelectedItem = item;
-                        Console.WriteLine($"Settings window: Set source language from config to {configSourceLanguage}");
-                        break;
-                    }
-                }
-            }
-            else if (MainWindow.Instance.sourceLanguageComboBox != null &&
-                     MainWindow.Instance.sourceLanguageComboBox.SelectedIndex >= 0)
-            {
-                // Fallback to MainWindow if config doesn't have a value
-                sourceLanguageComboBox.SelectedIndex = MainWindow.Instance.sourceLanguageComboBox.SelectedIndex;
-            }
+            SelectLanguagesFromConfig();
             ListHotKey_TextChanged();
-
-            // Load target language either from config or MainWindow as fallback
-            string configTargetLanguage = ConfigManager.Instance.GetTargetLanguage();
-            if (!string.IsNullOrEmpty(configTargetLanguage))
-            {
-                // First try to load from config
-                foreach (ComboBoxItem item in targetLanguageComboBox.Items)
-                {
-                    if (string.Equals(item.Content.ToString(), configTargetLanguage, StringComparison.OrdinalIgnoreCase))
-                    {
-                        targetLanguageComboBox.SelectedItem = item;
-                        Console.WriteLine($"Settings window: Set target language from config to {configTargetLanguage}");
-                        break;
-                    }
-                }
-            }
-            else if (MainWindow.Instance.targetLanguageComboBox != null &&
-                     MainWindow.Instance.targetLanguageComboBox.SelectedIndex >= 0)
-            {
-                // Fallback to MainWindow if config doesn't have a value
-                targetLanguageComboBox.SelectedIndex = MainWindow.Instance.targetLanguageComboBox.SelectedIndex;
-            }
 
             // Reattach event handlers
             sourceLanguageComboBox.SelectionChanged += SourceLanguageComboBox_SelectionChanged;
@@ -1297,172 +1343,248 @@ namespace RSTGameTranslation
         }
 
 
-        private void SetHotKeyButton_Click(object sender, RoutedEventArgs e)
+        // ----- HotKeys tab -----
+
+        // Display order of the hotkey table: function name, label key, name of the matching label in MainWindow
+        private static readonly (string Function, string LabelKey, string MainWindowLabel)[] HotkeyRowDefinitions =
         {
-            // Skip event if we're initializing
-            if (_isInitializing)
+            ("Start/Stop", "Lbl_StartStopTranslation", "hotKeyStartStop"),
+            ("Overlay", "Lbl_ToggleOverlay", "hotKeyOverlay"),
+            ("Setting", "Lbl_OpenSettings", "hotKeySetting"),
+            ("Log", "Lbl_ToggleLog", "hotKeyLog"),
+            ("Select Area", "Lbl_SelectArea", "hotKeySelectArea"),
+            ("Clear Areas", "Lbl_ClearAllAreas", "hotKeyClearAreas"),
+            ("Clear Selected Area", "Lbl_ClearSelectedArea", "hotKeyClearPreviousArea"),
+            ("Show Area", "Lbl_ShowAreaBorder", "hotKeyShowArea"),
+            ("ChatBox", "Lbl_ToggleChatBox", "hotKeyChatBox"),
+            ("Audio Service", "Btn_AudioService", "hotKeyAudio"),
+            ("Area 1", "Lbl_SelectArea1", "hotKeyArea1"),
+            ("Area 2", "Lbl_SelectArea2", "hotKeyArea2"),
+            ("Area 3", "Lbl_SelectArea3", "hotKeyArea3"),
+            ("Area 4", "Lbl_SelectArea4", "hotKeyArea4"),
+            ("Area 5", "Lbl_SelectArea5", "hotKeyArea5"),
+            ("Swap Languages", "Lbl_SwapLanguages", "hotKeySwapLanguages"),
+            ("Retry Translation", "Lbl_TranslationRetry", "hotKeyRetryTranslate"),
+            ("Select Exclude Region", "Lbl_SelectExcludeRegion", "hotKeyToggleExcludeRegions"),
+        };
+
+        private readonly ObservableCollection<HotkeySettingRow> _hotkeyRows = new ObservableCollection<HotkeySettingRow>();
+        private HotkeySettingRow? _capturingHotkeyRow;
+        private System.Windows.Threading.DispatcherTimer? _hotkeyStatusTimer;
+
+        private void InitializeHotkeyRows()
+        {
+            foreach (var (function, labelKey, mainWindowLabel) in HotkeyRowDefinitions)
             {
-                return;
+                _hotkeyRows.Add(new HotkeySettingRow(function, labelKey, mainWindowLabel));
             }
+            hotkeyItemsControl.ItemsSource = _hotkeyRows;
 
-            string functionName;
-            string? key1 = "";
-            string? key2 = "";
-            string combineKey;
-
-            // Check if selected item is a ComboBoxItem
-            if (hotKeyFunctionComboBox.SelectedItem is ComboBoxItem selectedItem)
+            LocalizationManager.Instance.PropertyChanged += (s, e) =>
             {
-                // Use Tag for internal key (not affected by localization)
-                functionName = selectedItem.Tag?.ToString() ?? "Start/Stop";
-                if (combineKey1.SelectedItem is ComboBoxItem selectedItem1)
+                foreach (var row in _hotkeyRows)
                 {
-                    key1 = selectedItem1.Content.ToString();
+                    row.RefreshText();
                 }
-                if (combineKey2.SelectedItem is ComboBoxItem selectedItem2)
-                {
-                    key2 = selectedItem2.Content.ToString();
-                }
-                if (key1 == "" || key2 == "" || key1 == "----------- Select -----------" || key2 == "----------- Select -----------")
-                {
-                    MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_HotKeyInvalid"], functionName),
-                        LocalizationManager.Instance.Strings["Title_HotKeyInvalid"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                }
-                else
-                {
-                    combineKey = key1 + "+" + key2;
-                    // Save HotKey
-                    ConfigManager.Instance.SetHotKey(functionName, combineKey);
-                    statusUpdateHotKey.Visibility = Visibility.Visible;
-                    ListHotKey_TextChanged();
-                    // Refresh parsed hotkeys and re-register on the main window handle
-                    KeyboardShortcuts.RefreshHotkeys();
-                    IntPtr mainHandle = new WindowInteropHelper(MainWindow.Instance).Handle;
-                    if (mainHandle != IntPtr.Zero)
-                    {
-                        KeyboardShortcuts.SetMainWindowHandle(mainHandle);
-                    }
-                    // Auto close notification after 1.5 second
-                    var timer = new System.Windows.Threading.DispatcherTimer
-                    {
-                        Interval = TimeSpan.FromSeconds(1.3)
-                    };
-
-                    timer.Tick += (s, e) =>
-                    {
-                        statusUpdateHotKey.Visibility = Visibility.Collapsed;
-                        timer.Stop();
-                    };
-
-                    timer.Start();
-
-                }
-            }
-
+                UpdateHotkeyConflicts();
+            };
         }
 
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            if (msg == 0x0312) // WM_HOTKEY
-            {
-                handled = KeyboardShortcuts.ProcessHotKey(wParam);
-            }
-
-            return IntPtr.Zero;
-        }
-
+        // Reload all hotkeys from config into the Settings table and the MainWindow shortcut list
         public void ListHotKey_TextChanged()
         {
-            // Setting windows
-            hotKeyStartStop.Text = ConfigManager.Instance.GetHotKey("Start/Stop");
-            hotKeyOverlay.Text = ConfigManager.Instance.GetHotKey("Overlay");
-            hotKeySetting.Text = ConfigManager.Instance.GetHotKey("Setting");
-            hotKeyLog.Text = ConfigManager.Instance.GetHotKey("Log");
-            hotKeySelectArea.Text = ConfigManager.Instance.GetHotKey("Select Area");
-            hotKeyClearAreas.Text = ConfigManager.Instance.GetHotKey("Clear Areas");
-            hotKeyClearPreviousArea.Text = ConfigManager.Instance.GetHotKey("Clear Selected Area");
-            hotKeyShowArea.Text = ConfigManager.Instance.GetHotKey("Show Area");
-            hotKeyChatBox.Text = ConfigManager.Instance.GetHotKey("ChatBox");
-            hotKeyArea1.Text = ConfigManager.Instance.GetHotKey("Area 1");
-            hotKeyArea2.Text = ConfigManager.Instance.GetHotKey("Area 2");
-            hotKeyArea3.Text = ConfigManager.Instance.GetHotKey("Area 3");
-            hotKeyArea4.Text = ConfigManager.Instance.GetHotKey("Area 4");
-            hotKeyArea5.Text = ConfigManager.Instance.GetHotKey("Area 5");
-            hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
-            hotKeySwapLanguages.Text = ConfigManager.Instance.GetHotKey("Swap Languages");
-            hotKeyRetryTranslate.Text = ConfigManager.Instance.GetHotKey("Retry Translation");
-            hotKeyToggleExcludeRegions.Text = ConfigManager.Instance.GetHotKey("Select Exclude Region");
-            // Mainwindows
-            MainWindow.Instance.hotKeyStartStop.Text = ConfigManager.Instance.GetHotKey("Start/Stop");
-            MainWindow.Instance.hotKeyOverlay.Text = ConfigManager.Instance.GetHotKey("Overlay");
-            MainWindow.Instance.hotKeySetting.Text = ConfigManager.Instance.GetHotKey("Setting");
-            MainWindow.Instance.hotKeyLog.Text = ConfigManager.Instance.GetHotKey("Log");
-            MainWindow.Instance.hotKeySelectArea.Text = ConfigManager.Instance.GetHotKey("Select Area");
-            MainWindow.Instance.hotKeyClearPreviousArea.Text = ConfigManager.Instance.GetHotKey("Clear Selected Area");
-            MainWindow.Instance.hotKeyClearAreas.Text = ConfigManager.Instance.GetHotKey("Clear Areas");
-            MainWindow.Instance.hotKeyShowArea.Text = ConfigManager.Instance.GetHotKey("Show Area");
-            MainWindow.Instance.hotKeyChatBox.Text = ConfigManager.Instance.GetHotKey("ChatBox");
-            MainWindow.Instance.hotKeyArea1.Text = ConfigManager.Instance.GetHotKey("Area 1");
-            MainWindow.Instance.hotKeyArea2.Text = ConfigManager.Instance.GetHotKey("Area 2");
-            MainWindow.Instance.hotKeyArea3.Text = ConfigManager.Instance.GetHotKey("Area 3");
-            MainWindow.Instance.hotKeyArea4.Text = ConfigManager.Instance.GetHotKey("Area 4");
-            MainWindow.Instance.hotKeyArea5.Text = ConfigManager.Instance.GetHotKey("Area 5");
-            MainWindow.Instance.hotKeyAudio.Text = ConfigManager.Instance.GetHotKey("Audio Service");
-            MainWindow.Instance.hotKeySwapLanguages.Text = ConfigManager.Instance.GetHotKey("Swap Languages");
-            MainWindow.Instance.hotKeyRetryTranslate.Text = ConfigManager.Instance.GetHotKey("Retry Translation");
-            if (MainWindow.Instance.FindName("hotKeyToggleExcludeRegions") is TextBlock hotKeyToggleExcludeRegionsText)
+            foreach (var row in _hotkeyRows)
             {
-                hotKeyToggleExcludeRegionsText.Text = ConfigManager.Instance.GetHotKey("Select Exclude Region");
+                row.Hotkey = ConfigManager.Instance.GetHotKey(row.FunctionName);
+
+                if (MainWindow.Instance.FindName(row.MainWindowLabelName) is TextBlock mainWindowLabel)
+                {
+                    mainWindowLabel.Text = row.HasHotkey ? KeyboardShortcuts.FormatForDisplay(row.Hotkey) : "—";
+                }
+            }
+            UpdateHotkeyConflicts();
+        }
+
+        private void UpdateHotkeyConflicts()
+        {
+            foreach (var row in _hotkeyRows)
+            {
+                var other = _hotkeyRows.FirstOrDefault(r => r != row && KeyboardShortcuts.AreSameHotkey(r.Hotkey, row.Hotkey));
+                row.ConflictText = other == null
+                    ? null
+                    : string.Format(LocalizationManager.Instance["Lbl_HotKeyConflictWith"], other.Label);
             }
         }
 
-        private void HotKeyFunctionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void HotkeyCaptureButton_Click(object sender, RoutedEventArgs e)
         {
-            // Skip event if we're initializing
-            if (_isInitializing)
-            {
+            if (sender is not System.Windows.Controls.Button { DataContext: HotkeySettingRow row } button)
                 return;
-            }
 
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            bool wasCapturingThisRow = _capturingHotkeyRow == row;
+            StopHotkeyCapture();
+            if (wasCapturingThisRow)
+                return;
+
+            _capturingHotkeyRow = row;
+            row.IsCapturing = true;
+            KeyboardShortcuts.SuspendHotkeys();
+            HideHotkeyStatus();
+            System.Windows.Input.Keyboard.Focus(button);
+        }
+
+        private void StopHotkeyCapture()
+        {
+            if (_capturingHotkeyRow == null)
+                return;
+
+            _capturingHotkeyRow.IsCapturing = false;
+            _capturingHotkeyRow.CaptureText = null;
+            _capturingHotkeyRow = null;
+            KeyboardShortcuts.ResumeHotkeys();
+        }
+
+        private void HotkeyCaptureButton_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            var row = _capturingHotkeyRow;
+            if (row == null || (sender as FrameworkElement)?.DataContext != row)
+                return;
+
+            // Swallow everything while recording, including Space/Enter that would click the button
+            e.Handled = true;
+
+            var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
+            var modifiers = System.Windows.Input.Keyboard.Modifiers;
+
+            if (modifiers == System.Windows.Input.ModifierKeys.None)
             {
-                // Use Tag for internal key (not affected by localization)
-                string functionName = selectedItem.Tag?.ToString() ?? "Start/Stop";
-
-                // Get HotKey from config
-                string hotKey = ConfigManager.Instance.GetHotKey(functionName);
-                string[] keyParts = hotKey.Split('+');
-
-                if (keyParts.Length >= 2)
+                if (key == System.Windows.Input.Key.Escape)
                 {
-                    string key1 = keyParts[0].ToUpper();
-                    string key2 = keyParts[1].ToUpper();
-
-
-                    foreach (ComboBoxItem item in combineKey1.Items)
-                    {
-                        if (item.Content.ToString() == key1)
-                        {
-                            combineKey1.SelectedItem = item;
-                            break;
-                        }
-                    }
-
-
-                    foreach (ComboBoxItem item in combineKey2.Items)
-                    {
-                        if (item.Content.ToString() == key2)
-                        {
-                            combineKey2.SelectedItem = item;
-                            break;
-                        }
-                    }
+                    StopHotkeyCapture();
+                    return;
+                }
+                if (key == System.Windows.Input.Key.Back || key == System.Windows.Input.Key.Delete)
+                {
+                    StopHotkeyCapture();
+                    AssignHotkey(row, "");
+                    return;
                 }
             }
+
+            switch (KeyboardShortcuts.TryBuildHotkey(modifiers, key, out string hotkey))
+            {
+                case KeyboardShortcuts.HotkeyCaptureResult.ModifierOnly:
+                    UpdateCapturePreview(row, modifiers);
+                    break;
+                case KeyboardShortcuts.HotkeyCaptureResult.NeedsModifier:
+                    ShowHotkeyStatus(LocalizationManager.Instance["Msg_HotKeyNeedModifier"], isError: true);
+                    break;
+                case KeyboardShortcuts.HotkeyCaptureResult.Unsupported:
+                    ShowHotkeyStatus(LocalizationManager.Instance["Msg_HotKeyUnsupportedKey"], isError: true);
+                    break;
+                case KeyboardShortcuts.HotkeyCaptureResult.Ok:
+                    StopHotkeyCapture();
+                    AssignHotkey(row, hotkey);
+                    break;
+            }
+        }
+
+        private void HotkeyCaptureButton_PreviewKeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            var row = _capturingHotkeyRow;
+            if (row == null || (sender as FrameworkElement)?.DataContext != row)
+                return;
+
+            e.Handled = true;
+            UpdateCapturePreview(row, System.Windows.Input.Keyboard.Modifiers);
+        }
+
+        private static void UpdateCapturePreview(HotkeySettingRow row, System.Windows.Input.ModifierKeys modifiers)
+        {
+            string prefix = KeyboardShortcuts.FormatModifiers(modifiers, " + ", forDisplay: true);
+            row.CaptureText = prefix.Length > 0 ? prefix + "…" : null;
+        }
+
+        private void HotkeyCaptureButton_LostKeyboardFocus(object sender, System.Windows.Input.KeyboardFocusChangedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext == _capturingHotkeyRow)
+            {
+                StopHotkeyCapture();
+            }
+        }
+
+        private void ClearHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext is HotkeySettingRow row)
+            {
+                StopHotkeyCapture();
+                AssignHotkey(row, "");
+            }
+        }
+
+        private void ResetHotkeysButton_Click(object sender, RoutedEventArgs e)
+        {
+            StopHotkeyCapture();
+
+            var result = MessageBox.Show(
+                LocalizationManager.Instance["Msg_HotKeyResetConfirm"],
+                LocalizationManager.Instance["Btn_HotKeyReset"],
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            ConfigManager.Instance.ResetHotKeysToDefault();
+            ApplyHotkeyChanges();
+        }
+
+        // Save a new hotkey for a row ("" clears it), asking before taking the combination from another function
+        private void AssignHotkey(HotkeySettingRow row, string hotkey)
+        {
+            if (!string.IsNullOrEmpty(hotkey))
+            {
+                var conflict = _hotkeyRows.FirstOrDefault(r => r != row && KeyboardShortcuts.AreSameHotkey(r.Hotkey, hotkey));
+                if (conflict != null)
+                {
+                    var result = MessageBox.Show(
+                        string.Format(LocalizationManager.Instance["Msg_HotKeyConflict"], KeyboardShortcuts.FormatForDisplay(hotkey), conflict.Label),
+                        LocalizationManager.Instance["Title_HotKeyConflict"],
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+                    if (result != MessageBoxResult.Yes)
+                        return;
+
+                    ConfigManager.Instance.SetHotKey(conflict.FunctionName, "");
+                }
+            }
+
+            ConfigManager.Instance.SetHotKey(row.FunctionName, hotkey);
+            ApplyHotkeyChanges();
+        }
+
+        private void ApplyHotkeyChanges()
+        {
+            KeyboardShortcuts.ReloadHotkeys();
+            ListHotKey_TextChanged();
+            ShowHotkeyStatus(LocalizationManager.Instance["Msg_HotKeyUpdateSuccess"], isError: false);
+        }
+
+        private void ShowHotkeyStatus(string message, bool isError)
+        {
+            statusUpdateHotKey.Text = message;
+            statusUpdateHotKey.SetResourceReference(TextBlock.ForegroundProperty, isError ? "DangerBrush" : "SuccessBrush");
+            statusUpdateHotKey.Visibility = Visibility.Visible;
+
+            _hotkeyStatusTimer?.Stop();
+            _hotkeyStatusTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(isError ? 4 : 2) };
+            _hotkeyStatusTimer.Tick += (s, e) => HideHotkeyStatus();
+            _hotkeyStatusTimer.Start();
+        }
+
+        private void HideHotkeyStatus()
+        {
+            _hotkeyStatusTimer?.Stop();
+            statusUpdateHotKey.Visibility = Visibility.Collapsed;
         }
 
         // Language settings
@@ -1483,17 +1605,10 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetSourceLanguage(language);
 
                 // Update MainWindow source language
-                if (MainWindow.Instance.sourceLanguageComboBox != null)
+                if (MainWindow.Instance.sourceLanguageComboBox != null &&
+                    MainWindow.FindLanguageItem(MainWindow.Instance.sourceLanguageComboBox, language) is ComboBoxItem mainItem)
                 {
-                    // Find and select matching ComboBoxItem by content
-                    foreach (ComboBoxItem item in MainWindow.Instance.sourceLanguageComboBox.Items)
-                    {
-                        if (string.Equals(item.Content.ToString(), language, StringComparison.OrdinalIgnoreCase))
-                        {
-                            MainWindow.Instance.sourceLanguageComboBox.SelectedItem = item;
-                            break;
-                        }
-                    }
+                    MainWindow.Instance.sourceLanguageComboBox.SelectedItem = mainItem;
                 }
 
                 // Reset the OCR hash to force a fresh comparison after changing source language
@@ -1518,17 +1633,10 @@ namespace RSTGameTranslation
                 ConfigManager.Instance.SetTargetLanguage(language);
 
                 // Update MainWindow target language
-                if (MainWindow.Instance.targetLanguageComboBox != null)
+                if (MainWindow.Instance.targetLanguageComboBox != null &&
+                    MainWindow.FindLanguageItem(MainWindow.Instance.targetLanguageComboBox, language) is ComboBoxItem mainItem)
                 {
-                    // Find and select matching ComboBoxItem by content
-                    foreach (ComboBoxItem item in MainWindow.Instance.targetLanguageComboBox.Items)
-                    {
-                        if (string.Equals(item.Content.ToString(), language, StringComparison.OrdinalIgnoreCase))
-                        {
-                            MainWindow.Instance.targetLanguageComboBox.SelectedItem = item;
-                            break;
-                        }
-                    }
+                    MainWindow.Instance.targetLanguageComboBox.SelectedItem = mainItem;
                 }
 
                 // Reset the OCR hash to force a fresh comparison after changing target language
@@ -1689,22 +1797,38 @@ namespace RSTGameTranslation
         // Language swap button handler
         public void SwapLanguagesButton_Click(object? sender, RoutedEventArgs e)
         {
-            // Store the current selections
-            int sourceIndex = sourceLanguageComboBox.SelectedIndex;
-            int targetIndex = targetLanguageComboBox.SelectedIndex;
-
-            // Swap the selections
-            sourceLanguageComboBox.SelectedIndex = targetIndex;
-            targetLanguageComboBox.SelectedIndex = sourceIndex;
-
-            // The SelectionChanged events will handle updating the MainWindow
-            Console.WriteLine($"Languages swapped: {GetLanguageCode(sourceLanguageComboBox)} ⇄ {GetLanguageCode(targetLanguageComboBox)}");
+            MainWindow.Instance.SwapLanguages();
         }
 
-        // Helper method to get language code from ComboBox
-        private string GetLanguageCode(ComboBox comboBox)
+        // Select the source/target languages saved in config, falling back to the MainWindow selection
+        private void SelectLanguagesFromConfig()
         {
-            return ((ComboBoxItem)comboBox.SelectedItem).Content.ToString() ?? "";
+            string? source = ConfigManager.Instance.GetSourceLanguage();
+            if (string.IsNullOrEmpty(source))
+                source = (MainWindow.Instance.sourceLanguageComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
+
+            string? target = ConfigManager.Instance.GetTargetLanguage();
+            if (string.IsNullOrEmpty(target))
+                target = (MainWindow.Instance.targetLanguageComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
+
+            if (MainWindow.FindLanguageItem(sourceLanguageComboBox, source) is ComboBoxItem sourceItem)
+                sourceLanguageComboBox.SelectedItem = sourceItem;
+            if (MainWindow.FindLanguageItem(targetLanguageComboBox, target) is ComboBoxItem targetItem)
+                targetLanguageComboBox.SelectedItem = targetItem;
+        }
+
+        // Mirror a language change made elsewhere (MainWindow toolbar) without re-running the change handlers
+        public static void SyncLanguageSelection()
+        {
+            var window = _instance;
+            if (window == null)
+                return;
+
+            window.sourceLanguageComboBox.SelectionChanged -= window.SourceLanguageComboBox_SelectionChanged;
+            window.targetLanguageComboBox.SelectionChanged -= window.TargetLanguageComboBox_SelectionChanged;
+            window.SelectLanguagesFromConfig();
+            window.sourceLanguageComboBox.SelectionChanged += window.SourceLanguageComboBox_SelectionChanged;
+            window.targetLanguageComboBox.SelectionChanged += window.TargetLanguageComboBox_SelectionChanged;
         }
 
         // Block detection settings
@@ -4710,7 +4834,7 @@ namespace RSTGameTranslation
                 ignorePhraseListView.ItemsSource = _ignorePhrases;
                 newMatchTypeComboBox.ItemsSource = MatchTypeOptions;
                 newMatchTypeComboBox.SelectedIndex = 0;
-                newMatchTypeComboBox.DisplayMemberPath = "Key";
+                newMatchTypeComboBox.DisplayMemberPath = "Label";
                 newMatchTypeComboBox.SelectedValuePath = "Value";
 
                 Console.WriteLine($"Loaded {_ignorePhrases.Count} ignore phrases");
@@ -4762,40 +4886,46 @@ namespace RSTGameTranslation
             }
         }
 
+        // Check a new or edited phrase; shows the reason and returns false when it can't be used.
+        // Matching ignores case, so duplicates do too.
+        private bool ValidateIgnorePhrase(string phrase, IgnorePhraseMatchType matchType, IgnorePhrase? editing)
+        {
+            if (string.IsNullOrEmpty(phrase))
+            {
+                MessageBox.Show(
+                    LocalizationManager.Instance.Strings["Msg_PleaseEnterPhrase"],
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return false;
+            }
+
+            if (_ignorePhrases.Any(p => p != editing && string.Equals(p.Phrase, phrase, StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show(
+                    string.Format(LocalizationManager.Instance.Strings["Msg_PhraseAlreadyExists"], phrase),
+                    LocalizationManager.Instance.Strings["Title_Error"],
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return false;
+            }
+
+            return matchType != IgnorePhraseMatchType.RegularExpression || ValidateIgnoreRegex(phrase);
+        }
+
         // Add a new ignore phrase
         private void AddIgnorePhraseButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 string phrase = newIgnorePhraseTextBox.Text.Trim();
-
-                if (string.IsNullOrEmpty(phrase))
-                {
-                    MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_PleaseEnterPhrase"],
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning
-                    );
-                    return;
-                }
-
-                if (_ignorePhrases.Any(p => p.Phrase == phrase))
-                {
-                    MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_PhraseAlreadyExists"], phrase),
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning
-                    );
-                    return;
-                }
-
                 var matchType = newMatchTypeComboBox.SelectedValue is IgnorePhraseMatchType mt
                     ? mt
                     : IgnorePhraseMatchType.ExactMatch;
 
-                if (matchType == IgnorePhraseMatchType.RegularExpression && !ValidateIgnoreRegex(phrase))
+                if (!ValidateIgnorePhrase(phrase, matchType, editing: null))
                     return;
 
                 _ignorePhrases.Add(new IgnorePhrase(phrase, matchType));
@@ -4816,6 +4946,87 @@ namespace RSTGameTranslation
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
+            }
+        }
+
+        private void NewIgnorePhraseTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                e.Handled = true;
+                AddIgnorePhraseButton_Click(sender, e);
+            }
+        }
+
+        // ----- In-place editing of a phrase in the list -----
+
+        private void IgnorePhraseTextBox_GotKeyboardFocus(object sender, System.Windows.Input.KeyboardFocusChangedEventArgs e)
+        {
+            // Clicking into the text box doesn't select the row by itself; select it so Remove works
+            if ((sender as FrameworkElement)?.DataContext is IgnorePhrase row)
+            {
+                ignorePhraseListView.SelectedItem = row;
+            }
+        }
+
+        private void IgnorePhraseTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.TextBox textBox || textBox.DataContext is not IgnorePhrase row)
+                return;
+
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                e.Handled = true;
+                CommitIgnorePhraseEdit(textBox, row);
+            }
+            else if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                e.Handled = true;
+                textBox.Text = row.Phrase;
+                textBox.SelectAll();
+            }
+        }
+
+        private void IgnorePhraseTextBox_LostKeyboardFocus(object sender, System.Windows.Input.KeyboardFocusChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox textBox && textBox.DataContext is IgnorePhrase row)
+            {
+                CommitIgnorePhraseEdit(textBox, row);
+            }
+        }
+
+        private bool _committingIgnorePhraseEdit;
+
+        private void CommitIgnorePhraseEdit(System.Windows.Controls.TextBox textBox, IgnorePhrase row)
+        {
+            // A validation MessageBox takes the focus and would re-enter through LostKeyboardFocus
+            if (_committingIgnorePhraseEdit)
+                return;
+
+            string phrase = textBox.Text.Trim();
+            if (phrase == row.Phrase)
+            {
+                textBox.Text = row.Phrase;
+                return;
+            }
+
+            _committingIgnorePhraseEdit = true;
+            try
+            {
+                if (!ValidateIgnorePhrase(phrase, row.MatchType, editing: row))
+                {
+                    textBox.Text = row.Phrase;
+                    return;
+                }
+
+                Console.WriteLine($"Edited ignore phrase: '{row.Phrase}' -> '{phrase}'");
+                row.Phrase = phrase;
+                textBox.Text = phrase;
+                SaveIgnorePhrases();
+            }
+            finally
+            {
+                _committingIgnorePhraseEdit = false;
             }
         }
 
@@ -4875,39 +5086,36 @@ namespace RSTGameTranslation
                 if (_isInitializing)
                     return;
 
-                if (sender is System.Windows.Controls.ComboBox comboBox && comboBox.Tag is string phrase)
+                // The first selection when a row's combo box is created is not a user change
+                if (e.RemovedItems.Count == 0)
+                    return;
+
+                if (sender is System.Windows.Controls.ComboBox comboBox && comboBox.DataContext is IgnorePhrase ignorePhrase)
                 {
                     var matchType = comboBox.SelectedValue is IgnorePhraseMatchType mt
                         ? mt
                         : IgnorePhraseMatchType.ExactMatch;
 
-                    foreach (var ignorePhrase in _ignorePhrases)
+                    if (matchType == IgnorePhraseMatchType.RegularExpression && !ValidateIgnoreRegex(ignorePhrase.Phrase))
                     {
-                        if (ignorePhrase.Phrase == phrase)
-                        {
-                            if (matchType == IgnorePhraseMatchType.RegularExpression && !ValidateIgnoreRegex(phrase))
-                            {
-                                // Keep the previous match type for a phrase that is not a valid regex.
-                                // SelectedValue is two-way bound, so MatchType already holds the new
-                                // value; the previous one comes from the removed item.
-                                var previous = e.RemovedItems.Count > 0 && e.RemovedItems[0] is KeyValuePair<string, IgnorePhraseMatchType> removed
-                                    ? removed.Value
-                                    : IgnorePhraseMatchType.ExactMatch;
-                                ignorePhrase.MatchType = previous;
-                                _isInitializing = true;
-                                try { comboBox.SelectedValue = previous; }
-                                finally { _isInitializing = false; }
-                                break;
-                            }
-
-                            ignorePhrase.MatchType = matchType;
-
-                            SaveIgnorePhrases();
-
-                            Console.WriteLine($"Updated ignore phrase: '{phrase}' (Match Type: {matchType})");
-                            break;
-                        }
+                        // Keep the previous match type for a phrase that is not a valid regex.
+                        // SelectedValue is two-way bound, so MatchType already holds the new
+                        // value; the previous one comes from the removed item.
+                        var previous = e.RemovedItems.Count > 0 && e.RemovedItems[0] is MatchTypeOption removed
+                            ? removed.Value
+                            : IgnorePhraseMatchType.ExactMatch;
+                        ignorePhrase.MatchType = previous;
+                        _isInitializing = true;
+                        try { comboBox.SelectedValue = previous; }
+                        finally { _isInitializing = false; }
+                        return;
                     }
+
+                    ignorePhrase.MatchType = matchType;
+
+                    SaveIgnorePhrases();
+
+                    Console.WriteLine($"Updated ignore phrase: '{ignorePhrase.Phrase}' (Match Type: {matchType})");
                 }
             }
             catch (Exception ex)

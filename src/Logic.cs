@@ -849,49 +849,76 @@ namespace RSTGameTranslation
             }
         }
 
-        // Check if a text should be ignored based on ignore phrases.
-        // Contains phrases are removed first; exact-match and regex phrases are then checked
-        // against both the original text and what is left after those removals, so "HP Menu"
-        // with Contains "HP" and Exact "Menu" is dropped.
+        // Check if a text block should be ignored based on ignore phrases.
+        // - Exact match / regex on the whole block drop the block.
+        // - Contains phrases are removed from the text.
+        // - Exact-match phrases also drop single lines: block detection joins nearby lines with '\n',
+        //   so a UI label ("Skip") next to dialogue would otherwise never match.
+        // Exact match and regex are then checked again on what is left, so "HP Menu" with
+        // Contains "HP" and Exact "Menu" is dropped.
         private (bool ShouldIgnore, string FilteredText) ShouldIgnoreText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return (true, string.Empty);
 
-            // Get all ignore phrases from ConfigManager
-            var ignorePhrases = ConfigManager.Instance.GetIgnorePhrases();
-
-            if (ignorePhrases.Count == 0)
+            var ignoreSet = ConfigManager.Instance.GetIgnorePhraseSet();
+            if (ignoreSet.Phrases.Count == 0)
                 return (false, text); // No phrases to check, keep the text as is
+
+            if (MatchesWholeBlock(text, ignoreSet))
+                return (true, string.Empty);
 
             // 1. Remove "Contains" phrases
             string filteredText = text;
-            foreach (var (phrase, matchType) in ignorePhrases)
+            foreach (var (phrase, matchType) in ignoreSet.Phrases)
             {
-                if (matchType == IgnorePhraseMatchType.Contains && !string.IsNullOrEmpty(phrase))
-                    filteredText = filteredText.Replace(phrase, "", StringComparison.OrdinalIgnoreCase);
+                if (matchType == IgnorePhraseMatchType.Contains)
+                    filteredText = RemoveContainsPhrase(filteredText, phrase);
             }
 
-            // 2. Exact-match and regex phrases drop the whole block
-            foreach (var (phrase, matchType) in ignorePhrases)
+            // 2. Drop lines that are exactly an exact-match phrase
+            if (filteredText.Contains('\n'))
             {
-                if (string.IsNullOrEmpty(phrase))
-                    continue;
+                var keptLines = filteredText.Split('\n').Where(line => !ignoreSet.Phrases.Any(p =>
+                    p.MatchType == IgnorePhraseMatchType.ExactMatch && IsExactIgnoreMatch(line, p.Phrase)));
+                filteredText = string.Join("\n", keptLines);
+            }
 
+            if (filteredText == text)
+                return (false, text);
+
+            filteredText = CleanUpFilteredText(filteredText);
+            // Only punctuation left over from a removed phrase ("Loading..." -> "...") is noise too
+            if (TrimIgnoreNoise(filteredText).Length == 0)
+            {
+                Console.WriteLine("Ignoring text because it's empty after filtering");
+                return (true, string.Empty);
+            }
+
+            if (MatchesWholeBlock(filteredText, ignoreSet))
+                return (true, string.Empty);
+
+            return (false, filteredText);
+        }
+
+        private static bool MatchesWholeBlock(string text, IgnorePhraseSet ignoreSet)
+        {
+            foreach (var (phrase, matchType) in ignoreSet.Phrases)
+            {
                 switch (matchType)
                 {
                     case IgnorePhraseMatchType.ExactMatch:
-                        if (IsExactIgnoreMatch(text, phrase) || IsExactIgnoreMatch(filteredText, phrase))
-                            return (true, string.Empty);
+                        if (IsExactIgnoreMatch(text, phrase))
+                            return true;
                         break;
 
                     case IgnorePhraseMatchType.RegularExpression:
-                        if (ConfigManager.Instance.TryGetCompiledRegex(phrase, out var regex) && regex != null)
+                        if (ignoreSet.Regexes.TryGetValue(phrase, out var regex))
                         {
                             try
                             {
-                                if (regex.IsMatch(text) || (filteredText != text && regex.IsMatch(filteredText)))
-                                    return (true, string.Empty);
+                                if (regex.IsMatch(text))
+                                    return true;
                             }
                             catch (RegexMatchTimeoutException)
                             {
@@ -901,23 +928,67 @@ namespace RSTGameTranslation
                         break;
                 }
             }
-
-            // Check if after removing non-exact-match phrases, the text is empty or whitespace
-            if (string.IsNullOrWhiteSpace(filteredText))
-            {
-                Console.WriteLine("Ignoring text because it's empty after filtering");
-                return (true, string.Empty);
-            }
-
-            // Return the filtered text if it changed
-            if (filteredText != text)
-            {
-                //Console.WriteLine($"Text filtered: '{text}' -> '{filteredText}'");
-                return (false, filteredText);
-            }
-
-            return (false, text);
+            return false;
         }
+
+        // Remove every occurrence of a phrase (case-insensitive). In space-separated scripts only
+        // whole words are removed, so "HP" leaves "WHIP" alone but still strips "HP100" -> "100".
+        // Scripts written without spaces (Japanese, Chinese, Thai, Korean particles) match anywhere.
+        private static string RemoveContainsPhrase(string text, string phrase)
+        {
+            if (string.IsNullOrEmpty(phrase))
+                return text;
+
+            var sb = new StringBuilder(text.Length);
+            int copyFrom = 0;
+            int searchFrom = 0;
+            while (searchFrom < text.Length)
+            {
+                int index = text.IndexOf(phrase, searchFrom, StringComparison.OrdinalIgnoreCase);
+                if (index < 0)
+                    break;
+
+                int end = index + phrase.Length;
+                bool joinsWordBefore = index > 0 && ContinuesWord(text[index - 1], phrase[0]);
+                bool joinsWordAfter = end < text.Length && ContinuesWord(phrase[phrase.Length - 1], text[end]);
+
+                if (joinsWordBefore || joinsWordAfter)
+                {
+                    searchFrom = index + 1;
+                    continue;
+                }
+
+                sb.Append(text, copyFrom, index - copyFrom);
+                copyFrom = end;
+                searchFrom = end;
+            }
+
+            if (copyFrom == 0)
+                return text;
+            sb.Append(text, copyFrom, text.Length - copyFrom);
+            return sb.ToString();
+        }
+
+        // True when two adjacent characters belong to the same word of a space-separated script
+        private static bool ContinuesWord(char a, char b)
+        {
+            static bool IsSpacedScriptLetter(char c) =>
+                char.IsLetter(c) && (c < 0x0590 || (c >= 0x1E00 && c <= 0x1FFF)); // Latin incl. Vietnamese, Greek, Cyrillic, Armenian
+
+            return (IsSpacedScriptLetter(a) && IsSpacedScriptLetter(b)) ||
+                   (char.IsDigit(a) && char.IsDigit(b));
+        }
+
+        // Tidy up after removals: collapse the spaces left behind, trim lines, drop empty lines
+        private static string CleanUpFilteredText(string text)
+        {
+            var lines = text.Split('\n')
+                .Select(line => MultipleSpacesRegex.Replace(line, " ").Trim())
+                .Where(line => line.Length > 0);
+            return string.Join("\n", lines);
+        }
+
+        private static readonly Regex MultipleSpacesRegex = new Regex(@"[ \t\u3000]{2,}", RegexOptions.Compiled);
 
         // Exact match that tolerates what OCR adds around a word: surrounding whitespace and
         // punctuation ("Menu " / "Menu." match "Menu"). A phrase made only of punctuation

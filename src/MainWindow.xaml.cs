@@ -314,6 +314,8 @@ namespace RSTGameTranslation
 
             _this = this;
             InitializeComponent();
+            ApplyLanguageItemTemplate(sourceLanguageComboBox);
+            ApplyLanguageItemTemplate(targetLanguageComboBox);
             GetVersionWindows();
 
             // Initialize console but keep it hidden initially
@@ -321,7 +323,6 @@ namespace RSTGameTranslation
 
             // Hide the console window initially
             consoleWindow = GetConsoleWindow();
-            KeyboardShortcuts.SetConsoleWindowHandle(consoleWindow);
             ShowWindow(consoleWindow, SW_HIDE);
 
             // Initialize helper
@@ -2299,6 +2300,7 @@ namespace RSTGameTranslation
 
                 // Save to config
                 ConfigManager.Instance.SetSourceLanguage(language);
+                SettingsWindow.SyncLanguageSelection();
             }
 
             // Reset the OCR hash to force a fresh comparison after changing source language
@@ -2320,10 +2322,39 @@ namespace RSTGameTranslation
 
                 // Save to config
                 ConfigManager.Instance.SetTargetLanguage(language);
+                SettingsWindow.SyncLanguageSelection();
             }
 
             // Reset the OCR hash to force a fresh comparison after changing target language
             Logic.Instance.ClearAllTextObjects();
+        }
+
+        private void SwapLanguagesButton_Click(object sender, RoutedEventArgs e)
+        {
+            SwapLanguages();
+        }
+
+        // Show the language codes in the toolbar pickers as readable names. Set on each item directly
+        // (not via ItemContainerStyle) so the selected value is formatted before the dropdown is first opened.
+        private void ApplyLanguageItemTemplate(System.Windows.Controls.ComboBox comboBox)
+        {
+            var template = (DataTemplate)FindResource("LanguageCodeTemplate");
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                item.ContentTemplate = template;
+            }
+        }
+
+        // Find the item for a language code; "bg-BG" (used by older versions) matches "bg"
+        public static ComboBoxItem? FindLanguageItem(System.Windows.Controls.ComboBox comboBox, string? code)
+        {
+            if (string.IsNullOrEmpty(code))
+                return null;
+            if (string.Equals(code, "bg-BG", StringComparison.OrdinalIgnoreCase))
+                code = "bg";
+
+            return comboBox.Items.OfType<ComboBoxItem>()
+                .FirstOrDefault(item => string.Equals(item.Content?.ToString(), code, StringComparison.OrdinalIgnoreCase));
         }
 
         // Swap source and target languages
@@ -2340,25 +2371,8 @@ namespace RSTGameTranslation
             // Update MainWindow ComboBoxes if they exist
             if (sourceLanguageComboBox != null && targetLanguageComboBox != null)
             {
-                // Find and select the new source language
-                foreach (ComboBoxItem item in sourceLanguageComboBox.Items)
-                {
-                    if (item.Content?.ToString() == currentTarget)
-                    {
-                        sourceLanguageComboBox.SelectedItem = item;
-                        break;
-                    }
-                }
-
-                // Find and select the new target language
-                foreach (ComboBoxItem item in targetLanguageComboBox.Items)
-                {
-                    if (item.Content?.ToString() == currentSource)
-                    {
-                        targetLanguageComboBox.SelectedItem = item;
-                        break;
-                    }
-                }
+                sourceLanguageComboBox.SelectedItem = FindLanguageItem(sourceLanguageComboBox, currentTarget) ?? sourceLanguageComboBox.SelectedItem;
+                targetLanguageComboBox.SelectedItem = FindLanguageItem(targetLanguageComboBox, currentSource) ?? targetLanguageComboBox.SelectedItem;
             }
 
             // Update SettingsWindow ComboBoxes if visible
@@ -3644,45 +3658,22 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Loading language settings from config: Source={savedSourceLanguage}, Target={savedTargetLanguage}");
 
                 // Set source language if found in config
-                if (!string.IsNullOrEmpty(savedSourceLanguage))
+                if (FindLanguageItem(sourceLanguageComboBox, savedSourceLanguage) is ComboBoxItem sourceItem)
                 {
-                    // Find and select matching ComboBoxItem by content
-                    foreach (ComboBoxItem item in sourceLanguageComboBox.Items)
-                    {
-                        if (string.Equals(item.Content.ToString(), savedSourceLanguage, StringComparison.OrdinalIgnoreCase))
-                        {
-                            // Temporarily remove event handler to prevent triggering changes
-                            sourceLanguageComboBox.SelectionChanged -= SourceLanguageComboBox_SelectionChanged;
-
-                            sourceLanguageComboBox.SelectedItem = item;
-                            Console.WriteLine($"Set source language to {savedSourceLanguage}");
-
-                            // Reattach event handler
-                            sourceLanguageComboBox.SelectionChanged += SourceLanguageComboBox_SelectionChanged;
-                            break;
-                        }
-                    }
+                    // Temporarily remove event handler to prevent triggering changes
+                    sourceLanguageComboBox.SelectionChanged -= SourceLanguageComboBox_SelectionChanged;
+                    sourceLanguageComboBox.SelectedItem = sourceItem;
+                    sourceLanguageComboBox.SelectionChanged += SourceLanguageComboBox_SelectionChanged;
+                    Console.WriteLine($"Set source language to {savedSourceLanguage}");
                 }
 
                 // Set target language if found in config
-                if (!string.IsNullOrEmpty(savedTargetLanguage))
+                if (FindLanguageItem(targetLanguageComboBox, savedTargetLanguage) is ComboBoxItem targetItem)
                 {
-                    // Find and select matching ComboBoxItem by content
-                    foreach (ComboBoxItem item in targetLanguageComboBox.Items)
-                    {
-                        if (string.Equals(item.Content.ToString(), savedTargetLanguage, StringComparison.OrdinalIgnoreCase))
-                        {
-                            // Temporarily remove event handler to prevent triggering changes
-                            targetLanguageComboBox.SelectionChanged -= TargetLanguageComboBox_SelectionChanged;
-
-                            targetLanguageComboBox.SelectedItem = item;
-                            Console.WriteLine($"Set target language to {savedTargetLanguage}");
-
-                            // Reattach event handler
-                            targetLanguageComboBox.SelectionChanged += TargetLanguageComboBox_SelectionChanged;
-                            break;
-                        }
-                    }
+                    targetLanguageComboBox.SelectionChanged -= TargetLanguageComboBox_SelectionChanged;
+                    targetLanguageComboBox.SelectedItem = targetItem;
+                    targetLanguageComboBox.SelectionChanged += TargetLanguageComboBox_SelectionChanged;
+                    Console.WriteLine($"Set target language to {savedTargetLanguage}");
                 }
             }
             catch (Exception ex)

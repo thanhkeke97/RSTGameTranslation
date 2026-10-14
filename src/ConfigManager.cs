@@ -26,9 +26,9 @@ namespace RSTGameTranslation
         private readonly Dictionary<string, string> _configValues;
         private string _currentTranslationService = "Gemini"; // Default to Gemini
 
-        private Dictionary<string, Regex> _cachedCompiledRegexes = new Dictionary<string, Regex>();
-        private List<(string Phrase, IgnorePhraseMatchType MatchType)>? _cachedIgnorePhrases;
-        private bool _ignorePhrasesCacheValid;
+        // Parsed ignore phrases. Read by the OCR thread and replaced by the UI thread, so it is an
+        // immutable snapshot swapped in one assignment; null means "parse again from config".
+        private volatile IgnorePhraseSet? _ignorePhraseSet;
 
         private const string SHOW_ICON_SIGNAL = "show_icon_signal";
         public const string GEMINI_API_KEYS = "gemini_api_keys";
@@ -494,6 +494,9 @@ namespace RSTGameTranslation
                     // Then process regular single-line values
                     ProcessSingleLineValues(content);
                 }
+
+                // A profile may carry its own ignore phrases
+                _ignorePhraseSet = null;
             }
             catch (Exception ex)
             {
@@ -1129,81 +1132,40 @@ namespace RSTGameTranslation
             SaveConfig();
         }
 
-        // Set Hotkey
+        // Hotkey function name -> (config key, default hotkey). "Toggle Exclude Regions" is a legacy alias.
+        private static readonly Dictionary<string, (string ConfigKey, string Default)> _hotKeyEntries = new()
+        {
+            ["Start/Stop"] = (HOTKEY_START_STOP, "ALT+G"),
+            ["Overlay"] = (HOTKEY_OVERLAY, "ALT+F"),
+            ["ChatBox"] = (HOTKEY_CHATBOX, "ALT+C"),
+            ["Select Area"] = (HOTKEY_SELECT_AREA, "ALT+Q"),
+            ["Log"] = (HOTKEY_LOG, "ALT+L"),
+            ["Setting"] = (HOTKEY_SETTING, "ALT+P"),
+            ["Clear Areas"] = (HOTKEY_CLEAR_AREAS, "ALT+R"),
+            ["Clear Selected Area"] = (HOTKEY_CLEAR_SELECTED_AREA, "ALT+H"),
+            ["Show Area"] = (HOTKEY_SHOW_AREA, "ALT+B"),
+            ["Area 1"] = (HOTKEY_AREA_1, "ALT+1"),
+            ["Area 2"] = (HOTKEY_AREA_2, "ALT+2"),
+            ["Area 3"] = (HOTKEY_AREA_3, "ALT+3"),
+            ["Area 4"] = (HOTKEY_AREA_4, "ALT+4"),
+            ["Area 5"] = (HOTKEY_AREA_5, "ALT+5"),
+            ["Audio Service"] = (HOTKEY_AUDIO_SERVICE, "ALT+K"),
+            ["Swap Languages"] = (HOTKEY_SWAP_LANGUAGES, "ALT+V"),
+            ["Retry Translation"] = (HOTKEY_RETRY_TRANSLATION, "ALT+T"),
+            ["Select Exclude Region"] = (HOTKEY_TOGGLE_EXCLUDE_REGIONS, "ALT+X"),
+            ["Toggle Exclude Regions"] = (HOTKEY_TOGGLE_EXCLUDE_REGIONS, "ALT+X"),
+        };
+
+        // Set Hotkey (an empty string means the function has no hotkey)
         public void SetHotKey(string functionName, string hotKey)
         {
-            if (functionName == "Start/Stop")
+            if (!_hotKeyEntries.TryGetValue(functionName, out var entry))
             {
-                _configValues[HOTKEY_START_STOP] = hotKey;
+                Console.WriteLine($"Unknown hotkey function: {functionName}");
+                return;
             }
-            else if (functionName == "Overlay")
-            {
-                _configValues[HOTKEY_OVERLAY] = hotKey;
-            }
-            else if (functionName == "ChatBox")
-            {
-                _configValues[HOTKEY_CHATBOX] = hotKey;
-            }
-            else if (functionName == "Select Area")
-            {
-                _configValues[HOTKEY_SELECT_AREA] = hotKey;
-            }
-            else if (functionName == "Log")
-            {
-                _configValues[HOTKEY_LOG] = hotKey;
-            }
-            else if (functionName == "Setting")
-            {
-                _configValues[HOTKEY_SETTING] = hotKey;
-            }
-            else if (functionName == "Clear Areas")
-            {
-                _configValues[HOTKEY_CLEAR_AREAS] = hotKey;
-            }
-            else if (functionName == "Clear Selected Area")
-            {
-                _configValues[HOTKEY_CLEAR_SELECTED_AREA] = hotKey;
-            }
-            else if (functionName == "Show Area")
-            {
-                _configValues[HOTKEY_SHOW_AREA] = hotKey;
-            }
-            else if (functionName == "Area 1")
-            {
-                _configValues[HOTKEY_AREA_1] = hotKey;
-            }
-            else if (functionName == "Area 2")
-            {
-                _configValues[HOTKEY_AREA_2] = hotKey;
-            }
-            else if (functionName == "Area 3")
-            {
-                _configValues[HOTKEY_AREA_3] = hotKey;
-            }
-            else if (functionName == "Area 4")
-            {
-                _configValues[HOTKEY_AREA_4] = hotKey;
-            }
-            else if (functionName == "Area 5")
-            {
-                _configValues[HOTKEY_AREA_5] = hotKey;
-            }
-            else if (functionName == "Audio Service")
-            {
-                _configValues[HOTKEY_AUDIO_SERVICE] = hotKey;
-            }
-            else if (functionName == "Swap Languages")
-            {
-                _configValues[HOTKEY_SWAP_LANGUAGES] = hotKey;
-            }
-            else if (functionName == "Retry Translation")
-            {
-                _configValues[HOTKEY_RETRY_TRANSLATION] = hotKey;
-            }
-            else if (functionName == "Select Exclude Region" || functionName == "Toggle Exclude Regions")
-            {
-                _configValues[HOTKEY_TOGGLE_EXCLUDE_REGIONS] = hotKey;
-            }
+
+            _configValues[entry.ConfigKey] = hotKey;
             SaveConfig();
             Console.WriteLine($"Saving {functionName} to hotkey {hotKey}");
         }
@@ -1211,79 +1173,26 @@ namespace RSTGameTranslation
         // Get HotKey
         public string GetHotKey(string functionName)
         {
-            if (functionName == "Start/Stop")
+            return _hotKeyEntries.TryGetValue(functionName, out var entry)
+                ? GetValue(entry.ConfigKey, entry.Default)
+                : "";
+        }
+
+        // Get the built-in default hotkey of a function
+        public string GetDefaultHotKey(string functionName)
+        {
+            return _hotKeyEntries.TryGetValue(functionName, out var entry) ? entry.Default : "";
+        }
+
+        // Restore every hotkey to its default, saving the config once
+        public void ResetHotKeysToDefault()
+        {
+            foreach (var entry in _hotKeyEntries.Values)
             {
-                return GetValue(HOTKEY_START_STOP, "ALT+G");
+                _configValues[entry.ConfigKey] = entry.Default;
             }
-            else if (functionName == "Overlay")
-            {
-                return GetValue(HOTKEY_OVERLAY, "ALT+F");
-            }
-            else if (functionName == "ChatBox")
-            {
-                return GetValue(HOTKEY_CHATBOX, "ALT+C");
-            }
-            else if (functionName == "Select Area")
-            {
-                return GetValue(HOTKEY_SELECT_AREA, "ALT+Q");
-            }
-            else if (functionName == "Log")
-            {
-                return GetValue(HOTKEY_LOG, "ALT+L");
-            }
-            else if (functionName == "Setting")
-            {
-                return GetValue(HOTKEY_SETTING, "ALT+P");
-            }
-            else if (functionName == "Clear Areas")
-            {
-                return GetValue(HOTKEY_CLEAR_AREAS, "ALT+R");
-            }
-            else if (functionName == "Clear Selected Area")
-            {
-                return GetValue(HOTKEY_CLEAR_SELECTED_AREA, "ALT+H");
-            }
-            else if (functionName == "Show Area")
-            {
-                return GetValue(HOTKEY_SHOW_AREA, "ALT+B");
-            }
-            else if (functionName == "Area 1")
-            {
-                return GetValue(HOTKEY_AREA_1, "ALT+1");
-            }
-            else if (functionName == "Area 2")
-            {
-                return GetValue(HOTKEY_AREA_2, "ALT+2");
-            }
-            else if (functionName == "Area 3")
-            {
-                return GetValue(HOTKEY_AREA_3, "ALT+3");
-            }
-            else if (functionName == "Area 4")
-            {
-                return GetValue(HOTKEY_AREA_4, "ALT+4");
-            }
-            else if (functionName == "Area 5")
-            {
-                return GetValue(HOTKEY_AREA_5, "ALT+5");
-            }
-            else if (functionName == "Audio Service")
-            {
-                return GetValue(HOTKEY_AUDIO_SERVICE, "ALT+K");
-            }
-            else if (functionName == "Swap Languages")
-            {
-                return GetValue(HOTKEY_SWAP_LANGUAGES, "ALT+V");
-            }
-            else if (functionName == "Retry Translation")
-            {
-                return GetValue(HOTKEY_RETRY_TRANSLATION, "ALT+T");
-            }
-            else if (functionName == "Select Exclude Region" || functionName == "Toggle Exclude Regions")
-            {
-                return GetValue(HOTKEY_TOGGLE_EXCLUDE_REGIONS, "ALT+X");
-            }
-            return GetValue(HOTKEY_START_STOP, "ALT+G");
+            SaveConfig();
+            Console.WriteLine("Hotkeys reset to defaults");
         }
 
         // Get Mistral API key
@@ -3305,67 +3214,59 @@ namespace RSTGameTranslation
         }
 
         // Get all ignore phrases as a list of tuples (phrase, matchType)
-        public List<(string Phrase, IgnorePhraseMatchType MatchType)> GetIgnorePhrases()
+        public IReadOnlyList<(string Phrase, IgnorePhraseMatchType MatchType)> GetIgnorePhrases()
         {
-            if (_ignorePhrasesCacheValid && _cachedIgnorePhrases != null)
-                return _cachedIgnorePhrases;
+            return GetIgnorePhraseSet().Phrases;
+        }
 
-            var result = new List<(string, IgnorePhraseMatchType)>();
-            var compiledRegexes = new Dictionary<string, Regex>();
-            string value = GetValue(IGNORE_PHRASES, "");
-
-            if (!string.IsNullOrEmpty(value))
+        // The ignore phrases together with their compiled regexes, as one consistent snapshot
+        public IgnorePhraseSet GetIgnorePhraseSet()
+        {
+            var set = _ignorePhraseSet;
+            if (set == null)
             {
-                // Fix the format if it contains the key prefix (from old format)
-                if (value.StartsWith(IGNORE_PHRASES + "|"))
-                {
-                    value = value.Substring((IGNORE_PHRASES + "|").Length);
-                }
+                set = new IgnorePhraseSet(ParseIgnorePhrases(GetValue(IGNORE_PHRASES, "")));
+                _ignorePhraseSet = set;
+            }
+            return set;
+        }
 
-                string[] parts = value.Split('|');
+        private static List<(string, IgnorePhraseMatchType)> ParseIgnorePhrases(string value)
+        {
+            var result = new List<(string, IgnorePhraseMatchType)>();
+            if (string.IsNullOrEmpty(value))
+                return result;
 
-                // Process in pairs
-                for (int i = 0; i < parts.Length - 1; i += 2)
-                {
-                    if (i + 1 < parts.Length)
-                    {
-                        string phrase = parts[i];
-                        string matchTypeStr = parts[i + 1];
-
-                        IgnorePhraseMatchType matchType;
-                        if (bool.TryParse(matchTypeStr, out bool isExact))
-                        {
-                            matchType = isExact ? IgnorePhraseMatchType.ExactMatch : IgnorePhraseMatchType.Contains;
-                        }
-                        else if (!Enum.TryParse(matchTypeStr, out matchType))
-                        {
-                            matchType = IgnorePhraseMatchType.ExactMatch;
-                        }
-
-                        phrase = DecodeIgnorePhrase(phrase);
-                        if (!string.IsNullOrEmpty(phrase))
-                        {
-                            result.Add((phrase, matchType));
-
-                            if (matchType == IgnorePhraseMatchType.RegularExpression)
-                            {
-                                try
-                                {
-                                    compiledRegexes[phrase] = new Regex(phrase, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(200));
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine($"Failed to compile regex '{phrase}': {ex.Message}");
-                                }
-                            }
-                        }
-                    }
-                }
+            // Fix the format if it contains the key prefix (from old format)
+            if (value.StartsWith(IGNORE_PHRASES + "|"))
+            {
+                value = value.Substring((IGNORE_PHRASES + "|").Length);
             }
 
-            _cachedCompiledRegexes = compiledRegexes;
-            _cachedIgnorePhrases = result;
-            _ignorePhrasesCacheValid = true;
+            string[] parts = value.Split('|');
+
+            // Process in pairs
+            for (int i = 0; i + 1 < parts.Length; i += 2)
+            {
+                string phrase = DecodeIgnorePhrase(parts[i]);
+                string matchTypeStr = parts[i + 1];
+
+                IgnorePhraseMatchType matchType;
+                if (bool.TryParse(matchTypeStr, out bool isExact))
+                {
+                    // Old format stored an "exact match" flag
+                    matchType = isExact ? IgnorePhraseMatchType.ExactMatch : IgnorePhraseMatchType.Contains;
+                }
+                else if (!Enum.TryParse(matchTypeStr, out matchType))
+                {
+                    matchType = IgnorePhraseMatchType.ExactMatch;
+                }
+
+                if (!string.IsNullOrEmpty(phrase))
+                {
+                    result.Add((phrase, matchType));
+                }
+            }
 
             return result;
         }
@@ -3391,31 +3292,24 @@ namespace RSTGameTranslation
             });
         }
 
-        public bool TryGetCompiledRegex(string phrase, out Regex? regex)
-        {
-            return _cachedCompiledRegexes.TryGetValue(phrase, out regex);
-        }
-
         // Save all ignore phrases
-        public void SaveIgnorePhrases(List<(string Phrase, IgnorePhraseMatchType MatchType)> phrases)
+        public void SaveIgnorePhrases(IEnumerable<(string Phrase, IgnorePhraseMatchType MatchType)> phrases)
         {
-            StringBuilder sb = new StringBuilder();
+            var list = phrases.Where(p => !string.IsNullOrEmpty(p.Phrase)).ToList();
 
-            foreach (var (phrase, matchType) in phrases)
+            StringBuilder sb = new StringBuilder();
+            foreach (var (phrase, matchType) in list)
             {
-                if (!string.IsNullOrEmpty(phrase))
-                {
-                    sb.Append(EncodeIgnorePhrase(phrase));
-                    sb.Append('|');
-                    sb.Append(matchType.ToString());
-                    sb.Append('|');
-                }
+                sb.Append(EncodeIgnorePhrase(phrase));
+                sb.Append('|');
+                sb.Append(matchType.ToString());
+                sb.Append('|');
             }
 
             _configValues[IGNORE_PHRASES] = sb.ToString();
-            _ignorePhrasesCacheValid = false;
+            _ignorePhraseSet = new IgnorePhraseSet(list);
             SaveConfig();
-            Console.WriteLine($"Saved {phrases.Count} ignore phrases: {sb.ToString()}");
+            Console.WriteLine($"Saved {list.Count} ignore phrases: {sb}");
         }
 
         // Get/set language font size min
@@ -3726,5 +3620,35 @@ namespace RSTGameTranslation
             SaveConfig();
             Console.WriteLine($"Show exclude regions set to: {show}");
         }
+    }
+
+    // Immutable set of ignore phrases with their regexes compiled once
+    public sealed class IgnorePhraseSet
+    {
+        public IgnorePhraseSet(IReadOnlyList<(string Phrase, IgnorePhraseMatchType MatchType)> phrases)
+        {
+            Phrases = phrases;
+
+            var regexes = new Dictionary<string, Regex>();
+            foreach (var (phrase, matchType) in phrases)
+            {
+                if (matchType != IgnorePhraseMatchType.RegularExpression || regexes.ContainsKey(phrase))
+                    continue;
+                try
+                {
+                    regexes[phrase] = new Regex(phrase, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(200));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to compile regex '{phrase}': {ex.Message}");
+                }
+            }
+            Regexes = regexes;
+        }
+
+        public IReadOnlyList<(string Phrase, IgnorePhraseMatchType MatchType)> Phrases { get; }
+
+        // Only valid patterns are present
+        public IReadOnlyDictionary<string, Regex> Regexes { get; }
     }
 }

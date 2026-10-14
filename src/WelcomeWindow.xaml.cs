@@ -115,47 +115,9 @@ namespace RSTGameTranslation
             comboBox.Items.OfType<ComboBoxItem>()
                 .FirstOrDefault(item => string.Equals(item.Tag as string, code, StringComparison.OrdinalIgnoreCase));
 
-        /// <summary>
-        /// Readable name for an app language code, e.g. "Japanese — 日本語 (ja)".
-        /// </summary>
-        private static string GetLanguageDisplayName(string code)
-        {
-            CultureInfo? culture = GetCulture(code);
-            if (culture == null)
-                return code;
+        private static string GetLanguageDisplayName(string code) => LanguageDisplay.GetDisplayName(code);
 
-            return culture.NativeName == culture.EnglishName
-                ? $"{culture.EnglishName} ({code})"
-                : $"{culture.EnglishName} — {culture.NativeName} ({code})";
-        }
-
-        private static string GetLanguageShortName(string code) => GetCulture(code)?.EnglishName ?? code;
-
-        private static CultureInfo? GetCulture(string code)
-        {
-            // The app uses its own codes for Chinese
-            string cultureName = code.ToLowerInvariant() switch
-            {
-                "ch_sim" => "zh-Hans",
-                "ch_tra" => "zh-Hant",
-                _ => code
-            };
-
-            try
-            {
-                CultureInfo culture = CultureInfo.GetCultureInfo(cultureName);
-                // Show "Bulgarian" rather than "Bulgarian (Bulgaria)" for region-specific codes like bg-BG
-                if (!culture.IsNeutralCulture && !Equals(culture.Parent, CultureInfo.InvariantCulture))
-                {
-                    culture = culture.Parent;
-                }
-                return culture;
-            }
-            catch (CultureNotFoundException)
-            {
-                return null;
-            }
-        }
+        private static string GetLanguageShortName(string code) => LanguageDisplay.GetShortName(code);
 
         private void LocalizationManager_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

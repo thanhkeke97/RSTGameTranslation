@@ -873,28 +873,37 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                
+
                                 <!-- Header for list -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_PhrasesToIgnore]}" Grid.Row="0" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="List of phrases that will be ignored during translation. If exact match is enabled, the whole text will be ignored if it matches. If disabled, the phrase will be removed from the text."/>
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_PhrasesToIgnore]}" Grid.Row="0" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 
                                 <!-- ListView for phrases -->
                                 <ListView x:Name="ignorePhraseListView" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
                                          Margin="0,5" Height="300" SelectionMode="Single" SelectionChanged="IgnorePhraseListView_SelectionChanged">
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Phrase]}" Width="350" DisplayMemberBinding="{Binding Phrase}"/>
+                                            <GridViewColumn Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_Phrase]}" Width="350">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBox Text="{Binding Phrase, Mode=OneWay}" MinWidth="320"
+                                                                 BorderThickness="0" Background="Transparent" Foreground="{DynamicResource TextBrush}"
+                                                                 KeyDown="IgnorePhraseTextBox_KeyDown"
+                                                                 GotKeyboardFocus="IgnorePhraseTextBox_GotKeyboardFocus"
+                                                                 LostKeyboardFocus="IgnorePhraseTextBox_LostKeyboardFocus"/>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
                                             <GridViewColumn Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Col_MatchType]}" Width="140">
                                                     <GridViewColumn.CellTemplate>
                                                         <DataTemplate>
                                                             <ComboBox ItemsSource="{Binding Source={x:Reference settingsWindow}, Path=MatchTypeOptions}"
-                                                                      DisplayMemberPath="Key"
+                                                                      DisplayMemberPath="Label"
                                                                       SelectedValuePath="Value"
                                                                       SelectedValue="{Binding MatchType}"
-                                                                      SelectionChanged="IgnorePhraseMatchType_SelectionChanged"
-                                                                      Tag="{Binding Phrase}"/>
+                                                                      SelectionChanged="IgnorePhraseMatchType_SelectionChanged"/>
                                                         </DataTemplate>
                                                     </GridViewColumn.CellTemplate>
                                                 </GridViewColumn>
@@ -905,14 +914,18 @@
                                 <!-- Input for new phrase -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AddPhrase]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,8,10,0"/>
-                                <TextBox x:Name="newIgnorePhraseTextBox" Grid.Row="2" Grid.Column="1" 
-                                        Margin="0,8,10,0"/>
+                                <TextBox x:Name="newIgnorePhraseTextBox" Grid.Row="2" Grid.Column="1"
+                                        Margin="0,8,10,0" KeyDown="NewIgnorePhraseTextBox_KeyDown"/>
                                 <ComboBox x:Name="newMatchTypeComboBox" Grid.Row="2" Grid.Column="2" 
                                          VerticalAlignment="Center" Margin="0,8,10,0" SelectedIndex="0"/>
                                 <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="3">
                                     <Button x:Name="addIgnorePhraseButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Add]}" Margin="0,8,5,0" Width="60" Click="AddIgnorePhraseButton_Click"/>
                                     <Button x:Name="removeIgnorePhraseButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Remove]}" Margin="0,8,0,0" Width="60" Click="RemoveIgnorePhraseButton_Click" IsEnabled="False"/>
                                 </StackPanel>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,10,0,0" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource MutedBrush}"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_IgnorePhraseHint]}"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
@@ -1791,296 +1804,90 @@
                     <StackPanel Margin="10">
                         <!-- Hot Keys Settings -->
                         <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_HotKeySettings]}" Margin="0,0,0,15" Padding="10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyEnable]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="hotKeyEnableCheckBox" Checked="SetHotKeyEnableCheckBox_CheckChange" ToolTip="Enable/Disable hotkeys"
-                                    Unchecked="SetHotKeyEnableCheckBox_CheckChange" Grid.Row="0" Grid.Column="1" Padding="5,3" Margin="0,8,10,10"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyFunctions]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="hotKeyFunctionComboBox" Grid.Row="1" Grid.Column="1" Padding="5,3" Margin="0,8,10,10" SelectionChanged="HotKeyFunctionComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}" Tag=""/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_StartStop]}" Tag="Start/Stop"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Overlay]}" Tag="Overlay"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Setting]}" Tag="Setting"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Log]}" Tag="Log"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_SelectArea]}" Tag="Select Area"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ClearAreas]}" Tag="Clear Areas"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ClearSelectedArea]}" Tag="Clear Selected Area"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ShowArea]}" Tag="Show Area"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_ChatBox]}" Tag="ChatBox"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area1]}" Tag="Area 1"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area2]}" Tag="Area 2"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area3]}" Tag="Area 3"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area4]}" Tag="Area 4"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Area5]}" Tag="Area 5"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" Tag="Audio Service"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_SwapLanguages]}" Tag="Swap Languages"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}" Tag="Retry Translation"/>
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}" Tag="Select Exclude Region"/>
-                                </ComboBox>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CombineKeys]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="combineKey1" Grid.Row="2" Grid.Column="1" Padding="5,3" Margin="0,8,10,10">
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
-                                    <ComboBoxItem Content="CTRL"/>
-                                    <ComboBoxItem Content="SHIFT"/>
-                                    <ComboBoxItem Content="ALT"/>
-                                </ComboBox>
-                                <ComboBox x:Name="combineKey2" Grid.Row="2" Grid.Column="2" Padding="5,3" Margin="0,8,10,10">
-                                    <ComboBoxItem Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_Select]}"/>
-                                    <ComboBoxItem Content="A"/>
-                                    <ComboBoxItem Content="B"/>
-                                    <ComboBoxItem Content="C"/>
-                                    <ComboBoxItem Content="D"/>
-                                    <ComboBoxItem Content="E"/>
-                                    <ComboBoxItem Content="F"/>
-                                    <ComboBoxItem Content="G"/>
-                                    <ComboBoxItem Content="H"/>
-                                    <ComboBoxItem Content="J"/>
-                                    <ComboBoxItem Content="K"/>
-                                    <ComboBoxItem Content="L"/>
-                                    <ComboBoxItem Content="M"/>
-                                    <ComboBoxItem Content="N"/>
-                                    <ComboBoxItem Content="O"/>
-                                    <ComboBoxItem Content="V"/>
-                                    <ComboBoxItem Content="X"/>
-                                    <ComboBoxItem Content="Z"/>
-                                    <ComboBoxItem Content="Q"/>
-                                    <ComboBoxItem Content="W"/>
-                                    <ComboBoxItem Content="R"/>
-                                    <ComboBoxItem Content="T"/>
-                                    <ComboBoxItem Content="Y"/>
-                                    <ComboBoxItem Content="U"/>
-                                    <ComboBoxItem Content="I"/>
-                                    <ComboBoxItem Content="P"/>
-                                    <ComboBoxItem Content="0"/>
-                                    <ComboBoxItem Content="1"/>
-                                    <ComboBoxItem Content="2"/>
-                                    <ComboBoxItem Content="3"/>
-                                    <ComboBoxItem Content="4"/>
-                                    <ComboBoxItem Content="5"/>
-                                    <ComboBoxItem Content="6"/>
-                                    <ComboBoxItem Content="7"/>
-                                    <ComboBoxItem Content="8"/>
-                                    <ComboBoxItem Content="9"/>
-                                </ComboBox>
-                                <Button x:Name="setHotKeyButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SetHotKey]}"  Grid.Row="3" Grid.Column="1"
-                                       HorizontalAlignment="Center" Width="100" Margin="0,8,0,10" Padding="5,3" Click="SetHotKeyButton_Click"
-                                       ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SetHotKey]}"/>
-                                <TextBlock x:Name="statusUpdateHotKey" Foreground="{DynamicResource SuccessBrush}" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_HotKeyUpdateSuccess]}" 
-                                    Visibility="Collapsed" Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <!-- List HotKey Table -->
-                                <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" BorderBrush="#333" BorderThickness="1" CornerRadius="5">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox x:Name="hotKeyEnableCheckBox" VerticalAlignment="Center"
+                                              Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyEnable]}"
+                                              Checked="SetHotKeyEnableCheckBox_CheckChange" Unchecked="SetHotKeyEnableCheckBox_CheckChange"/>
+                                    <Button Grid.Column="1" Padding="10,3" Click="ResetHotkeysButton_Click"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_HotKeyReset]}"/>
+                                </Grid>
+
+                                <TextBlock Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyHint]}"/>
+
+                                <!-- Hotkey table: one row per function, click the shortcut to record a new one -->
+                                <Border Margin="0,10,0,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="5">
                                     <StackPanel>
-                                        <Border Background="#333" Padding="10,5">
+                                        <Border Background="{DynamicResource NeutralBgBrush}" Padding="10,5" CornerRadius="5,5,0,0">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_FunctionName]}" FontWeight="Bold" Foreground="White"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Shortcut]}" FontWeight="Bold" Foreground="White" Margin="0,0,20,0"/>
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_FunctionName]}" FontWeight="Bold"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Shortcut]}" FontWeight="Bold" Margin="0,0,40,0"/>
                                             </Grid>
                                         </Border>
-                                        
-                                        <!-- Items -->
-                                        <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
-                                            <StackPanel>
-                                                <!-- Item Template -->
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartStopTranslation]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyStartStop" Text="ALT + G" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
 
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleOverlay]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyOverlay" Text="ALT + F" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-                                                
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeySetting" Text="ALT + P" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleLog]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyLog" Text="ALT + L" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeySelectArea" Text="ALT + Q" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearAllAreas]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearAreas" Text="ALT + R" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearSelectedArea]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowAreaBorder]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyShowArea" Text="ALT + B" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyChatBox" Text="ALT + C" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-                                                
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyAudio" Text="ALT + K" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <!-- Areas 1-5 -->
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea1]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea1" Text="ALT + 1" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-                                                
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea2]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea2" Text="ALT + 2" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea3]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea3" Text="ALT + 3" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea4]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea4" Text="ALT + 4" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea5]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyArea5" Text="ALT + 5" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeySwapLanguages" Text="ALT + V" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyRetryTranslate" Text="ALT + T" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                                <Separator Background="#222" Margin="5,2"/>
-
-                                                <Grid Margin="10,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}"/>
-                                                    <TextBlock Grid.Column="1" x:Name="hotKeyToggleExcludeRegions" Text="ALT + X" FontWeight="Bold" Foreground="{DynamicResource LinkBrush}"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </ScrollViewer>
+                                        <ItemsControl x:Name="hotkeyItemsControl">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,4">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="170"/>
+                                                                <ColumnDefinition Width="32"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                                                            <Button Grid.Column="1" Padding="6,3" Focusable="True"
+                                                                    Content="{Binding DisplayText}"
+                                                                    Click="HotkeyCaptureButton_Click"
+                                                                    PreviewKeyDown="HotkeyCaptureButton_PreviewKeyDown"
+                                                                    PreviewKeyUp="HotkeyCaptureButton_PreviewKeyUp"
+                                                                    LostKeyboardFocus="HotkeyCaptureButton_LostKeyboardFocus">
+                                                                <Button.Style>
+                                                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsCapturing}" Value="True">
+                                                                                <Setter Property="FontWeight" Value="Normal"/>
+                                                                                <Setter Property="FontStyle" Value="Italic"/>
+                                                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                                                <Setter Property="BorderThickness" Value="2"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding HasHotkey}" Value="False">
+                                                                                <Setter Property="FontWeight" Value="Normal"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                            </Button>
+                                                            <Button Grid.Column="2" Content="✕" Padding="0" Margin="6,0,0,0" Width="24" Height="24" MinHeight="0"
+                                                                    Click="ClearHotkeyButton_Click" Visibility="{Binding ClearVisibility}"
+                                                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HotKeyClear]}"/>
+                                                            <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="0,3,0,0" TextWrapping="Wrap"
+                                                                       Foreground="{DynamicResource WarningBrush}"
+                                                                       Text="{Binding ConflictText}" Visibility="{Binding ConflictVisibility}"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </StackPanel>
                                 </Border>
-                            </Grid>
+
+                                <TextBlock x:Name="statusUpdateHotKey" Margin="0,8,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
+                            </StackPanel>
                         </GroupBox>
                     </StackPanel>
                 </ScrollViewer>

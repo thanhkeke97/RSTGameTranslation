@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
-using System.Windows.Forms; // For Control.ModifierKeys
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,19 +43,12 @@ namespace RSTGameTranslation
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
         
-        // For window focus checking
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-        
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-        
         // For getting key state
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
         
         // For registering hotkeys
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
         
         [DllImport("user32.dll")]
@@ -75,58 +67,57 @@ namespace RSTGameTranslation
         private const int WM_KEYUP = 0x0101;
         private const int WM_SYSKEYDOWN = 0x0104;
         private const int WM_SYSKEYUP = 0x0105;
-        private const int WM_HOTKEY = 0x0312;
         
         // Virtual key codes
         private const int VK_SHIFT = 0x10;
         private const int VK_CONTROL = 0x11;
         private const int VK_MENU = 0x12; // ALT key
-        private const int VK_F = 0x46;    // F key
-        private const int VK_G = 0x47;    // G key
-        private const int VK_H = 0x48;    // H key
-        private const int VK_C = 0x43;    // C key
-        private const int VK_L = 0x4C;    // L key
-        private const int VK_P = 0x50;    // P key
-        private const int VK_Q = 0x51;    // Q key
-        private const int VK_1 = 0x31;    // 1 key
-        private const int VK_2 = 0x32;    // 2 key
-        private const int VK_3 = 0x33;    // 3 key
-        private const int VK_4 = 0x34;    // 4 key
-        private const int VK_5 = 0x35;    // 5 key
-        
-        // Hotkey IDs
-        private const int HOTKEY_ID_START_STOP = 1;
-        private const int HOTKEY_ID_OVERLAY = 2;
-        private const int HOTKEY_ID_CHATBOX = 3;
-        private const int HOTKEY_ID_SETTING = 4;
-        private const int HOTKEY_ID_LOG = 5;
-        private const int HOTKEY_ID_SELECT_AREA = 6;
-        private const int HOTKEY_ID_CLEAR_AREAS = 7;
-        private const int HOTKEY_ID_AREA_1 = 8;
-        private const int HOTKEY_ID_AREA_2 = 9;
-        private const int HOTKEY_ID_AREA_3 = 10;
-        private const int HOTKEY_ID_AREA_4 = 11;
-        private const int HOTKEY_ID_AREA_5 = 12;
-        private const int HOTKEY_ID_CLEAR_SELECTED_AREA = 13;
-        private const int HOTKEY_ID_SHOW_AREA = 14;
-        private const int HOTKEY_ID_AUDIO_SERVICE = 15;
-        private const int HOTKEY_ID_SWAP_LANGUAGES = 16;
-        private const int HOTKEY_ID_RETRY_TRANSLATION = 17;
-        private const int HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS = 18;
+        private const int VK_LWIN = 0x5B;
+        private const int VK_RWIN = 0x5C;
+
+        // Every hotkey-bound function: its config name (as used by ConfigManager.GetHotKey) and the event it raises.
+        // The RegisterHotKey id of each entry is its index + 1.
+        private static readonly (string Name, Action Raise)[] _hotkeyFunctions =
+        {
+            ("Start/Stop", () => StartStopRequested?.Invoke(null, EventArgs.Empty)),
+            ("Overlay", () => MonitorToggleRequested?.Invoke(null, EventArgs.Empty)),
+            ("ChatBox", () => ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty)),
+            ("Setting", () => SettingsToggleRequested?.Invoke(null, EventArgs.Empty)),
+            ("Log", () => LogToggleRequested?.Invoke(null, EventArgs.Empty)),
+            ("Select Area", () => SelectTranslationRegion?.Invoke(null, EventArgs.Empty)),
+            ("Clear Areas", () => ClearAreasRequested?.Invoke(null, EventArgs.Empty)),
+            ("Clear Selected Area", () => ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty)),
+            ("Show Area", () => ShowAreaRequested?.Invoke(null, EventArgs.Empty)),
+            ("Area 1", () => SelectArea1Requested?.Invoke(null, EventArgs.Empty)),
+            ("Area 2", () => SelectArea2Requested?.Invoke(null, EventArgs.Empty)),
+            ("Area 3", () => SelectArea3Requested?.Invoke(null, EventArgs.Empty)),
+            ("Area 4", () => SelectArea4Requested?.Invoke(null, EventArgs.Empty)),
+            ("Area 5", () => SelectArea5Requested?.Invoke(null, EventArgs.Empty)),
+            ("Audio Service", () => AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty)),
+            ("Swap Languages", () => SwapLanguagesRequested?.Invoke(null, EventArgs.Empty)),
+            ("Retry Translation", () => RetryTranslationRequested?.Invoke(null, EventArgs.Empty)),
+            ("Select Exclude Region", () => ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty)),
+        };
+
         private static readonly Dictionary<string, int> _keyCodeMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Dictionary<string, (uint modifiers, int vkCode)> _parsedHotkeys = new Dictionary<string, (uint, int)>();
-        
+        private static readonly Dictionary<int, string> _keyNameMap = new Dictionary<int, string>();
+
+        // Set while the Settings window is recording a new hotkey, so the keys reach it instead of firing actions
+        private static volatile bool _suspended;
+        // Replaced as a whole on refresh (never mutated in place) so the polling thread can enumerate it safely
+        private static volatile Dictionary<string, (uint modifiers, int vkCode)> _parsedHotkeys = new Dictionary<string, (uint, int)>();
+
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
-        
-        // Reference to our window handles
-        private static IntPtr _consoleWindowHandle = IntPtr.Zero;
+
+        // Window that owns the RegisterHotKey registrations
         private static IntPtr _mainWindowHandle = IntPtr.Zero;
-        
-        // Track the last key press time to prevent multiple triggers
-        private static DateTime _lastKeyPressTime = DateTime.MinValue;
-        private static int _lastKeyCode = 0;
-        private static readonly TimeSpan _keyPressThreshold = TimeSpan.FromMilliseconds(300);
+
+        // Hotkey keys whose key-down was swallowed by the hook (vk -> tick of last key-down); used to ignore
+        // auto-repeat and swallow the matching key-up. Entries expire in case a key-up is never delivered
+        // (e.g. secure desktop switch), longer than the max keyboard repeat delay of 1s.
+        private static readonly Dictionary<int, long> _heldHotkeyKeys = new Dictionary<int, long>();
+        private const long HeldKeyExpiryMs = 1500;
         private static readonly object _hotkeyDispatchLock = new object();
         private static readonly Dictionary<string, DateTime> _lastHotkeyDispatchTimes = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
         private static readonly TimeSpan _hotkeyDispatchThreshold = TimeSpan.FromMilliseconds(250);
@@ -179,52 +170,27 @@ namespace RSTGameTranslation
             _keyCodeMap["UP"] = 0x26;
             _keyCodeMap["RIGHT"] = 0x27;
             _keyCodeMap["DOWN"] = 0x28;
+
+            foreach (var kvp in _keyCodeMap)
+            {
+                _keyNameMap[kvp.Value] = kvp.Key;
+            }
         }
 
-        // Thêm phương thức RefreshHotkeys
-        public static void RefreshHotkeys()
-        {
-            _parsedHotkeys.Clear();
-            
-            // Parse all hotkeys from config
-            ParseHotkey("Start/Stop");
-            ParseHotkey("Overlay");
-            ParseHotkey("ChatBox");
-            ParseHotkey("Setting");
-            ParseHotkey("Log");
-            ParseHotkey("Select Area");
-            ParseHotkey("Clear Areas");
-            ParseHotkey("Clear Selected Area");
-            ParseHotkey("Show Area");
-            ParseHotkey("Area 1");
-            ParseHotkey("Area 2");
-            ParseHotkey("Area 3");
-            ParseHotkey("Area 4");
-            ParseHotkey("Area 5");
-            ParseHotkey("Audio Service");
-            ParseHotkey("Swap Languages");
-            ParseHotkey("Retry Translation");
-            ParseHotkey("Select Exclude Region");
-        }
+        public static IEnumerable<string> FunctionNames => _hotkeyFunctions.Select(f => f.Name);
 
-        private static void ParseHotkey(string functionName)
+        // Parse a config string such as "CTRL+SHIFT+G" or "F9". A modifier is required except for F1-F12.
+        public static bool TryParseHotkey(string? hotkeyString, out uint modifiers, out int vkCode)
         {
-            string hotkeyString = ConfigManager.Instance.GetHotKey(functionName);
-            if (string.IsNullOrEmpty(hotkeyString))
-                return;
-                
+            modifiers = 0;
+            vkCode = 0;
+            if (string.IsNullOrWhiteSpace(hotkeyString))
+                return false;
+
             string[] parts = hotkeyString.Split('+');
-            if (parts.Length < 2)
-                return;
-                
-            uint modifiers = 0;
-            string keyName = parts[parts.Length - 1].Trim().ToUpper();
-            
-            // Parse modifiers
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                string mod = parts[i].Trim().ToUpper();
-                switch (mod)
+                switch (parts[i].Trim().ToUpperInvariant())
                 {
                     case "ALT":
                         modifiers |= MOD_ALT;
@@ -235,18 +201,141 @@ namespace RSTGameTranslation
                     case "SHIFT":
                         modifiers |= MOD_SHIFT;
                         break;
+                    default:
+                        return false;
                 }
             }
-            
-            // Get key code
-            if (_keyCodeMap.TryGetValue(keyName, out int vkCode))
+
+            if (!_keyCodeMap.TryGetValue(parts[parts.Length - 1].Trim(), out vkCode))
+                return false;
+
+            return modifiers != 0 || IsFunctionKey(vkCode);
+        }
+
+        private static bool IsFunctionKey(int vkCode) => vkCode >= 0x70 && vkCode <= 0x7B; // F1-F12
+
+        public static bool AreSameHotkey(string? a, string? b)
+        {
+            return TryParseHotkey(a, out uint modsA, out int vkA) &&
+                   TryParseHotkey(b, out uint modsB, out int vkB) &&
+                   modsA == modsB && vkA == vkB;
+        }
+
+        public enum HotkeyCaptureResult
+        {
+            Ok,
+            ModifierOnly,   // only Ctrl/Alt/Shift held so far; keep waiting for the main key
+            NeedsModifier,  // a plain key that isn't F1-F12
+            Unsupported,    // a key we can't map, or the Windows key is held
+        }
+
+        // Turn a key press captured in WPF into a config string such as "CTRL+ALT+G"
+        public static HotkeyCaptureResult TryBuildHotkey(ModifierKeys modifiers, Key key, out string hotkey)
+        {
+            hotkey = "";
+
+            if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift)
+                return HotkeyCaptureResult.ModifierOnly;
+
+            if ((modifiers & ModifierKeys.Windows) != 0 || key is Key.LWin or Key.RWin)
+                return HotkeyCaptureResult.Unsupported;
+
+            int vkCode = KeyInterop.VirtualKeyFromKey(key);
+            if (!_keyNameMap.TryGetValue(vkCode, out string? keyName))
+                return HotkeyCaptureResult.Unsupported;
+
+            if (modifiers == ModifierKeys.None && !IsFunctionKey(vkCode))
+                return HotkeyCaptureResult.NeedsModifier;
+
+            hotkey = FormatModifiers(modifiers, "+") + keyName;
+            return HotkeyCaptureResult.Ok;
+        }
+
+        // Modifier prefix in a fixed order, e.g. "CTRL+ALT+" (or "Ctrl + Alt + " for display)
+        public static string FormatModifiers(ModifierKeys modifiers, string separator, bool forDisplay = false)
+        {
+            var sb = new System.Text.StringBuilder();
+            if ((modifiers & ModifierKeys.Control) != 0)
+                sb.Append(forDisplay ? "Ctrl" : "CTRL").Append(separator);
+            if ((modifiers & ModifierKeys.Alt) != 0)
+                sb.Append(forDisplay ? "Alt" : "ALT").Append(separator);
+            if ((modifiers & ModifierKeys.Shift) != 0)
+                sb.Append(forDisplay ? "Shift" : "SHIFT").Append(separator);
+            return sb.ToString();
+        }
+
+        // Human-friendly form of a config string: "CTRL+ALT+G" -> "Ctrl + Alt + G"
+        public static string FormatForDisplay(string? hotkeyString)
+        {
+            if (!TryParseHotkey(hotkeyString, out uint mods, out int vkCode))
+                return hotkeyString ?? "";
+
+            ModifierKeys modifierKeys = ModifierKeys.None;
+            if ((mods & MOD_CONTROL) != 0) modifierKeys |= ModifierKeys.Control;
+            if ((mods & MOD_ALT) != 0) modifierKeys |= ModifierKeys.Alt;
+            if ((mods & MOD_SHIFT) != 0) modifierKeys |= ModifierKeys.Shift;
+
+            string keyName = _keyNameMap[vkCode];
+            if (keyName.Length > 1 && !IsFunctionKey(vkCode))
+                keyName = char.ToUpperInvariant(keyName[0]) + keyName.Substring(1).ToLowerInvariant();
+
+            return FormatModifiers(modifierKeys, " + ", forDisplay: true) + keyName;
+        }
+
+        // Stop handling hotkeys (and release the RegisterHotKey combos) while a new hotkey is being recorded
+        public static void SuspendHotkeys()
+        {
+            if (_suspended)
+                return;
+            _suspended = true;
+            if (_mainWindowHandle != IntPtr.Zero)
             {
-                _parsedHotkeys[functionName] = (modifiers, vkCode);
+                UnregisterAllHotkeys();
+            }
+        }
+
+        public static void ResumeHotkeys()
+        {
+            if (!_suspended)
+                return;
+            _suspended = false;
+            RegisterConfiguredHotkeys();
+        }
+
+        // Re-read hotkeys from config and re-register them
+        public static void ReloadHotkeys()
+        {
+            RefreshHotkeys();
+            RegisterConfiguredHotkeys();
+        }
+
+        // Re-read all hotkeys from config
+        public static void RefreshHotkeys()
+        {
+            var hotkeys = new Dictionary<string, (uint, int)>();
+
+            foreach (var (name, _) in _hotkeyFunctions)
+            {
+                ParseHotkey(hotkeys, name);
+            }
+
+            _parsedHotkeys = hotkeys;
+        }
+
+        private static void ParseHotkey(Dictionary<string, (uint, int)> hotkeys, string functionName)
+        {
+            string hotkeyString = ConfigManager.Instance.GetHotKey(functionName);
+            if (string.IsNullOrEmpty(hotkeyString))
+                return;
+
+            if (TryParseHotkey(hotkeyString, out uint modifiers, out int vkCode))
+            {
+                hotkeys[functionName] = (modifiers, vkCode);
                 Console.WriteLine($"Parsed hotkey for {functionName}: {hotkeyString} -> Modifiers: {modifiers}, VK: {vkCode}");
             }
             else
             {
-                Console.WriteLine($"Could not parse key name: {keyName} for function {functionName}");
+                Console.WriteLine($"Could not parse hotkey '{hotkeyString}' for function {functionName}");
             }
         }
 
@@ -278,8 +367,13 @@ namespace RSTGameTranslation
                 }
             }
 
-            // Start key polling as a backup method for global shortcuts only
-            StartKeyPolling();
+            // Without the hook, fall back to polling key states. When the hook is active polling is not
+            // needed: the hook sees every key first, and RegisterHotKey covers windows the hook can't see
+            // (e.g. an elevated game in the foreground).
+            if (_hookID == IntPtr.Zero)
+            {
+                StartKeyPolling();
+            }
         }
         
         // Set the main window handle for hotkey registration
@@ -296,34 +390,23 @@ namespace RSTGameTranslation
 
         private static void RegisterConfiguredHotkeys()
         {
-            if (_mainWindowHandle == IntPtr.Zero)
+            if (_mainWindowHandle == IntPtr.Zero || _suspended)
                 return;
-                
-            // Unregister any existing hotkeys first
-            for (int i = 1; i <= HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS; i++)
+
+            UnregisterAllHotkeys();
+
+            for (int i = 0; i < _hotkeyFunctions.Length; i++)
             {
-                UnregisterHotKey(_mainWindowHandle, i);
+                RegisterFunctionHotkey(_hotkeyFunctions[i].Name, i + 1);
             }
-            
-            // Register hotkeys from config
-            RegisterFunctionHotkey("Start/Stop", HOTKEY_ID_START_STOP);
-            RegisterFunctionHotkey("Overlay", HOTKEY_ID_OVERLAY);
-            RegisterFunctionHotkey("ChatBox", HOTKEY_ID_CHATBOX);
-            RegisterFunctionHotkey("Setting", HOTKEY_ID_SETTING);
-            RegisterFunctionHotkey("Log", HOTKEY_ID_LOG);
-            RegisterFunctionHotkey("Select Area", HOTKEY_ID_SELECT_AREA);
-            RegisterFunctionHotkey("Clear Areas", HOTKEY_ID_CLEAR_AREAS);
-            RegisterFunctionHotkey("Clear Selected Area", HOTKEY_ID_CLEAR_SELECTED_AREA);
-            RegisterFunctionHotkey("Show Area", HOTKEY_ID_SHOW_AREA);
-            RegisterFunctionHotkey("Area 1", HOTKEY_ID_AREA_1);
-            RegisterFunctionHotkey("Area 2", HOTKEY_ID_AREA_2);
-            RegisterFunctionHotkey("Area 3", HOTKEY_ID_AREA_3);
-            RegisterFunctionHotkey("Area 4", HOTKEY_ID_AREA_4);
-            RegisterFunctionHotkey("Area 5", HOTKEY_ID_AREA_5);
-            RegisterFunctionHotkey("Audio Service", HOTKEY_ID_AUDIO_SERVICE);
-            RegisterFunctionHotkey("Swap Languages", HOTKEY_ID_SWAP_LANGUAGES);
-            RegisterFunctionHotkey("Retry Translation", HOTKEY_ID_RETRY_TRANSLATION);
-            RegisterFunctionHotkey("Select Exclude Region", HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS);
+        }
+
+        private static void UnregisterAllHotkeys()
+        {
+            for (int i = 0; i < _hotkeyFunctions.Length; i++)
+            {
+                UnregisterHotKey(_mainWindowHandle, i + 1);
+            }
         }
 
         private static void RegisterFunctionHotkey(string functionName, int hotkeyId)
@@ -365,217 +448,33 @@ namespace RSTGameTranslation
 
         private static bool InvokeHotkeyAction(string function)
         {
-            if (!ConfigManager.Instance.IsHotKeyEnabled())
+            if (_suspended || !ConfigManager.Instance.IsHotKeyEnabled())
             {
                 return false;
             }
 
-            bool shouldInvoke = TryReserveHotkeyDispatch(function);
-
-            switch (function)
+            int index = Array.FindIndex(_hotkeyFunctions, f => f.Name == function);
+            if (index < 0)
             {
-                case "Start/Stop":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Start/Stop");
-                        StartStopRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Overlay":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Overlay");
-                        MonitorToggleRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "ChatBox":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: ChatBox");
-                        ChatBoxToggleRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Setting":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Setting");
-                        SettingsToggleRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Log":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Log");
-                        LogToggleRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Select Area":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Select Area");
-                        SelectTranslationRegion?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Clear Areas":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Clear Areas");
-                        ClearAreasRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Clear Selected Area":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Clear Selected Area");
-                        ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Show Area":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Show Area");
-                        ShowAreaRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Area 1":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Area 1");
-                        SelectArea1Requested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Area 2":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Area 2");
-                        SelectArea2Requested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Area 3":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Area 3");
-                        SelectArea3Requested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Area 4":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Area 4");
-                        SelectArea4Requested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Area 5":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Area 5");
-                        SelectArea5Requested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Audio Service":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Audio Service");
-                        AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Swap Languages":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Swap Languages");
-                        SwapLanguagesRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Retry Translation":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Retry Translation");
-                        RetryTranslationRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
-
-                case "Select Exclude Region":
-                case "Toggle Exclude Regions":
-                    if (shouldInvoke)
-                    {
-                        Console.WriteLine("Hotkey detected: Select Exclude Region");
-                        ToggleExcludeRegionsRequested?.Invoke(null, EventArgs.Empty);
-                    }
-                    return true;
+                return false;
             }
 
-            return false;
-        }
-
-        private static string? GetFunctionNameForHotkeyId(int id)
-        {
-            switch (id)
+            if (TryReserveHotkeyDispatch(function))
             {
-                case HOTKEY_ID_START_STOP:
-                    return "Start/Stop";
-                case HOTKEY_ID_OVERLAY:
-                    return "Overlay";
-                case HOTKEY_ID_CHATBOX:
-                    return "ChatBox";
-                case HOTKEY_ID_SETTING:
-                    return "Setting";
-                case HOTKEY_ID_LOG:
-                    return "Log";
-                case HOTKEY_ID_SELECT_AREA:
-                    return "Select Area";
-                case HOTKEY_ID_CLEAR_AREAS:
-                    return "Clear Areas";
-                case HOTKEY_ID_CLEAR_SELECTED_AREA:
-                    return "Clear Selected Area";
-                case HOTKEY_ID_SHOW_AREA:
-                    return "Show Area";
-                case HOTKEY_ID_AREA_1:
-                    return "Area 1";
-                case HOTKEY_ID_AREA_2:
-                    return "Area 2";
-                case HOTKEY_ID_AREA_3:
-                    return "Area 3";
-                case HOTKEY_ID_AREA_4:
-                    return "Area 4";
-                case HOTKEY_ID_AREA_5:
-                    return "Area 5";
-                case HOTKEY_ID_AUDIO_SERVICE:
-                    return "Audio Service";
-                case HOTKEY_ID_SWAP_LANGUAGES:
-                    return "Swap Languages";
-                case HOTKEY_ID_RETRY_TRANSLATION:
-                    return "Retry Translation";
-                case HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS:
-                    return "Select Exclude Region";
-                default:
-                    return null;
+                Console.WriteLine($"Hotkey detected: {function}");
+                _hotkeyFunctions[index].Raise();
             }
+            return true;
         }
 
         // Process WM_HOTKEY messages in the main window
         public static bool ProcessHotKey(IntPtr wParam)
         {
-            string? function = GetFunctionNameForHotkeyId(wParam.ToInt32());
-            return function != null && InvokeHotkeyAction(function);
+            int index = wParam.ToInt32() - 1;
+            return index >= 0 && index < _hotkeyFunctions.Length && InvokeHotkeyAction(_hotkeyFunctions[index].Name);
         }
-        
-        // Process WM_HOTKEY messages in the main window
+
+        // Run the action bound to a hotkey function name
         public static bool ProcessHandleHotKey(string function)
         {
             return InvokeHotkeyAction(function);
@@ -584,79 +483,50 @@ namespace RSTGameTranslation
         // Start polling for key states as a backup method - ONLY for global shortcuts
         private static void StartKeyPolling()
         {
-            if (!ConfigManager.Instance.IsHotKeyEnabled())
-            {
-                return;
-            }
             if (_isPolling)
                 return;
 
             _isPolling = true;
             _pollingCts = new CancellationTokenSource();
+            CancellationToken token = _pollingCts.Token;
 
             Task.Run(async () =>
             {
                 Console.WriteLine("Key polling started as backup method for global shortcuts");
 
-                // Dictionary to track key states
+                // Tracks whether each hotkey was held on the previous tick, so we only fire on the press edge
                 Dictionary<string, bool> keyStates = new Dictionary<string, bool>();
-                Dictionary<string, DateTime> lastTriggerTimes = new Dictionary<string, DateTime>();
-
-                // Initialize dictionaries for all functions
-                foreach (string function in _parsedHotkeys.Keys)
-                {
-                    keyStates[function] = false;
-                    lastTriggerTimes[function] = DateTime.MinValue;
-                }
 
                 try
                 {
-                    while (!_pollingCts.Token.IsCancellationRequested)
+                    while (!token.IsCancellationRequested)
                     {
-                        foreach (var kvp in _parsedHotkeys)
+                        // Polling keeps running while hotkeys are disabled so re-enabling them works without a restart
+                        if (!_suspended && ConfigManager.Instance.IsHotKeyEnabled())
                         {
-                            string function = kvp.Key;
-                            var (modifiers, vkCode) = kvp.Value;
+                            uint? currentModifiers = GetCurrentModifiers();
 
-                            // Check if all required modifiers are pressed
-                            bool modifiersPressed = true;
-                            if ((modifiers & MOD_ALT) != 0 && !IsKeyPressed(VK_MENU))
-                                modifiersPressed = false;
-                            if ((modifiers & MOD_CONTROL) != 0 && !IsKeyPressed(VK_CONTROL))
-                                modifiersPressed = false;
-                            if ((modifiers & MOD_SHIFT) != 0 && !IsKeyPressed(VK_SHIFT))
-                                modifiersPressed = false;
-
-                            // Check if the key is pressed
-                            bool isKeyPressed = IsKeyPressed(vkCode);
-
-                            // Check if the hotkey is pressed
-                            bool isHotkeyPressed = modifiersPressed && isKeyPressed;
-
-                            // If the hotkey state changed from not pressed to pressed
-                            if (isHotkeyPressed && !keyStates[function])
+                            foreach (var kvp in _parsedHotkeys)
                             {
-                                DateTime now = DateTime.Now;
-                                if ((now - lastTriggerTimes[function]).TotalMilliseconds > 500)
+                                string function = kvp.Key;
+                                var (modifiers, vkCode) = kvp.Value;
+
+                                bool isHotkeyPressed = currentModifiers == modifiers && IsKeyPressed(vkCode);
+                                keyStates.TryGetValue(function, out bool wasPressed);
+
+                                // If the hotkey state changed from not pressed to pressed
+                                if (isHotkeyPressed && !wasPressed)
                                 {
                                     Console.WriteLine($"Polling detected: {function} hotkey");
-
-                                    // Trigger the configured action on the UI thread
-                                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                                    {
-                                        ProcessHandleHotKey(function);
-                                    });
-
-                                    lastTriggerTimes[function] = now;
+                                    DispatchHotkey(function);
                                 }
-                            }
 
-                            // Update key state
-                            keyStates[function] = isHotkeyPressed;
+                                keyStates[function] = isHotkeyPressed;
+                            }
                         }
 
                         // Sleep to reduce CPU usage
-                        await Task.Delay(30, _pollingCts.Token);
+                        await Task.Delay(30, token);
                     }
                 }
                 catch (OperationCanceledException)
@@ -672,9 +542,50 @@ namespace RSTGameTranslation
                     _isPolling = false;
                     Console.WriteLine("Key polling stopped");
                 }
-            }, _pollingCts.Token);
+            }, token);
         }
-        
+
+        // Run the hotkey action asynchronously on the UI thread. Never block the caller: the low-level
+        // hook is silently removed by Windows if its callback exceeds LowLevelHooksTimeout.
+        private static void DispatchHotkey(string function)
+        {
+            try
+            {
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        ProcessHandleHotKey(function);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error invoking {function} action: {ex.Message}");
+                    }
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error dispatching {function} action: {ex.Message}");
+            }
+        }
+
+        // Currently held Alt/Ctrl/Shift as MOD_* flags, or null when a Windows key is held
+        // (Win combos are never configured, so they must not trigger a hotkey)
+        private static uint? GetCurrentModifiers()
+        {
+            if (IsKeyPressed(VK_LWIN) || IsKeyPressed(VK_RWIN))
+                return null;
+
+            uint modifiers = 0;
+            if (IsKeyPressed(VK_MENU))
+                modifiers |= MOD_ALT;
+            if (IsKeyPressed(VK_CONTROL))
+                modifiers |= MOD_CONTROL;
+            if (IsKeyPressed(VK_SHIFT))
+                modifiers |= MOD_SHIFT;
+            return modifiers;
+        }
+
         // Stop the key polling
         private static void StopKeyPolling()
         {
@@ -695,10 +606,7 @@ namespace RSTGameTranslation
             // Unregister hotkeys
             if (_mainWindowHandle != IntPtr.Zero)
             {
-                for (int i = 1; i <= HOTKEY_ID_TOGGLE_EXCLUDE_REGIONS; i++)
-                {
-                    UnregisterHotKey(_mainWindowHandle, i);
-                }
+                UnregisterAllHotkeys();
             }
             
             // Remove low-level keyboard hook
@@ -710,37 +618,10 @@ namespace RSTGameTranslation
             }
         }
         
-        // Set the console window handle for proper hook handling
-        public static void SetConsoleWindowHandle(IntPtr consoleHandle)
-        {
-            _consoleWindowHandle = consoleHandle;
-        }
-        
         // Direct key state check for more reliable detection
         private static bool IsKeyPressed(int vkCode)
         {
             return (GetAsyncKeyState(vkCode) & 0x8000) != 0;
-        }
-        
-        // Check if we should process this key press (prevents double triggers)
-        private static bool ShouldProcessKeyPress(int vkCode)
-        {
-            if (!ConfigManager.Instance.IsHotKeyEnabled())
-            {
-                return false;
-            }
-            DateTime now = DateTime.Now;
-            
-            // If it's the same key and within threshold time, ignore it
-            if (vkCode == _lastKeyCode && (now - _lastKeyPressTime) < _keyPressThreshold)
-            {
-                return false;
-            }
-            
-            // Update last key press info
-            _lastKeyCode = vkCode;
-            _lastKeyPressTime = now;
-            return true;
         }
         
         // Keyboard hook callback
@@ -751,49 +632,50 @@ namespace RSTGameTranslation
                 if (nCode >= 0)
                 {
                     int vkCode = Marshal.ReadInt32(lParam);
+                    bool isKeyDown = wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN;
+                    bool isKeyUp = wParam == (IntPtr)WM_KEYUP || wParam == (IntPtr)WM_SYSKEYUP;
 
-                    // Only process key down events (both regular and system keys)
-                    if (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN)
+                    if (isKeyUp && _heldHotkeyKeys.Remove(vkCode))
                     {
-                        // Check for all configured hotkeys
-                        foreach (var kvp in _parsedHotkeys)
+                        // The key-down was swallowed, so swallow the key-up too to avoid an orphan key-up in the game
+                        return (IntPtr)1;
+                    }
+
+                    if (isKeyDown)
+                    {
+                        // Auto-repeat of a hotkey we already handled: keep swallowing, but don't fire again
+                        long now = Environment.TickCount64;
+                        if (_heldHotkeyKeys.TryGetValue(vkCode, out long lastDown))
                         {
-                            string function = kvp.Key;
-                            var (modifiers, keyCode) = kvp.Value;
-                            
-                            if (vkCode == keyCode && ShouldProcessKeyPress(keyCode | 0x1000))
+                            if (now - lastDown < HeldKeyExpiryMs)
                             {
-                                // Check if all required modifiers are pressed
-                                bool modifiersMatch = true;
-                                if ((modifiers & MOD_ALT) != 0 && !IsKeyPressed(VK_MENU))
-                                    modifiersMatch = false;
-                                if ((modifiers & MOD_CONTROL) != 0 && !IsKeyPressed(VK_CONTROL))
-                                    modifiersMatch = false;
-                                if ((modifiers & MOD_SHIFT) != 0 && !IsKeyPressed(VK_SHIFT))
-                                    modifiersMatch = false;
-                                    
-                                if (modifiersMatch)
+                                _heldHotkeyKeys[vkCode] = now;
+                                return (IntPtr)1;
+                            }
+                            _heldHotkeyKeys.Remove(vkCode);
+                        }
+
+                        if (!_suspended && ConfigManager.Instance.IsHotKeyEnabled())
+                        {
+                            uint? currentModifiers = GetCurrentModifiers();
+
+                            foreach (var kvp in _parsedHotkeys)
+                            {
+                                var (modifiers, keyCode) = kvp.Value;
+
+                                // Modifiers must match exactly, so e.g. Ctrl+Alt+G does not trigger Alt+G
+                                if (vkCode == keyCode && currentModifiers == modifiers)
                                 {
-                                    Console.WriteLine($"Global shortcut detected: {function}");
-                                    try
-                                    {
-                                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                                        {
-                                            ProcessHandleHotKey(function);
-                                        });
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine($"Error invoking {function} action: {ex.Message}");
-                                    }
-                                    
+                                    Console.WriteLine($"Global shortcut detected: {kvp.Key}");
+                                    _heldHotkeyKeys[vkCode] = now;
+                                    DispatchHotkey(kvp.Key);
                                     return (IntPtr)1; // Prevent further processing
                                 }
                             }
                         }
                     }
                 }
-                
+
                 // Call the next hook in the chain
                 return CallNextHookEx(_hookID, nCode, (int)wParam, lParam);
             }
@@ -803,37 +685,7 @@ namespace RSTGameTranslation
                 return CallNextHookEx(_hookID, nCode, (int)wParam, lParam);
             }
         }
-        
-        // Check if the foreground window belongs to our application process
-        private static bool IsOurApplicationActive()
-        {
-            try
-            {
-                // Get the foreground window handle
-                IntPtr foregroundWindow = GetForegroundWindow();
-                
-                // Get the process ID for the foreground window
-                uint foregroundProcessId;
-                GetWindowThreadProcessId(foregroundWindow, out foregroundProcessId);
-                
-                // Check if it's our process ID
-                bool isOurProcessActive = (foregroundProcessId == (uint)Process.GetCurrentProcess().Id);
-                
-                // Also check if it's our console window
-                if (!isOurProcessActive && _consoleWindowHandle != IntPtr.Zero)
-                {
-                    isOurProcessActive = (foregroundWindow == _consoleWindowHandle);
-                }
-                
-                return isOurProcessActive;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error checking application focus: {ex.Message}");
-                return false;
-            }
-        }
-        
+
         #endregion
         
         #region Standard Shortcut Handling
@@ -848,7 +700,9 @@ namespace RSTGameTranslation
             try
             {
                 // Convert WPF key to virtual key code
-                int vkCode = KeyInterop.VirtualKeyFromKey(e.Key);
+                // With Alt held, WPF reports Key.System and puts the real key in SystemKey
+                Key key = e.Key == Key.System ? e.SystemKey : e.Key;
+                int vkCode = KeyInterop.VirtualKeyFromKey(key);
                 
                 // Check modifiers
                 uint modifiers = 0;
