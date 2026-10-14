@@ -297,41 +297,6 @@ namespace RSTGameTranslation
             }
         }
 
-        // Allow MainWindow to enable/disable the setup button in this window
-        public void SetSetupButtonEnabled(bool enabled)
-        {
-            try
-            {
-                if (!Dispatcher.CheckAccess())
-                {
-                    Dispatcher.Invoke(() => SetSetupButtonEnabled(enabled));
-                    return;
-                }
-
-                if (btnSetupOcrServer != null)
-                {
-                    btnSetupOcrServer.IsEnabled = enabled;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error setting setup button enabled: {ex.Message}");
-            }
-        }
-
-        // Click handler for the setup button placed in Settings window
-        private async void Settings_BtnSetupOcrServer_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // Delegate the actual setup flow to MainWindow (shared logic)
-                await MainWindow.Instance.SetupOcrServerAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error invoking setup from SettingsWindow: {ex.Message}");
-            }
-        }
         // Load list of available window TTS voice
         private void LoadAvailableWindowTTSVoice()
         {
@@ -1109,8 +1074,6 @@ namespace RSTGameTranslation
             // Set manga mode
             MangaModeCheckBox.IsChecked = ConfigManager.Instance.IsMangaModeEnabled();
 
-            // Set WindowsOCR integration
-            // windowsOCRIntegrationCheckBox.IsChecked = ConfigManager.Instance.IsWindowsOCRIntegrationEnabled();
             // Set multi selection area from config
             multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
             if (!ConfigManager.Instance.IsMultiSelectionAreaEnabled())
@@ -1134,14 +1097,6 @@ namespace RSTGameTranslation
                     Console.WriteLine($"Found matching OCR method: '{itemText}'");
                     ocrMethodComboBox.SelectedItem = item;
                     UpdateMangaModeVisibility(itemText);
-                    if (itemText == "Windows OCR" || itemText == "OneOCR")
-                    {
-                        ocrButtonsPanel.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        ocrButtonsPanel.Visibility = Visibility.Visible;
-                    }
                     break;
                 }
             }
@@ -1689,9 +1644,7 @@ namespace RSTGameTranslation
                     MainWindow.Instance.SetOcrMethod(ocrMethod);
                     UpdateMonitorWindowOcrMethod(ocrMethod);
                     UpdateMangaModeVisibility(ocrMethod);
-                    SocketManager.Instance.Disconnect();
 
-                    // await SocketManager.Instance.SwitchOcrMethod(ocrMethod);
                     if (ocrMethod != "Windows OCR")
                     {
                         checkLanguagePack.Visibility = Visibility.Collapsed;
@@ -1702,18 +1655,9 @@ namespace RSTGameTranslation
                         checkLanguagePack.Visibility = Visibility.Visible;
                         checkLanguagePackButton.Visibility = Visibility.Visible;
                     }
-                    if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
-                    {
-                        ocrButtonsPanel.Visibility = Visibility.Collapsed;
-                        MainWindow.Instance.OCRStatusEllipse.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(69, 176, 105)); // Green
-                        MainWindow.Instance.OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
-                    }
-                    else
-                    {
-                        ocrButtonsPanel.Visibility = Visibility.Visible;
-                        MainWindow.Instance.OCRStatusEllipse.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(239, 68, 68)); // Red
-                        MainWindow.Instance.OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
-                    }
+                    // Both engines are built in, so OCR is always available
+                    MainWindow.Instance.OCRStatusEllipse.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(69, 176, 105)); // Green
+                    MainWindow.Instance.OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
 
                 }
             }
@@ -5420,13 +5364,6 @@ namespace RSTGameTranslation
             }
         }
 
-        // private void WindowsOCRIntegrationCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        // {
-        //     bool enabled = windowsOCRIntegrationCheckBox.IsChecked ?? false;
-        //     ConfigManager.Instance.SetWindowsOCRIntegration(enabled);
-        //     Console.WriteLine($"WindowsOCR integration set to {enabled}");
-        // }
-
         private void AutoOCRCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             bool enabled = AutoOCRCheckBox.IsChecked ?? true;
@@ -5699,73 +5636,6 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Error updating whisper thread count: {ex.Message}");
             }
-        }
-
-        private void RemoveOcrButton_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBoxResult result = MessageBox.Show(
-                LocalizationManager.Instance.Strings["Msg_ConfirmRemoveOCRData"],
-                LocalizationManager.Instance.Strings["Title_ConfirmRemoval"],
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
-            if (result != MessageBoxResult.Yes)
-            {
-                return;
-            }
-            string currentOcrEngine = ConfigManager.Instance.GetOcrMethod();
-            if (currentOcrEngine == "Windows OCR" || currentOcrEngine == "OneOCR")
-            {
-                MessageBox.Show(
-                    LocalizationManager.Instance.Strings["Msg_CannotRemoveWindowsOCRData"],
-                    LocalizationManager.Instance.Strings["Title_Error"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-                return;
-            }
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string webserverPath = Path.Combine(baseDirectory, "webserver");
-            // Third-party Python OCR engines (EasyOCR, PaddleOCR, RapidOCR) have been removed.
-            // Only built-in OCR (OneOCR, Windows OCR) is supported, which has no removable data.
-            string fullOcrPath = "";
-            Console.WriteLine("Removing OCR data at: " + fullOcrPath);
-            if (Directory.Exists(fullOcrPath))
-            {
-                try
-                {
-                    Directory.Delete(fullOcrPath, true);
-                    MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_OCRDataRemoved"],
-                        LocalizationManager.Instance.Strings["Title_Success"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error removing OCR data: {ex.Message}");
-                    MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_ErrorRemovingOCRData"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                    return;
-                }
-            }
-            else
-            {
-                MessageBox.Show(
-                    LocalizationManager.Instance.Strings["Msg_NoOCRDataFound"],
-                    LocalizationManager.Instance.Strings["Title_Info"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
-                return;
-            }
-            
-            Console.WriteLine("OCR data removed successfully");
         }
 
         #region Clipboard Auto-Translate Event Handlers

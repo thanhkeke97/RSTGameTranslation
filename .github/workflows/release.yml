@@ -147,7 +147,6 @@ jobs:
 
           New-Item -ItemType Directory -Force -Path $releaseDir
           $dirs = @(
-              "webserver\Python311",
               "AudioModel",
               "Languages"
           )
@@ -174,31 +173,9 @@ jobs:
           # README
           if (Test-Path "README.md") { Copy-Item "README.md" -Destination $releaseDir }
 
-          # Webserver & OCR Scripts
-          if (Test-Path "app\webserver\*.bat") {
-              Copy-Item "app\webserver\*.bat" -Destination "$releaseDir\webserver" -ErrorAction SilentlyContinue
-          }
-
           # OneOcr
           if (Test-Path "app\OneOcr") {
               Copy-Item "app\OneOcr\*" -Destination $releaseDir -ErrorAction SilentlyContinue
-          }
-
-          # Download Python 3.11 Embedded
-          $pythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
-          $pythonZip = "$env:TEMP\python311.zip"
-          $pythonDest = "$releaseDir\webserver\Python311"
-          Write-Host "Downloading Python 3.11 Embedded..."
-          Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonZip
-          Write-Host "Extracting Python 3.11..."
-          Expand-Archive -Path $pythonZip -DestinationPath $pythonDest -Force
-
-          Write-Host "Downloading get-pip.py..."
-          Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "$pythonDest\get-pip.py"
-
-          $pthFile = "$pythonDest\python311._pth"
-          if (Test-Path $pthFile) {
-              (Get-Content $pthFile) -replace '#import site', 'import site' | Set-Content $pthFile
           }
 
           # Audio Model - Download from URL

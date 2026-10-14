@@ -111,9 +111,6 @@ namespace RSTGameTranslation
             // // Add KeyDown event handlers for TextBoxes to handle Enter key
             // zoomTextBox.KeyDown += TextBox_KeyDown;
 
-            // SocketManager.Instance.ConnectionChanged += OnSocketConnectionChanged;
-
-
             // Set default size if not already set
             if (this.Width == 0)
                 this.Width = 600;
@@ -183,16 +180,6 @@ namespace RSTGameTranslation
             Console.WriteLine("MonitorWindow set to be included in screen capture");
         }
 
-        private void OnSocketConnectionChanged(object? sender, bool isConnected)
-        {
-            if (isConnected)
-            {
-                //set our status text
-                UpdateStatus("Connected to Python backend");
-            }
-        }
-
-
         // Flag to prevent saving during initialization
         private static bool _isInitializing = true;
         
@@ -224,21 +211,8 @@ namespace RSTGameTranslation
             // Clear any existing text objects
             Logic.Instance.ClearAllTextObjects();
             
-            // Update the UI and connection state based on the selected OCR method
-            // Only built-in OCR (OneOCR, Windows OCR) is supported now - no socket connection needed
-            _ = Task.Run(() =>
-            {
-                try
-                {
-                    SocketManager.Instance.Disconnect();
-                    UpdateStatus($"Using {ocrMethod} (built-in)");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error disconnecting socket: {ex.Message}");
-                }
-            });
-            
+            UpdateStatus($"Using {ocrMethod} (built-in)");
+
             // Sync the OCR method selection with MainWindow
             if (MainWindow.Instance != null)
             {

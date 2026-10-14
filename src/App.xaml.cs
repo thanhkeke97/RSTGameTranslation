@@ -264,6 +264,50 @@ public partial class App : Application
     }
 
     /// <summary>
+    /// Closes the application and starts it again. The new instance is started only once this one has
+    /// exited: on the way out this one stops the OCR server on its port, which would otherwise hit the
+    /// server the new instance just started. The helper is started from this (elevated) process, so the
+    /// restart does not ask for elevation again.
+    /// </summary>
+    public static void RestartApplication()
+    {
+        if (!Application.Current.Dispatcher.CheckAccess())
+        {
+            Application.Current.Dispatcher.Invoke(RestartApplication);
+            return;
+        }
+
+        try
+        {
+            string? exePath = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(exePath))
+            {
+                static string Quote(string s) => "'" + s.Replace("'", "''") + "'";
+                string workingDir = Path.GetDirectoryName(exePath) ?? AppDomain.CurrentDomain.BaseDirectory;
+                string command = $"Wait-Process -Id {Environment.ProcessId} -Timeout 60 -ErrorAction SilentlyContinue; " +
+                                 $"Start-Process -FilePath {Quote(exePath)} -WorkingDirectory {Quote(workingDir)}";
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command \"{command}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+            }
+            else
+            {
+                Console.WriteLine("Restart: could not determine the application path; closing only");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Restart: could not schedule the new instance: {ex.Message}");
+        }
+
+        ShutdownApplication();
+    }
+
+    /// <summary>
     /// Shows a confirmation dialog and restarts the application if confirmed
     /// </summary>
     /// <param name="message">Custom message to show in the confirmation dialog</param>

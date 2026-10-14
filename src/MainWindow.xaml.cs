@@ -69,7 +69,6 @@ namespace RSTGameTranslation
         }
 
         // Constants
-        public const string DEFAULT_OUTPUT_PATH = @"webserver\image_to_process.png";
         private const double CAPTURE_INTERVAL_SECONDS = 1;
         private const int TITLE_BAR_HEIGHT = 50; // Height of our custom title bar (includes 10px for resize)
         private const int FOOTER_BAR_HEIGHT = 30; // Height of our custom title bar (includes 10px for resize)
@@ -97,7 +96,6 @@ namespace RSTGameTranslation
             return !isStopOCR || ConfigManager.Instance.IsAutoOCREnabled();
         }
         private DispatcherTimer _captureTimer;
-        private string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DEFAULT_OUTPUT_PATH);
         private WindowInteropHelper helper;
         private System.Drawing.Rectangle captureRect;
 
@@ -253,8 +251,6 @@ namespace RSTGameTranslation
             selectedOcrMethod = method;
             // Update status text
             SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
-            OcrServerPanel.Visibility = Visibility.Collapsed;
-            OcrServerBorder.Visibility = Visibility.Collapsed;
             // return;
             // }
 
@@ -269,7 +265,6 @@ namespace RSTGameTranslation
                     OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
                 }
 
-                OcrServerManager.Instance.StopOcrServer();
                 SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], method));
             }
         }
@@ -664,11 +659,9 @@ namespace RSTGameTranslation
             return isCapturingWindow;
         }
 
-        // Shared tail of every capture: mask the exclude regions, refresh the monitor, then save and
-        // run OCR when it is due. (originX, originY) is the screen position of the bitmap's top-left
-        // pixel. The file is only written when OCR runs, so it always matches the frame being OCR'd
-        // (the overlay background colour is sampled from it afterwards).
-        private void ProcessCapturedBitmap(Bitmap bitmap, int originX, int originY, bool allowWindowsOcrIntegration)
+        // Shared tail of every capture: mask the exclude regions, refresh the monitor, then run OCR when
+        // it is due. (originX, originY) is the screen position of the bitmap's top-left pixel.
+        private void ProcessCapturedBitmap(Bitmap bitmap, int originX, int originY)
         {
             using Bitmap? masked = ApplyExcludeRegionsMask(bitmap, originX, originY);
             Bitmap image = masked ?? bitmap;
@@ -685,25 +678,18 @@ namespace RSTGameTranslation
             SetOCRCheckIsWanted(false);
             OcrTiming.MarkCaptureSent();
 
-            image.Save(outputPath, ImageFormat.Png);
+            // The overlay background colour is sampled from this frame once its OCR result is in.
+            // Clone() copies lazily, so this costs almost nothing unless the frame is sampled.
+            Logic.Instance.SetOcrSourceFrame(ConfigManager.Instance.IsAutoSetOverlayBackground() ? (Bitmap)image.Clone() : null);
 
-            string ocrMethod = GetSelectedOcrMethod();
             string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
-            if (ocrMethod == "Windows OCR")
+            if (GetSelectedOcrMethod() == "Windows OCR")
             {
                 Logic.Instance.ProcessWithWindowsOCR(image, sourceLanguage);
             }
-            else if (allowWindowsOcrIntegration && ConfigManager.Instance.IsWindowsOCRIntegrationEnabled())
-            {
-                Logic.Instance.ProcessWithWindowsOCRIntegration(image, sourceLanguage, outputPath);
-            }
-            else if (ocrMethod == "OneOCR")
-            {
-                Logic.Instance.ProcessWithOneOCR(image, sourceLanguage);
-            }
             else
             {
-                Logic.Instance.SendImageToServerOCR(outputPath);
+                Logic.Instance.ProcessWithOneOCR(image, sourceLanguage);
             }
 
             stopwatch.Stop();
@@ -1707,8 +1693,6 @@ namespace RSTGameTranslation
             ClipboardMonitor.Instance.StopListening();
 
             Logic.Instance.Finish();
-            OcrServerManager.Instance.StopOcrServer();
-            OcrServerManager.Instance.KillProcessesByPort(9191);
 
             // Make sure the console is closed
             if (consoleWindow != IntPtr.Zero)
@@ -2005,7 +1989,7 @@ namespace RSTGameTranslation
                                 // CaptureWindow records the screen position of the bitmap's top-left pixel,
                                 // which differs from captureRect when the translation area is clipped to the window
                                 var (originX, originY) = Logic.Instance.CurrentCapturePosition;
-                                ProcessCapturedBitmap(bitmap, originX, originY, allowWindowsOcrIntegration: false);
+                                ProcessCapturedBitmap(bitmap, originX, originY);
                             }
                         }
 
@@ -2100,7 +2084,7 @@ namespace RSTGameTranslation
                     // Store the current capture coordinates for use with OCR results
                     Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
 
-                    ProcessCapturedBitmap(bitmap, captureRect.Left, captureRect.Top, allowWindowsOcrIntegration: true);
+                    ProcessCapturedBitmap(bitmap, captureRect.Left, captureRect.Top);
                 }
                 catch (Exception ex)
                 {
@@ -2263,10 +2247,6 @@ namespace RSTGameTranslation
                     // Clear any existing text objects
                     Logic.Instance.ClearAllTextObjects();
 
-                    // Try stop server OCR if haved one running
-                    OcrServerManager.Instance.StopOcrServer();
-                    SocketManager.Instance.Disconnect();
-                    // Only built-in OCR (OneOCR, Windows OCR) is supported now - no server needed
                     SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_UsingBuiltInOcr"], ocrMethod));
                     OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
                     OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
@@ -3018,172 +2998,6 @@ namespace RSTGameTranslation
             AddTranslationToHistory(e.OriginalText, e.TranslatedText);
         }
 
-        private async void btnStartOcrServer_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // Disable the button to prevent multiple clicks
-                btnStartOcrServer.IsEnabled = false;
-
-                // Get the OCR server port from the configuration
-                string ocrMethod = ConfigManager.Instance.GetOcrMethod();
-
-
-                if (ocrMethod == "Windows OCR" || ocrMethod == "OneOCR")
-                {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_OcrNoStartRequired"], ocrMethod),
-                        LocalizationManager.Instance.Strings["Title_WarningExclamation"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                    btnStartOcrServer.IsEnabled = true;
-                    return;
-                }
-
-                SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_StartingOcrServer"], ocrMethod));
-
-                // Start the OCR server
-                bool started = await OcrServerManager.Instance.StartOcrServerAsync(ocrMethod);
-
-                if (!started || !OcrServerManager.Instance.serverStarted)
-                {
-                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotStartOcrServer"], ocrMethod));
-
-                    if (OcrServerManager.Instance.timeoutStartServer)
-                    {
-                        System.Windows.MessageBox.Show(
-                            string.Format(LocalizationManager.Instance.Strings["Msg_ServerStartupTimeout"], ocrMethod),
-                            LocalizationManager.Instance.Strings["Title_Error"],
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                    }
-                }
-                else
-                {
-                    UpdateServerButtonStatus(OcrServerManager.Instance.serverStarted);
-                    // Update socket status
-                    bool connected = await SocketManager.Instance.TryReconnectAsync();
-
-                    if (connected)
-                    {
-                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_ConnectedToServer"], ocrMethod));
-                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
-                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
-                    }
-                    else
-                    {
-                        SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_CannotConnectToServer"], ocrMethod));
-                        OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
-                        OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show(
-                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorStartingOcrServer"], ex.Message),
-                    LocalizationManager.Instance.Strings["Title_Error"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            finally
-            {
-                // Reactivate the button after the operation is complete
-                btnStartOcrServer.IsEnabled = true;
-            }
-        }
-
-        private void btnStopOcrServer_Click(object sender, RoutedEventArgs e)
-        {
-            // Only built-in OCR (OneOCR, Windows OCR) is supported now - no server to stop
-            System.Windows.MessageBox.Show(
-                    LocalizationManager.Instance.Strings["Msg_OcrNoStopRequired"],
-                    LocalizationManager.Instance.Strings["Title_WarningExclamation"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-        }
-
-        // Public method to run the OCR setup flow. Can be called from SettingsWindow.
-        public async System.Threading.Tasks.Task SetupOcrServerAsync()
-        {
-            try
-            {
-                // Disable the setup button in any window to prevent multiple clicks
-                SetSetupButtonEnabled(false);
-
-                // Get current OCR method
-                string ocrMethod = GetSelectedOcrMethod();
-
-                if (ocrMethod == "Windows OCR")
-                {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_OcrNoInstallRequired"], ocrMethod),
-                        LocalizationManager.Instance.Strings["Title_WarningExclamation"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                    SetSetupButtonEnabled(true);
-                    return;
-                }
-
-                // Show setup confirmation dialog
-                MessageBoxResult result = System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_ConfirmOcrInstall"], ocrMethod),
-                        LocalizationManager.Instance.Strings["Title_ConfirmInstallation"],
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    // Show status message
-                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_SettingUpEnvironment"], ocrMethod));
-
-                    // Run setup
-                    await System.Threading.Tasks.Task.Run(() =>
-                    {
-                        OcrServerManager.Instance.SetupOcrEnvironment(ocrMethod);
-                    });
-
-                    SetStatus(string.Format(LocalizationManager.Instance.Strings["Status_EnvironmentSetupCompleted"], ocrMethod));
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_ErrorInstallingOcrServer"], ex.Message),
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-            }
-            finally
-            {
-                // Re-enable the setup control in any window
-                SetSetupButtonEnabled(true);
-            }
-        }
-
-        // Helper to enable/disable the setup button located in SettingsWindow (if present)
-        private void SetSetupButtonEnabled(bool enabled)
-        {
-            try
-            {
-                // If SettingsWindow is open, use its public setter
-                foreach (Window w in System.Windows.Application.Current.Windows)
-                {
-                    if (w is SettingsWindow settings)
-                    {
-                        settings.SetSetupButtonEnabled(enabled);
-                        return;
-                    }
-                }
-
-                // If SettingsWindow is not available, nothing to update in MainWindow (control moved)
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error setting setup button enabled: {ex.Message}");
-            }
-        }
         private void clearSelectedArea()
         {
             int numberAreaCount = savedTranslationAreas.Count;
@@ -3464,19 +3278,6 @@ namespace RSTGameTranslation
             // ConfigManager.Instance.SetValue("mainwindow_compact", _isCompactView.ToString());
         }
 
-        public void UpdateServerButtonStatus(bool isConnected)
-        {
-
-            if (!Dispatcher.CheckAccess())
-            {
-                Dispatcher.Invoke(() => UpdateServerButtonStatus(isConnected));
-                return;
-            }
-
-            // Update button status
-            btnStopOcrServer.IsEnabled = isConnected;
-        }
-
         private void SelectWindowButton_Click(object sender, RoutedEventArgs e)
         {
             if (isCapturingWindow)
@@ -3589,6 +3390,40 @@ namespace RSTGameTranslation
         private void QuickStartButton_Click(object sender, RoutedEventArgs e)
         {
             ShowWelcomeWindow();
+        }
+
+        // Factory reset of every setting (API keys and the interface language are kept), then a restart:
+        // too much state is read once at startup to apply the defaults in place
+        private void ResetSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = System.Windows.MessageBox.Show(
+                LocalizationManager.Instance["Msg_ResetSettingsConfirm"],
+                LocalizationManager.Instance["Btn_ResetSettings"],
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            string? backupPath;
+            try
+            {
+                backupPath = ConfigManager.Instance.ResetToDefaults();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Settings reset failed: {ex.Message}");
+                System.Windows.MessageBox.Show(string.Format(LocalizationManager.Instance["Msg_ResetSettingsFailed"], ex.Message),
+                    LocalizationManager.Instance["Btn_ResetSettings"], MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            System.Windows.MessageBox.Show(
+                string.Format(LocalizationManager.Instance["Msg_ResetSettingsDone"], backupPath ?? "-"),
+                LocalizationManager.Instance["Btn_ResetSettings"],
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            App.RestartApplication();
         }
 
         private void ShowWelcomeWindow()

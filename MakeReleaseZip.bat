@@ -21,8 +21,6 @@ mkdir tempbuild
 robocopy app\win-x64\publish tempbuild /E /NFL /NDL
 copy README.md tempbuild
 
-:the webserver stuff too
-mkdir tempbuild\webserver
 mkdir tempbuild\AudioModel
 mkdir tempbuild\Supertonic
 mkdir tempbuild\Languages
@@ -38,7 +36,6 @@ copy /Y app\win-x64\publish\onnxruntime_providers_shared.dll tempbuild\onnxrunti
 del /Q tempbuild\onnxruntime.lib 2>nul
 del /Q tempbuild\onnxruntime_providers_shared.lib 2>nul
 copy app\AudioModel\ggml-tiny.bin tempbuild\AudioModel
-copy app\webserver\*.bat tempbuild\webserver
 copy app\Languages\* tempbuild\Languages
 
 7-zip\7z.exe a -r -tzip %FNAME% tempbuild

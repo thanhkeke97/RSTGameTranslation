@@ -504,6 +504,17 @@
                                         </StackPanel>
                                     </Button>
 
+                            <!-- Restore default settings (icon-only; asks before doing anything) -->
+                            <Button x:Name="resetSettingsButton" Style="{StaticResource NeutralButton}" Width="34" Height="30" Margin="0,0,8,0" Click="ResetSettingsButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                <Button.ToolTip>
+                                    <StackPanel MaxWidth="320">
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ResetSettings]}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ResetSettingsHint]}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Button.ToolTip>
+                                <TextBlock Text="↺" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Button>
+
                             <!-- Discord -->
                             <Button x:Name="discordButton" Style="{StaticResource ProminentGradientButton}" Height="30" Margin="0,0,8,0" Click="DiscordButton_Click" ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_JoinDiscord]}" WindowChrome.IsHitTestVisibleInChrome="True" Background="#5865f2">
                                         <StackPanel Orientation="Horizontal" Margin="6,0" VerticalAlignment="Center">
@@ -815,42 +826,6 @@
                                     </Button>
                                 </StackPanel>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_System]}" 
-                                           Style="{StaticResource ToolGroupLabel}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- GROUP: OCR Server -->
-                        <Border x:Name="OcrServerBorder" Style="{StaticResource ToolGroupStyle}" Visibility="Collapsed">
-                            <StackPanel x:Name="OcrServerPanel" Visibility="Collapsed">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button x:Name="btnStartOcrServer" Style="{StaticResource AccentButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StartOCR]}"
-                                            Click="btnStartOcrServer_Click"
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="▶ " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
-                                    <Button x:Name="btnStopOcrServer" Style="{StaticResource ModernButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_StopOCR]}"
-                                            Background="#dc2626" Click="btnStopOcrServer_Click"
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="■ " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCREngine]}" 
                                            Style="{StaticResource ToolGroupLabel}"/>
                             </StackPanel>
                         </Border>

@@ -507,27 +507,6 @@
                                     <ComboBoxItem Content="Windows OCR"/>
                                     <ComboBoxItem Content="OneOCR"/>
                                 </ComboBox>
-                                <!-- Remove OCR and Setup Buttons -->
-                                <StackPanel x:Name="ocrButtonsPanel" Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-                                    <Button x:Name="removeOcrButton"
-                                        Margin="0,5" Width="100" HorizontalAlignment="Left" Click="RemoveOcrButton_Click"
-                                        Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RemoveOCR]}"/>
-
-                                    <Button x:Name="btnSetupOcrServer" Margin="8,5,0,5" Width="120" HorizontalAlignment="Left"
-                                            Click="Settings_BtnSetupOcrServer_Click"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SetupOCR]}"/>
-                                </StackPanel>
-                                
-                                <!-- WINDOWS OCR integration -->
-                                <!-- <TextBlock Text="Windows OCR integration:" Grid.Row="1" Grid.Column="0" 
-                                          ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
-                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="windowsOCRIntegrationCheckBox" Grid.Row="1" Grid.Column="1" 
-                                         Margin="0,5"
-                                         ToolTip="This feature will use windowsOCR as a filter for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"
-                                         Checked="WindowsOCRIntegrationCheckBox_CheckedChanged" 
-                                         Unchecked="WindowsOCRIntegrationCheckBox_CheckedChanged"/> -->
-
                                 <!-- HDR support -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HDRSupport]}" Grid.Row="9" Grid.Column="0" 
                                           ToolTip="This feature will use HDR support for the results before sending them to other OCRs. This feature will improve performance but will reduce accuracy in some cases"

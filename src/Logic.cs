@@ -19,7 +19,10 @@ namespace RSTGameTranslation
         private static Logic? _instance;
         private List<TextObject> _textObjects;
         private List<TextObject> _textObjectsOld;
-        private string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, MainWindow.DEFAULT_OUTPUT_PATH);
+        // Copy of the frame being OCR'd, for sampling the overlay background colour once its result is in
+        // (the OCR call disposes the captured bitmap). Only kept while the auto background colour is on.
+        private Bitmap? _ocrSourceFrame;
+        private readonly object _ocrSourceFrameLock = new object();
         private Random _random;
         private Grid? _overlayContainer;
         private int _textIDCounter = 0;
@@ -31,7 +34,6 @@ namespace RSTGameTranslation
         private bool _isProcessingAudioBatch = false;
         private bool _hasNewAudioSinceLastTranslation = false;
 
-        private DispatcherTimer _reconnectTimer;
         private string _lastOcrHash = string.Empty;
         private string _lastTextContent = string.Empty;
         // Last OCR text logged as skipped, so a static screen is logged once instead of every frame
@@ -92,17 +94,16 @@ namespace RSTGameTranslation
             _textObjects = new List<TextObject>();
             _textObjectsOld = new List<TextObject>();
             _random = new Random();
+        }
 
-            // Initialize reconnect timer with 3-second interval
-            _reconnectTimer = new DispatcherTimer
+        // Called with each frame sent to OCR. Takes ownership of the copy.
+        public void SetOcrSourceFrame(Bitmap? frame)
+        {
+            lock (_ocrSourceFrameLock)
             {
-                Interval = TimeSpan.FromSeconds(3)
-            };
-            _reconnectTimer.Tick += ReconnectTimer_Tick;
-
-            // Subscribe to SocketManager events
-            SocketManager.Instance.DataReceived += OnSocketDataReceived;
-            SocketManager.Instance.ConnectionChanged += OnSocketConnectionChanged;
+                _ocrSourceFrame?.Dispose();
+                _ocrSourceFrame = frame;
+            }
         }
 
         // Set reference to the overlay container
@@ -140,9 +141,7 @@ namespace RSTGameTranslation
                 // Load force cursor visible setting
                 // Force cursor visibility is now handled by MouseManager
 
-                // Only connect to socket server if using a server-based OCR (third-party engines removed)
-                // Built-in OCR (OneOCR, Windows OCR) doesn't need a socket connection
-                Console.WriteLine($"Using {MainWindow.Instance.GetSelectedOcrMethod()} (built-in) - socket connection not needed");
+                Console.WriteLine($"Using {MainWindow.Instance.GetSelectedOcrMethod()} (built-in)");
 
                 // Update status message in the UI
                 MainWindow.Instance.SetStatus($"Using {MainWindow.Instance.GetSelectedOcrMethod()} (built-in)");
@@ -154,75 +153,6 @@ namespace RSTGameTranslation
                     LocalizationManager.Instance.Strings["Title_Error"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
-            }
-        }
-
-        // Connect to socket server
-        private async Task ConnectToSocketServerAsync()
-        {
-            try
-            {
-                Console.WriteLine("Attempting to connect to socket server...");
-
-                // Check if already connected
-                if (SocketManager.Instance.IsConnected)
-                {
-                    Console.WriteLine("Already connected to socket server");
-                    return;
-                }
-
-                await SocketManager.Instance.ConnectAsync();
-
-                // Start the reconnect timer if connection failed
-                if (!SocketManager.Instance.IsConnected)
-                {
-                    Console.WriteLine("Connection failed, starting reconnect timer");
-                    _reconnectTimer.Start();
-                }
-                else
-                {
-                    Console.WriteLine("Successfully connected to socket server");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Socket connection error: {ex.Message}");
-
-                // Start the reconnect timer
-                _reconnectTimer.Start();
-            }
-        }
-
-        // Reconnect timer tick event
-        private async void ReconnectTimer_Tick(object? sender, EventArgs e)
-        {
-            // Third-party Python OCR engines removed; no socket reconnection needed.
-            // Keep the timer stopped for built-in OCR (OneOCR, Windows OCR).
-            _reconnectTimer.Stop();
-            await Task.CompletedTask;
-        }
-
-        // Socket data received event handler
-        private void OnSocketDataReceived(object? sender, string data)
-        {
-            LogManager.Instance.LogOcrResponse(data);
-
-            // Process the received data
-            ProcessReceivedTextJsonData(data);
-        }
-
-        // Socket connection changed event handler
-        private void OnSocketConnectionChanged(object? sender, bool isConnected)
-        {
-            // Third-party Python OCR engines removed; socket connection events are no longer relevant.
-            // Built-in OCR (OneOCR, Windows OCR) doesn't use socket connections.
-            if (!isConnected)
-            {
-                SocketManager.Instance._isConnected = false;
-            }
-            else
-            {
-                _reconnectTimer.Stop();
             }
         }
 
@@ -1043,20 +973,14 @@ namespace RSTGameTranslation
         // Display OCR results from JSON - processes character-level blocks
         private void DisplayOcrResults(JsonElement root)
         {
+            // Taken over from the field so a frame stored meanwhile cannot dispose it while it is in use
             Bitmap? sourceBitmap = null;
             if (ConfigManager.Instance.IsAutoSetOverlayBackground())
             {
-                try
+                lock (_ocrSourceFrameLock)
                 {
-                    byte[] imageBytes = File.ReadAllBytes(outputPath);
-                    using (var ms = new MemoryStream(imageBytes))
-                    {
-                        sourceBitmap = new Bitmap(ms);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error loading background image: {ex.Message}");
+                    sourceBitmap = _ocrSourceFrame;
+                    _ocrSourceFrame = null;
                 }
             }
 
@@ -1855,91 +1779,6 @@ namespace RSTGameTranslation
             }
         }
 
-        // Using Windows OCR integration with other OCR
-        public async void ProcessWithWindowsOCRIntegration(System.Drawing.Bitmap bitmap, string sourceLanguage, string filePath)
-        {
-            try
-            {
-                try
-                {
-                    // Get the text lines from Windows OCR directly from the bitmap
-                    var textLines = await WindowsOCRManager.Instance.GetOcrLinesFromBitmapAsync(bitmap, sourceLanguage);
-
-                    if (textLines.Count > 0)
-                    {
-                        SendImageToServerOCR(filePath);
-                    }
-                    else
-                    {
-                        // Windows OCR didn't find any text
-                        Console.WriteLine("Windows OCR integration: No text detected in the image");
-
-                        await WindowsOCRManager.Instance.ProcessWindowsOcrResults(textLines, sourceLanguage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Windows OCR error: {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                }
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error processing bitmap with Windows OCR: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            }
-            finally
-            {
-                // Make sure bitmap is properly disposed
-                try
-                {
-                    // Dispose bitmap - System.Drawing.Bitmap doesn't have a Disposed property,
-                    // so we'll just dispose it if it's not null
-                    if (bitmap != null)
-                    {
-                        bitmap.Dispose();
-                    }
-                }
-                catch
-                {
-                    // Ignore disposal errors
-                }
-
-                MainWindow.Instance.SetOCRCheckIsWanted(true);
-
-            }
-        }
-
-
-        // Called when a screenshot is saved (for EasyOCR method)
-        public async void SendImageToServerOCR(string filePath)
-        {
-            // Update Monitor Window with the screenshot
-
-            try
-            {
-                // Only built-in OCR (OneOCR, Windows OCR) is supported now.
-                // Third-party Python OCR engines (EasyOCR, PaddleOCR, RapidOCR) have been removed.
-                string ocrMethod = MainWindow.Instance.GetSelectedOcrMethod();
-                Console.WriteLine($"Using {ocrMethod} (built-in)");
-                // ProcessScreenshot will handle the built-in OCR logic
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error processing screenshot: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                MessageBox.Show(
-                    string.Format(LocalizationManager.Instance.Strings["Msg_ErrorProcessingScreenshot"], ex.Message),
-                    LocalizationManager.Instance.Strings["Title_Error"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-
-            // We'll do this after we get a reply
-            // MainWindow.Instance.SetOCRCheckIsWanted(true);
-        }
-
         // Called when the application is closing
         public void Finish()
         {
@@ -1948,11 +1787,7 @@ namespace RSTGameTranslation
                 // Clean up resources
                 Console.WriteLine("Logic finalized");
 
-                // Disconnect from socket server
-                SocketManager.Instance.Disconnect();
-
-                // Stop the reconnect timer
-                _reconnectTimer.Stop();
+                SetOcrSourceFrame(null);
 
                 // Clear all text objects
                 ClearAllTextObjects();
@@ -2042,26 +1877,6 @@ namespace RSTGameTranslation
                 {
                     Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 }
-            }
-        }
-
-        // Send text data through socket
-        public async Task<bool> SendTextDataAsync(string text)
-        {
-            if (!SocketManager.Instance.IsConnected)
-            {
-                Console.WriteLine("Cannot send data: Socket not connected");
-                return false;
-            }
-
-            try
-            {
-                return await SocketManager.Instance.SendDataAsync(text);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending text data: {ex.Message}");
-                return false;
             }
         }
 

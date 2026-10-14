@@ -127,7 +127,6 @@ namespace RSTGameTranslation
         public const string SHOW_TRANSLATION_ENABLED = "show_translation_enabled";
         public const string CHAR_LEVEL = "char_level";
         public const string IGNORE_PHRASES = "ignore_phrases";
-        public const string WINDOWS_OCR_INTEGRATION = "windows_ocr_integration";
         public const string AUTO_OCR = "auto_ocr";
         public const string MANGA_MODE = "manga_mode";
         public const string HDR_SUPPORT = "hdr_support";
@@ -438,6 +437,13 @@ namespace RSTGameTranslation
                 SaveConfig();
             }
 
+            // Windows OCR integration fed the removed Python OCR server
+            if (_configValues.Remove("windows_ocr_integration"))
+            {
+                Console.WriteLine("Removing deprecated 'windows_ocr_integration' entry from config");
+                SaveConfig();
+            }
+
             // The default pause before an utterance is cut went from 500 to 300 ms (the Silero VAD
             // finds the end of speech precisely, so the shorter wait is safe and cuts latency).
             // Configs written with the old default still say 500: move them over once.
@@ -632,7 +638,6 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_RETRY_TRANSLATION] = "ALT+T";
             _configValues[HOTKEY_TOGGLE_EXCLUDE_REGIONS] = "ALT+X";
             _configValues[SHOW_ICON_SIGNAL] = "true";
-            _configValues[WINDOWS_OCR_INTEGRATION] = "false";
             _configValues[AUTO_OCR] = "true";
             _configValues[EXCLUDE_CHARACTER_NAME] = "false";
             _configValues[SHOW_QUICK_START] = "true";
@@ -676,6 +681,50 @@ namespace RSTGameTranslation
             // Save the default configuration
             SaveConfig();
             Console.WriteLine("Default configuration created and saved.");
+        }
+
+        // Set by ResetToDefaults: the app restarts right after, and windows closing on the way out must
+        // not write their current (pre-reset) state back over the reset config
+        private bool _configWritesFrozen;
+
+        // What a factory reset keeps: API keys and the custom endpoint (tedious to find again), the
+        // interface language, and one-time state (welcome screen and tips already seen, migrations done)
+        private static bool IsKeptOnReset(string key) =>
+            key.Contains("api_key", StringComparison.OrdinalIgnoreCase) ||
+            key == CUSTOM_API_URL || key == CUSTOM_API_MODEL ||
+            key == LANGUAGE_INTERFACE ||
+            key == SHOW_QUICK_START || key == ONBOARDING_TIPS_SHOWN || key == FORCE_UPDATE_PROMPT ||
+            key.StartsWith("migrated_", StringComparison.Ordinal);
+
+        /// <summary>
+        /// Restores every setting in config.txt to its default, except what IsKeptOnReset keeps. The old
+        /// file is backed up first. Profiles and the per-service prompt files are not touched. The app
+        /// must restart afterwards: from here on config.txt is not written again in this session.
+        /// </summary>
+        /// <returns>The path of the backup, or null when there was no config file to back up</returns>
+        public string? ResetToDefaults()
+        {
+            string? backupPath = null;
+            if (File.Exists(_configFilePath))
+            {
+                backupPath = Path.Combine(Path.GetDirectoryName(_configFilePath)!,
+                    $"config_backup_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+                // Throws when the backup cannot be written, so nothing is reset without one
+                File.Copy(_configFilePath, backupPath, overwrite: true);
+            }
+
+            var kept = _configValues.Where(e => IsKeptOnReset(e.Key)).ToList();
+            _configValues.Clear();
+            CreateDefaultConfig();
+            foreach (var entry in kept)
+            {
+                _configValues[entry.Key] = entry.Value;
+            }
+            SaveConfig();
+            _configWritesFrozen = true;
+
+            Console.WriteLine($"Settings reset to defaults ({kept.Count} value(s) kept); backup: {backupPath ?? "none"}");
+            return backupPath;
         }
 
         // Process multiline values enclosed in tags
@@ -771,6 +820,12 @@ namespace RSTGameTranslation
         // Save configuration to file
         public void SaveConfig(string filePath = "Default")
         {
+            if (_configWritesFrozen && filePath == "Default")
+            {
+                Console.WriteLine("Settings were reset; not saving config until the app restarts");
+                return;
+            }
+
             try
             {
                 StringBuilder sb = new StringBuilder();
@@ -2388,20 +2443,6 @@ namespace RSTGameTranslation
             _configValues[AUTO_OCR] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Auto OCR enabled: {enabled}");
-        }
-
-        // Get/Set windows OCR integration status
-        public bool IsWindowsOCRIntegrationEnabled()
-        {
-            // string value = GetValue(WINDOWS_OCR_INTEGRATION, "false");
-            // return value.ToLower() == "true";
-            return false;
-        }
-        public void SetWindowsOCRIntegration(bool enabled)
-        {
-            _configValues[WINDOWS_OCR_INTEGRATION] = enabled.ToString().ToLower();
-            SaveConfig();
-            Console.WriteLine($"Windows OCR integration enabled: {enabled}");
         }
 
         // Get/Set TTS enabled
