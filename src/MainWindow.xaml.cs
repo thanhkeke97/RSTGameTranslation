@@ -96,6 +96,10 @@ namespace RSTGameTranslation
             return !isStopOCR || ConfigManager.Instance.IsAutoOCREnabled();
         }
         private DispatcherTimer _captureTimer;
+        // Skips OCR of frames that look the same as the last OCR'd one
+        private readonly FrameChangeDetector _frameChangeDetector = new FrameChangeDetector();
+        private DateTime _lastOcrStartTime = DateTime.MinValue;
+        private static readonly TimeSpan UnchangedFrameMaxSkip = TimeSpan.FromSeconds(2);
         private WindowInteropHelper helper;
         private System.Drawing.Rectangle captureRect;
 
@@ -673,6 +677,18 @@ namespace RSTGameTranslation
 
             if (!ShouldPerformOcrNow())
                 return;
+
+            // Nothing on screen changed since the last OCR and its result is fully handled: OCR would
+            // read the same text again. It still re-reads now and then, in case a setting that shapes
+            // the result (language, ignore phrases, ...) changed meanwhile.
+            bool sameFrame = _frameChangeDetector.IsSameAsOcrFrame(image, originX, originY);
+            if (sameFrame && ConfigManager.Instance.IsAutoOCREnabled() && Logic.Instance.IsOcrResultSettled
+                && DateTime.UtcNow - _lastOcrStartTime < UnchangedFrameMaxSkip)
+            {
+                return;
+            }
+            _frameChangeDetector.MarkOcrFrame();
+            _lastOcrStartTime = DateTime.UtcNow;
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             SetOCRCheckIsWanted(false);

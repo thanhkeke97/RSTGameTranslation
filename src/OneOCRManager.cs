@@ -77,6 +77,15 @@ namespace RSTGameTranslation
 
         [LibraryImport("oneocr.dll")]
         [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+        public static partial long GetOcrWordConfidence(long word, out float confidence);
+
+        // Frees what RunOcrPipeline allocated; every line/word handle of that result is invalid afterwards
+        [LibraryImport("oneocr.dll")]
+        [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+        public static partial void ReleaseOcrResult(long instance);
+
+        [LibraryImport("oneocr.dll")]
+        [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
         public static partial long OcrProcessOptionsSetMaxRecognitionLineCount(long opt, long count);
 
         [LibraryImport("oneocr.dll")]
@@ -230,8 +239,22 @@ namespace RSTGameTranslation
                 return null;
             }
 
+            try
+            {
+                return ReadOcrResult(instance);
+            }
+            finally
+            {
+                // The result is native memory: without this every OCR pass leaked it (about 9 KB for two
+                // lines of text, several passes a second)
+                NativeMethods.ReleaseOcrResult(instance);
+            }
+        }
+
+        private Line[]? ReadOcrResult(long instance)
+        {
             // Get the number of recognized lines
-            res = NativeMethods.GetOcrLineCount(instance, out long lineCount);
+            long res = NativeMethods.GetOcrLineCount(instance, out long lineCount);
             if (res != 0)
             {
                 Console.Error.WriteLine("Failed to get OCR line count.");
@@ -284,6 +307,7 @@ namespace RSTGameTranslation
                         return null;
                     }
                     List<Word> words = new List<Word>();
+                    List<float> wordConfidences = new List<float>();
                     for (long j = 0; j < wordCount; j++)
                     {
                         res = NativeMethods.GetOcrWord(line, j, out long word);
@@ -319,6 +343,11 @@ namespace RSTGameTranslation
                                 Y4 = wordBoundingBox.y4
                             };
                             words.Add(w);
+
+                            if (NativeMethods.GetOcrWordConfidence(word, out float wordConfidence) == 0)
+                            {
+                                wordConfidences.Add(wordConfidence);
+                            }
                         }
                         else
                         {
@@ -326,6 +355,10 @@ namespace RSTGameTranslation
                         }
                     }
                     data.Words = words.ToArray();
+                    if (wordConfidences.Count > 0)
+                    {
+                        data.Confidence = wordConfidences.Average();
+                    }
                     lines.Add(data);
                 }
                 else
@@ -663,7 +696,7 @@ namespace RSTGameTranslation
                         results.Add(new
                         {
                             text = processedText,
-                            confidence = 0.9, // OneOCR doesn't provide confidence
+                            confidence = line.Confidence,
                             rect = box,
                             bubble_id = bubbleIds[lineIndex]
                         });
@@ -808,6 +841,10 @@ namespace RSTGameTranslation
             public float Y4 { get; set; }
 
             public Word[]? Words { get; set; }
+
+            // Average of the words' confidences (0-1). Measured on a manga page: real dialogue 0.75-1.0,
+            // stray sound-effect lettering 0.5-0.7, so this only separates them under a raised threshold.
+            public double Confidence { get; set; } = 0.9;
 
             public override string ToString()
             {

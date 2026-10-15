@@ -168,6 +168,10 @@ namespace RSTGameTranslation
             }
         }
 
+        // The last OCR result is fully handled: shown (or being translated) and not waiting to settle,
+        // so OCR of an identical frame would change nothing
+        public bool IsOcrResultSettled => _lastChangeTime == DateTime.MinValue && _lastOcrHash.Length > 0;
+
         public void ResetHash()
         {
             _lastOcrHash = "";

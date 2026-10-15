@@ -25,12 +25,11 @@ mkdir tempbuild\AudioModel
 mkdir tempbuild\Supertonic
 mkdir tempbuild\Languages
 copy app\OneOcr\* tempbuild
-:NOTE: OneOcr ships its own onnxruntime.dll (older build) for its own OCR
-:engine. If we let it overwrite the NuGet-published Microsoft.ML.OnnxRuntime
-:1.20.1 binaries that the Supertonic TTS backend depends on, the
-:managed wrapper and the native runtime version-mismatch and the app
-:crashes silently on startup. Restore the published native runtime so
-:both OCR and TTS can find the version they were built against.
+:NOTE: oneocr.dll runs on the NuGet-published Microsoft.ML.OnnxRuntime 1.20.1
+:that the Supertonic TTS backend also needs, so app\OneOcr no longer ships its
+:own onnxruntime.dll (an older one used to overwrite it here, and the managed
+:wrapper / native runtime mismatch crashed the app silently on startup).
+:The copies below keep the published runtime in place regardless.
 copy /Y app\win-x64\publish\onnxruntime.dll tempbuild\onnxruntime.dll
 copy /Y app\win-x64\publish\onnxruntime_providers_shared.dll tempbuild\onnxruntime_providers_shared.dll
 del /Q tempbuild\onnxruntime.lib 2>nul
