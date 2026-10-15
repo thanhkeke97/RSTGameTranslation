@@ -120,12 +120,12 @@ namespace RSTGameTranslation
 
         private localWhisperService()
         {
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => Stop();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => StopForExit();
             try
             {
                 if (System.Windows.Application.Current != null)
                 {
-                    System.Windows.Application.Current.Exit += (s, e) => Stop();
+                    System.Windows.Application.Current.Exit += (s, e) => StopForExit();
                 }
             }
             catch { }
@@ -338,7 +338,14 @@ namespace RSTGameTranslation
             }
         }
 
-        public void Stop()
+        public void Stop() => Stop(waitForLoops: true);
+
+        // When the app is closing: same cleanup, but without waiting up to 13 s for the loops on the
+        // UI thread (which froze the window on close). Native resources still in use are released by
+        // the loops when they finish, or by the process exiting.
+        public void StopForExit() => Stop(waitForLoops: false);
+
+        private void Stop(bool waitForLoops)
         {
             try
             {
@@ -357,6 +364,7 @@ namespace RSTGameTranslation
                 // running cannot be cancelled mid-call.
                 foreach (var (task, timeoutMs) in new[] { (processingTask, 3000), (recognizeTask, 10000) })
                 {
+                    if (!waitForLoops) break;
                     try
                     {
                         if (task != null && !task.IsCompleted)
@@ -997,10 +1005,13 @@ namespace RSTGameTranslation
                 // would translate the halves of a sentence on their own.
                 string utterance = string.Join(" ", lines);
                 AudioTiming.Log("3. Sent to translation", AudioTiming.Preview(utterance));
+                // Stop() blocks the UI thread while it waits for this task, so the wait for the UI thread
+                // must end when stopping; otherwise both sides wait until Stop's timeout runs out
                 await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    Logic.Instance.AddAudioTextObject(utterance);
-                });
+                    if (!token.IsCancellationRequested)
+                        Logic.Instance.AddAudioTextObject(utterance);
+                }).Task.WaitAsync(token);
 
                 onResult(utterance, "");
             }

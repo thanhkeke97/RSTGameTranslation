@@ -1527,7 +1527,7 @@ namespace RSTGameTranslation
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            localWhisperService.Instance.Stop();
+            localWhisperService.Instance.StopForExit();
             this.Close();
         }
 
@@ -1539,7 +1539,7 @@ namespace RSTGameTranslation
             _graphicsCaptureService = null;
 
             // Stop local whisper service
-            localWhisperService.Instance.Stop();
+            localWhisperService.Instance.StopForExit();
 
             // Clean up Logic resources
             Logic.Instance.Finish();
@@ -1699,7 +1699,7 @@ namespace RSTGameTranslation
             {
                 ShowWindow(consoleWindow, SW_HIDE);
             }
-            localWhisperService.Instance.Stop();
+            localWhisperService.Instance.StopForExit();
 
             // Make sure the application exits when the main window is closed
             System.Windows.Application.Current.Shutdown();
@@ -2363,10 +2363,9 @@ namespace RSTGameTranslation
                 // Disable input modes that would cause the app to wait for input
                 // This prevents the console from freezing when it gets focus
                 // We're turning off all input processing to make the console display-only
-                uint newMode = 0; // Set to 0 to disable all input
-
-                // You can selectively re-enable certain input features if needed:
-                // newMode = ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT;
+                // Quick Edit only changes together with ENABLE_EXTENDED_FLAGS: a plain 0 left it on, and a
+                // click in the console then starts a selection that blocks every Console.WriteLine
+                uint newMode = ENABLE_EXTENDED_FLAGS;
 
                 if (!SetConsoleMode(hStdIn, newMode))
                 {

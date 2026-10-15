@@ -170,7 +170,7 @@ public partial class App : Application
         try
         {
             // Stop local whisper service
-            localWhisperService.Instance.Stop();
+            localWhisperService.Instance.StopForExit();
 
             // Clean up Logic resources
             Logic.Instance.Finish();
@@ -212,6 +212,19 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
+
+        // The windows are gone, but a thread still running (native audio/OCR/TTS code, a library's
+        // foreground thread) can keep the process alive with nothing on screen to close it. Give normal
+        // shutdown a few seconds, then end the process. This thread is background, so it never delays
+        // a shutdown that completes on its own.
+        int exitCode = e.ApplicationExitCode;
+        new System.Threading.Thread(() =>
+        {
+            System.Threading.Thread.Sleep(5000);
+            Console.WriteLine("Process still running 5 s after exit; forcing it to end");
+            Environment.Exit(exitCode);
+        })
+        { IsBackground = true, Name = "ExitWatchdog" }.Start();
     }
 
     /// <summary>
