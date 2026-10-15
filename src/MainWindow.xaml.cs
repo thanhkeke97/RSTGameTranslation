@@ -1144,7 +1144,7 @@ namespace RSTGameTranslation
             SettingsWindow.Instance.ListHotKey_TextChanged();
 
             // Update app version on setup screen
-            AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.FormatVersion(SplashManager.CurrentVersion);
 
             // Add socket status to the header
             if (FooterBorder != null && FooterBorder.Child is Grid footerGrid)
@@ -3658,7 +3658,7 @@ namespace RSTGameTranslation
                     OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                     OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
-                AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.CurrentVersion.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.FormatVersion(SplashManager.CurrentVersion);
 
                 // Reload screen list to update localized text
                 LoadScreenList();
