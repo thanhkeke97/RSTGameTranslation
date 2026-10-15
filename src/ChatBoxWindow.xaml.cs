@@ -1662,7 +1662,7 @@ namespace RSTGameTranslation
                         string originalText = entry.OriginalText;
 
                         // Add RTL mark if source language is RTL
-                        if (isSourceRtl && !originalText.StartsWith("\u200F"))
+                        if (isSourceRtl && !originalText.StartsWith('\u200F'))
                         {
                             originalText = "\u200F" + originalText;
                         }
@@ -1697,7 +1697,7 @@ namespace RSTGameTranslation
                         string translatedText = entry.TranslatedText;
 
                         // Add RTL mark if target language is RTL
-                        if (isTargetRtl && !translatedText.StartsWith("\u200F"))
+                        if (isTargetRtl && !translatedText.StartsWith('\u200F'))
                         {
                             translatedText = "\u200F" + translatedText;
                         }

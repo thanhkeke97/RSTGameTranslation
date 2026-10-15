@@ -275,7 +275,7 @@ namespace RSTGameTranslation
                                             _textObjects[j].FlowDirection = FlowDirection.RightToLeft;
 
                                             // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                            if (!cleanTranslatedText.StartsWith("\u200F"))
+                                            if (!cleanTranslatedText.StartsWith('\u200F'))
                                             {
                                                 cleanTranslatedText = "\u200F" + cleanTranslatedText;
                                             }
@@ -309,7 +309,7 @@ namespace RSTGameTranslation
                                             matchingTextObj.FlowDirection = FlowDirection.RightToLeft;
 
                                             // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                            if (!translatedText.StartsWith("\u200F"))
+                                            if (!translatedText.StartsWith('\u200F'))
                                             {
                                                 translatedText = "\u200F" + translatedText;
                                             }
@@ -338,7 +338,7 @@ namespace RSTGameTranslation
                                                 _textObjects[index].FlowDirection = FlowDirection.RightToLeft;
 
                                                 // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                                if (!translatedText.StartsWith("\u200F"))
+                                                if (!translatedText.StartsWith('\u200F'))
                                                 {
                                                     translatedText = "\u200F" + translatedText;
                                                 }
@@ -1946,7 +1946,7 @@ namespace RSTGameTranslation
                                             _textObjects[j].FlowDirection = FlowDirection.RightToLeft;
 
                                             // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                            if (!cleanTranslatedText.StartsWith("\u200F"))
+                                            if (!cleanTranslatedText.StartsWith('\u200F'))
                                             {
                                                 cleanTranslatedText = "\u200F" + cleanTranslatedText;
                                             }
@@ -1981,7 +1981,7 @@ namespace RSTGameTranslation
 
                                             // Optionally add Unicode RLM (Right-to-Left Mark) if needed
                                             // This can help with mixed content
-                                            if (!translatedText.StartsWith("\u200F"))
+                                            if (!translatedText.StartsWith('\u200F'))
                                             {
                                                 translatedText = "\u200F" + translatedText;
                                             }
@@ -2010,7 +2010,7 @@ namespace RSTGameTranslation
                                                 _textObjects[index].FlowDirection = FlowDirection.RightToLeft;
 
                                                 // Optionally add Unicode RLM (Right-to-Left Mark) if needed
-                                                if (!translatedText.StartsWith("\u200F"))
+                                                if (!translatedText.StartsWith('\u200F'))
                                                 {
                                                     translatedText = "\u200F" + translatedText;
                                                 }
@@ -2514,7 +2514,7 @@ namespace RSTGameTranslation
             {
                 translated = System.Text.RegularExpressions.Regex.Replace(translated, @"\|{3}\s*RST\s*\|{3}|#{0,2}\s*\|{3}\s*#{0,2}", "");
             }
-            if (RtlLanguages.Contains(ConfigManager.Instance.GetTargetLanguage().ToLower()) && !translated.StartsWith("\u200F"))
+            if (RtlLanguages.Contains(ConfigManager.Instance.GetTargetLanguage().ToLower()) && !translated.StartsWith('\u200F'))
             {
                 translated = "\u200F" + translated;
             }
@@ -2565,8 +2565,10 @@ namespace RSTGameTranslation
             {
                 if (TranslationCache.Instance.TryGet(textObject.Text, out string translation))
                 {
-                    // Cached RTL translations keep the right-to-left mark added when they were first shown
-                    textObject.FlowDirection = translation.StartsWith("\u200F") ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+                    // Cached RTL translations keep the right-to-left mark added when they were first shown.
+                    // The char overload is ordinal: StartsWith(string) is culture-sensitive and ignores the
+                    // zero-width mark, so it matched every translation and turned all of them right-to-left.
+                    textObject.FlowDirection = translation.StartsWith('\u200F') ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
                     textObject.TextTranslated = translation;
                     textObject.UpdateUIElement();
                     found.Add(textObject);
