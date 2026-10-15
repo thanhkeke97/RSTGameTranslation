@@ -764,6 +764,15 @@ namespace RSTGameTranslation
 
         private void ToggleTranslationAreaSelector()
         {
+            // Select Area pressed while a startup dialog is still up: minimizing this window would hide the
+            // dialog with it while it keeps this window blocked, so the app could not be brought back.
+            // Close the dialog now and show it again once the window is restored.
+            if (_openStartupDialog != null)
+            {
+                _startupDialogInterrupted = true;
+                _openStartupDialog.Close();
+            }
+
             if (this.WindowState != WindowState.Minimized)
             {
                 this.WindowState = WindowState.Minimized;
@@ -1230,6 +1239,7 @@ namespace RSTGameTranslation
 
             // Register the LocationChanged event to update the position of the MonitorWindow when the MainWindow moves
             this.LocationChanged += MainWindow_LocationChanged;
+            this.StateChanged += MainWindow_StateChanged;
             // ToggleMonitorWindow();
             CheckAndShowWelcome();
 
@@ -3372,15 +3382,66 @@ namespace RSTGameTranslation
         // Skipping keeps screen-area capture; on Windows 10 the overlay then stays off.
         private void PromptForGameWindowAtStartup()
         {
+            _startupPromptPending = false;
             if (isCapturingWindow)
                 return;
+
+            if (!CanShowStartupDialog())
+            {
+                _startupPromptPending = true;
+                return;
+            }
 
             var popup = new WindowSelectorPopup { Owner = this };
             popup.ConfigureForStartup(IsWindows10);
             popup.WindowSelected += (handle, title) => OnWindowSelected(handle, title, showConfirmation: false);
-            popup.ShowDialog();
+            if (!ShowStartupDialog(popup))
+            {
+                _startupPromptPending = true;
+                return;
+            }
 
             WarnIfWindows10WithoutGameWindow();
+        }
+
+        // Startup dialogs (welcome screen, game window choice) waiting for this window to be restored: the
+        // area selector minimizes it, and a dialog owned by a minimized window is hidden along with it
+        private bool _welcomePending;
+        private bool _startupPromptPending;
+        private Window? _openStartupDialog;
+        private bool _startupDialogInterrupted;
+
+        private bool CanShowStartupDialog() =>
+            IsVisible && WindowState != WindowState.Minimized && !isSelectingTranslationArea;
+
+        // Shows a startup dialog; false when Select Area closed it before the user answered
+        private bool ShowStartupDialog(Window dialog)
+        {
+            _openStartupDialog = dialog;
+            _startupDialogInterrupted = false;
+            try
+            {
+                dialog.ShowDialog();
+            }
+            finally
+            {
+                _openStartupDialog = null;
+            }
+            return !_startupDialogInterrupted;
+        }
+
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized || (!_welcomePending && !_startupPromptPending))
+                return;
+
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (_welcomePending)
+                    CheckAndShowWelcome();
+                else if (_startupPromptPending)
+                    PromptForGameWindowAtStartup();
+            }, DispatcherPriority.ApplicationIdle);
         }
 
         // After the startup window choice was skipped: on Windows 10 the overlay stays off until a window is chosen
@@ -3527,12 +3588,17 @@ namespace RSTGameTranslation
             App.RestartApplication();
         }
 
-        private void ShowWelcomeWindow()
+        // False when Select Area interrupted the welcome screen, so it is shown again later
+        private bool ShowWelcomeWindow()
         {
             var welcomeWindow = new WelcomeWindow { Owner = this };
-            if (welcomeWindow.ShowDialog() != true)
+            if (!ShowStartupDialog(welcomeWindow))
             {
-                return;
+                return false;
+            }
+            if (welcomeWindow.DialogResult != true)
+            {
+                return true;
             }
 
             // The welcome screen saves the language pair to config; OCR reads it from these combo boxes
@@ -3543,6 +3609,7 @@ namespace RSTGameTranslation
             {
                 SettingsButton_Click(settingsButton, new RoutedEventArgs());
             }
+            return true;
         }
 
         private void DonateButton_Click(object sender, RoutedEventArgs e)
@@ -3557,10 +3624,22 @@ namespace RSTGameTranslation
 
         private void CheckAndShowWelcome()
         {
+            _welcomePending = false;
             if (ConfigManager.Instance.IsNeedShowQuickStart())
             {
+                // Select Area pressed during the splash screen: the window opens minimized
+                if (!CanShowStartupDialog())
+                {
+                    _welcomePending = true;
+                    return;
+                }
+
                 // The welcome screen includes the game window choice, so the separate prompt is not shown too
-                ShowWelcomeWindow();
+                if (!ShowWelcomeWindow())
+                {
+                    _welcomePending = true;
+                    return;
+                }
                 WarnIfWindows10WithoutGameWindow();
 
                 // Wait until the main window has been laid out so the tour can anchor to its buttons
