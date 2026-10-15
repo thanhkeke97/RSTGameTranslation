@@ -1802,6 +1802,8 @@ namespace RSTGameTranslation
         private static extern bool IsWindowVisible(IntPtr hWnd);
 
 
+        private Rectangle _lastLoggedWindowRegion;
+
         private Bitmap CaptureWindow(IntPtr handle)
         {
             try
@@ -1842,7 +1844,13 @@ namespace RSTGameTranslation
                     if (captureX + captureWidth > windowWidth) captureWidth = windowWidth - captureX;
                     if (captureY + captureHeight > windowHeight) captureHeight = windowHeight - captureY;
 
-                    Console.WriteLine($"Capturing region in window: X={captureX}, Y={captureY}, Width={captureWidth}, Height={captureHeight}");
+                    // Logged once per change: this runs every capture tick
+                    var region = new Rectangle(captureX, captureY, captureWidth, captureHeight);
+                    if (region != _lastLoggedWindowRegion)
+                    {
+                        _lastLoggedWindowRegion = region;
+                        Console.WriteLine($"Capturing region in window: X={captureX}, Y={captureY}, Width={captureWidth}, Height={captureHeight}");
+                    }
 
                     Logic.Instance.SetCurrentCapturePosition(rect.Left + captureX, rect.Top + captureY);
                 }
@@ -1904,6 +1912,9 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in CaptureWindow: {ex.Message}");
+                // With WGC the overlay is not excluded from screen copies, so skip this tick instead
+                if (_graphicsCaptureService != null)
+                    return new Bitmap(1, 1);
                 return FallbackCaptureWindow(handle);
             }
         }
@@ -3405,10 +3416,15 @@ namespace RSTGameTranslation
                     HideOverlayIfItWouldBeCaptured();
                 }
 
-                // WGC captures the window directly, so the overlay doesn't need to be excluded.
+                // WGC captures the window directly, so the overlay doesn't need to be excluded. The
+                // screen-copy fallback does need it: without it the overlay's own translation was
+                // OCR'd and translated again, over and over.
                 if (Windows_Version != "Windows 10")
                 {
-                    MonitorWindow.Instance.DisableExcludeFromCapture();
+                    if (_graphicsCaptureService != null)
+                        MonitorWindow.Instance.DisableExcludeFromCapture();
+                    else
+                        MonitorWindow.Instance.EnableExcludeFromCapture();
                 }
 
                 selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
