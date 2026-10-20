@@ -37,7 +37,7 @@ namespace RSTGameTranslation
         // Event to notify when splash screen is closed
         public event EventHandler? SplashClosed;
         
-        public const double CurrentVersion = 5.9;
+        public const double CurrentVersion = 6.0;
 
         // "F1" rounded a hotfix version like 5.85 to "5.8": shown as the old version and, worse, the
         // update downloaded the old release again. Keeps a second decimal when there is one.
