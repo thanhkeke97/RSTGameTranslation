@@ -209,37 +209,28 @@ namespace RSTGameTranslation
                 
                 if (mainWindow != null)
                 {
-                    // Get the screen that contains the main window
-                    System.Drawing.Point mainWindowPoint = new System.Drawing.Point(
-                        (int)(mainWindow.Left + (mainWindow.Width / 2)),
-                        (int)(mainWindow.Top + (mainWindow.Height / 2))
-                    );
-                    Forms.Screen mainWindowScreen = Forms.Screen.FromPoint(mainWindowPoint);
-                    
-                    // Calculate position above MainWindow
-                    double centerX = mainWindow.Left + (mainWindow.Width / 2);
-                    
+                    // Top-center of the MainWindow in physical pixels, mapped into this window's
+                    // DIPs: mainWindow.Left/Top are in the DPI of the MainWindow's monitor and
+                    // can't be compared with this window's coordinates directly
+                    var mainRect = DpiHelper.GetWindowPhysicalRect(new WindowInteropHelper(mainWindow).Handle);
+                    Point anchor = this.PointFromScreen(new Point(mainRect.Left + mainRect.Width / 2.0, mainRect.Top));
+
                     // Position the instruction text above the MainWindow
-                    double textWidth = instructionText.ActualWidth > 0 ? 
+                    double textWidth = instructionText.ActualWidth > 0 ?
                         instructionText.ActualWidth : 450; // Estimate if not yet measured
-                    
-                    double leftPosition = centerX - (textWidth / 2);
-                    double topPosition = mainWindow.Top - 80; // 80px above main window
-                    
-                    // Make sure it's visible on the screen containing the MainWindow
-                    leftPosition = Math.Max(mainWindowScreen.Bounds.Left + 10, leftPosition);
-                    leftPosition = Math.Min(mainWindowScreen.Bounds.Right - textWidth - 10, leftPosition);
-                    topPosition = Math.Max(mainWindowScreen.Bounds.Top + 10, topPosition);
-                    
-                    // Update position (convert to window coordinates)
-                    Point screenPoint = new Point(leftPosition, topPosition);
-                    Point windowPoint = this.PointFromScreen(screenPoint);
-                    
+
+                    double leftPosition = anchor.X - (textWidth / 2);
+                    double topPosition = anchor.Y - 80; // 80px above main window
+
+                    // Keep it inside this window; the MainWindow may be on another monitor
+                    leftPosition = Math.Max(10, Math.Min(this.ActualWidth - textWidth - 10, leftPosition));
+                    topPosition = Math.Max(10, Math.Min(this.ActualHeight - 60, topPosition));
+
                     // Apply new position
                     instructionText.Margin = new Thickness(
-                        windowPoint.X, 
-                        windowPoint.Y, 
-                        0, 
+                        leftPosition,
+                        topPosition,
+                        0,
                         0);
                     instructionText.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
                     instructionText.VerticalAlignment = System.Windows.VerticalAlignment.Top;
@@ -251,9 +242,9 @@ namespace RSTGameTranslation
                     instructionText.Padding = new Thickness(20, 10, 20, 10);
                     
                     // Also position the cancel button near the main window
-                    PositionCancelButton(mainWindow, mainWindowScreen);
-                    
-                    Console.WriteLine($"Positioned instruction text at {leftPosition}, {topPosition} on screen {mainWindowScreen.DeviceName}");
+                    PositionCancelButton();
+
+                    Console.WriteLine($"Positioned instruction text at {leftPosition}, {topPosition}");
                 }
             }
             catch (Exception ex)
@@ -262,22 +253,19 @@ namespace RSTGameTranslation
             }
         }
         
-        private void PositionCancelButton(Window mainWindow, Forms.Screen mainWindowScreen)
+        private void PositionCancelButton()
         {
             try
             {
-                // Position cancel button to the left of the instruction text
+                // Position cancel button to the left of the instruction text (both in this
+                // window's coordinates, already kept inside it)
                 double textMarginLeft = instructionText.Margin.Left;
                 double textMarginTop = instructionText.Margin.Top;
-                
+
                 // Position button to the left of the text with a small gap
                 double buttonLeft = Math.Max(10, textMarginLeft - cancelButton.Width - 10); // 10px gap
                 double buttonTop = textMarginTop; // Same vertical position
-                
-                // Make sure it's visible on the screen
-                buttonLeft = Math.Max(mainWindowScreen.Bounds.Left + 10, buttonLeft);
-                buttonTop = Math.Max(mainWindowScreen.Bounds.Top + 10, buttonTop);
-                
+
                 // Update button position
                 cancelButton.Margin = new Thickness(buttonLeft, buttonTop, 0, 0);
                 cancelButton.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;

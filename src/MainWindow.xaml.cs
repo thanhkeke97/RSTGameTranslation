@@ -2693,27 +2693,20 @@ namespace RSTGameTranslation
             }
             else if (!isChatBoxVisible && !recreateOnShow)
             {
-                // Check if we have a saved position
-                double savedLeft = ConfigManager.Instance.GetChatboxPositionLeft();
-                double savedTop = ConfigManager.Instance.GetChatboxPositionTop();
-                double savedWidth = ConfigManager.Instance.GetChatboxPositionWidth();
-                double savedHeight = ConfigManager.Instance.GetChatboxPositionHeight();
-                
-                // If we have a saved position (not default 0,0), show or create chatbox at saved position
-                if (savedLeft > 0 || savedTop > 0)
+                // Check if we have a saved position (physical rect, or WPF units from older configs)
+                bool hasSavedPosition = ConfigManager.Instance.TryGetChatboxPhysicalRect(out _, out _, out _, out _)
+                    || ConfigManager.Instance.GetChatboxPositionLeft() > 0
+                    || ConfigManager.Instance.GetChatboxPositionTop() > 0;
+
+                // If we have a saved position, show or create chatbox at saved position
+                if (hasSavedPosition)
                 {
                     // If chatBoxWindow is null, create a new instance
                     if (chatBoxWindow == null)
                     {
-                        // Create new ChatBox instance
+                        // Create new ChatBox instance; ChatBoxWindow_Loaded restores the saved position
                         chatBoxWindow = new ChatBoxWindow();
-                        
-                        // Set position and size from saved values
-                        chatBoxWindow.Left = savedLeft;
-                        chatBoxWindow.Top = savedTop;
-                        chatBoxWindow.Width = savedWidth;
-                        chatBoxWindow.Height = savedHeight;
-                        
+
                         // Attach event handlers
                         chatBoxWindow.Closed += ChatBox_Closed_Handler;
                         chatBoxWindow.IsVisibleChanged += ChatBox_IsVisibleChanged_Handler;
@@ -2858,7 +2851,6 @@ namespace RSTGameTranslation
             chatBoxWindow.Top = selectionRect.Top / chatDpiY;
             chatBoxWindow.Width = selectionRect.Width / chatDpiX;
             chatBoxWindow.Height = selectionRect.Height / chatDpiY;
-            SaveChatBoxPositionToConfig(chatBoxWindow);
 
             var physicalRect = selectionRect;
             var placedWindow = chatBoxWindow;
@@ -2868,8 +2860,8 @@ namespace RSTGameTranslation
                 DpiHelper.PositionWindowPhysical(chatHwnd,
                     (int)Math.Round(physicalRect.Left), (int)Math.Round(physicalRect.Top),
                     (int)Math.Round(physicalRect.Width), (int)Math.Round(physicalRect.Height));
-                // Save what WPF now reports, so restoring through Left/Top gives the same place
-                SaveChatBoxPositionToConfig(placedWindow);
+                // Save the placed rect (physical pixels) so the ChatBox reopens exactly here
+                placedWindow.SavePositionToConfig();
             }
 
             if (chatBoxWindow.IsLoaded)
@@ -2920,15 +2912,6 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error getting work area: {ex.Message}");
             }
             return SystemParameters.WorkArea.Height;
-        }
-
-        private static void SaveChatBoxPositionToConfig(ChatBoxWindow window)
-        {
-            ConfigManager.Instance.SetChatboxPositionLeft(window.Left);
-            ConfigManager.Instance.SetChatboxPositionTop(window.Top);
-            ConfigManager.Instance.SetChatboxPositionWidth(window.Width);
-            ConfigManager.Instance.SetChatboxPositionHeight(window.Height);
-            Console.WriteLine($"Saved chatbox position to config: Left={window.Left}, Top={window.Top}, Width={window.Width}, Height={window.Height}");
         }
 
         public void AddTranslationToHistory(string originalText, string translatedText, bool fromClipboard = false)

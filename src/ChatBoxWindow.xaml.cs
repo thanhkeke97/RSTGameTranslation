@@ -810,6 +810,27 @@ namespace RSTGameTranslation
             // Subscribe to position changes to keep overlay synced
             this.LocationChanged += (s, args) => UpdateOverlayPosition();
             this.StateChanged += (s, args) => UpdateOverlayPosition();
+            this.SizeChanged += (s, args) => UpdateOverlayPosition();
+            this.DpiChanged += (s, args) => UpdateOverlayPosition();
+        }
+
+        /// <summary>
+        /// Limits the window's hit-testable area to the toggle button. SetWindowRgn takes
+        /// physical pixels relative to the window, so the button's DIP bounds are scaled by the
+        /// window's DPI.
+        /// </summary>
+        private void ApplyToggleButtonRegion(IntPtr hWnd)
+        {
+            var dpi = VisualTreeHelper.GetDpi(this);
+            var buttonLocation = toggleBordersButton.TransformToAncestor(this).Transform(new System.Windows.Point(0, 0));
+
+            int left = (int)Math.Floor((buttonLocation.X - 2) * dpi.DpiScaleX);
+            int top = (int)Math.Floor((buttonLocation.Y - 2) * dpi.DpiScaleY);
+            int right = (int)Math.Ceiling((buttonLocation.X + toggleBordersButton.ActualWidth + 2) * dpi.DpiScaleX);
+            int bottom = (int)Math.Ceiling((buttonLocation.Y + toggleBordersButton.ActualHeight + 2) * dpi.DpiScaleY);
+
+            IntPtr toggleRgn = CreateRectRgnDirect(left, top, right, bottom);
+            SetWindowRgn(hWnd, toggleRgn, true);
         }
 
         /// <summary>
@@ -822,31 +843,24 @@ namespace RSTGameTranslation
 
             try
             {
-                // Get the toggle button's position in screen coordinates
-                var buttonTransform = toggleBordersButton.TransformToAncestor(this);
-                var buttonLocation = buttonTransform.Transform(new System.Windows.Point(0, 0));
-                var buttonSize = new System.Windows.Size(toggleBordersButton.ActualWidth, toggleBordersButton.ActualHeight);
-
-                // Position the overlay window
-                _clickThroughOverlayWindow.Left = this.Left + buttonLocation.X - 2;
-                _clickThroughOverlayWindow.Top = this.Top + buttonLocation.Y - 2;
-                _clickThroughOverlayWindow.Width = buttonSize.Width + 4;
-                _clickThroughOverlayWindow.Height = buttonSize.Height + 4;
+                // Place the overlay over the toggle button in physical screen pixels: Left/Top
+                // can't be used since this.Left is in the DPI of the ChatBox's monitor while the
+                // overlay converts its own Left with the DPI of wherever it currently is
+                var buttonTopLeft = toggleBordersButton.PointToScreen(new System.Windows.Point(-2, -2));
+                var buttonBottomRight = toggleBordersButton.PointToScreen(
+                    new System.Windows.Point(toggleBordersButton.ActualWidth + 2, toggleBordersButton.ActualHeight + 2));
+                IntPtr overlayHwnd = new System.Windows.Interop.WindowInteropHelper(_clickThroughOverlayWindow).EnsureHandle();
+                DpiHelper.PositionWindowPhysical(overlayHwnd,
+                    (int)Math.Floor(buttonTopLeft.X), (int)Math.Floor(buttonTopLeft.Y),
+                    (int)Math.Ceiling(buttonBottomRight.X - buttonTopLeft.X), (int)Math.Ceiling(buttonBottomRight.Y - buttonTopLeft.Y));
 
                 // If in click-through mode, update the window region too
                 if (_isClickThroughMode)
                 {
-                    var windowInterop = new System.Windows.Interop.WindowInteropHelper(this);
-                    IntPtr hWnd = windowInterop.Handle;
+                    IntPtr hWnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
                     if (hWnd != IntPtr.Zero)
                     {
-                        int left = (int)(buttonLocation.X - 2);
-                        int top = (int)(buttonLocation.Y - 2);
-                        int right = (int)(left + buttonSize.Width + 4);
-                        int bottom = (int)(top + buttonSize.Height + 4);
-
-                        IntPtr toggleRgn = CreateRectRgnDirect(left, top, right, bottom);
-                        SetWindowRgn(hWnd, toggleRgn, true);
+                        ApplyToggleButtonRegion(hWnd);
                     }
                 }
             }
@@ -872,22 +886,8 @@ namespace RSTGameTranslation
 
             if (hWnd != IntPtr.Zero)
             {
-                // Create a rectangular region for just the toggle button area
-                // Get toggle button position in screen coordinates
-                var buttonTransform = toggleBordersButton.TransformToAncestor(this);
-                var buttonLocation = buttonTransform.Transform(new System.Windows.Point(0, 0));
-                var buttonSize = new System.Windows.Size(toggleBordersButton.ActualWidth, toggleBordersButton.ActualHeight);
-
-                int left = (int)(buttonLocation.X - 2);
-                int top = (int)(buttonLocation.Y - 2);
-                int right = (int)(left + buttonSize.Width + 4);
-                int bottom = (int)(top + buttonSize.Height + 4);
-
-                // Create region for just the toggle button area
-                        IntPtr toggleRgn = CreateRectRgnDirect(left, top, right, bottom);
-
-                // Set the window region - only this area will receive clicks
-                SetWindowRgn(hWnd, toggleRgn, true);
+                // Only the toggle button area will receive clicks
+                ApplyToggleButtonRegion(hWnd);
             }
 
             // Show the overlay window for visual feedback (transparent)
@@ -974,12 +974,18 @@ namespace RSTGameTranslation
         // Save chatbox position and size to config
         private void SaveChatboxPosition()
         {
+            SavePositionToConfig();
+        }
+
+        // Save the current position and size, including the physical-pixel rect used to restore it
+        public void SavePositionToConfig()
+        {
             try
             {
-                ConfigManager.Instance.SetChatboxPositionLeft(this.Left);
-                ConfigManager.Instance.SetChatboxPositionTop(this.Top);
-                ConfigManager.Instance.SetChatboxPositionWidth(this.Width);
-                ConfigManager.Instance.SetChatboxPositionHeight(this.Height);
+                // (0, 0, 0, 0) while the window has no handle; only the WPF units are saved then
+                var physical = DpiHelper.GetWindowPhysicalRect(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+                ConfigManager.Instance.SetChatboxPosition(this.Left, this.Top, this.Width, this.Height,
+                    physical.Left, physical.Top, physical.Width, physical.Height);
             }
             catch (Exception ex)
             {
@@ -995,6 +1001,21 @@ namespace RSTGameTranslation
                 // Only load if recreate-on-show is disabled
                 if (!ConfigManager.Instance.IsChatboxRecreateOnShowEnabled())
                 {
+                    // Physical pixels land on the right monitor whatever its DPI. Skipped when that
+                    // monitor is gone, so the ChatBox doesn't open off-screen.
+                    if (ConfigManager.Instance.TryGetChatboxPhysicalRect(out int pxLeft, out int pxTop, out int pxWidth, out int pxHeight))
+                    {
+                        var savedRect = new System.Drawing.Rectangle(pxLeft, pxTop, pxWidth, pxHeight);
+                        if (WinForms.Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(savedRect)))
+                        {
+                            DpiHelper.PositionWindowPhysical(new System.Windows.Interop.WindowInteropHelper(this).Handle,
+                                pxLeft, pxTop, pxWidth, pxHeight);
+                            Console.WriteLine($"Loaded chatbox position (physical): {pxLeft}, {pxTop}, {pxWidth}x{pxHeight}");
+                            return;
+                        }
+                    }
+
+                    // Configs saved before the physical rect existed only have WPF units
                     double left = ConfigManager.Instance.GetChatboxPositionLeft();
                     double top = ConfigManager.Instance.GetChatboxPositionTop();
                     double width = ConfigManager.Instance.GetChatboxPositionWidth();

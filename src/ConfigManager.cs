@@ -168,6 +168,7 @@ namespace RSTGameTranslation
         public const string CHATBOX_POSITION_TOP = "chatbox_position_top";
         public const string CHATBOX_POSITION_WIDTH = "chatbox_position_width";
         public const string CHATBOX_POSITION_HEIGHT = "chatbox_position_height";
+        public const string CHATBOX_PHYSICAL_RECT = "chatbox_physical_rect";
         public const string CHATBOX_DISPLAY_MODE = "chatbox_display_mode";
         public const string SOURCE_LANGUAGE = "source_language";
         public const string TARGET_LANGUAGE = "target_language";
@@ -2582,6 +2583,41 @@ namespace RSTGameTranslation
         public void SetChatboxPositionHeight(double height)
         {
             _configValues[CHATBOX_POSITION_HEIGHT] = height.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+        }
+
+        // ChatBox rect in physical screen pixels. Under PerMonitorV2 WPF's Left/Top depend on the
+        // DPI of the monitor the window is on, so they put a ChatBox saved on a monitor with
+        // another scale back in the wrong place; restoring uses this rect instead.
+        public bool TryGetChatboxPhysicalRect(out int left, out int top, out int width, out int height)
+        {
+            left = top = width = height = 0;
+            string[] parts = GetValue(CHATBOX_PHYSICAL_RECT, "").Split(',');
+            return parts.Length == 4
+                && int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out left)
+                && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out top)
+                && int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out width)
+                && int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out height)
+                && width > 0 && height > 0;
+        }
+
+        // Save the ChatBox position (WPF units, plus physical pixels when the window has a handle)
+        // with a single config write
+        public void SetChatboxPosition(double left, double top, double width, double height,
+            int physicalLeft, int physicalTop, int physicalWidth, int physicalHeight)
+        {
+            _configValues[CHATBOX_POSITION_LEFT] = left.ToString(CultureInfo.InvariantCulture);
+            _configValues[CHATBOX_POSITION_TOP] = top.ToString(CultureInfo.InvariantCulture);
+            _configValues[CHATBOX_POSITION_WIDTH] = width.ToString(CultureInfo.InvariantCulture);
+            _configValues[CHATBOX_POSITION_HEIGHT] = height.ToString(CultureInfo.InvariantCulture);
+            if (physicalWidth > 0 && physicalHeight > 0)
+            {
+                _configValues[CHATBOX_PHYSICAL_RECT] = string.Join(",",
+                    physicalLeft.ToString(CultureInfo.InvariantCulture),
+                    physicalTop.ToString(CultureInfo.InvariantCulture),
+                    physicalWidth.ToString(CultureInfo.InvariantCulture),
+                    physicalHeight.ToString(CultureInfo.InvariantCulture));
+            }
             SaveConfig();
         }
 
