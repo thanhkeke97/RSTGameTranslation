@@ -3201,23 +3201,20 @@ namespace RSTGameTranslation
             }
         }
 
-        // Get next key from the list
-        public string GetNextApiKey(string serviceType, string api_key)
+        // Get/Set the key a service currently uses (the one ApiKeyRotation switches)
+        public string GetCurrentApiKey(string serviceType)
         {
-            List<string> keys = GetApiKeysList(serviceType);
-            if (keys.Count == 0)
-                return "";
+            string configKey = GetSingleKeyConfigKey(serviceType);
+            return configKey.Length > 0 ? GetValue(configKey, "") : "";
+        }
 
-            int index = keys.IndexOf(api_key);
-            if (index == keys.Count - 1)
-            {
-                index = 0;
-            }
-            else
-            {
-                index++;
-            }
-            return keys[index];
+        public void SetCurrentApiKey(string serviceType, string apiKey)
+        {
+            string configKey = GetSingleKeyConfigKey(serviceType);
+            if (configKey.Length == 0)
+                return;
+            _configValues[configKey] = apiKey;
+            SaveConfig();
         }
 
         // Set whether translated text should be kept until replaced

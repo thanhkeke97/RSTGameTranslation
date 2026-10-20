@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -15,48 +16,7 @@ namespace RSTGameTranslation
         internal static Task WarmUpConnectionAsync() =>
             TranslationWarmUp.OpenConnectionsAsync(_httpClient, "Mistral", "https://api.mistral.ai/");
         private static int _consecutiveFailures = 0;
-        private static int _retryCount = 0;
-        private static readonly object _keySwitchLock = new object();
-        private const int MAX_RETRIES = 3;
         private int delayMS = 100;
-
-        /// <summary>
-        /// Check if error requires API key switch
-        /// </summary>
-        private bool ShouldSwitchApiKey(HttpStatusCode statusCode, string errorMessage)
-        {
-            // Switch key for quota/rate limit/invalid key errors
-            if (statusCode == HttpStatusCode.Unauthorized ||  // 401 - Invalid API key
-                (int)statusCode == 429 ||  // Too Many Requests - Rate limit
-                statusCode == HttpStatusCode.Forbidden)  // 403 - Quota exceeded
-            {
-                return true;
-            }
-
-            // Check error message for quota/rate limit keywords
-            string lowerMessage = errorMessage.ToLower();
-            if (lowerMessage.Contains("quota") ||
-                lowerMessage.Contains("rate limit") ||
-                lowerMessage.Contains("rate-limit") ||
-                lowerMessage.Contains("invalid api key") ||
-                lowerMessage.Contains("api key not found") ||
-                lowerMessage.Contains("api key invalid"))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Get masked API key for logging (show only first 4 and last 4 characters)
-        /// </summary>
-        private string MaskApiKey(string apiKey)
-        {
-            if (string.IsNullOrEmpty(apiKey) || apiKey.Length < 8)
-                return "***";
-            return $"{apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}";
-        }
         
         /// <summary>
         /// Translate text using the Mistral API
@@ -64,19 +24,12 @@ namespace RSTGameTranslation
         /// <param name="jsonData">The JSON data to translate</param>
         /// <param name="prompt">The prompt to guide the translation</param>
         /// <returns>The translation result as a JSON string or null if translation failed</returns>
-        public async Task<string?> TranslateAsync(string jsonData, string prompt)
+        public Task<string?> TranslateAsync(string jsonData, string prompt) =>
+            TranslateAsync(jsonData, prompt, ConfigManager.Instance.GetMistralApiKey(), new HashSet<string>());
+
+        // triedKeys: keys this request already failed with, so a key switch never retries one
+        private async Task<string?> TranslateAsync(string jsonData, string prompt, string apiKey, HashSet<string> triedKeys)
         {
-            string apiKey = ConfigManager.Instance.GetMistralApiKey();
-            string currenServices = ConfigManager.Instance.GetCurrentTranslationService();
-
-            // Check retry limit
-            if (_retryCount >= MAX_RETRIES)
-            {
-                Console.WriteLine($"Mistral API: Max retries ({MAX_RETRIES}) reached. Giving up.");
-                _retryCount = 0;
-                return null;
-            }
-
             try
             {
                 if (string.IsNullOrEmpty(apiKey))
@@ -107,12 +60,11 @@ namespace RSTGameTranslation
                 string requestJson = JsonSerializer.Serialize(requestContent, jsonOptions);
                 var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-                // Set the API key in the request header
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-
                 string url = "https://api.mistral.ai/v1/chat/completions";
-                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+                // The key goes on this request only: the HttpClient is shared by concurrent requests
+                using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+                request.Headers.Add("Authorization", $"Bearer {apiKey}");
+                HttpResponseMessage response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -120,7 +72,6 @@ namespace RSTGameTranslation
                     // Reset consecutive failures counter on success
                     _consecutiveFailures = 0;
                     TranslationErrorNotifier.Reset("Mistral");
-                    _retryCount = 0;
 
                     // Log the raw Mistral response before returning it
                     LogManager.Instance.LogLlmReply(jsonResponse);
@@ -133,30 +84,11 @@ namespace RSTGameTranslation
                     _consecutiveFailures++;
                     Console.WriteLine($"Mistral API error: {response.StatusCode}, {errorMessage}, error count: {_consecutiveFailures}");
 
-                    // Check if we should switch API key
-                    if (ShouldSwitchApiKey(response.StatusCode, errorMessage))
+                    // Rate limit, quota or invalid key: retry with another key
+                    if (ApiKeyRotation.ShouldSwitchApiKey(response.StatusCode, errorMessage) &&
+                        ApiKeyRotation.GetKeyToRetry("Mistral", apiKey, triedKeys) is string nextKey)
                     {
-                        string newApikey = null;
-                        lock (_keySwitchLock)
-                        {
-                            newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
-                            if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
-                            {
-                                ConfigManager.Instance.SetMistralApiKey(newApikey);
-                                Console.WriteLine($"Switched API key from {MaskApiKey(apiKey)} to {MaskApiKey(newApikey)}");
-                                _retryCount++;
-                            }
-                            else
-                            {
-                                Console.WriteLine("No more API keys available to switch to");
-                            }
-                        }
-
-                        // Retry with new key (outside lock)
-                        if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
-                        {
-                            return await TranslateAsync(jsonData, prompt);
-                        }
+                        return await TranslateAsync(jsonData, prompt, nextKey, triedKeys);
                     }
                     try
                     {
