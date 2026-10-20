@@ -100,50 +100,6 @@ namespace RSTGameTranslation
             }
         }
 
-        // Map generic language names/codes to Microsoft Translator codes
-        internal static string MapToMicrosoftCode(string language)
-        {
-            if (string.IsNullOrWhiteSpace(language))
-                return language ?? "";
-
-            string l = language.Trim().ToLowerInvariant();
-            return l switch
-            {
-                "japanese" or "japan" or "ja" => "ja",
-                "english" or "en" => "en",
-                "chinese" or "zh" or "ch_sim" or "simplified chinese" => "zh-CN",
-                "traditional chinese" or "ch_tra" or "zh-tw" or "tw" => "zh-TW",
-                "korean" or "ko" => "ko",
-                "vietnamese" or "vi" => "vi",
-                "french" or "fr" => "fr",
-                "german" or "de" => "de",
-                "spanish" or "es" => "es",
-                "italian" or "it" => "it",
-                "portuguese" or "pt" => "pt",
-                "russian" or "ru" => "ru",
-                "hindi" or "hi" => "hi",
-                "indonesian" or "id" => "id",
-                "arabic" or "ar" => "ar",
-                "thai" or "th" => "th",
-                "dutch" or "nl" => "nl",
-                "polish" or "pl" => "pl",
-                "romanian" or "ro" => "ro",
-                "persian" or "fa" or "farsi" => "fa",
-                "czech" or "cs" => "cs",
-                "hungarian" or "hu" => "hu",
-                "sinhala" or "si" => "si",
-                "ukrainian" or "uk" => "uk",
-                "danish" or "da" => "da",
-                "finnish" or "fi" => "fi",
-                "central kurdish" or "ckb" => "ku",
-                "bengali" or "bn" => "bn",
-                "greek" or "el" => "el",
-                "hebrew" or "he" or "iw" => "he",
-                "auto" or "auto-detect" or "auto_detect" => "auto",
-                _ => language
-            };
-        }
-
         /// <summary>
         /// Translate: accepts the same JSON schema as other services and returns a result JSON or null on failure
         /// </summary>
@@ -157,9 +113,14 @@ namespace RSTGameTranslation
                 string sourceLanguage = root.TryGetProperty("source_language", out JsonElement s) ? (s.GetString() ?? ConfigManager.Instance.GetSourceLanguage()) : ConfigManager.Instance.GetSourceLanguage();
                 string targetLanguage = root.TryGetProperty("target_language", out JsonElement t) ? (t.GetString() ?? ConfigManager.Instance.GetTargetLanguage()) : ConfigManager.Instance.GetTargetLanguage();
 
-                // Map languages to Microsoft expected codes (e.g., 'japanese' -> 'ja', 'chinese' -> 'zh-CN')
-                string mappedSource = MapToMicrosoftCode(sourceLanguage);
-                string mappedTarget = MapToMicrosoftCode(targetLanguage);
+                // Map languages to Microsoft codes (e.g. 'Japanese' -> 'ja', 'Hebrew' -> 'he')
+                string? mappedSource = LanguageCatalog.ToMicrosoftCode(sourceLanguage);
+                string? mappedTarget = LanguageCatalog.ToMicrosoftCode(targetLanguage);
+                if (mappedSource == null || mappedTarget == null)
+                {
+                    LanguageCatalog.WarnUnsupported("Microsoft", mappedSource == null ? sourceLanguage : null, mappedTarget == null ? targetLanguage : null);
+                    return null;
+                }
 
                 string host = "api.cognitive.microsofttranslator.com";
                 string apiVersion = "3.0";

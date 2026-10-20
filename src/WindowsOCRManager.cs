@@ -59,11 +59,13 @@ namespace RSTGameTranslation
             return false;
         }
 
-        // Map of language codes to Windows language tags
+        // Map of language codes (Google codes, see LanguageCatalog) to Windows language tags.
+        // Auto-detect has no entry: the OCR engine then uses the user profile languages.
         private readonly Dictionary<string, string> LanguageMap = new Dictionary<string, string>
         {
             { "en", "en-US" },
-            { "ch_sim", "zh-Hans-CN" },
+            { "zh-CN", "zh-Hans-CN" },
+            { "zh-TW", "zh-Hant-TW" },
             { "es", "es-ES" },
             { "fr", "fr-FR" },
             { "it", "it-IT" },
@@ -78,7 +80,7 @@ namespace RSTGameTranslation
             { "ckb", "ku-Arab" },
             { "bn", "bn-BD" },
             { "el", "el-GR" },
-            { "he", "he-IL" }
+            { "iw", "he-IL" }
         };
 
         // Convert a System.Drawing.Bitmap to a Windows.Graphics.Imaging.SoftwareBitmap
@@ -575,6 +577,7 @@ namespace RSTGameTranslation
             switch (languageCode)
             {
                 case "ja": // Japanese
+                case LanguageCatalog.Auto: // Only touches kana/kanji, so safe whatever the language
                     // Remove spaces between Japanese characters
                     for (int i = 0; i < 10; i++)  // Apply multiple passes to catch all instances
                     {

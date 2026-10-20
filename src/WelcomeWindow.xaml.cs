@@ -19,7 +19,7 @@ namespace RSTGameTranslation
         // Common game → reader language pairs offered as one-click presets
         private static readonly (string Source, string Target)[] CommonPairs =
         {
-            ("ja", "en"), ("ja", "vi"), ("ko", "en"), ("ch_sim", "en"), ("ch_sim", "vi"), ("en", "vi")
+            ("ja", "en"), ("ja", "vi"), ("ko", "en"), ("zh-CN", "en"), ("zh-CN", "vi"), ("en", "vi")
         };
 
         private bool _isLoading = true;
@@ -73,9 +73,11 @@ namespace RSTGameTranslation
                 .Where(code => !string.IsNullOrEmpty(code))
                 .Select(code => code!);
 
-            foreach (var (code, name) in codes.Select(code => (code, GetLanguageDisplayName(code))).OrderBy(x => x.Item2))
+            // Same order as the main window: auto-detect first, then by name
+            selectedCode = LanguageCatalog.Normalize(selectedCode, selectedCode, allowAuto: true);
+            foreach (string code in codes)
             {
-                var item = new ComboBoxItem { Content = name, Tag = code };
+                var item = new ComboBoxItem { Content = GetLanguageDisplayName(code), Tag = code };
                 target.Items.Add(item);
                 if (string.Equals(code, selectedCode, StringComparison.OrdinalIgnoreCase))
                 {

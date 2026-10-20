@@ -645,5 +645,8 @@
   "Tip_OllamaModel": "Model dùng để dịch (ví dụ: llama3, llama3:8b, phi3, phi3:mini).",
   "Tip_ShowIconSignal": "Hiện một biểu tượng nhỏ khi bắt đầu OCR và dịch.",
   "Tip_AutoMerge": "Tự động gộp các khối chữ sẽ bị chồng lên nhau khi bản dịch dài hơn văn bản gốc.",
-  "Tip_GeminiDocs": "Mở tài liệu model của Gemini trên trình duyệt."
+  "Tip_GeminiDocs": "Mở tài liệu model của Gemini trên trình duyệt.",
+  "Lang_AutoDetect": "Tự động nhận diện",
+  "Title_ServiceLanguageNotSupported": "Ngôn ngữ không được hỗ trợ",
+  "Msg_ServiceLanguageNotSupported": "{0} không dịch được {1}.\n\nHãy chọn ngôn ngữ khác, hoặc chuyển sang dịch vụ dịch có hỗ trợ (ví dụ Google Translate hoặc một dịch vụ AI)."
 }

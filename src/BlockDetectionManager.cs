@@ -91,6 +91,10 @@ namespace RSTGameTranslation
 
         #endregion
 
+        // Source language of the OCR result being processed: the configured one, or guessed
+        // from its script when auto-detect is selected (see LanguageCatalog.ResolveForText)
+        private string _sourceLang = "";
+
         #region Main Processing Method
 
         /// <summary>
@@ -110,6 +114,7 @@ namespace RSTGameTranslation
 
                 // PHASE 1: Extract character information from JSON
                 var characters = ExtractCharacters(resultsElement);
+                _sourceLang = LanguageCatalog.ResolveForText(ConfigManager.Instance.GetSourceLanguage(), characters.Select(c => c.Text));
                 //Console.WriteLine($"Extracted {characters.Count} character objects");
 
                 // Detect vertical (tategaki) text orientation for East Asian languages.
@@ -118,7 +123,7 @@ namespace RSTGameTranslation
                 // majority of character/element boxes are taller than they are wide.
                 // Japanese manga dialogue is almost always vertical; re-detecting every frame could
                 // flip to horizontal on some pages and then the columns would not be grouped at all.
-                bool isVertical = (ConfigManager.Instance.IsMangaModeEnabled() && ConfigManager.Instance.GetSourceLanguage() == "ja")
+                bool isVertical = (ConfigManager.Instance.IsMangaModeEnabled() && _sourceLang == "ja")
                     || IsVerticalText(characters);
                 if (isVertical)
                 {
@@ -156,7 +161,7 @@ namespace RSTGameTranslation
 
                 // Furigana only repeats the reading of the kanji beside it; left in, it garbles the
                 // translation and breaks paragraph grouping (it looks like a much smaller font)
-                if (ConfigManager.Instance.GetSourceLanguage() == "ja")
+                if (_sourceLang == "ja")
                 {
                     lines = RemoveFurigana(lines, isVertical);
                 }
@@ -283,11 +288,7 @@ namespace RSTGameTranslation
             if (elements == null || elements.Count == 0)
                 return false;
 
-            string sourceLang = ConfigManager.Instance.GetSourceLanguage();
-            bool isEastAsian = sourceLang == "ja" ||
-                               sourceLang == "ch_sim" ||
-                               sourceLang == "ch_tra" ||
-                               sourceLang == "ko";
+            bool isEastAsian = LanguageCatalog.IsEastAsian(_sourceLang);
             if (!isEastAsian)
                 return false;
 
@@ -338,7 +339,7 @@ namespace RSTGameTranslation
                 return true;
 
             // Japanese specifically uses vertical text very commonly — lower the bar.
-            if (sourceLang == "ja" && medianAspect >= 0.9 && tallRatio >= 0.4)
+            if (_sourceLang == "ja" && medianAspect >= 0.9 && tallRatio >= 0.4)
                 return true;
 
             return false;
@@ -419,11 +420,7 @@ namespace RSTGameTranslation
             double verticalGapThreshold = _config.GetScaledValue(_config.BaseCharacterVerticalGap, blockPower);
 
             // Adjust thresholds based on source language
-            string sourceLangForChars = ConfigManager.Instance.GetSourceLanguage();
-            bool isEastAsianLangForChars = sourceLangForChars == "ja" ||
-                                          sourceLangForChars == "ch_sim" ||
-                                          sourceLangForChars == "ch_tra" ||
-                                          sourceLangForChars == "ko";
+            bool isEastAsianLangForChars = LanguageCatalog.IsEastAsian(_sourceLang);
 
             // For Western languages, use smaller character gap to avoid splitting words
             if (!isEastAsianLangForChars)
@@ -616,11 +613,7 @@ namespace RSTGameTranslation
             double wordVerticalGapThreshold = _config.GetScaledValue(_config.BaseWordVerticalGap, blockPower);
 
             // Adjust thresholds based on source language
-            string sourceLangForWords = ConfigManager.Instance.GetSourceLanguage();
-            bool isEastAsianLangForWords = sourceLangForWords == "ja" ||
-                                          sourceLangForWords == "ch_sim" ||
-                                          sourceLangForWords == "ch_tra" ||
-                                          sourceLangForWords == "ko";
+            bool isEastAsianLangForWords = LanguageCatalog.IsEastAsian(_sourceLang);
 
             // For Western languages, use larger word gaps to ensure proper spacing
             if (!isEastAsianLangForWords)
@@ -736,11 +729,7 @@ namespace RSTGameTranslation
                     line.CenterY = minY + (maxY - minY) / 2;
 
                     // Combine all text with appropriate separators based on language
-                    string sourceLang = ConfigManager.Instance.GetSourceLanguage();
-                    bool isEastAsian = sourceLang == "ja" ||
-                                      sourceLang == "ch_sim" ||
-                                      sourceLang == "ch_tra" ||
-                                      sourceLang == "ko";
+                    bool isEastAsian = LanguageCatalog.IsEastAsian(_sourceLang);
 
                     if (isEastAsian)
                     {
@@ -961,15 +950,9 @@ namespace RSTGameTranslation
                         // Update paragraph text - add newlines between lines
                         currentParagraph.Text += "\n";
 
-                        // Get current source language from config
-                        string sourceLangForParagraphs = ConfigManager.Instance.GetSourceLanguage();
-
                         // Add appropriate separator based on language
                         // For East Asian languages (Japanese, Chinese, Korean), don't add space
-                        bool isEastAsianLangForParagraphs = sourceLangForParagraphs == "ja" ||
-                                                          sourceLangForParagraphs == "ch_sim" ||
-                                                          sourceLangForParagraphs == "ch_tra" ||
-                                                          sourceLangForParagraphs == "ko";
+                        bool isEastAsianLangForParagraphs = LanguageCatalog.IsEastAsian(_sourceLang);
 
                         if (!isEastAsianLangForParagraphs &&
                             !currentParagraph.Text.EndsWith(" ") &&
@@ -2058,11 +2041,8 @@ namespace RSTGameTranslation
 
             // Combine line groups into aggregated blocks
             var aggregatedBlocks = new List<TextBlockInfo>();
-            string sourceLang = ConfigManager.Instance.GetSourceLanguage();
-            bool isEastAsianLang = sourceLang == "ja" ||
-                                   sourceLang == "ch_sim" ||
-                                   sourceLang == "ch_tra" ||
-                                   sourceLang == "ko";
+            string sourceLang = LanguageCatalog.ResolveForText(ConfigManager.Instance.GetSourceLanguage(), textBlocks.Select(b => b.Text));
+            bool isEastAsianLang = LanguageCatalog.IsEastAsian(sourceLang);
 
             foreach (var lineGroup in groupedByLine)
             {

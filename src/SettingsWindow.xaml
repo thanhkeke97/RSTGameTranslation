@@ -269,6 +269,9 @@
         <!-- Settings pages are listed in a side navigation instead of tabs, which wrapped into
              several rows that jumped around when a tab was clicked -->
         <Style TargetType="TabControl">
+            <!-- Set explicitly (the default style did it): pages inherit their text color from here
+                 and it has to follow the dark/light theme -->
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabControl">
@@ -291,6 +294,9 @@
         <!-- A settings page in the side navigation. Colors and fonts are set on the header only:
              set on the TabItem they would be inherited by the whole page -->
         <Style TargetType="TabItem">
+            <!-- The page content inherits this; it must stay the theme text color, never the
+                 selected-header white -->
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
@@ -308,6 +314,30 @@
                                 <Setter TargetName="HeaderHost" Property="TextElement.FontWeight" Value="SemiBold"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Group of settings on a page. The default template draws a hard-coded white etched
+             border, which glares in dark mode; this one follows the theme -->
+        <Style TargetType="GroupBox">
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupBox">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}" CornerRadius="6">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <ContentPresenter ContentSource="Header" Margin="12,10,12,0"
+                                                  TextElement.FontWeight="SemiBold" TextElement.FontSize="13"/>
+                                <ContentPresenter Grid.Row="1" Margin="{TemplateBinding Padding}"/>
+                            </Grid>
+                        </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -778,15 +808,6 @@
                                     <ComboBoxItem Content="Cloud API (paid)"/>
                                 </ComboBox>
                                 
-                                <!-- Google Translate Language Mapping -->
-                                <TextBlock x:Name="googleTranslateMappingLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_LanguageMapping]}" Grid.Row="3" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"
-                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplateToolTip]}"/>
-                                <CheckBox x:Name="googleTranslateMappingCheckBox" Grid.Row="3" Grid.Column="1" 
-                                         Margin="0,5" IsChecked="True" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_AutoMapLanguageCodes]}" Visibility="Collapsed"
-                                         Checked="GoogleTranslateMappingCheckBox_CheckedChanged" 
-                                         Unchecked="GoogleTranslateMappingCheckBox_CheckedChanged"
-                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Chk_PromptTemplateToolTip]}"/>
                                 
                                 <!-- Free Google Translate fallback while rate limited - Only visible when Google Translate is selected -->
                                 <TextBlock x:Name="googleFreeFallbackLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GoogleFreeFallback]}" Grid.Row="4" Grid.Column="0"
@@ -874,40 +895,7 @@
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SourceLanguage]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="sourceLanguageComboBox" Grid.Row="0" Grid.Column="1" 
-                                         Margin="0,5" SelectedIndex="0" SelectionChanged="SourceLanguageComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="ja"/>
-                                    <ComboBoxItem Content="en"/>
-                                    <ComboBoxItem Content="ch_sim"/>
-                                    <ComboBoxItem Content="ch_tra"/>
-                                    <ComboBoxItem Content="ko"/>
-                                    <ComboBoxItem Content="vi"/>
-                                    <ComboBoxItem Content="fr"/>
-                                    <ComboBoxItem Content="ru"/>
-                                    <ComboBoxItem Content="de"/>
-                                    <ComboBoxItem Content="es"/>
-                                    <ComboBoxItem Content="it"/>
-                                    <ComboBoxItem Content="hi"/>
-                                    <ComboBoxItem Content="pt"/>
-                                    <ComboBoxItem Content="ar"/>
-                                    <ComboBoxItem Content="bg"/>
-                                    <ComboBoxItem Content="nl"/>
-                                    <ComboBoxItem Content="pl"/>
-                                    <ComboBoxItem Content="ro"/>
-                                    <ComboBoxItem Content="fa"/>
-                                    <ComboBoxItem Content="cs"/>
-                                    <ComboBoxItem Content="id"/>
-                                    <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="hr"/>
-                                    <ComboBoxItem Content="hu"/>
-                                    <ComboBoxItem Content="tr"/>
-                                    <ComboBoxItem Content="si"/>
-                                    <ComboBoxItem Content="da"/>
-                                    <ComboBoxItem Content="uk"/>
-                                    <ComboBoxItem Content="fi"/>
-                                    <ComboBoxItem Content="ckb"/>
-                                    <ComboBoxItem Content="bn"/>
-                                    <ComboBoxItem Content="el"/>
-                                    <ComboBoxItem Content="he"/>
+                                         Margin="0,5" SelectionChanged="SourceLanguageComboBox_SelectionChanged">
                                 </ComboBox>
 
                                 <!-- Swap Languages Button placed between source and target in its own column -->
@@ -921,40 +909,7 @@
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TargetLanguage]}" Grid.Row="1" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="targetLanguageComboBox" Grid.Row="1" Grid.Column="1" 
-                                         Margin="0,5" SelectedIndex="1" SelectionChanged="TargetLanguageComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="ja"/>
-                                    <ComboBoxItem Content="en"/>
-                                    <ComboBoxItem Content="ch_sim"/>
-                                    <ComboBoxItem Content="ch_tra"/>
-                                    <ComboBoxItem Content="ko"/>
-                                    <ComboBoxItem Content="vi"/>
-                                    <ComboBoxItem Content="fr"/>
-                                    <ComboBoxItem Content="ru"/>
-                                    <ComboBoxItem Content="de"/>
-                                    <ComboBoxItem Content="es"/>
-                                    <ComboBoxItem Content="it"/>
-                                    <ComboBoxItem Content="hi"/>
-                                    <ComboBoxItem Content="pt"/>
-                                    <ComboBoxItem Content="ar"/>
-                                    <ComboBoxItem Content="bg"/>
-                                    <ComboBoxItem Content="nl"/>
-                                    <ComboBoxItem Content="pl"/>
-                                    <ComboBoxItem Content="ro"/>
-                                    <ComboBoxItem Content="fa"/>
-                                    <ComboBoxItem Content="cs"/>
-                                    <ComboBoxItem Content="id"/>
-                                    <ComboBoxItem Content="th"/>
-                                    <ComboBoxItem Content="hr"/>
-                                    <ComboBoxItem Content="hu"/>
-                                    <ComboBoxItem Content="tr"/>
-                                    <ComboBoxItem Content="si"/>
-                                    <ComboBoxItem Content="da"/>
-                                    <ComboBoxItem Content="uk"/>
-                                    <ComboBoxItem Content="fi"/>
-                                    <ComboBoxItem Content="bn"/>
-                                    <ComboBoxItem Content="ckb"/>
-                                    <ComboBoxItem Content="el"/>
-                                    <ComboBoxItem Content="he"/>
+                                         Margin="0,5" SelectionChanged="TargetLanguageComboBox_SelectionChanged">
                                 </ComboBox>
 
                                 <!-- WinOCR Language Pack Check-->
@@ -965,92 +920,6 @@
                                         Click="CheckLanguagePackButton_Click">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Check]}"/>
                                 </Button>
-                            </Grid>
-                        </GroupBox>
-                        <!-- Language Code Explanation -->
-                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_LanguageMapping]}" Margin="0,0,0,15" Padding="10">
-                            <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
-                                    Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
-                                <Run>ja = Japanese</Run>
-                                <LineBreak/>
-                                <Run>en = English</Run>
-                                <LineBreak/>
-                                <Run>ch_sim = Chinese (Simplified)</Run>
-                                <LineBreak/>
-                                <Run>ko = Korean</Run>
-                                <LineBreak/>
-                                <Run>vi = Vietnamese</Run>
-                                <LineBreak/>
-                                <Run>fr = French</Run>
-                                <LineBreak/>
-                                <Run>ru = Russian</Run>
-                                <LineBreak/>
-                                <Run>de = German</Run>
-                                <LineBreak/>
-                                <Run>es = Spanish</Run>
-                                <LineBreak/>
-                                <Run>it = Italian</Run>
-                                <LineBreak/>
-                                <Run>hi = Hindi</Run>
-                                <LineBreak/>
-                                <Run>tr = Turkish</Run>
-                                <LineBreak/>
-                                <Run>da = Danish</Run>
-                                <LineBreak/>
-                                <Run>uk = Ukrainian</Run>
-                                <LineBreak/>
-                                <Run>bg = Bulgarian</Run>
-                                <LineBreak/>
-                                <Run>ckb = Central Kurdish</Run>
-                            </TextBlock>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" 
-                                Margin="0,15,0,0" TextWrapping="Wrap" FontSize="12">
-                                <Run>pt = Portuguese</Run>
-                                <LineBreak/>
-                                <Run>ar = Arabic</Run>
-                                <LineBreak/>
-                                <Run>nl = Dutch</Run>
-                                <LineBreak/>
-                                <Run>pl = Polish</Run>
-                                <LineBreak/>
-                                <Run>ro = Romanian</Run>
-                                <LineBreak/>
-                                <Run>fa = Farsi</Run>
-                                <LineBreak/>
-                                <Run>cs = Czech</Run>
-                                <LineBreak/>
-                                <Run>id = Indonesian</Run>
-                                <LineBreak/>
-                                <Run>th = ThaiLand</Run>
-                                <LineBreak/>
-                                <Run>ch_tra = Traditional Chinese</Run>
-                                <LineBreak/>
-                                <Run>hr = Croatian</Run>
-                                <LineBreak/>
-                                <Run>hu = Hungarian</Run>
-                                <LineBreak/>
-                                <Run>si = Sinhala</Run>
-                                <LineBreak/>
-                                <Run>fi = Finnish</Run>
-                                <LineBreak/>
-                                <Run>bn = Bengali</Run>
-                                <LineBreak/>
-                                <Run>el = Greek</Run>
-                                <LineBreak/>
-                                <Run>he = Hebrew</Run>
-                            </TextBlock>
                             </Grid>
                         </GroupBox>
 

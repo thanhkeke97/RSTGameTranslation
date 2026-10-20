@@ -41,14 +41,12 @@ namespace RSTGameTranslation
 
         private readonly string _apiKey;
         private readonly bool _useCloudApi;
-        private readonly bool _autoMapLanguages;
         public static Regex? GoogleTranslateResultRegex { get; set; }
 
         public GoogleTranslateService()
         {
             _apiKey = ConfigManager.Instance.GetGoogleTranslateApiKey();
             _useCloudApi = ConfigManager.Instance.GetGoogleTranslateUseCloudApi();
-            _autoMapLanguages = ConfigManager.Instance.GetGoogleTranslateAutoMapLanguages();
         }
 
         internal GoogleTranslateService(GoogleTranslateFreeClient freeClient) : this()
@@ -172,12 +170,9 @@ namespace RSTGameTranslation
                     ? tgtLang.GetString() ?? "en" 
                     : ConfigManager.Instance.GetTargetLanguage();
                 
-                // Mapping languages to Google codes
-                if (_autoMapLanguages)
-                {
-                    sourceLanguage = MapLanguageToGoogleCode(sourceLanguage);
-                    targetLanguage = MapLanguageToGoogleCode(targetLanguage);
-                }
+                // The request carries language names (for AI services); map them to Google codes
+                sourceLanguage = LanguageCatalog.ToGoogleCode(sourceLanguage);
+                targetLanguage = LanguageCatalog.ToGoogleCode(targetLanguage);
                 
                 // Starting translation
                 outputJson.WritePropertyName("translations");
@@ -493,13 +488,17 @@ namespace RSTGameTranslation
                 }
 
                 string url = $"https://translation.googleapis.com/language/translate/v2?key={_apiKey}";
-                var requestBody = new
+                var requestBody = new Dictionary<string, object>
                 {
-                    q = texts,
-                    source = sourceLanguage,
-                    target = targetLanguage,
-                    format = "text"
+                    ["q"] = texts,
+                    ["target"] = targetLanguage,
+                    ["format"] = "text"
                 };
+                // Without a source the Cloud API detects the language
+                if (!LanguageCatalog.IsAuto(sourceLanguage))
+                {
+                    requestBody["source"] = sourceLanguage;
+                }
 
                 string jsonRequest = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
@@ -551,48 +550,5 @@ namespace RSTGameTranslation
             return normalizedText.Trim();
         }
         
-        /// <summary>
-        /// Map RST language codes to Google Translate language codes
-        /// </summary>
-        private string MapLanguageToGoogleCode(string language)
-        {
-            return language.ToLower() switch
-            {
-                "japanese" or "japan" or "ja" => "ja",
-                "english" or "en" => "en",
-                "chinese" or "zh" or "ch_sim" => "zh-CN",
-                "korean" or "ko" => "ko",
-                "vietnamese" or "vi" => "vi",
-                "french" or "fr" => "fr",
-                "german" or "de" => "de",
-                "spanish" or "es" => "es",
-                "italian" or "it" => "it",
-                "portuguese" or "pt" => "pt",
-                "russian" or "ru" => "ru",
-                "hindi" or "hi" => "hi",
-                "bulgarian" or "bg" or "bg-bg" => "bg",
-                "indonesian" or "id" => "id",
-                "polish" or "pl" => "pl",
-                "arabic" or "ar" => "ar",
-                "dutch" or "nl" => "nl",
-                "romanian" or "ro" => "ro",
-                "persian" or "farsi" or "fa" => "fa",
-                "czech" or "cs" => "cs",
-                "thai" or "th" or "thailand" => "th",
-                "traditional chinese" or "ch_tra" => "zh-TW",
-                "croatian" or "hr" => "hr",
-                "hungarian" or "hu" => "hu",
-                "turkish" or "tr" => "tr",
-                "sinhala" or "si" => "si",
-                "danish" or "da" => "da",
-                "ukrainian" or "uk" => "uk",
-                "finnish" or "fi" => "fi",
-                "central kurdish" or "ckb" => "ckb",
-                "bengali" or "bn" => "bn",
-                "greek" or "el" => "el",
-                "hebrew" or "he" or "iw" => "iw", // Google's legacy code for Hebrew, accepted by all endpoints
-                _ => language
-            };
-        }
     }
 }

@@ -640,5 +640,8 @@
   "Tip_OllamaModel": "用于翻译的模型（例如 llama3, llama3:8b, phi3, phi3:mini）。",
   "Tip_ShowIconSignal": "开始 OCR 和翻译时显示一个小图标。",
   "Tip_AutoMerge": "当译文比原文长、文本块会重叠时自动合并。",
-  "Tip_GeminiDocs": "在浏览器中打开 Gemini 模型文档。"
+  "Tip_GeminiDocs": "在浏览器中打开 Gemini 模型文档。",
+  "Lang_AutoDetect": "自动检测",
+  "Title_ServiceLanguageNotSupported": "不支持的语言",
+  "Msg_ServiceLanguageNotSupported": "{0} 无法翻译 {1}。\n\n请选择其他语言，或切换到支持该语言的翻译服务（例如 Google 翻译或 AI 服务）。"
 }

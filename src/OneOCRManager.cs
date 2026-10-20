@@ -645,6 +645,7 @@ namespace RSTGameTranslation
             switch (languageCode)
             {
                 case "ja": // Japanese
+                case LanguageCatalog.Auto: // Only touches kana/kanji, so safe whatever the language
                     // Remove spaces between Japanese characters
                     for (int i = 0; i < 10; i++)  // Apply multiple passes to catch all instances
                     {
@@ -661,7 +662,8 @@ namespace RSTGameTranslation
                     }
                     break;
                     
-                case "ch_sim": // Simplified Chinese
+                case "zh-CN": // Simplified Chinese
+                case "zh-TW": // Traditional Chinese
                     // Remove spaces between Chinese characters
                     for (int i = 0; i < 10; i++)
                     {

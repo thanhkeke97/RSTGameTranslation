@@ -4,32 +4,38 @@ using System.Windows.Data;
 
 namespace RSTGameTranslation
 {
-    // Readable names for the app's OCR/translation language codes (ja, en, ch_sim, ...)
+    // Readable names for the app's translation language codes (Google Translate codes, see LanguageCatalog)
     public static class LanguageDisplay
     {
         // "Japanese — 日本語 (ja)"
         public static string GetDisplayName(string code)
         {
-            CultureInfo? culture = GetCulture(code);
-            if (culture == null)
-                return code;
+            if (LanguageCatalog.IsAuto(code))
+                return GetShortName(code);
 
-            return culture.NativeName == culture.EnglishName
-                ? $"{culture.EnglishName} ({code})"
-                : $"{culture.EnglishName} — {culture.NativeName} ({code})";
+            string englishName = GetShortName(code);
+            string? nativeName = GetCulture(code)?.NativeName;
+            return string.IsNullOrEmpty(nativeName) || string.Equals(nativeName, englishName, StringComparison.OrdinalIgnoreCase)
+                ? $"{englishName} ({code})"
+                : $"{englishName} — {nativeName} ({code})";
         }
 
         // "Japanese"
-        public static string GetShortName(string code) => GetCulture(code)?.EnglishName ?? code;
+        public static string GetShortName(string code)
+        {
+            if (LanguageCatalog.IsAuto(code))
+                return LocalizationManager.Instance["Lang_AutoDetect"];
+            return LanguageCatalog.Find(code)?.EnglishName ?? GetCulture(code)?.EnglishName ?? code;
+        }
 
         private static CultureInfo? GetCulture(string code)
         {
-            // The app uses its own codes for Chinese
-            string cultureName = code.ToLowerInvariant() switch
+            // Culture names differ from Google's codes for Chinese and a few legacy codes (iw, jw)
+            string cultureName = LanguageCatalog.Find(code)?.Code switch
             {
-                "ch_sim" => "zh-Hans",
-                "ch_tra" => "zh-Hant",
-                _ => code
+                "zh-CN" => "zh-Hans",
+                "zh-TW" => "zh-Hant",
+                _ => LanguageCatalog.ToIsoCode(code)
             };
 
             try

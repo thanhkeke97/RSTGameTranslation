@@ -98,7 +98,6 @@ namespace RSTGameTranslation
         public const string GOOGLE_TRANSLATE_API_KEY = "google_translate_api_key";
         // Google Translate settings
         public const string GOOGLE_TRANSLATE_USE_CLOUD_API = "google_translate_use_cloud_api";
-        public const string GOOGLE_TRANSLATE_AUTO_MAP_LANGUAGES = "google_translate_auto_map_languages";
 
         // Translation context keys
         public const string MAX_CONTEXT_PIECES = "max_context_pieces";
@@ -533,19 +532,6 @@ namespace RSTGameTranslation
             _configValues[GOOGLE_TRANSLATE_USE_CLOUD_API] = useCloudApi.ToString();
             SaveConfig();
             Console.WriteLine($"Google Translate Cloud API usage set to: {useCloudApi}");
-        }
-
-        // Set/Get Google Translate auto language mapping
-        public bool GetGoogleTranslateAutoMapLanguages()
-        {
-            return GetBoolValue(GOOGLE_TRANSLATE_AUTO_MAP_LANGUAGES, true);
-        }
-
-        public void SetGoogleTranslateAutoMapLanguages(bool autoMap)
-        {
-            _configValues[GOOGLE_TRANSLATE_AUTO_MAP_LANGUAGES] = autoMap.ToString();
-            SaveConfig();
-            Console.WriteLine($"Google Translate auto language mapping set to: {autoMap}");
         }
 
         // Create default configuration
@@ -2342,9 +2328,10 @@ namespace RSTGameTranslation
         }
 
         // Get/Set source language
+        // Google Translate code (see LanguageCatalog) or "auto"; codes saved by older versions (ch_sim, he, ...) are converted
         public string GetSourceLanguage()
         {
-            return GetValue(SOURCE_LANGUAGE, "ja"); // Default to Japanese
+            return LanguageCatalog.Normalize(GetValue(SOURCE_LANGUAGE, "ja"), "ja", allowAuto: true); // Default to Japanese
         }
 
         public void SetSourceLanguage(string language)
@@ -2374,9 +2361,10 @@ namespace RSTGameTranslation
         }
 
         // Get/Set target language
+        // Google Translate code (see LanguageCatalog); never "auto"
         public string GetTargetLanguage()
         {
-            return GetValue(TARGET_LANGUAGE, "en"); // Default to English
+            return LanguageCatalog.Normalize(GetValue(TARGET_LANGUAGE, "en"), "en", allowAuto: false); // Default to English
         }
 
         public void SetTargetLanguage(string language)

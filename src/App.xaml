@@ -29,6 +29,19 @@
     <SolidColorBrush x:Key="DangerBrush" Color="{DynamicResource DangerColor}"/>
     <SolidColorBrush x:Key="LinkBrush" Color="{DynamicResource LinkColor}"/>
 
+    <!-- Language pickers (LanguageCatalog.FillComboBox): items hold the language code, shown as a readable name.
+         The selected value (outside any ComboBoxItem) uses the short name to keep pickers compact. -->
+    <local:LanguageCodeToNameConverter x:Key="LanguageNameConverter"/>
+    <local:LanguageCodeToNameConverter x:Key="LanguageShortNameConverter" ShortName="True"/>
+    <DataTemplate x:Key="LanguageCodeTemplate">
+        <TextBlock x:Name="languageText" Text="{Binding Converter={StaticResource LanguageNameConverter}}" TextTrimming="CharacterEllipsis"/>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                <Setter TargetName="languageText" Property="Text" Value="{Binding Converter={StaticResource LanguageShortNameConverter}}"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
     <Style TargetType="{x:Type Hyperlink}">
         <Setter Property="Foreground" Value="{DynamicResource LinkBrush}"/>
         <Setter Property="TextDecorations" Value="Underline"/>

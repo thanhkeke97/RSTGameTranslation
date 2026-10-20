@@ -316,8 +316,8 @@ namespace RSTGameTranslation
 
             _this = this;
             InitializeComponent();
-            ApplyLanguageItemTemplate(sourceLanguageComboBox);
-            ApplyLanguageItemTemplate(targetLanguageComboBox);
+            LanguageCatalog.FillComboBox(sourceLanguageComboBox, includeAuto: true);
+            LanguageCatalog.FillComboBox(targetLanguageComboBox, includeAuto: false);
             GetVersionWindows();
 
             // Initialize console but keep it hidden initially
@@ -2181,24 +2181,12 @@ namespace RSTGameTranslation
             SwapLanguages();
         }
 
-        // Show the language codes in the toolbar pickers as readable names. Set on each item directly
-        // (not via ItemContainerStyle) so the selected value is formatted before the dropdown is first opened.
-        private void ApplyLanguageItemTemplate(System.Windows.Controls.ComboBox comboBox)
-        {
-            var template = (DataTemplate)FindResource("LanguageCodeTemplate");
-            foreach (ComboBoxItem item in comboBox.Items)
-            {
-                item.ContentTemplate = template;
-            }
-        }
-
-        // Find the item for a language code; "bg-BG" (used by older versions) matches "bg"
+        // Find the item for a language code; codes saved by older versions (ch_sim, bg-BG, he, ...) match their current code
         public static ComboBoxItem? FindLanguageItem(System.Windows.Controls.ComboBox comboBox, string? code)
         {
             if (string.IsNullOrEmpty(code))
                 return null;
-            if (string.Equals(code, "bg-BG", StringComparison.OrdinalIgnoreCase))
-                code = "bg";
+            code = LanguageCatalog.Normalize(code, code, allowAuto: true);
 
             return comboBox.Items.OfType<ComboBoxItem>()
                 .FirstOrDefault(item => string.Equals(item.Content?.ToString(), code, StringComparison.OrdinalIgnoreCase));
@@ -2210,6 +2198,13 @@ namespace RSTGameTranslation
             // Get current languages from config (always reliable)
             string currentSource = ConfigManager.Instance.GetSourceLanguage();
             string currentTarget = ConfigManager.Instance.GetTargetLanguage();
+
+            // Auto-detect can't become the target language
+            if (LanguageCatalog.IsAuto(currentSource))
+            {
+                Console.WriteLine("Languages not swapped: the source language is auto-detect");
+                return;
+            }
 
             // Swap in config
             ConfigManager.Instance.SetSourceLanguage(currentTarget);
@@ -2236,7 +2231,7 @@ namespace RSTGameTranslation
             string title = LocalizationManager.Instance["Title_LanguageSwapped"] ?? "Language Swapped";
             string sourceLabel = LocalizationManager.Instance["Lbl_SourceLanguage"] ?? "Source";
             string targetLabel = LocalizationManager.Instance["Lbl_TargetLanguage"] ?? "Target";
-            string message = $"{sourceLabel}: {currentTarget}\n{targetLabel}: {currentSource}";
+            string message = $"{sourceLabel}: {LanguageDisplay.GetShortName(currentTarget)}\n{targetLabel}: {LanguageDisplay.GetShortName(currentSource)}";
             ShowFastNotification(title, message);
 
             Console.WriteLine($"Languages swapped via hotkey: {currentSource} ⇄ {currentTarget}");

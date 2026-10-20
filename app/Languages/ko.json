@@ -643,5 +643,8 @@
   "Tip_OllamaModel": "번역에 사용할 모델(예: llama3, llama3:8b, phi3, phi3:mini).",
   "Tip_ShowIconSignal": "OCR과 번역을 시작할 때 작은 아이콘을 표시합니다.",
   "Tip_AutoMerge": "번역이 원문보다 길어 텍스트 블록이 겹칠 때 자동으로 합칩니다.",
-  "Tip_GeminiDocs": "브라우저에서 Gemini 모델 문서를 엽니다."
+  "Tip_GeminiDocs": "브라우저에서 Gemini 모델 문서를 엽니다.",
+  "Lang_AutoDetect": "자동 감지",
+  "Title_ServiceLanguageNotSupported": "지원되지 않는 언어",
+  "Msg_ServiceLanguageNotSupported": "{0}은(는) {1}을(를) 번역할 수 없습니다.\n\n다른 언어를 선택하거나, 이를 지원하는 번역 서비스(예: Google 번역 또는 AI 서비스)로 전환하세요."
 }

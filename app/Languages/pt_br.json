@@ -642,5 +642,8 @@
   "Tip_OllamaModel": "O modelo usado na tradução (ex.: llama3, llama3:8b, phi3, phi3:mini).",
   "Tip_ShowIconSignal": "Mostra um pequeno ícone quando o OCR e a tradução começam.",
   "Tip_AutoMerge": "Junta automaticamente blocos de texto que ficariam sobrepostos quando a tradução é maior que o texto original.",
-  "Tip_GeminiDocs": "Abre a documentação de modelos do Gemini no navegador."
+  "Tip_GeminiDocs": "Abre a documentação de modelos do Gemini no navegador.",
+  "Lang_AutoDetect": "Detectar automaticamente",
+  "Title_ServiceLanguageNotSupported": "Idioma não suportado",
+  "Msg_ServiceLanguageNotSupported": "{0} não consegue traduzir {1}.\n\nEscolha outro idioma ou mude para um serviço de tradução que o suporte (por exemplo, Google Tradutor ou um serviço de IA)."
 }

@@ -1014,11 +1014,11 @@ namespace RSTGameTranslation
             try
             {
                 // Prefer target_language if it matches a Supertonic code
-                string target = ConfigManager.Instance.GetTargetLanguage().ToLowerInvariant();
+                string target = LanguageCatalog.ToIsoCode(ConfigManager.Instance.GetTargetLanguage()).ToLowerInvariant();
                 if (Supertonic.Languages.Available.Contains(target)) return target;
 
                 // Otherwise use source_language (e.g. when translating from a supported lang)
-                string source = ConfigManager.Instance.GetSourceLanguage().ToLowerInvariant();
+                string source = LanguageCatalog.ToIsoCode(ConfigManager.Instance.GetSourceLanguage()).ToLowerInvariant();
                 if (Supertonic.Languages.Available.Contains(source)) return source;
 
                 return "na";

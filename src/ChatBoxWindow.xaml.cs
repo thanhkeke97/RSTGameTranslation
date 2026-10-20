@@ -1590,14 +1590,9 @@ namespace RSTGameTranslation
                 string targetLanguage = ConfigManager.Instance.GetTargetLanguage().ToLower();
                 string sourceLanguage = ConfigManager.Instance.GetSourceLanguage().ToLower();
 
-                // Define RTL (Right-to-Left) languages
-                HashSet<string> rtlLanguages = new HashSet<string> {
-                    "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu", "ckb", "central kurdish"
-                };
-
-                // Check if languages are RTL
-                bool isTargetRtl = rtlLanguages.Contains(targetLanguage);
-                bool isSourceRtl = rtlLanguages.Contains(sourceLanguage);
+                // Check if languages are RTL (Right-to-Left)
+                bool isTargetRtl = LanguageCatalog.IsRightToLeft(targetLanguage);
+                bool isSourceRtl = LanguageCatalog.IsRightToLeft(sourceLanguage);
 
                 if (isTargetRtl)
                 {

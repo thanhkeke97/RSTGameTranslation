@@ -643,5 +643,8 @@
   "Tip_OllamaModel": "翻訳に使うモデル（例: llama3, llama3:8b, phi3, phi3:mini）。",
   "Tip_ShowIconSignal": "OCR と翻訳の開始時に小さなアイコンを表示します。",
   "Tip_AutoMerge": "翻訳が原文より長く、テキストブロックが重なってしまう場合に自動で結合します。",
-  "Tip_GeminiDocs": "ブラウザで Gemini のモデル資料を開きます。"
+  "Tip_GeminiDocs": "ブラウザで Gemini のモデル資料を開きます。",
+  "Lang_AutoDetect": "自動検出",
+  "Title_ServiceLanguageNotSupported": "対応していない言語",
+  "Msg_ServiceLanguageNotSupported": "{0} は {1} を翻訳できません。\n\n別の言語を選ぶか、対応している翻訳サービス（Google 翻訳や AI サービスなど）に切り替えてください。"
 }

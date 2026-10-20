@@ -231,16 +231,8 @@ namespace RSTGameTranslation
                 if (rootElement.TryGetProperty("translations", out JsonElement translationsArray) &&
                     translationsArray.ValueKind == JsonValueKind.Array)
                 {
-                    // Get current target language
-                    string targetLanguage = ConfigManager.Instance.GetTargetLanguage().ToLower();
-
-                    // Define RTL (Right-to-Left) languages
-                    HashSet<string> rtlLanguages = new HashSet<string> {
-                        "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu"
-                    };
-
-                    // Check if target language is RTL
-                    bool isRtlLanguage = rtlLanguages.Contains(targetLanguage);
+                    // Check if target language is RTL (Right-to-Left)
+                    bool isRtlLanguage = LanguageCatalog.IsRightToLeft(ConfigManager.Instance.GetTargetLanguage());
 
                     // Process each translation
                     for (int i = 0; i < translationsArray.GetArrayLength(); i++)
@@ -1899,13 +1891,9 @@ namespace RSTGameTranslation
                     // Get current target language
                     string targetLanguage = ConfigManager.Instance.GetTargetLanguage().ToLower();
                     Console.WriteLine($"Target language: ----------------------------{targetLanguage}");
-                    // Define RTL (Right-to-Left) languages
-                    HashSet<string> rtlLanguages = new HashSet<string> {
-                        "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu"
-                    };
 
-                    // Check if target language is RTL
-                    bool isRtlLanguage = rtlLanguages.Contains(targetLanguage);
+                    // Check if target language is RTL (Right-to-Left)
+                    bool isRtlLanguage = LanguageCatalog.IsRightToLeft(targetLanguage);
 
                     if (isRtlLanguage)
                     {
@@ -2124,46 +2112,9 @@ namespace RSTGameTranslation
             }
         }
 
-        private string MapLanguageCode(string language)
-        {
-            return language.ToLower() switch
-            {
-                "ja" => "japanese",
-                "en" => "english",
-                "ch_sim" => "chinese",
-                "ko" => "korean",
-                "vi" => "vietnamese",
-                "fr" => "french",
-                "de" => "german",
-                "es" => "spanish",
-                "it" => "italian",
-                "ru" => "russian",
-                "hi" => "hindi",
-                "pt" => "portuguese",
-                "ar" => "arabic",
-                "bg" or "bg-bg" => "bulgarian",
-                "nl" => "dutch",
-                "hr" => "Croatian",
-                "pl" => "Polish",
-                "ro" => "Romanian",
-                "fa" => "Farsi",
-                "cs" => "Czech",
-                "id" => "Indonesian",
-                "th" => "ThaiLand",
-                "tr" => "Turkish",
-                "ch_tra" => "Traditional Chinese",
-                "hu" => "Hungarian",
-                "si" => "Sinhala",
-                "da" => "Danish",
-                "uk" => "ukrainian",
-                "fi" => "Finnish",
-                "ckb" => "Central Kurdish",
-                "bn" => "Bengali",
-                "el" => "Greek",
-                "he" => "Hebrew",
-                _ => language
-            };
-        }
+        // Language name for prompts and request JSON ("Japanese", "auto-detect"); the Google, Microsoft and
+        // Yandex services map it back to their codes through LanguageCatalog
+        private string MapLanguageCode(string language) => LanguageCatalog.GetEnglishName(language);
 
         //!Convert textobjects to json and send for translation
         // Manga mode: a page up to this many bubbles goes in a single request
@@ -2506,10 +2457,6 @@ namespace RSTGameTranslation
             }
         }
 
-        private static readonly HashSet<string> RtlLanguages = new HashSet<string> {
-            "ar", "arabic", "fa", "farsi", "persian", "he", "hebrew", "ur", "urdu"
-        };
-
         // The same post-processing the normal path applies before it stores a translation, so a
         // prefetched translation is identical to one produced by ProcessTranslatedJSON
         private static string FinalizeTranslation(string translated, bool isCombinedPart)
@@ -2518,7 +2465,7 @@ namespace RSTGameTranslation
             {
                 translated = System.Text.RegularExpressions.Regex.Replace(translated, @"\|{3}\s*RST\s*\|{3}|#{0,2}\s*\|{3}\s*#{0,2}", "");
             }
-            if (RtlLanguages.Contains(ConfigManager.Instance.GetTargetLanguage().ToLower()) && !translated.StartsWith('\u200F'))
+            if (LanguageCatalog.IsRightToLeft(ConfigManager.Instance.GetTargetLanguage()) && !translated.StartsWith('\u200F'))
             {
                 translated = "\u200F" + translated;
             }
@@ -3004,13 +2951,10 @@ namespace RSTGameTranslation
                 return new List<TempTextBlock>(blocks);
 
             // Detect vertical text orientation:
-            //  - Source language is East Asian (ja / zh_sim / zh_tra / ko)
+            //  - Source language is East Asian (ja / zh-CN / zh-TW / ko; guessed from the text when auto-detect)
             //  - Majority of blocks are taller than wide (Height > Width)
-            string sourceLang = ConfigManager.Instance.GetSourceLanguage();
-            bool isEastAsian = sourceLang == "ja" ||
-                               sourceLang == "ch_sim" ||
-                               sourceLang == "ch_tra" ||
-                               sourceLang == "ko";
+            string sourceLang = LanguageCatalog.ResolveForText(ConfigManager.Instance.GetSourceLanguage(), blocks.Select(b => b.Text));
+            bool isEastAsian = LanguageCatalog.IsEastAsian(sourceLang);
 
             bool isVertical = false;
             if (isEastAsian)

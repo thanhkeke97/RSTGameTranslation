@@ -176,6 +176,8 @@ namespace RSTGameTranslation
 
             InitializeComponent();
             _instance = this;
+            LanguageCatalog.FillComboBox(sourceLanguageComboBox, includeAuto: true);
+            LanguageCatalog.FillComboBox(targetLanguageComboBox, includeAuto: false);
             InitializeHotkeyRows();
             LocalizationManager.Instance.PropertyChanged += (s, e) => MatchTypeOptions.ForEach(option => option.RefreshText());
             // The list follows changes made anywhere: hotkey selection, profile load, Settings buttons
@@ -880,39 +882,6 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating Google Translate service type: {ex.Message}");
-            }
-        }
-
-        // Google Translate language mapping checkbox changed
-        private void GoogleTranslateMappingCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // Skip if initializing
-                if (_isInitializing)
-                    return;
-
-                bool isEnabled = googleTranslateMappingCheckBox.IsChecked ?? true;
-
-                // Save to config
-                ConfigManager.Instance.SetGoogleTranslateAutoMapLanguages(isEnabled);
-                Console.WriteLine($"Google Translate auto language mapping set to: {isEnabled}");
-
-                // Trigger retranslation if the current service is Google Translate
-                if (ConfigManager.Instance.GetCurrentTranslationService() == "Google Translate")
-                {
-                    Console.WriteLine("Google Translate language mapping changed. Triggering retranslation...");
-
-                    // Reset the hash to force a retranslation
-                    Logic.Instance.ResetHash();
-
-                    // Clear any existing text objects to refresh the display
-                    Logic.Instance.ClearAllTextObjects();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating Google Translate language mapping: {ex.Message}");
             }
         }
 
@@ -2009,7 +1978,6 @@ namespace RSTGameTranslation
                     chatGptModelLabel == null || chatGptModelGrid == null ||
                     googleTranslateApiKeyLabel == null || googleTranslateApiKeyGrid == null ||
                     googleTranslateServiceTypeLabel == null || googleTranslateServiceTypeComboBox == null ||
-                    googleTranslateMappingLabel == null || googleTranslateMappingCheckBox == null ||
                     microsoftApiKeyLabel == null || microsoftLegacyKeyPasswordBox == null ||
                     viewMicrosoftKeysButton == null || SaveMicrosoftKeysButton == null ||
                     microsoftLegacyModeCheckBox == null)
@@ -2091,8 +2059,6 @@ namespace RSTGameTranslation
                 // Show/hide Google Translate-specific settings
                 googleTranslateServiceTypeLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleTranslateServiceTypeComboBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
-                googleTranslateMappingLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
-                googleTranslateMappingCheckBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleFreeFallbackLabel.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
                 googleFreeFallbackComboBox.Visibility = isGoogleTranslateSelected ? Visibility.Visible : Visibility.Collapsed;
 
@@ -2285,9 +2251,6 @@ namespace RSTGameTranslation
                     {
                         googleTranslateApiKeyPasswordBox.Password = ConfigManager.Instance.GetGoogleTranslateApiKey();
                     }
-
-                    // Set language mapping checkbox
-                    googleTranslateMappingCheckBox.IsChecked = ConfigManager.Instance.GetGoogleTranslateAutoMapLanguages();
 
                     // Fallback service while the free service is rate limited
                     googleFreeFallbackComboBox.SelectionChanged -= GoogleFreeFallbackComboBox_SelectionChanged;

@@ -398,19 +398,6 @@
             <Setter Property="Padding" Value="8,3"/>
         </Style>
 
-        <!-- Language pickers: items hold the language code, shown as a readable name.
-             The selected value (outside any ComboBoxItem) uses the short name to keep the toolbar compact. -->
-        <local:LanguageCodeToNameConverter x:Key="LanguageNameConverter"/>
-        <local:LanguageCodeToNameConverter x:Key="LanguageShortNameConverter" ShortName="True"/>
-        <DataTemplate x:Key="LanguageCodeTemplate">
-            <TextBlock x:Name="languageText" Text="{Binding Converter={StaticResource LanguageNameConverter}}" TextTrimming="CharacterEllipsis"/>
-            <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}}" Value="{x:Null}">
-                    <Setter TargetName="languageText" Property="Text" Value="{Binding Converter={StaticResource LanguageShortNameConverter}}"/>
-                </DataTrigger>
-            </DataTemplate.Triggers>
-        </DataTemplate>
-
         <!-- Window Control Button Style -->
         <Style x:Key="WindowControlButton" TargetType="Button">
             <Setter Property="Width" Value="14"/>
@@ -591,39 +578,6 @@
                                               SelectionChanged="SourceLanguageComboBox_SelectionChanged"
                                               ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SourceLanguage]}"
                                               WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <ComboBoxItem Content="ja"/>
-                                        <ComboBoxItem Content="en"/>
-                                        <ComboBoxItem Content="ch_sim"/>
-                                        <ComboBoxItem Content="ch_tra"/>
-                                        <ComboBoxItem Content="ko"/>
-                                        <ComboBoxItem Content="vi"/>
-                                        <ComboBoxItem Content="fr"/>
-                                        <ComboBoxItem Content="ru"/>
-                                        <ComboBoxItem Content="de"/>
-                                        <ComboBoxItem Content="es"/>
-                                        <ComboBoxItem Content="it"/>
-                                        <ComboBoxItem Content="hi"/>
-                                        <ComboBoxItem Content="pt"/>
-                                        <ComboBoxItem Content="ar"/>
-                                        <ComboBoxItem Content="bg"/>
-                                        <ComboBoxItem Content="nl"/>
-                                        <ComboBoxItem Content="pl"/>
-                                        <ComboBoxItem Content="ro"/>
-                                        <ComboBoxItem Content="fa"/>
-                                        <ComboBoxItem Content="cs"/>
-                                        <ComboBoxItem Content="id"/>
-                                        <ComboBoxItem Content="th"/>
-                                        <ComboBoxItem Content="hr"/>
-                                        <ComboBoxItem Content="hu"/>
-                                        <ComboBoxItem Content="tr"/>
-                                        <ComboBoxItem Content="si"/>
-                                        <ComboBoxItem Content="da"/>
-                                        <ComboBoxItem Content="uk"/>
-                                        <ComboBoxItem Content="fi"/>
-                                        <ComboBoxItem Content="ckb"/>
-                                        <ComboBoxItem Content="bn"/>
-                                        <ComboBoxItem Content="el"/>
-                                        <ComboBoxItem Content="he"/>
                                     </ComboBox>
                                     <Button x:Name="swapLanguagesButton" Style="{StaticResource NeutralButton}"
                                             MinWidth="0" Width="34" Height="32" Padding="0" Margin="4,0"
@@ -640,39 +594,6 @@
                                               SelectionChanged="TargetLanguageComboBox_SelectionChanged"
                                               ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TargetLanguage]}"
                                               WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <ComboBoxItem Content="ja"/>
-                                        <ComboBoxItem Content="en"/>
-                                        <ComboBoxItem Content="ch_sim"/>
-                                        <ComboBoxItem Content="ch_tra"/>
-                                        <ComboBoxItem Content="ko"/>
-                                        <ComboBoxItem Content="vi"/>
-                                        <ComboBoxItem Content="fr"/>
-                                        <ComboBoxItem Content="ru"/>
-                                        <ComboBoxItem Content="de"/>
-                                        <ComboBoxItem Content="es"/>
-                                        <ComboBoxItem Content="it"/>
-                                        <ComboBoxItem Content="hi"/>
-                                        <ComboBoxItem Content="pt"/>
-                                        <ComboBoxItem Content="ar"/>
-                                        <ComboBoxItem Content="bg"/>
-                                        <ComboBoxItem Content="nl"/>
-                                        <ComboBoxItem Content="pl"/>
-                                        <ComboBoxItem Content="ro"/>
-                                        <ComboBoxItem Content="fa"/>
-                                        <ComboBoxItem Content="cs"/>
-                                        <ComboBoxItem Content="id"/>
-                                        <ComboBoxItem Content="th"/>
-                                        <ComboBoxItem Content="hr"/>
-                                        <ComboBoxItem Content="hu"/>
-                                        <ComboBoxItem Content="tr"/>
-                                        <ComboBoxItem Content="si"/>
-                                        <ComboBoxItem Content="da"/>
-                                        <ComboBoxItem Content="uk"/>
-                                        <ComboBoxItem Content="fi"/>
-                                        <ComboBoxItem Content="ckb"/>
-                                        <ComboBoxItem Content="bn"/>
-                                        <ComboBoxItem Content="el"/>
-                                        <ComboBoxItem Content="he"/>
                                     </ComboBox>
                                 </StackPanel>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_TranslationLanguage]}"

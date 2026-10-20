@@ -59,8 +59,16 @@ namespace RSTGameTranslation
                     ? tgtLang.GetString() ?? "en"
                     : ConfigManager.Instance.GetTargetLanguage();
 
-                sourceLanguage = MapLanguageToYandexCode(sourceLanguage);
-                targetLanguage = MapLanguageToYandexCode(targetLanguage);
+                // Map languages to Yandex codes (e.g. 'Japanese' -> 'ja', 'Chinese (Traditional)' -> 'zh')
+                string? yandexSource = LanguageCatalog.ToYandexCode(sourceLanguage);
+                string? yandexTarget = LanguageCatalog.ToYandexCode(targetLanguage);
+                if (yandexSource == null || yandexTarget == null)
+                {
+                    LanguageCatalog.WarnUnsupported("Yandex", yandexSource == null ? sourceLanguage : null, yandexTarget == null ? targetLanguage : null);
+                    return null;
+                }
+                sourceLanguage = yandexSource;
+                targetLanguage = yandexTarget;
 
                 outputJson.WritePropertyName("translations");
                 outputJson.WriteStartArray();
@@ -296,46 +304,6 @@ namespace RSTGameTranslation
                 Console.WriteLine($"Error detecting language with Yandex: {ex.Message}");
                 return string.Empty;
             }
-        }
-
-        private string MapLanguageToYandexCode(string language)
-        {
-            return language.ToLower() switch
-            {
-                "japanese" or "japan" or "ja" => "ja",
-                "english" or "en" => "en",
-                "chinese" or "zh" or "ch_sim" => "zh",
-                "korean" or "ko" => "ko",
-                "vietnamese" or "vi" => "vi",
-                "french" or "fr" => "fr",
-                "german" or "de" => "de",
-                "spanish" or "es" => "es",
-                "italian" or "it" => "it",
-                "portuguese" or "pt" => "pt",
-                "russian" or "ru" => "ru",
-                "hindi" or "hi" => "hi",
-                "indonesian" or "id" => "id",
-                "polish" or "pl" => "pl",
-                "arabic" or "ar" => "ar",
-                "dutch" or "nl" => "nl",
-                "romanian" or "ro" => "ro",
-                "persian" or "farsi" or "fa" => "fa",
-                "czech" or "cs" => "cs",
-                "thai" or "th" or "thailand" => "th",
-                "traditional chinese" or "ch_tra" => "zh",
-                "croatian" or "hr" => "hr",
-                "hungarian" or "hu" => "hu",
-                "turkish" or "tr" => "tr",
-                "sinhala" or "si" => "si",
-                "danish" or "da" => "da",
-                "ukrainian" or "uk" => "uk",
-                "finnish" or "fi" => "fi",
-                "central kurdish" or "ckb" => "ckb",
-                "bengali" or "bn" => "bn",
-                "greek" or "el" => "el",
-                "hebrew" or "he" or "iw" => "he",
-                _ => language
-            };
         }
     }
 }
