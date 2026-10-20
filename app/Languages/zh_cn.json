@@ -57,7 +57,6 @@
   "Lbl_BlockPower": "阻断强度：",
   "Lbl_SettleTime": "稳定时间（秒）：",
   "Lbl_TextSimilarThreshold": "文本相似度阈值：",
-  "Lbl_CharLevel": "字符级别：",
   "Lbl_MinTextFragmentSize": "最小文本片段：",
   "Lbl_MinLetterConfidence": "最小字符置信度：",
   "Lbl_MinLineConfidence": "最小行置信度：",

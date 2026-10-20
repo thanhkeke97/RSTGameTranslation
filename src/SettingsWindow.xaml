@@ -632,10 +632,10 @@
                                 <!-- Block Power -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_BlockPower]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
+                                          ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options."/>
                                 <TextBox x:Name="blockDetectionPowerTextBox" Grid.Row="0" Grid.Column="1" 
                                         Margin="0,5" Text="5" LostFocus="BlockDetectionPowerTextBox_LostFocus"
-                                        ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options. Also affects character-level grouping."/>
+                                        ToolTip="If higher, text is more likely to be glued together to make a large paragraph. Lower does the opposite, good for say, tiny buttons or menu options."/>
 
                                 <!-- Line Spacing Factor -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LineSpacingFactor]}" Grid.Row="1" Grid.Column="0" 
@@ -660,15 +660,6 @@
                                 <TextBox x:Name="textSimilarThresholdTextBox" Grid.Row="3" Grid.Column="1" 
                                         Margin="0,5" Text="0.75" LostFocus="TextSimilarThresholdTextBox_LostFocus"
                                         ToolTip="Check the similarity between two consecutive texts. &#x0a;For example, 0.5 is equivalent to 50% - if text 1 has a similarity greater than or equal to 50%, it will be skipped."/>
-
-                                <!-- Char Level Checkbox-->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CharLevel]}" Grid.Row="4" Grid.Column="0" 
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="Split OCR result to character"/>
-                                <CheckBox x:Name="charLevelCheckBox" Grid.Row="4" Grid.Column="1" 
-                                         Margin="0,5" IsChecked="True" 
-                                         Checked="CharLevelCheckBox_CheckedChanged" 
-                                         Unchecked="CharLevelCheckBox_CheckedChanged"/>
 
                                 <!-- Minimum Text Fragment Size -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinTextFragmentSize]}" Grid.Row="5" Grid.Column="0" 

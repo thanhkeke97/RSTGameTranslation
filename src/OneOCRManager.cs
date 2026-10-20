@@ -552,9 +552,6 @@ namespace RSTGameTranslation
                 // Create a JSON response similar to what EasyOCR would return
                 var results = new List<object>();
 
-                // Set to true to enable character-level processing
-                bool useCharacterLevel = false;
-
                 // In manga mode, tag each line with its speech bubble so block detection
                 // doesn't merge text from bubbles that happen to sit close together
                 var bubbleIds = new int?[textLines.Count];
@@ -588,119 +585,25 @@ namespace RSTGameTranslation
                         continue;
                     }
 
-                    if (useCharacterLevel)
+                    // Calculate box coordinates (polygon points)
+                    var box = new[] {
+                        new[] { (double)line.X1, (double)line.Y1 },
+                        new[] { (double)line.X2, (double)line.Y2 },
+                        new[] { (double)line.X3, (double)line.Y3 },
+                        new[] { (double)line.X4, (double)line.Y4 }
+                    };
+
+                    // Process text based on language
+                    string processedText = ProcessTextByLanguage(line.Text, languageCode);
+                    
+                    // Add the text line to results
+                    results.Add(new
                     {
-                        // Process at character level
-                        foreach (var word in line.Words)
-                        {
-                            var wordText = word.Text;
-                            
-                            // Skip empty words
-                            if (string.IsNullOrWhiteSpace(wordText))
-                                continue;
-                            
-                            // Determine if we should add a space marker after this word
-                            bool addSpaceMarker = false;
-                            
-                            // Check if we should add a space marker after this word based on language
-                            if (ShouldAddSpaceBetweenWords(languageCode) && word != line.Words.Last())
-                            {
-                                addSpaceMarker = true;
-                            }
-                                
-                            // Calculate the width of each character in the word
-                            double totalWidth = Math.Max(
-                                Math.Abs(word.X2 - word.X1), 
-                                Math.Abs(word.X4 - word.X3)
-                            );
-                            double charWidth = totalWidth / wordText.Length;
-                            
-                            double charPadding = charWidth * 0.15; // 15% of character width
-                            double effectiveCharWidth = charWidth - charPadding;
-
-                            // Calculate base coordinates
-                            double baseX = Math.Min(word.X1, word.X4);
-                            double baseY = Math.Min(word.Y1, word.Y2);
-                            double height = Math.Max(
-                                Math.Abs(word.Y3 - word.Y1),
-                                Math.Abs(word.Y4 - word.Y2)
-                            );
-
-                            // Process each character in the word
-                            for (int i = 0; i < wordText.Length; i++)
-                            {
-                                string charText = wordText[i].ToString();
-                                
-                                // Calculate the X-coordinate of the character
-                                double charX = baseX + (i * charWidth) + (charPadding / 2);
-                                
-                                // Calculate box coordinates (polygon points) for the character
-                                var charBox = new[] {
-                                    new[] { charX, baseY },
-                                    new[] { charX + effectiveCharWidth, baseY },
-                                    new[] { charX + effectiveCharWidth, baseY + height },
-                                    new[] { charX, baseY + height }
-                                };
-                                
-                                // Add the character to the results
-                                results.Add(new
-                                {
-                                    text = charText,
-                                    confidence = 0.9, // OneOCR doesn't provide confidence
-                                    rect = charBox,
-                                    is_character = true
-                                });
-                            }
-                            
-                            // Add space marker after word if needed
-                            if (addSpaceMarker)
-                            {
-                                // Create space character after the word
-                                double spaceWidth = charWidth * 0.6; 
-                                double spaceX = baseX + totalWidth + (charWidth * 0.1);
-                                
-                                // Calculate box coordinates for the space character
-                                var spaceBox = new[] {
-                                    new[] { spaceX, baseY },
-                                    new[] { spaceX + spaceWidth, baseY },
-                                    new[] { spaceX + spaceWidth, baseY + height },
-                                    new[] { spaceX, baseY + height }
-                                };
-                                
-                                // Add the space character to results
-                                results.Add(new
-                                {
-                                    text = " ", // Actual space character
-                                    confidence = 0.95, // High confidence for this artificially added space
-                                    rect = spaceBox,
-                                    is_character = true
-                                });
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Line-based processing (as a fallback)
-                        // Calculate box coordinates (polygon points)
-                        var box = new[] {
-                            new[] { (double)line.X1, (double)line.Y1 },
-                            new[] { (double)line.X2, (double)line.Y2 },
-                            new[] { (double)line.X3, (double)line.Y3 },
-                            new[] { (double)line.X4, (double)line.Y4 }
-                        };
-
-                        // Process text based on language
-                        string processedText = ProcessTextByLanguage(line.Text, languageCode);
-                        
-                        // Add the text line to results
-                        results.Add(new
-                        {
-                            text = processedText,
-                            confidence = line.Confidence,
-                            rect = box,
-                            bubble_id = bubbleIds[lineIndex]
-                        });
-                    }
+                        text = processedText,
+                        confidence = line.Confidence,
+                        rect = box,
+                        bubble_id = bubbleIds[lineIndex]
+                    });
                 }
 
                 // Create a JSON response
@@ -708,8 +611,7 @@ namespace RSTGameTranslation
                 {
                     status = "success",
                     results = results,
-                    processing_time_seconds = 0.1,
-                    char_level = useCharacterLevel // Indicate this is character-level data
+                    processing_time_seconds = 0.1
                 };
 
                 // Convert to JSON
@@ -733,39 +635,6 @@ namespace RSTGameTranslation
 
             // Return a completed task since this method doesn't use await
             return Task.CompletedTask;
-        }
-
-        // Determine if spaces should be added between words for the given language
-        private bool ShouldAddSpaceBetweenWords(string languageCode)
-        {
-            // Languages that use spaces between words
-            var languagesWithSpaces = new HashSet<string> 
-            { 
-                "en", // English
-                "es", // Spanish
-                "fr", // French
-                "it", // Italian
-                "de", // German
-                "ru", // Russian
-                "ar", // Arabic
-                "pt", // Portuguese
-                "nl", // Dutch
-                "ko"  // Korean (modern Korean uses spaces between words)
-            };
-            
-            // Languages that don't typically use spaces between words
-            var languagesWithoutSpaces = new HashSet<string>
-            {
-                "ja",     // Japanese
-                "ch_sim", // Simplified Chinese
-                // "ch_tra"  // Traditional Chinese
-            };
-            
-            // Default to adding spaces if language is not specifically handled
-            if (languagesWithoutSpaces.Contains(languageCode))
-                return false;
-            
-            return true; // Default to adding spaces
         }
 
         // Process text based on language-specific rules

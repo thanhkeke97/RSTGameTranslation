@@ -50,7 +50,6 @@
   "Lbl_BlockPower": "Block Power:",
   "Lbl_SettleTime": "Thời gian chờ (s):",
   "Lbl_TextSimilarThreshold": "Ngưỡng tương đồng văn bản:",
-  "Lbl_CharLevel": "Cấp độ ký tự:",
   "Lbl_MinTextFragmentSize": "Đoạn văn bản nhỏ nhất:",
   "Lbl_MinLetterConfidence": "Độ tin cậy ký tự tối thiểu:",
   "Lbl_MinLineConfidence": "Độ tin cậy dòng tối thiểu:",

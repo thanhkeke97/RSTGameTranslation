@@ -57,7 +57,6 @@
   "Lbl_BlockPower": "ブロック強度:",
   "Lbl_SettleTime": "安定化時間 (秒):",
   "Lbl_TextSimilarThreshold": "テキスト類似度しきい値:",
-  "Lbl_CharLevel": "文字レベル:",
   "Lbl_MinTextFragmentSize": "最小テキスト断片サイズ:",
   "Lbl_MinLetterConfidence": "最小文字信頼度:",
   "Lbl_MinLineConfidence": "最小行信頼度:",

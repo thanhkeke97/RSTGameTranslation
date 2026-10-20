@@ -125,7 +125,6 @@ namespace RSTGameTranslation
         public const string MIN_LINE_CONFIDENCE = "min_line_confidence";
         public const string AUTO_TRANSLATE_ENABLED = "auto_translate_enabled";
         public const string SHOW_TRANSLATION_ENABLED = "show_translation_enabled";
-        public const string CHAR_LEVEL = "char_level";
         public const string IGNORE_PHRASES = "ignore_phrases";
         public const string AUTO_OCR = "auto_ocr";
         public const string MANGA_MODE = "manga_mode";
@@ -615,7 +614,6 @@ namespace RSTGameTranslation
             _configValues[MIN_LINE_CONFIDENCE] = (0.1).ToString(CultureInfo.InvariantCulture);
             _configValues[AUTO_TRANSLATE_ENABLED] = "true";
             _configValues[SHOW_TRANSLATION_ENABLED] = "true";
-            _configValues[CHAR_LEVEL] = "false";
             _configValues[IGNORE_PHRASES] = "";
             _configValues[TEXTSIMILAR_THRESHOLD] = (0.9).ToString(CultureInfo.InvariantCulture);
             _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
@@ -1809,21 +1807,6 @@ namespace RSTGameTranslation
             Console.WriteLine($"Show icon signal enabled: {enabled}");
         }
 
-        // Check if char level is enabled
-        public bool IsCharLevelEnabled()
-        {
-            string value = GetValue(CHAR_LEVEL, "false");
-            return value.ToLower() == "true";
-        }
-
-        // Set char level
-        public void SetCharLevelEnabled(bool enabled)
-        {
-            _configValues[CHAR_LEVEL] = enabled.ToString().ToLower();
-            SaveConfig();
-            Console.WriteLine($"Char level enabled: {enabled}");
-        }
-
         // Check if HDR support is enabled
         public bool IsHDRSupportEnabled()
         {
@@ -1846,7 +1829,7 @@ namespace RSTGameTranslation
             return value.ToLower() == "true";
         }
 
-        // Set char level
+        // Set whether the quick start guide should be shown
         public void SetNeedShowQuickStart(bool enabled)
         {
             _configValues[SHOW_QUICK_START] = enabled.ToString().ToLower();

@@ -50,7 +50,6 @@
   "Lbl_BlockPower": "Poder do Bloco:",
   "Lbl_SettleTime": "Tempo de Estabilização (s):",
   "Lbl_TextSimilarThreshold": "Limiar de Semelhança de Texto:",
-  "Lbl_CharLevel": "Nível de Caractere:",
   "Lbl_MinTextFragmentSize": "Menor fragmento de texto:",
   "Lbl_MinLetterConfidence": "Confiança mínima da letra:",
   "Lbl_MinLineConfidence": "Confiança mínima da linha:",

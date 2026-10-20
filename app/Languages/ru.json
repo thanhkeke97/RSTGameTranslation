@@ -57,7 +57,6 @@
   "Lbl_BlockPower": "Сила блока:",
   "Lbl_SettleTime": "Время стабилизации (с):",
   "Lbl_TextSimilarThreshold": "Порог схожести текста:",
-  "Lbl_CharLevel": "Уровень символов:",
   "Lbl_MinTextFragmentSize": "Мин. размер фрагмента:",
   "Lbl_MinLetterConfidence": "Мин. уверенность (буква):",
   "Lbl_MinLineConfidence": "Мин. уверенность (строка):",

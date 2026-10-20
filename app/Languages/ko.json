@@ -57,7 +57,6 @@
   "Lbl_BlockPower": "블록 강도:",
   "Lbl_SettleTime": "안정화 시간 (초):",
   "Lbl_TextSimilarThreshold": "텍스트 유사도 임계값:",
-  "Lbl_CharLevel": "문자 레벨:",
   "Lbl_MinTextFragmentSize": "최소 텍스트 조각 크기:",
   "Lbl_MinLetterConfidence": "최소 문자 신뢰도:",
   "Lbl_MinLineConfidence": "최소 라인 신뢰도:",

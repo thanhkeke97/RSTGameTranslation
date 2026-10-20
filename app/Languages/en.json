@@ -50,7 +50,6 @@
   "Lbl_BlockPower": "Block Power:",
   "Lbl_SettleTime": "Settle Time (s):",
   "Lbl_TextSimilarThreshold": "Text Similar Threshold:",
-  "Lbl_CharLevel": "Char Level:",
   "Lbl_MinTextFragmentSize": "Smallest text fragment:",
   "Lbl_MinLetterConfidence": "Min letter confidence:",
   "Lbl_MinLineConfidence": "Min line confidence:",

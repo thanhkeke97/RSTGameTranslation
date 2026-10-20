@@ -986,9 +986,6 @@ namespace RSTGameTranslation
             // Set text similar threshold from config
             textSimilarThresholdTextBox.Text = ConfigManager.Instance.GetTextSimilarThreshold().ToString(CultureInfo.InvariantCulture);
 
-            // Set char level from config
-            charLevelCheckBox.IsChecked = ConfigManager.Instance.IsCharLevelEnabled();
-
             // Set show icon signal
             showIconSignalCheckBox.IsChecked = ConfigManager.Instance.IsShowIconSignalEnabled();
 
@@ -1729,23 +1726,6 @@ namespace RSTGameTranslation
             {
                 MonitorWindow.Instance.autoTranslateCheckBox.IsChecked = autoTranslateCheckBox.IsChecked;
             }
-        }
-
-        private void CharLevelCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            // Skip if initializing to prevent overriding values from config
-            if (_isInitializing)
-            {
-                return;
-            }
-            bool isEnabled = charLevelCheckBox.IsChecked ?? false;
-            ConfigManager.Instance.SetCharLevelEnabled(isEnabled);
-            // Clear text objects
-            Logic.Instance.ClearAllTextObjects();
-            Logic.Instance.ResetHash();
-            // Force OCR to run again
-            MainWindow.Instance.SetOCRCheckIsWanted(true);
-            Console.WriteLine($"Settings window: Character level mode changed to {isEnabled}");
         }
 
         private void LeaveTranslationOnscreenCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
