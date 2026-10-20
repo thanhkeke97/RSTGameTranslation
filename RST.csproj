@@ -82,6 +82,7 @@
   
   <ItemGroup>
     <Resource Include="media\AppIcon.ico" />
+    <Resource Include="media\donate_qr.png" />
   </ItemGroup>
 
 </Project>

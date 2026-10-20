@@ -1136,8 +1136,15 @@
                                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SupportBuyMeACoffee]}" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
-                                        
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_Disclaimer], Mode=OneWay}" 
+
+                                        <!-- Bank QR (VietQR) -->
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SupportBankQR]}"
+                                                   Foreground="{DynamicResource TextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,6"/>
+                                        <Border Background="White" CornerRadius="8" Padding="4" Margin="0,0,0,12" HorizontalAlignment="Left">
+                                            <Image Source="/media/donate_qr.png" Width="160" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        </Border>
+
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_Disclaimer], Mode=OneWay}"
                                                    Foreground="{DynamicResource MutedBrush}" FontSize="11" FontStyle="Italic" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
