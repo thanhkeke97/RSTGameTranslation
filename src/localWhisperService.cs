@@ -49,10 +49,12 @@ namespace RSTGameTranslation
         private float SilenceThreshold => ConfigManager.Instance.GetSilenceThreshold();
         private int SilenceDurationMs => ConfigManager.Instance.GetSilenceDurationMs();
         private bool isSpeaking = false;
-        // Hard ceiling on one segment (samples @16kHz). Whisper's own window is 30s, so we allow
-        // long sentences; the config value is clamped up to at least 10s because cutting earlier
-        // than that splits ordinary speech mid-sentence.
-        private int HardLimitSamples => 16000 * Math.Clamp(ConfigManager.Instance.GetMaxBufferSamples(), 10, 28);
+        // Hard ceiling on one segment (samples @16kHz). Whisper's own window is 30s, so long
+        // sentences are allowed. A short ceiling gets the first half of a long line translated
+        // sooner; the cut lands at the quietest point of the last 2s, so words are not split.
+        // Below 3s even ordinary lines would be cut mid-sentence.
+        private int HardLimitSamples => 16000 * Math.Clamp(ConfigManager.Instance.GetMaxBufferSamples(), MinHardLimitSeconds, 28);
+        private const int MinHardLimitSeconds = 3;
         // Silence threshold in samples (converted from ms) — uses sample count, not wall clock,
         // so it stays accurate even when recognition blocks.
         private int SilenceDurationSamples => 16000 * SilenceDurationMs / 1000;
@@ -288,7 +290,7 @@ namespace RSTGameTranslation
                 : $"RMS (threshold={SilenceThreshold:F4})";
             Console.WriteLine($"[Audio] VAD: {vadDescription}, " +
                               $"pause={SilenceDurationMs}ms, max segment={HardLimitSamples / 16000.0:F0}s " +
-                              $"(config {ConfigManager.Instance.GetMaxBufferSamples()}s, clamped to 10-28s)");
+                              $"(config {ConfigManager.Instance.GetMaxBufferSamples()}s, clamped to {MinHardLimitSeconds}-28s)");
 
             // Setup debug writer for 16k 16bit mono
             var targetFormat = new WaveFormat(16000, 16, 1);

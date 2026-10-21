@@ -558,6 +558,19 @@
                                             </DataTemplate>
                                         </Button.ContentTemplate>
                                     </Button>
+                                    <Button x:Name="ttsToggleButton" Style="{StaticResource ModernButton}"
+                                            Content="TTS"
+                                            Background="#5f5f5f" Click="TtsToggleButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🔊 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
                                 </StackPanel>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Control]}" 
                                            Style="{StaticResource ToolGroupLabel}"/>

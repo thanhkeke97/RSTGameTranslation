@@ -187,7 +187,7 @@ namespace RSTGameTranslation
         public const string WINDOWS_TTS_SPEECH_RATE = "windows_tts_speech_rate";
         public const string TTS_AUTO_SPEEDUP = "tts_auto_speedup";
         // One-time migration markers
-        private const string MIGRATED_SILENCE_DURATION_300 = "migrated_silence_duration_300";
+        private const string MIGRATED_AUDIO_DEFAULTS_1000MS_5S = "migrated_audio_defaults_1000ms_5s";
         public const string WHISPER_THREAD_COUNT = "whisper_thread_count";
         public const string AUTO_CLEAR_CHAT_HISTORY = "auto_clear_chat_history";
         public const string AUTO_CLEAR_CHAT_TIMEOUT = "auto_clear_chat_timeout";
@@ -443,17 +443,24 @@ namespace RSTGameTranslation
                 SaveConfig();
             }
 
-            // The default pause before an utterance is cut went from 500 to 300 ms (the Silero VAD
-            // finds the end of speech precisely, so the shorter wait is safe and cuts latency).
-            // Configs written with the old default still say 500: move them over once.
-            if (!_configValues.ContainsKey(MIGRATED_SILENCE_DURATION_300))
+            // Audio defaults changed: the pause before an utterance is cut is now 1000 ms (was 500,
+            // then 300 — too short, it split sentences at every breath) and the longest segment is
+            // 5 s (was 3, which the recognizer silently raised to 10). Configs still holding an old
+            // default are moved over once; values the user changed are left alone.
+            if (!_configValues.ContainsKey(MIGRATED_AUDIO_DEFAULTS_1000MS_5S))
             {
-                if (_configValues.TryGetValue(SILENCE_DURATION_MS, out string? pause) && pause.Trim() == "500")
+                if (_configValues.TryGetValue(SILENCE_DURATION_MS, out string? pause) &&
+                    (pause.Trim() == "300" || pause.Trim() == "500"))
                 {
-                    _configValues[SILENCE_DURATION_MS] = "300";
-                    Console.WriteLine("Migrated Silence_Duration_Ms from the old default 500 to 300");
+                    _configValues[SILENCE_DURATION_MS] = "1000";
+                    Console.WriteLine($"Migrated Silence_Duration_Ms from the old default {pause.Trim()} to 1000");
                 }
-                _configValues[MIGRATED_SILENCE_DURATION_300] = "true";
+                if (_configValues.TryGetValue(MAX_BUFFER_SAMPLES, out string? maxBuffer) && maxBuffer.Trim() == "3")
+                {
+                    _configValues[MAX_BUFFER_SAMPLES] = "5";
+                    Console.WriteLine("Migrated MaxBufferSamples from the old default 3 to 5");
+                }
+                _configValues[MIGRATED_AUDIO_DEFAULTS_1000MS_5S] = "true";
                 SaveConfig();
             }
 
@@ -645,8 +652,8 @@ namespace RSTGameTranslation
             _configValues[FUNASR_LANGUAGE] = "auto";
             _configValues[FUNASR_MODEL_PRECISION] = "fp32";
             _configValues[SILENT_THRESHOLD] = "0.02f";
-            _configValues[SILENCE_DURATION_MS] = "300";
-            _configValues[MAX_BUFFER_SAMPLES] = "3";
+            _configValues[SILENCE_DURATION_MS] = "1000";
+            _configValues[MAX_BUFFER_SAMPLES] = "5";
             _configValues[AUDIO_VAD_MODE] = "silero";
             _configValues[SILERO_VAD_THRESHOLD] = "0.5";
             _configValues[WHISPER_REDUCED_AUDIO_CTX] = "true";
@@ -654,7 +661,7 @@ namespace RSTGameTranslation
             _configValues[GOOGLE_FREE_FALLBACK_SERVICE] = "Microsoft";
             _configValues[WINDOWS_TTS_SPEECH_RATE] = "2";
             _configValues[TTS_AUTO_SPEEDUP] = "true";
-            _configValues[MIGRATED_SILENCE_DURATION_300] = "true";
+            _configValues[MIGRATED_AUDIO_DEFAULTS_1000MS_5S] = "true";
             _configValues[WHISPER_THREAD_COUNT] = "0"; // 0 = auto (use all cores)
             _configValues[CLIPBOARD_AUTO_TRANSLATE_ENABLED] = "false";
             _configValues[CLIPBOARD_AUTO_TRANSLATE_COPY_RESULT] = "true";
@@ -912,11 +919,11 @@ namespace RSTGameTranslation
         // Get SilenceDurationMs
         public int GetSilenceDurationMs()
         {
-            if (int.TryParse(GetValue(SILENCE_DURATION_MS, "300"), NumberStyles.Any, CultureInfo.InvariantCulture, out int silenceDurationMs))
+            if (int.TryParse(GetValue(SILENCE_DURATION_MS, "1000"), NumberStyles.Any, CultureInfo.InvariantCulture, out int silenceDurationMs))
             {
                 return silenceDurationMs;
             }
-            return 300;
+            return 1000;
         }
 
         // Get MaxBufferSamples

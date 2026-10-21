@@ -1731,6 +1731,20 @@ namespace RSTGameTranslation
                 targetLanguageComboBox.SelectedItem = targetItem;
         }
 
+        // Mirror a TTS on/off change made on the MainWindow toolbar without re-running the change handler
+        public static void SyncTtsEnabled()
+        {
+            var window = _instance;
+            if (window == null)
+                return;
+
+            window.ttsEnabledCheckBox.Checked -= window.TtsEnabledCheckBox_CheckedChanged;
+            window.ttsEnabledCheckBox.Unchecked -= window.TtsEnabledCheckBox_CheckedChanged;
+            window.ttsEnabledCheckBox.IsChecked = ConfigManager.Instance.IsTtsEnabled();
+            window.ttsEnabledCheckBox.Checked += window.TtsEnabledCheckBox_CheckedChanged;
+            window.ttsEnabledCheckBox.Unchecked += window.TtsEnabledCheckBox_CheckedChanged;
+        }
+
         // Mirror a language change made elsewhere (MainWindow toolbar) without re-running the change handlers
         public static void SyncLanguageSelection()
         {
@@ -3529,6 +3543,8 @@ namespace RSTGameTranslation
                 bool isEnabled = ttsEnabledCheckBox.IsChecked ?? false;
                 ConfigManager.Instance.SetTtsEnabled(isEnabled);
                 Console.WriteLine($"TTS enabled: {isEnabled}");
+                if (!isEnabled) MainWindow.StopAllSpeech();
+                MainWindow.Instance?.UpdateTtsButtonUI();
             }
             catch (Exception ex)
             {

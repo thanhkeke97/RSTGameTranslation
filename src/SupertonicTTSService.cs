@@ -681,6 +681,8 @@ namespace RSTGameTranslation
 
         // Extra silence appended after every synthesized utterance (seconds).
         private const float TailPadSeconds = 0.35f;
+        // Used instead between sentences of one line, and while speech is lagging behind
+        private const float ShortTailPadSeconds = 0.1f;
 
         // Max characters per synthesized clip. Sentences are packed up to this length; smaller
         // clips mean the first audio is heard sooner on long lines.
@@ -929,10 +931,14 @@ namespace RSTGameTranslation
                         // consecutive sentences keep a natural pause between them. Without this
                         // the vocoder output ends exactly at the last latent chunk boundary and
                         // the tail of the last syllable can feel clipped.
+                        // The long pause only ends a line when nothing else is waiting; between
+                        // sentences, or while speech lags behind, it was dead air that added up.
                         int sampleRate = _tts!.SampleRate;
-                        int tailPad = (int)(TailPadSeconds * sampleRate);
-                        var padded = new float[wav.Length + tailPad];
-                        Array.Copy(wav, padded, wav.Length);
+                        bool moreToSay = i < chunks.Count - 1 || TtsPlaybackQueue.QueuedSeconds > 0.5;
+                        int tailPad = (int)((moreToSay ? ShortTailPadSeconds : TailPadSeconds) * sampleRate);
+                        int start = LeadingSilenceSamples(wav, sampleRate);
+                        var padded = new float[wav.Length - start + tailPad];
+                        Array.Copy(wav, start, padded, 0, wav.Length - start);
 
                         _playback.Enqueue(() => CreateClip(padded, sampleRate));
                         queued++;
@@ -1038,6 +1044,23 @@ namespace RSTGameTranslation
         }
 
         // 32-bit float mono samples -> playable stream, no temp file
+        /// <summary>
+        /// Samples of near-silence before the first word, minus a short lead-in so the onset is not
+        /// clipped. Capped, so a quiet first syllable is never cut.
+        /// </summary>
+        private static int LeadingSilenceSamples(float[] samples, int sampleRate)
+        {
+            const float threshold = 0.01f;
+            int maxTrim = (int)(0.3f * sampleRate);
+            int leadIn = (int)(0.02f * sampleRate);
+            int limit = Math.Min(samples.Length, maxTrim + leadIn);
+            for (int i = 0; i < limit; i++)
+            {
+                if (Math.Abs(samples[i]) > threshold) return Math.Max(0, i - leadIn);
+            }
+            return Math.Min(maxTrim, samples.Length);
+        }
+
         private static WaveStream CreateClip(float[] samples, int sampleRate)
         {
             var bytes = new byte[samples.Length * sizeof(float)];

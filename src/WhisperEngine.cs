@@ -66,8 +66,29 @@ namespace RSTGameTranslation
 
             // Build one processor up front so a broken model/runtime fails here, at start,
             // rather than on the first line of dialogue.
-            if (useReducedContext) GetProcessor(16000);
-            else GetProcessor(int.MaxValue);
+            var processor = useReducedContext ? GetProcessor(16000) : GetProcessor(int.MaxValue);
+
+            // The first decode pays one-off setup (buffers, kernels): measured 2.4s against ~0.15s
+            // for the lines after it. Pay it here, while the model loads, not on the first line.
+            WarmUp(processor);
+        }
+
+        private static void WarmUp(WhisperProcessor processor)
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                // Initialize runs on a background thread, so blocking here does not freeze the UI
+                Task.Run(async () =>
+                {
+                    await foreach (var _ in processor.ProcessAsync(new float[16000])) { }
+                }).GetAwaiter().GetResult();
+                Console.WriteLine($"[Whisper] Warm-up decode took {timer.ElapsedMilliseconds} ms");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Whisper] Warm-up decode failed (ignored): {ex.Message}");
+            }
         }
 
         private WhisperProcessor GetProcessor(int sampleCount)

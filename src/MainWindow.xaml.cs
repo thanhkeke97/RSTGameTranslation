@@ -521,6 +521,7 @@ namespace RSTGameTranslation
                     if (args.PropertyName == "Strings")
                     {
                         UpdateAudioServiceButtonUI(ConfigManager.Instance.IsAudioServiceAutoTranslateEnabled());
+                        UpdateTtsButtonUI();
                     }
                 }
                 catch (Exception ex)
@@ -881,6 +882,59 @@ namespace RSTGameTranslation
             }
         }
 
+        private void TtsToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool enabled = !ConfigManager.Instance.IsTtsEnabled();
+            ConfigManager.Instance.SetTtsEnabled(enabled);
+            // Turning TTS off also silences the line being read and everything queued behind it
+            if (!enabled) StopAllSpeech();
+            UpdateTtsButtonUI();
+            SettingsWindow.SyncTtsEnabled();
+        }
+
+        /// <summary>Stop the speech queue and every TTS engine, dropping anything not yet spoken.</summary>
+        public static void StopAllSpeech()
+        {
+            // Stop speech queue in ChatBoxWindow first
+            ChatBoxWindow.StopSpeechQueue();
+
+            // Stop all TTS services
+            WindowsTTSService.StopAllTTS();
+            GoogleTTSService.StopAllTTS();
+            ElevenLabsService.StopAllTTS();
+            SupertonicTTSService.StopAllTTS();
+        }
+
+        /// <summary>Show the TTS on/off state on the toolbar button (also called when Settings changes it).</summary>
+        public void UpdateTtsButtonUI()
+        {
+            try
+            {
+                if (ttsToggleButton == null) return;
+                Dispatcher.Invoke(() =>
+                {
+                    bool enabled = ConfigManager.Instance.IsTtsEnabled();
+                    try
+                    {
+                        var baseLabel = LocalizationManager.Instance.Strings["Btn_TTS"];
+                        var stateLabel = LocalizationManager.Instance.Strings[enabled ? "Btn_AudioService_On" : "Btn_AudioService_Off"];
+                        ttsToggleButton.Content = $"{baseLabel}: {stateLabel}";
+                    }
+                    catch
+                    {
+                        // Fallback to simple english text if localization keys are missing
+                        ttsToggleButton.Content = enabled ? "TTS: On" : "TTS: Off";
+                    }
+
+                    ttsToggleButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(95, 95, 95));
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating TTS button UI: {ex.Message}");
+            }
+        }
+
         private void UpdateAudioServiceButtonUI(bool enabled)
         {
             try
@@ -1204,6 +1258,7 @@ namespace RSTGameTranslation
             bool audioEnabled = false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(audioEnabled);
             UpdateAudioServiceButtonUI(audioEnabled);
+            UpdateTtsButtonUI();
             UpdateThemeToggleButtonUI();
 
             // Initialization is complete, now we can save settings changes
@@ -1506,14 +1561,7 @@ namespace RSTGameTranslation
                 }
                 if (ConfigManager.Instance.IsTtsEnabled())
                 {
-                    // Stop speech queue in ChatBoxWindow first
-                    ChatBoxWindow.StopSpeechQueue();
-
-                    // Stop all TTS services
-                    WindowsTTSService.StopAllTTS();
-                    GoogleTTSService.StopAllTTS();
-                    ElevenLabsService.StopAllTTS();
-                    SupertonicTTSService.StopAllTTS();
+                    StopAllSpeech();
                 }
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStopped"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStopped_Details"]);
                 StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
