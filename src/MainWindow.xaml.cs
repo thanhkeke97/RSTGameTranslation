@@ -105,10 +105,12 @@ namespace RSTGameTranslation
 
         // Store translate area information
         private bool isSelectingTranslationArea = false;
-        private TranslationAreaInfo selectedTranslationArea;
         public bool hasSelectedTranslationArea = false;
         public List<TranslationAreaInfo> savedTranslationAreas = new List<TranslationAreaInfo>();
         public int currentAreaIndex = 0;
+        // Select Window mode: where the game window was when the areas were last placed, so the areas
+        // can move with it. Null until the next capture tick records it.
+        private System.Drawing.Point? _areaWindowAnchor;
 
         // Exclude regions for masking, in physical screen pixels. Always the same list instance
         // (other windows hold on to it); listen to ExcludeRegionsChanged for updates.
@@ -448,11 +450,6 @@ namespace RSTGameTranslation
             KeyboardShortcuts.SelectTranslationRegion += (s, e) => SelectAreaButton_Click(selectAreaButton, new RoutedEventArgs());
             KeyboardShortcuts.ClearSelectedAreaRequested += (s, e) => clearSelectedArea();
             KeyboardShortcuts.ShowAreaRequested += (s, e) => ShowAreaButton_Click(showAreaButton, new RoutedEventArgs());
-            KeyboardShortcuts.SelectArea1Requested += (s, e) => SwitchToTranslationArea(0);
-            KeyboardShortcuts.SelectArea2Requested += (s, e) => SwitchToTranslationArea(1);
-            KeyboardShortcuts.SelectArea3Requested += (s, e) => SwitchToTranslationArea(2);
-            KeyboardShortcuts.SelectArea4Requested += (s, e) => SwitchToTranslationArea(3);
-            KeyboardShortcuts.SelectArea5Requested += (s, e) => SwitchToTranslationArea(4);
 
             // Audio service hotkey
             KeyboardShortcuts.AudioServiceToggleRequested += async (s, e) =>
@@ -668,7 +665,7 @@ namespace RSTGameTranslation
         // it is due. (originX, originY) is the screen position of the bitmap's top-left pixel.
         private void ProcessCapturedBitmap(Bitmap bitmap, int originX, int originY)
         {
-            using Bitmap? masked = ApplyExcludeRegionsMask(bitmap, originX, originY);
+            using Bitmap? masked = ApplyCaptureMask(bitmap, originX, originY);
             Bitmap image = masked ?? bitmap;
 
             if (MonitorWindow.Instance.IsVisible)
@@ -713,18 +710,34 @@ namespace RSTGameTranslation
             Console.WriteLine($"OCR processing completed in {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        // Black out the exclude regions (screen pixels) on a copy of the bitmap whose top-left pixel is
-        // at (originX, originY). Regions are clipped to the bitmap, so one that only partly overlaps the
-        // capture area is still masked. Returns null when no region touches the bitmap.
-        private Bitmap? ApplyExcludeRegionsMask(Bitmap bitmap, int originX, int originY)
+        // Black out, on a copy of the bitmap whose top-left pixel is at (originX, originY):
+        // - the exclude regions (screen pixels), clipped to the bitmap, so one that only partly overlaps
+        //   the capture area is still masked;
+        // - with several active translation areas, everything between them: the bitmap is the box
+        //   around all of them, and only the areas themselves may be read. Masking it out also keeps
+        //   animations between the areas from counting as a changed frame.
+        // Returns null when nothing needs masking.
+        private Bitmap? ApplyCaptureMask(Bitmap bitmap, int originX, int originY)
         {
-            if (excludeRegions.Count == 0)
+            List<TranslationAreaInfo> activeAreas = GetActiveAreas();
+            bool maskBetweenAreas = activeAreas.Count > 1;
+            if (excludeRegions.Count == 0 && !maskBetweenAreas)
                 return null;
 
             try
             {
                 var bitmapBounds = new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height);
                 var masks = new List<System.Drawing.Rectangle>();
+
+                using Region? outsideAreas = maskBetweenAreas ? new Region(bitmapBounds) : null;
+                if (outsideAreas != null)
+                {
+                    foreach (var area in activeAreas)
+                    {
+                        outsideAreas.Exclude(new System.Drawing.Rectangle(
+                            (int)area.X - originX, (int)area.Y - originY, (int)area.Width, (int)area.Height));
+                    }
+                }
                 foreach (Rect region in excludeRegions)
                 {
                     int left = (int)Math.Floor(region.X) - originX;
@@ -740,14 +753,17 @@ namespace RSTGameTranslation
                     }
                 }
 
-                if (masks.Count == 0)
+                if (masks.Count == 0 && outsideAreas == null)
                     return null;
 
                 Bitmap result = new Bitmap(bitmap);
                 using (Graphics g = Graphics.FromImage(result))
                 using (SolidBrush brush = new SolidBrush(System.Drawing.Color.Black))
                 {
-                    g.FillRectangles(brush, masks.ToArray());
+                    if (outsideAreas != null)
+                        g.FillRegion(brush, outsideAreas);
+                    if (masks.Count > 0)
+                        g.FillRectangles(brush, masks.ToArray());
                 }
                 return result;
             }
@@ -970,143 +986,193 @@ namespace RSTGameTranslation
             // Check if multiple areas are allowed
             bool allowMultipleAreas = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
 
+            List<TranslationAreaInfo> areas;
+            bool droppedOldest = false;
             if (allowMultipleAreas)
             {
-                if (savedTranslationAreas == null)
-                    savedTranslationAreas = new List<TranslationAreaInfo>();
-
-                // Add new selection area to the list
-                savedTranslationAreas.Add(areaInfo);
-
-                // Limit selection area = 5
-                if (savedTranslationAreas.Count > 5)
+                // Add new selection area to the list, keeping the 5 most recent
+                areas = new List<TranslationAreaInfo>(savedTranslationAreas) { areaInfo };
+                if (areas.Count > MaxTranslationAreas)
                 {
-                    savedTranslationAreas = savedTranslationAreas.Skip(savedTranslationAreas.Count - 5).Take(5).ToList();
-                    Console.WriteLine("Maximum of 5 areas allowed. Keeping only the 5 most recent selections.");
-                    System.Windows.MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_MaximumAreasAllowed"],
-                        LocalizationManager.Instance.Strings["Title_MaximumSelectionArea"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                    areas.RemoveRange(0, areas.Count - MaxTranslationAreas);
+                    droppedOldest = true;
+                    Console.WriteLine($"Maximum of {MaxTranslationAreas} areas allowed. Keeping only the {MaxTranslationAreas} most recent selections.");
                 }
             }
             else
             {
                 // Save lastest selection area if multiple areas are not allowed
-                savedTranslationAreas = new List<TranslationAreaInfo> { areaInfo };
+                areas = new List<TranslationAreaInfo> { areaInfo };
             }
 
-            // Default using lastest selection area
-            currentAreaIndex = savedTranslationAreas.Count - 1;
+            SetTranslationAreas(areas);
+            ShowAreaBordersAfterSelection();
 
-            // Current selection area
-            TranslationAreaInfo currentArea = savedTranslationAreas[currentAreaIndex];
-
-            // Save current selection area
-            selectedTranslationArea = currentArea;
-            hasSelectedTranslationArea = true;
-
-            Console.WriteLine($"The translation area has been selected: X={currentArea.X}, Y={currentArea.Y}, Width={currentArea.Width}, Height={currentArea.Height}, Screen={currentArea.ScreenIndex}, DPI={currentArea.DpiScaleX:F2}x/{currentArea.DpiScaleY:F2}y");
+            Console.WriteLine($"The translation area has been selected: X={areaInfo.X}, Y={areaInfo.Y}, Width={areaInfo.Width}, Height={areaInfo.Height}, Screen={areaInfo.ScreenIndex}, DPI={areaInfo.DpiScaleX:F2}x/{areaInfo.DpiScaleY:F2}y");
             Console.WriteLine($"Total saved areas: {savedTranslationAreas.Count}, Current index: {currentAreaIndex + 1}");
 
-            // Update capture for new selection area
-            UpdateCustomCaptureRect();
+            // A notification instead of a message box: selecting areas is done over the game
+            if (droppedOldest)
+            {
+                ShowFastNotification(
+                    LocalizationManager.Instance.Strings["Title_MaximumSelectionArea"],
+                    LocalizationManager.Instance.Strings["Msg_MaximumAreasAllowed"]);
+            }
 
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
 
             CoachMarkTour.Current?.OnAreaChosen();
         }
 
-        public void SwitchToTranslationArea(int index)
+        private const int MaxTranslationAreas = 5;
+
+        // The "outlines hide when you press Start" hint was shown since the last Start / clear
+        private bool _areaBorderHintShown;
+
+        /// <summary>
+        /// Outline the areas so the user sees the selection worked (and the area numbers). Before
+        /// Start they stay until Start is pressed; while translating they would never be cleared that
+        /// way, so they only flash briefly.
+        /// </summary>
+        private void ShowAreaBordersAfterSelection()
         {
-            if (savedTranslationAreas.Count == 0)
+            bool multi = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
+            // The newest area is the current one: last in the list with multi area on, the only one otherwise
+            List<TranslationAreaInfo> areas = GetActiveAreas();
+            int newest = areas.Count - 1;
+            if (isStarted)
             {
-                Console.WriteLine("No translation areas available. Please select an area first.");
+                AreaBorderOverlay.Show(areas, multi, newest, TimeSpan.FromSeconds(2));
                 return;
             }
+
+            AreaBorderOverlay.Show(areas, multi, newest, autoHide: null);
+
+            // Told once per round (until Start or clearing the areas); later selections show
+            // their count on the outlines themselves
+            if (!_areaBorderHintShown)
+            {
+                _areaBorderHintShown = true;
+                string message = multi
+                    ? string.Format(LocalizationManager.Instance.Strings["Msg_AreaBordersMulti"], savedTranslationAreas.Count, MaxTranslationAreas)
+                    : LocalizationManager.Instance.Strings["Msg_AreaBordersSingle"];
+                ShowFastNotification(LocalizationManager.Instance.Strings["Title_AreaSelected"], message);
+            }
+        }
+
+        /// <summary>
+        /// Replace the translation areas (new selection, profile load). The newest one becomes the
+        /// current area, all areas are active again, and Select Window mode re-anchors them to where
+        /// the game window is now.
+        /// </summary>
+        public void SetTranslationAreas(List<TranslationAreaInfo> areas)
+        {
+            if (areas.Count == 0)
+            {
+                ClearTranslationAreas();
+                return;
+            }
+
+            // Outlines of the previous set would no longer match
+            AreaBorderOverlay.Hide();
+
+            savedTranslationAreas = areas;
+            currentAreaIndex = areas.Count - 1;
+            _areaWindowAnchor = null;
+            hasSelectedTranslationArea = true;
+
+            // Old overlays belong to the previous capture rectangle
             if (MonitorWindow.Instance.textOverlayCanvas != null)
             {
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.RefreshOverlays();
             }
 
-            // Ensure valid index
-            if (index < 0 || index >= savedTranslationAreas.Count)
-            {
-                Console.WriteLine($"Invalid area index: {index + 1}. Available areas: {savedTranslationAreas.Count}");
-                return;
-            }
-
-            // Update current index
-            currentAreaIndex = index;
-
-            TranslationAreaInfo selectedArea = savedTranslationAreas[currentAreaIndex];
-
-            // Update select area
-            selectedTranslationArea = selectedArea;
-            hasSelectedTranslationArea = true;
-
-            Console.WriteLine($"Switched to translation area {currentAreaIndex + 1}: X={selectedArea.X}, Y={selectedArea.Y}, Width={selectedArea.Width}, Height={selectedArea.Height}, Screen={selectedArea.ScreenIndex}, DPI={selectedArea.DpiScaleX:F2}x/{selectedArea.DpiScaleY:F2}y");
-
-            // Update capture area for new selection area
             UpdateCustomCaptureRect();
-
-            // Show notification for user
-            ShowAreaSwitchNotification(currentAreaIndex + 1);
+            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
         }
 
-        private void ShowAreaSwitchNotification(int areaNumber)
+        /// <summary>Forget every translation area and go back to capturing the default area.</summary>
+        public void ClearTranslationAreas()
         {
-            // Create a small notification
-            var notification = new System.Windows.Controls.Primitives.Popup
+            AreaBorderOverlay.Hide();
+            _areaBorderHintShown = false;
+            savedTranslationAreas.Clear();
+            hasSelectedTranslationArea = false;
+            currentAreaIndex = -1;
+            _areaWindowAnchor = null;
+            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+            UpdateCaptureRect();
+        }
+
+        /// <summary>
+        /// Multi area was turned on or off (toolbar or Settings): recapture with the new set of areas.
+        /// Turning it off keeps the saved areas but only the newest one is used, so turning it back
+        /// on brings the others back.
+        /// </summary>
+        public void OnMultiAreaModeChanged()
+        {
+            multiAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
+            if (!hasSelectedTranslationArea) return;
+            AreaBorderOverlay.Hide();
+            if (MonitorWindow.Instance.textOverlayCanvas != null)
             {
-                Width = 200,
-                Height = 40,
-                IsOpen = true,
-                StaysOpen = false,
-                AllowsTransparency = true,
-                Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute,
-                PlacementTarget = this
-            };
+                Logic.Instance.ClearAllTextObjects();
+                MonitorWindow.Instance.RefreshOverlays();
+            }
+            UpdateCustomCaptureRect();
+        }
 
-            // Content notification
-            var border = new Border
+        // Multi area checkbox on the toolbar (also in Settings, kept in sync)
+        private void MultiAreaCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            bool enabled = multiAreaCheckBox.IsChecked == true;
+            ConfigManager.Instance.SetUseMultiSelectionArea(enabled);
+            OnMultiAreaModeChanged();
+            SettingsWindow.SyncMultiSelectionArea();
+            if (enabled)
             {
-                Background = new SolidColorBrush(Color.FromArgb(200, 0, 0, 0)),
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(10)
-            };
+                ShowFastNotification(LocalizationManager.Instance.Strings["Lbl_MultiSelection"],
+                                     LocalizationManager.Instance.Strings["Tip_MultiSelection"]);
+            }
+        }
 
-            var text = new TextBlock
+        /// <summary>
+        /// The areas captured on each tick: every saved area with multi area on, otherwise just the
+        /// current (newest) one.
+        /// </summary>
+        private List<TranslationAreaInfo> GetActiveAreas()
+        {
+            var active = new List<TranslationAreaInfo>();
+            if (!hasSelectedTranslationArea || savedTranslationAreas.Count == 0)
+                return active;
+
+            if (ConfigManager.Instance.IsMultiSelectionAreaEnabled())
             {
-                Text = $"Switched to Selection Area {areaNumber}",
-                Foreground = new SolidColorBrush(Colors.White),
-                FontWeight = FontWeights.Bold,
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                VerticalAlignment = System.Windows.VerticalAlignment.Center
-            };
-
-            border.Child = text;
-            notification.Child = border;
-
-            // Set position to selected area
-            notification.HorizontalOffset = selectedTranslationArea.X + (selectedTranslationArea.Width / 2) - (notification.Width / 2);
-            notification.VerticalOffset = selectedTranslationArea.Y + (selectedTranslationArea.Height / 2) - (notification.Height / 2);
-
-            // Auto close notification after 1.5 second
-            var timer = new System.Windows.Threading.DispatcherTimer
+                active.AddRange(savedTranslationAreas);
+            }
+            else if (currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
             {
-                Interval = TimeSpan.FromSeconds(1.5)
-            };
-            SetOCRCheckIsWanted(false);
-            timer.Tick += (s, e) =>
-            {
-                notification.IsOpen = false;
-                timer.Stop();
-                SetOCRCheckIsWanted(true);
-            };
+                active.Add(savedTranslationAreas[currentAreaIndex]);
+            }
+            return active;
+        }
 
-            timer.Start();
+        /// <summary>
+        /// Bounding box of the active areas in physical screen pixels: the capture rectangle and the
+        /// overlay window. With several areas, everything inside it but outside the areas is masked
+        /// before OCR (see <see cref="ApplyCaptureMask"/>), so OCR, translation and the overlay work
+        /// exactly as for one area.
+        /// </summary>
+        private System.Drawing.Rectangle GetActiveAreaBounds()
+        {
+            System.Drawing.Rectangle bounds = System.Drawing.Rectangle.Empty;
+            foreach (var area in GetActiveAreas())
+            {
+                var rect = new System.Drawing.Rectangle((int)area.X, (int)area.Y, (int)area.Width, (int)area.Height);
+                bounds = bounds.IsEmpty ? rect : System.Drawing.Rectangle.Union(bounds, rect);
+            }
+            return bounds;
         }
 
         // Set capture area to selected region
@@ -1114,47 +1180,57 @@ namespace RSTGameTranslation
         {
             if (!hasSelectedTranslationArea) return;
 
-            captureRect = new System.Drawing.Rectangle(
-                (int)selectedTranslationArea.X,
-                (int)selectedTranslationArea.Y,
-                (int)selectedTranslationArea.Width,
-                (int)selectedTranslationArea.Height
-            );
+            captureRect = GetActiveAreaBounds();
 
             previousCaptureX = captureRect.Left;
             previousCaptureY = captureRect.Top;
 
             // Update current capture position for Logic
             Logic.Instance.SetCurrentCapturePosition(captureRect.Left, captureRect.Top);
+            UpdateMonitorWindowPosition();
         }
 
-        // Update the position of MonitorWindow based on the selected area
-        private void UpdateMonitorWindowToSelectedArea()
+        /// <summary>
+        /// Select Window mode: areas are stored in screen pixels, so when the game window moves they
+        /// are moved by the same amount; otherwise they would stay behind and capture the wrong part
+        /// of the window. Returns true when the areas moved.
+        /// </summary>
+        private bool MoveAreasWithCapturedWindow()
         {
-            if (!hasSelectedTranslationArea) return;
+            if (!hasSelectedTranslationArea || savedTranslationAreas.Count == 0 ||
+                !isCapturingWindow || capturedWindowHandle == IntPtr.Zero ||
+                !IsWindow(capturedWindowHandle) || IsIconic(capturedWindowHandle))
+                return false;
 
-            // Show the MonitorWindow first if it is not already displayed (need handle for SetWindowPos)
-            if (!MonitorWindow.Instance.IsVisible)
+            RECT windowRect;
+            if (_graphicsCaptureService != null)
+                GetVisibleWindowRect(capturedWindowHandle, out windowRect);
+            else
+                GetWindowRect(capturedWindowHandle, out windowRect);
+
+            var position = new System.Drawing.Point(windowRect.Left, windowRect.Top);
+            if (_areaWindowAnchor is not System.Drawing.Point anchor)
             {
-                MonitorWindow.Instance.Show();
-                monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                _areaWindowAnchor = position;
+                return false;
             }
+            if (anchor == position)
+                return false;
 
-            // Use SetWindowPos with physical pixel coordinates to bypass WPF's coordinate system.
-            // WPF Left/Top division by DPI fails on non-primary monitors because the divided value
-            // can land on the wrong screen (e.g., physical X=2000 / 1.5 = 1333, which is on screen 0 not screen 1).
-            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(MonitorWindow.Instance).Handle;
-            DpiHelper.PositionWindowPhysical(hwnd,
-                (int)selectedTranslationArea.X,
-                (int)selectedTranslationArea.Y,
-                (int)selectedTranslationArea.Width,
-                (int)selectedTranslationArea.Height);
-
-            // Save physical position for future reference
-            monitorWindowLeft = selectedTranslationArea.X;
-            monitorWindowTop = selectedTranslationArea.Y;
-
-            // Console.WriteLine($"MonitorWindow positioned at physical: X={selectedTranslationArea.X}, Y={selectedTranslationArea.Y}, W={selectedTranslationArea.Width}, H={selectedTranslationArea.Height}");
+            int dx = position.X - anchor.X;
+            int dy = position.Y - anchor.Y;
+            for (int i = 0; i < savedTranslationAreas.Count; i++)
+            {
+                var area = savedTranslationAreas[i];
+                var bounds = area.Bounds;
+                bounds.Offset(dx, dy);
+                area.Bounds = bounds;
+                savedTranslationAreas[i] = area;
+            }
+            _areaWindowAnchor = position;
+            AreaBorderOverlay.MoveTo(GetActiveAreas());
+            Console.WriteLine($"Game window moved by ({dx}, {dy}), translation areas moved with it");
+            return true;
         }
 
         // Add method for show/hide the main window
@@ -1259,6 +1335,7 @@ namespace RSTGameTranslation
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(audioEnabled);
             UpdateAudioServiceButtonUI(audioEnabled);
             UpdateTtsButtonUI();
+            multiAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
             UpdateThemeToggleButtonUI();
 
             // Initialization is complete, now we can save settings changes
@@ -1427,18 +1504,20 @@ namespace RSTGameTranslation
 
         private void UpdateCaptureRect()
         {
-            // If a custom translation area has been selected, use that area
+            // Areas that moved with the game window carry their text with them: like the overlay that
+            // follows a captured window, their text must not be shifted back to the old screen spot
+            bool areasFollowedWindow = false;
+
+            // If a custom translation area has been selected, use that area (or the box around all
+            // active areas)
             if (hasSelectedTranslationArea)
             {
+                areasFollowedWindow = MoveAreasWithCapturedWindow();
+
                 previousCaptureX = captureRect.Left;
                 previousCaptureY = captureRect.Top;
 
-                captureRect = new System.Drawing.Rectangle(
-                    (int)selectedTranslationArea.X,
-                    (int)selectedTranslationArea.Y,
-                    (int)selectedTranslationArea.Width,
-                    (int)selectedTranslationArea.Height
-                );
+                captureRect = GetActiveAreaBounds();
             }
             else if (isCapturingWindow && capturedWindowHandle != IntPtr.Zero)
             {
@@ -1501,7 +1580,8 @@ namespace RSTGameTranslation
             // If position changed and we have text objects, update their positions.
             // Not in Select Window mode: the overlay follows the game window and text is relative to it,
             // so shifting it would leave the text behind (e.g. after Alt+Enter or dragging the game).
-            bool isFollowingGameWindow = !hasSelectedTranslationArea && isCapturingWindow && capturedWindowHandle != IntPtr.Zero;
+            bool isFollowingGameWindow = areasFollowedWindow ||
+                (!hasSelectedTranslationArea && isCapturingWindow && capturedWindowHandle != IntPtr.Zero);
             if (!isFollowingGameWindow &&
                 (previousCaptureX != captureRect.Left || previousCaptureY != captureRect.Top) &&
                 Logic.Instance.TextObjects.Count > 0)
@@ -1573,6 +1653,9 @@ namespace RSTGameTranslation
                 {
                     isStarted = true;
                     isStopOCR = false;
+                    // Area outlines are only for checking the selection; translating hides them
+                    AreaBorderOverlay.Hide();
+                    _areaBorderHintShown = false;
                     // Prepare the translation service so the first OCR line is not slower
                     TranslationWarmUp.Start();
                     btn.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("Strings[Btn_Stop]") { Source = LocalizationManager.Instance });
@@ -1859,6 +1942,10 @@ namespace RSTGameTranslation
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsWindowVisible(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsIconic(IntPtr hWnd);
+
 
         private Rectangle _lastLoggedWindowRegion;
 
@@ -1885,16 +1972,17 @@ namespace RSTGameTranslation
                 int captureWidth = windowWidth;
                 int captureHeight = windowHeight;
 
-                if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                // The box around the active areas (just the area itself when there is one)
+                System.Drawing.Rectangle areaBounds = GetActiveAreaBounds();
+                bool cropToAreas = !areaBounds.IsEmpty;
+                if (cropToAreas)
                 {
-                    var selectedArea = savedTranslationAreas[currentAreaIndex];
-                    
                     // Areas are stored in physical screen pixels, the same space as the window rect,
                     // so no DPI adjustment is needed here (the DPI saved with the area is informational).
-                    captureX = (int)selectedArea.X - rect.Left;
-                    captureY = (int)selectedArea.Y - rect.Top;
-                    captureWidth = (int)selectedArea.Width;
-                    captureHeight = (int)selectedArea.Height;
+                    captureX = areaBounds.X - rect.Left;
+                    captureY = areaBounds.Y - rect.Top;
+                    captureWidth = areaBounds.Width;
+                    captureHeight = areaBounds.Height;
 
 
                     if (captureX < 0) captureX = 0;
@@ -1936,7 +2024,7 @@ namespace RSTGameTranslation
                     fullWindowBmp = FallbackCaptureWindow(handle);
                 }
 
-                if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
+                if (cropToAreas)
                 {
                     try
                     {
@@ -2056,11 +2144,8 @@ namespace RSTGameTranslation
                         else
                             GetWindowRect(capturedWindowHandle, out windowRect);
 
-                        if (hasSelectedTranslationArea && currentAreaIndex >= 0 && currentAreaIndex < savedTranslationAreas.Count)
-                        {
-                            var selectedArea = savedTranslationAreas[currentAreaIndex];
-                        }
-                        else
+                        // With areas, CaptureWindow records the position of the cropped region itself
+                        if (!hasSelectedTranslationArea)
                         {
                             Logic.Instance.SetCurrentCapturePosition(windowRect.Left, windowRect.Top);
                         }
@@ -3050,15 +3135,11 @@ namespace RSTGameTranslation
             }
             else
             {
-
-                // Remove the last area from the list
-                savedTranslationAreas.RemoveAt(currentAreaIndex);
-
-                // Default switch to area last index
-                if (savedTranslationAreas.Count >= 1)
-                {
-                    SwitchToTranslationArea(savedTranslationAreas.Count - 1);
-                }
+                // Remove the current area; the newest remaining one becomes current. With none left,
+                // capture goes back to the default area instead of a stale rectangle.
+                var remaining = new List<TranslationAreaInfo>(savedTranslationAreas);
+                remaining.RemoveAt(Math.Clamp(currentAreaIndex, 0, remaining.Count - 1));
+                SetTranslationAreas(remaining);
             }
             Console.WriteLine("Previous translation area have been removed.");
         }
@@ -3070,16 +3151,8 @@ namespace RSTGameTranslation
                 Dispatcher.Invoke(() => btnClearSelectionArea_Click(sender, e));
                 return;
             }
-            // Clear all save selection areas
-            savedTranslationAreas.Clear();
-            hasSelectedTranslationArea = false;
-            currentAreaIndex = -1;
-
-            // Set button background to blue
-            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
-
-            // Update capture area to default area
-            UpdateCaptureRect();
+            // Clear all save selection areas and go back to the default capture area
+            ClearTranslationAreas();
 
             Console.WriteLine("All translation areas have been cleared.");
 
@@ -3370,6 +3443,7 @@ namespace RSTGameTranslation
             isCapturingWindow = false;
             capturedWindowHandle = IntPtr.Zero;
             capturedWindowTitle = string.Empty;
+            _areaWindowAnchor = null;
             _graphicsCaptureService?.Dispose();
             _graphicsCaptureService = null;
 
@@ -3490,6 +3564,8 @@ namespace RSTGameTranslation
                 capturedWindowHandle = windowHandle;
                 capturedWindowTitle = windowTitle;
                 isCapturingWindow = true;
+                // Areas move with this window from where it is now
+                _areaWindowAnchor = null;
 
                 // Start Windows Graphics Capture for flicker-free window capture.
                 _graphicsCaptureService?.Dispose();

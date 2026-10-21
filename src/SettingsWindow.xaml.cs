@@ -1046,7 +1046,6 @@ namespace RSTGameTranslation
             {
                 isNeedShowMessage = true;
             }
-
             // Set OCR settings from config
             string savedOcrMethod = ConfigManager.Instance.GetOcrMethod();
             Console.WriteLine($"SettingsWindow: Loading OCR method '{savedOcrMethod}'");
@@ -1300,11 +1299,6 @@ namespace RSTGameTranslation
             ("Show Area", "Lbl_ShowAreaBorder", "hotKeyShowArea"),
             ("ChatBox", "Lbl_ToggleChatBox", "hotKeyChatBox"),
             ("Audio Service", "Btn_AudioService", "hotKeyAudio"),
-            ("Area 1", "Lbl_SelectArea1", "hotKeyArea1"),
-            ("Area 2", "Lbl_SelectArea2", "hotKeyArea2"),
-            ("Area 3", "Lbl_SelectArea3", "hotKeyArea3"),
-            ("Area 4", "Lbl_SelectArea4", "hotKeyArea4"),
-            ("Area 5", "Lbl_SelectArea5", "hotKeyArea5"),
             ("Swap Languages", "Lbl_SwapLanguages", "hotKeySwapLanguages"),
             ("Retry Translation", "Lbl_TranslationRetry", "hotKeyRetryTranslate"),
             ("Select Exclude Region", "Lbl_SelectExcludeRegion", "hotKeyToggleExcludeRegions"),
@@ -4432,9 +4426,7 @@ namespace RSTGameTranslation
                         profileComboBox.Items.Remove(selectedText);
                         profileComboBox.SelectedIndex = -1;
                         // Clear all save selection areas
-                        MainWindow.Instance.savedTranslationAreas.Clear();
-                        MainWindow.Instance.hasSelectedTranslationArea = false;
-                        MainWindow.Instance.currentAreaIndex = -1;
+                        MainWindow.Instance.ClearTranslationAreas();
                         // Show status
                         statusUpdateGameProfile.Visibility = Visibility.Visible;
                         statusUpdateGameProfile.Text = $"Remove {profileName} successfully!";
@@ -4559,10 +4551,7 @@ namespace RSTGameTranslation
                     if (areas.Count > 0)
                     {
                         // Update our areas list
-                        MainWindow.Instance.savedTranslationAreas.Clear();
-                        MainWindow.Instance.savedTranslationAreas = areas;
-                        MainWindow.Instance.hasSelectedTranslationArea = true;
-                        MainWindow.Instance.SwitchToTranslationArea(MainWindow.Instance.savedTranslationAreas.Count - 1);
+                        MainWindow.Instance.SetTranslationAreas(areas);
                     }
                     else
                     {
@@ -5238,6 +5227,22 @@ namespace RSTGameTranslation
                 );
             }
             isNeedShowMessage = !enabled;
+            if (!_isInitializing) MainWindow.Instance?.OnMultiAreaModeChanged();
+        }
+
+        // Mirror a multi-area on/off change made on the MainWindow toolbar without re-running the change handler
+        public static void SyncMultiSelectionArea()
+        {
+            var window = _instance;
+            if (window == null)
+                return;
+
+            window.multiSelectionAreaCheckBox.Checked -= window.MultiSelectionAreaCheckBox_CheckedChanged;
+            window.multiSelectionAreaCheckBox.Unchecked -= window.MultiSelectionAreaCheckBox_CheckedChanged;
+            window.multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
+            window.isNeedShowMessage = !ConfigManager.Instance.IsMultiSelectionAreaEnabled();
+            window.multiSelectionAreaCheckBox.Checked += window.MultiSelectionAreaCheckBox_CheckedChanged;
+            window.multiSelectionAreaCheckBox.Unchecked += window.MultiSelectionAreaCheckBox_CheckedChanged;
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

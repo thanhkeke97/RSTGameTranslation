@@ -57,11 +57,6 @@ namespace RSTGameTranslation
         public const string HOTKEY_CLEAR_SELECTED_AREA = "Clear Selected Area";
         public const string HOTKEY_SHOW_AREA = "Show Area";
         public const string HOTKEY_CHATBOX = "hotkey_chatbox";
-        public const string HOTKEY_AREA_1 = "hotkey_area_1";
-        public const string HOTKEY_AREA_2 = "hotkey_area_2";
-        public const string HOTKEY_AREA_3 = "hotkey_area_3";
-        public const string HOTKEY_AREA_4 = "hotkey_area_4";
-        public const string HOTKEY_AREA_5 = "hotkey_area_5";
         public const string HOTKEY_AUDIO_SERVICE = "hotkey_audio_service";
         public const string HOTKEY_SWAP_LANGUAGES = "hotkey_swap_languages";
         public const string HOTKEY_RETRY_TRANSLATION = "hotkey_retry_translation";
@@ -443,6 +438,19 @@ namespace RSTGameTranslation
                 SaveConfig();
             }
 
+            // Switching between translation areas (Alt+1..5) was removed: every selected area is
+            // translated now
+            bool removedAreaHotkeys = false;
+            for (int i = 1; i <= 5; i++)
+            {
+                removedAreaHotkeys |= _configValues.Remove($"hotkey_area_{i}");
+            }
+            if (removedAreaHotkeys)
+            {
+                Console.WriteLine("Removing deprecated translation area hotkeys from config");
+                SaveConfig();
+            }
+
             // Audio defaults changed: the pause before an utterance is cut is now 1000 ms (was 500,
             // then 300 — too short, it split sentences at every breath) and the longest segment is
             // 5 s (was 3, which the recognizer silently raised to 10). Configs still holding an old
@@ -620,11 +628,6 @@ namespace RSTGameTranslation
             _configValues[HOTKEY_CLEAR_AREAS] = "ALT+R";
             _configValues[HOTKEY_CLEAR_SELECTED_AREA] = "ALT+H";
             _configValues[HOTKEY_SHOW_AREA] = "ALT+B";
-            _configValues[HOTKEY_AREA_1] = "ALT+1";
-            _configValues[HOTKEY_AREA_2] = "ALT+2";
-            _configValues[HOTKEY_AREA_3] = "ALT+3";
-            _configValues[HOTKEY_AREA_4] = "ALT+4";
-            _configValues[HOTKEY_AREA_5] = "ALT+5";
             _configValues[HOTKEY_AUDIO_SERVICE] = "ALT+K";
             _configValues[HOTKEY_SWAP_LANGUAGES] = "ALT+V";
             _configValues[HOTKEY_RETRY_TRANSLATION] = "ALT+T";
@@ -1201,11 +1204,6 @@ namespace RSTGameTranslation
             ["Clear Areas"] = (HOTKEY_CLEAR_AREAS, "ALT+R"),
             ["Clear Selected Area"] = (HOTKEY_CLEAR_SELECTED_AREA, "ALT+H"),
             ["Show Area"] = (HOTKEY_SHOW_AREA, "ALT+B"),
-            ["Area 1"] = (HOTKEY_AREA_1, "ALT+1"),
-            ["Area 2"] = (HOTKEY_AREA_2, "ALT+2"),
-            ["Area 3"] = (HOTKEY_AREA_3, "ALT+3"),
-            ["Area 4"] = (HOTKEY_AREA_4, "ALT+4"),
-            ["Area 5"] = (HOTKEY_AREA_5, "ALT+5"),
             ["Audio Service"] = (HOTKEY_AUDIO_SERVICE, "ALT+K"),
             ["Swap Languages"] = (HOTKEY_SWAP_LANGUAGES, "ALT+V"),
             ["Retry Translation"] = (HOTKEY_RETRY_TRANSLATION, "ALT+T"),
@@ -3009,7 +3007,6 @@ namespace RSTGameTranslation
             string value = GetValue(MULTI_SELECTION_AREA, "false");
             return value.ToLower() == "true";
         }
-
         // Get api key for service type
         public List<string> GetApiKeysList(string serviceType)
         {

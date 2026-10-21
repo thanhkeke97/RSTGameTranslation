@@ -88,11 +88,6 @@ namespace RSTGameTranslation
             ("Clear Areas", () => ClearAreasRequested?.Invoke(null, EventArgs.Empty)),
             ("Clear Selected Area", () => ClearSelectedAreaRequested?.Invoke(null, EventArgs.Empty)),
             ("Show Area", () => ShowAreaRequested?.Invoke(null, EventArgs.Empty)),
-            ("Area 1", () => SelectArea1Requested?.Invoke(null, EventArgs.Empty)),
-            ("Area 2", () => SelectArea2Requested?.Invoke(null, EventArgs.Empty)),
-            ("Area 3", () => SelectArea3Requested?.Invoke(null, EventArgs.Empty)),
-            ("Area 4", () => SelectArea4Requested?.Invoke(null, EventArgs.Empty)),
-            ("Area 5", () => SelectArea5Requested?.Invoke(null, EventArgs.Empty)),
             ("Audio Service", () => AudioServiceToggleRequested?.Invoke(null, EventArgs.Empty)),
             ("Swap Languages", () => SwapLanguagesRequested?.Invoke(null, EventArgs.Empty)),
             ("Retry Translation", () => RetryTranslationRequested?.Invoke(null, EventArgs.Empty)),
@@ -126,12 +121,6 @@ namespace RSTGameTranslation
         private static CancellationTokenSource? _pollingCts;
         private static bool _isPolling = false;
 
-        // Event for Multi selection area
-        public static event EventHandler? SelectArea1Requested;
-        public static event EventHandler? SelectArea2Requested;
-        public static event EventHandler? SelectArea3Requested;
-        public static event EventHandler? SelectArea4Requested;
-        public static event EventHandler? SelectArea5Requested;
         public static event EventHandler? SwapLanguagesRequested;
         
         static KeyboardShortcuts()
