@@ -142,6 +142,8 @@ namespace RSTGameTranslation
             _initializing = true;
             try
             {
+                PreloadAppOnnxRuntime();
+
                 long res = NativeMethods.CreateOcrInitOptions(out long ctx);
                 if (res == 0)
                 {
@@ -163,31 +165,72 @@ namespace RSTGameTranslation
             return ValueTask.CompletedTask;
         }
 
+        // oneocr.dll needs ONNX Runtime API 23+ (the onnxruntime.dll shipped next to rst.exe). Recent
+        // Windows builds also have an older onnxruntime.dll (1.17) in System32; if that one is in the
+        // process first, oneocr.dll binds to it and CreateOcrPipeline fails with error 5. Loading ours
+        // by full path first makes oneocr.dll's import resolve to it.
+        private static void PreloadAppOnnxRuntime()
+        {
+            string ortPath = Path.Combine(AppContext.BaseDirectory, "onnxruntime.dll");
+            if (!File.Exists(ortPath))
+                return;
+
+            if (!NativeLibrary.TryLoad(ortPath, out _))
+            {
+                Console.WriteLine($"OneOCR: could not load {ortPath}");
+            }
+        }
+
+        // When pipeline creation fails, wait this long before trying again instead of retrying every frame
+        private static readonly TimeSpan PipelineRetryInterval = TimeSpan.FromSeconds(10);
+        private DateTime _lastPipelineAttempt = DateTime.MinValue;
+
         private void InitializePipeline()
         {
+            if (DateTime.UtcNow - _lastPipelineAttempt < PipelineRetryInterval)
+                return;
+            _lastPipelineAttempt = DateTime.UtcNow;
+
+            // The model path is relative: oneocr.dll does not take every non-ASCII absolute path, so it
+            // is opened from the app folder. The working directory is not always that folder (shortcut
+            // with another "Start in", launched from another app, a file dialog changed it), so switch
+            // to it for the call.
+            string appDir = AppContext.BaseDirectory;
+            string previousDir = Environment.CurrentDirectory;
+            bool switchDir = !string.Equals(Path.GetFullPath(previousDir).TrimEnd('\\'),
+                                            Path.GetFullPath(appDir).TrimEnd('\\'),
+                                            StringComparison.OrdinalIgnoreCase);
             try
             {
                 string key = "kj)TGtrK>f]b[Piow.gU+nC@s\"\"\"\"\"\"4";
                 string modelPath = "oneocr.onemodel";
 
+                if (!File.Exists(Path.Combine(appDir, modelPath)))
+                {
+                    Console.WriteLine($"OneOCR: model file not found: {Path.Combine(appDir, modelPath)}");
+                    return;
+                }
+
+                if (switchDir) Environment.CurrentDirectory = appDir;
                 long res = NativeMethods.CreateOcrPipeline(modelPath, key, Context, out _pipeline);
                 if (res != 0)
                 {
-                    Console.Error.WriteLine("Failed to create OCR pipeline. Error code: " + res);
+                    Console.WriteLine($"OneOCR: failed to create OCR pipeline. Error code: {res}. " +
+                        "Check that oneocr.dll, oneocr.onemodel and onnxruntime.dll in the app folder come from the same release.");
                     return;
                 }
 
                 res = NativeMethods.CreateOcrProcessOptions(out _processOptions);
                 if (res != 0)
                 {
-                    Console.Error.WriteLine("Failed to create OCR process options.");
+                    Console.WriteLine("OneOCR: failed to create OCR process options.");
                     return;
                 }
 
                 res = NativeMethods.OcrProcessOptionsSetMaxRecognitionLineCount(_processOptions, 1000);
                 if (res != 0)
                 {
-                    Console.Error.WriteLine("Failed to set max recognition line count.");
+                    Console.WriteLine("OneOCR: failed to set max recognition line count.");
                     return;
                 }
 
@@ -196,7 +239,14 @@ namespace RSTGameTranslation
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error initializing OCR pipeline: {ex.Message}");
+                Console.WriteLine($"Error initializing OCR pipeline: {ex.Message}");
+            }
+            finally
+            {
+                if (switchDir)
+                {
+                    try { Environment.CurrentDirectory = previousDir; } catch { }
+                }
             }
         }
 
@@ -227,7 +277,6 @@ namespace RSTGameTranslation
                 InitializePipeline();
                 if (!_pipelineInitialized)
                 {
-                    Console.Error.WriteLine("Failed to initialize OCR pipeline");
                     return null;
                 }
             }
@@ -235,7 +284,7 @@ namespace RSTGameTranslation
             long res = NativeMethods.RunOcrPipeline(_pipeline, ref img, _processOptions, out long instance);
             if (res != 0)
             {
-                Console.Error.WriteLine("Failed to run OCR pipeline. Error code: " + res);
+                Console.WriteLine("OneOCR: failed to run OCR pipeline. Error code: " + res);
                 return null;
             }
 
@@ -257,7 +306,7 @@ namespace RSTGameTranslation
             long res = NativeMethods.GetOcrLineCount(instance, out long lineCount);
             if (res != 0)
             {
-                Console.Error.WriteLine("Failed to get OCR line count.");
+                Console.WriteLine("Failed to get OCR line count.");
                 return null;
             }
 
@@ -303,7 +352,7 @@ namespace RSTGameTranslation
                     res = NativeMethods.GetOcrLineWordCount(line, out long wordCount);
                     if (res != 0)
                     {
-                        Console.Error.WriteLine("Failed to get OCR word count.");
+                        Console.WriteLine("Failed to get OCR word count.");
                         return null;
                     }
                     List<Word> words = new List<Word>();
@@ -351,7 +400,7 @@ namespace RSTGameTranslation
                         }
                         else
                         {
-                            Console.Error.WriteLine("Failed to get bounding box.");
+                            Console.WriteLine("Failed to get bounding box.");
                         }
                     }
                     data.Words = words.ToArray();
@@ -363,7 +412,7 @@ namespace RSTGameTranslation
                 }
                 else
                 {
-                    Console.Error.WriteLine("Failed to get bounding box.");
+                    Console.WriteLine("Failed to get bounding box.");
                 }
             }
             return lines.ToArray();
