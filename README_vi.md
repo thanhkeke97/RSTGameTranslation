@@ -59,7 +59,6 @@ Xong. Bản dịch hiện đè lên game và tự cập nhật khi chữ thay đ
 | **Alt+C** | Bật / tắt Hộp thoại (cửa sổ lịch sử bản dịch) |
 | **Alt+T** | Dịch lại đoạn chữ hiện tại |
 | **Alt+K** | Bật / tắt dịch âm thanh |
-| **Alt+1** … **Alt+5** | Chuyển giữa các vùng đã lưu |
 | **Alt+B** | Hiện các vùng đã chọn |
 | **Alt+P** | Mở Cài đặt |
 | **Alt+L** | Mở cửa sổ log |
@@ -72,7 +71,7 @@ Bạn có thể đổi mọi phím tắt trong **Cài đặt → Phím tắt**.
 
 ### 🎮 Dịch game
 
-- **Chọn ứng dụng** bám theo cửa sổ game, kể cả khi bạn di chuyển cửa sổ. **Chọn vùng (Alt+Q)** dịch một phần cố định của màn hình. Bạn có thể lưu tối đa 5 vùng và chuyển nhanh bằng **Alt+1…5**.
+- **Chọn ứng dụng** bám theo cửa sổ game, kể cả khi bạn di chuyển cửa sổ. **Chọn vùng (Alt+Q)** dịch một phần cố định của màn hình. Bật **Chọn nhiều vùng** để thêm tối đa 5 vùng; tất cả các vùng được dịch cùng lúc.
 - **Lớp phủ** hiện bản dịch đè lên chữ gốc. **Hộp thoại (Alt+C)** hiện bản dịch dạng danh sách, dễ theo dõi hơn với visual novel hoặc khi vùng chữ nhỏ.
 - Bật **Cài đặt → Ngữ cảnh/Lớp phủ → Tự động đặt màu nền lớp phủ** để xóa chữ gốc và cho bản dịch hòa vào game.
 - Mô tả game và các nhân vật chính ở **Cài đặt → Ngữ cảnh/Lớp phủ → Thông tin về game** để dịch chính xác hơn khi dùng dịch vụ AI. Lưu cài đặt riêng cho từng game bằng **Cài đặt → Hồ sơ Game**.

@@ -59,7 +59,6 @@ That's it. The translation appears over the game and updates as the text changes
 | **Alt+C** | Show / hide the ChatBox (translation history window) |
 | **Alt+T** | Translate the current text again |
 | **Alt+K** | Start / stop voice translation |
-| **Alt+1** … **Alt+5** | Switch between saved areas |
 | **Alt+B** | Show the selected areas |
 | **Alt+P** | Open Settings |
 | **Alt+L** | Open the log window |
@@ -72,7 +71,7 @@ You can change every hotkey in **Settings → HotKeys**.
 
 ### 🎮 Translating a game
 
-- **Select Application** follows the game window, even when you move it. **Select Area (Alt+Q)** translates a fixed part of the screen. You can save up to 5 areas and switch with **Alt+1…5**.
+- **Select Application** follows the game window, even when you move it. **Select Area (Alt+Q)** translates a fixed part of the screen. Turn on **Multi Selection Area** to add up to 5 areas; all of them are translated at once.
 - **Overlay** shows the translation on top of the original text. **ChatBox (Alt+C)** shows it as a list, which is easier for visual novels or when the text area is small.
 - Turn on **Settings → Context/Overlay → Auto Set Overlay Background Color** to erase the original text and blend the translation into the game.
 - Describe the game and its main characters in **Settings → Context/Overlay → Info about the game** for more accurate translations with AI services. Save your settings per game with **Settings → Game Profile**.
