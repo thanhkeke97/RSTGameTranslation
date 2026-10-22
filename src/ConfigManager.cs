@@ -212,6 +212,7 @@ namespace RSTGameTranslation
 
         // Multi selection area
         public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
+        public const string WINDOW_SELECTOR_AT_STARTUP = "window_selector_at_startup";
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
@@ -620,6 +621,7 @@ namespace RSTGameTranslation
             _configValues[OVERLAY_BACKGROUND_COLOR] = "#FF000000";
             _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
             _configValues[MULTI_SELECTION_AREA] = "false";
+            _configValues[WINDOW_SELECTOR_AT_STARTUP] = "true";
             _configValues[HOTKEY_START_STOP] = "ALT+G";
             _configValues[HOTKEY_OVERLAY] = "ALT+F";
             _configValues[HOTKEY_SETTING] = "ALT+P";
@@ -3006,6 +3008,20 @@ namespace RSTGameTranslation
         {
             string value = GetValue(MULTI_SELECTION_AREA, "false");
             return value.ToLower() == "true";
+        }
+
+        // Whether the game window picker opens by itself when the app starts
+        public bool IsWindowSelectorAtStartupEnabled()
+        {
+            string value = GetValue(WINDOW_SELECTOR_AT_STARTUP, "true");
+            return value.ToLower() == "true";
+        }
+
+        public void SetWindowSelectorAtStartupEnabled(bool enabled)
+        {
+            _configValues[WINDOW_SELECTOR_AT_STARTUP] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Window selector at startup set to: {enabled}");
         }
         // Get api key for service type
         public List<string> GetApiKeysList(string serviceType)

@@ -600,7 +600,7 @@
                                 <Image Source="/media/AppIcon.ico" Width="16" Height="16" 
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="RSTGameTranslation" FontSize="13" FontWeight="SemiBold" 
+                            <TextBlock x:Name="HeaderTitle" Text="RSTGameTranslation" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         
@@ -1150,33 +1150,30 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 
-                                <!-- About Box -->
+                                <!-- Changelog of the running version, from its GitHub release (see Changelog.cs) -->
                                 <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                                    <StackPanel>
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                            <Border Width="4" Height="16" Background="{DynamicResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
-                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_DeveloperInfo]}" 
-                                                       Foreground="{DynamicResource AccentBrush}" FontSize="14" FontWeight="Bold"/>
-                                        </StackPanel>
-                                        <TextBlock Text="RSTGameTranslation" FontSize="16" FontWeight="Bold" 
-                                                   Foreground="{DynamicResource TextBrush}" Margin="0,0,0,4"/>
-                                        <TextBlock x:Name="AppVersion" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Version]}" 
-                                                   Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,0,0,8"/>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Description]}" 
-                                                   Foreground="{DynamicResource TextBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                                        <TextBlock Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,0,0,4">
-                                            <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_DevelopedBy], Mode=OneWay}"/>
-                                            <Run Text=" thanhkeke97" Foreground="{DynamicResource TextBrush}" FontWeight="SemiBold"/>
-                                        </TextBlock>
-                                        <TextBlock FontSize="12" Margin="0,0,0,4">
-                                            <Run Text="GitHub: " Foreground="{DynamicResource MutedBrush}"/>
-                                            <Hyperlink NavigateUri="https://github.com/thanhkeke97" RequestNavigate="TutorialLink_RequestNavigate" Foreground="{DynamicResource AccentBrush}">
-                                                github.com/thanhkeke97
-                                            </Hyperlink>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Copyright], Mode=OneWay}" 
-                                                   Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,8,0,0"/>
-                                    </StackPanel>
+                                    <DockPanel>
+                                        <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="4" Height="16" Background="{DynamicResource AccentBrush}" CornerRadius="2" Margin="0,0,10,0"/>
+                                                <TextBlock x:Name="ChangelogTitle"
+                                                           Foreground="{DynamicResource AccentBrush}" FontSize="14" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12">
+                                                <Hyperlink x:Name="ChangelogLink" NavigateUri="https://github.com/thanhkeke97/RSTGameTranslation/releases"
+                                                           RequestNavigate="TutorialLink_RequestNavigate" Foreground="{DynamicResource AccentBrush}">
+                                                    <Run Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ViewOnGitHub], Mode=OneWay}"/>
+                                                </Hyperlink>
+                                            </TextBlock>
+                                        </Grid>
+                                        <!-- Height capped so long notes scroll instead of stretching the page -->
+                                        <ScrollViewer x:Name="ChangelogScroll" MaxHeight="420" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,6,0">
+                                            <StackPanel x:Name="ChangelogPanel">
+                                                <TextBlock x:Name="ChangelogStatus" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ChangelogLoading]}"
+                                                           Foreground="{DynamicResource MutedBrush}" FontSize="12.5" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                    </DockPanel>
                                 </Border>
                                 
                                 <!-- Support Box -->

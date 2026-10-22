@@ -1287,8 +1287,9 @@ namespace RSTGameTranslation
             UpdateCaptureRect();
             SettingsWindow.Instance.ListHotKey_TextChanged();
 
-            // Update app version on setup screen
-            AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.FormatVersion(SplashManager.CurrentVersion);
+            // Version in the title bar, release notes of this version in the info section
+            UpdateVersionTexts();
+            _ = LoadChangelogAsync();
 
             // Add socket status to the header
             if (FooterBorder != null && FooterBorder.Child is Grid footerGrid)
@@ -3486,7 +3487,7 @@ namespace RSTGameTranslation
         private void PromptForGameWindowAtStartup()
         {
             _startupPromptPending = false;
-            if (isCapturingWindow)
+            if (isCapturingWindow || !ConfigManager.Instance.IsWindowSelectorAtStartupEnabled())
                 return;
 
             if (!CanShowStartupDialog())
@@ -3498,7 +3499,16 @@ namespace RSTGameTranslation
             var popup = new WindowSelectorPopup { Owner = this };
             popup.ConfigureForStartup(IsWindows10);
             popup.WindowSelected += (handle, title) => OnWindowSelected(handle, title, showConfirmation: false);
-            if (!ShowStartupDialog(popup))
+            bool answered = ShowStartupDialog(popup);
+
+            // Kept whether a window was picked or the picker was skipped
+            if (popup.DontAskAtStartup)
+            {
+                ConfigManager.Instance.SetWindowSelectorAtStartupEnabled(false);
+                SettingsWindow.SyncWindowSelectorAtStartup();
+            }
+
+            if (!answered)
             {
                 _startupPromptPending = true;
                 return;
@@ -3641,6 +3651,45 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading language settings from config: {ex.Message}");
+            }
+        }
+
+        // "RSTGameTranslation - Version: 6.0" in the title bar, and the changelog card's title
+        private void UpdateVersionTexts()
+        {
+            string version = SplashManager.FormatVersion(SplashManager.CurrentVersion);
+            HeaderTitle.Text = $"RSTGameTranslation - {LocalizationManager.Instance.Strings["App_Version"]}: {version}";
+            ChangelogTitle.Text = string.Format(LocalizationManager.Instance.Strings["Lbl_Changelog"], version);
+        }
+
+        // Release notes of the running version; null until loaded, "" when they could not be loaded
+        private string? _releaseNotes;
+
+        private async Task LoadChangelogAsync()
+        {
+            ChangelogLink.NavigateUri = new Uri(Changelog.ReleasePageUrl);
+            _releaseNotes = await Changelog.GetReleaseNotesAsync() ?? "";
+            ShowChangelog();
+        }
+
+        // Shows the notes as written on GitHub; re-run on a language change only for the "unavailable" text
+        private void ShowChangelog()
+        {
+            if (_releaseNotes == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(_releaseNotes))
+            {
+                ChangelogPanel.Children.Clear();
+                ChangelogStatus.Text = LocalizationManager.Instance.Strings["Lbl_ChangelogUnavailable"];
+                ChangelogPanel.Children.Add(ChangelogStatus);
+                return;
+            }
+
+            if (ChangelogPanel.Children.Count == 0 || ChangelogPanel.Children[0] == ChangelogStatus)
+            {
+                Changelog.Show(ChangelogPanel, _releaseNotes);
+                ChangelogScroll.ScrollToHome();
             }
         }
 
@@ -3858,7 +3907,8 @@ namespace RSTGameTranslation
                     OCRStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
                     OCRStatusText.Text = LocalizationManager.Instance.Strings["Btn_Off"];
                 }
-                AppVersion.Text = LocalizationManager.Instance.Strings["App_Version"] + " " + SplashManager.FormatVersion(SplashManager.CurrentVersion);
+                UpdateVersionTexts();
+                ShowChangelog();
 
                 // Reload screen list to update localized text
                 LoadScreenList();

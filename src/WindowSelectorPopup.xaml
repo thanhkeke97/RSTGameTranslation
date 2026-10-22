@@ -82,6 +82,13 @@
             </ListView.View>
         </ListView>
         
+        <!-- Startup only: stop opening this picker by itself (Settings can turn it back on) -->
+        <CheckBox Grid.Row="3" x:Name="dontAskAtStartupCheckBox" Visibility="Collapsed"
+                  HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,5,270,0"
+                  Foreground="{DynamicResource TextBrush}">
+            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[SelectWindow_DontAskAtStartup]}" TextWrapping="Wrap"/>
+        </CheckBox>
+
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
             <Button Name="refreshButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Common_Btn_Refresh]}" Width="80" Margin="0,0,5,0" Click="RefreshButton_Click"/>
             <Button Name="selectButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Common_Btn_Select]}" Width="80" Margin="0,0,5,0" Click="SelectButton_Click"/>

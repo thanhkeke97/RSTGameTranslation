@@ -39,8 +39,12 @@ namespace RSTGameTranslation
             startupHintPanel.Visibility = Visibility.Visible;
             win10HintText.Visibility = isWindows10 ? Visibility.Visible : Visibility.Collapsed;
             cancelButton.Content = LocalizationManager.Instance.Strings["Common_Btn_Skip"];
+            dontAskAtStartupCheckBox.Visibility = Visibility.Visible;
             this.Height = isWindows10 ? 480 : 440;
         }
+
+        // Startup mode: the user asked not to open this picker by itself any more
+        public bool DontAskAtStartup => dontAskAtStartupCheckBox.IsChecked == true;
 
         private void LoadWindowList()
         {

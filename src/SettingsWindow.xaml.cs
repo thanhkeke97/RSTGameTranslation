@@ -1042,6 +1042,7 @@ namespace RSTGameTranslation
 
             // Set multi selection area from config
             multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
+            windowSelectorAtStartupCheckBox.IsChecked = ConfigManager.Instance.IsWindowSelectorAtStartupEnabled();
             if (!ConfigManager.Instance.IsMultiSelectionAreaEnabled())
             {
                 isNeedShowMessage = true;
@@ -5243,6 +5244,26 @@ namespace RSTGameTranslation
             window.isNeedShowMessage = !ConfigManager.Instance.IsMultiSelectionAreaEnabled();
             window.multiSelectionAreaCheckBox.Checked += window.MultiSelectionAreaCheckBox_CheckedChanged;
             window.multiSelectionAreaCheckBox.Unchecked += window.MultiSelectionAreaCheckBox_CheckedChanged;
+        }
+
+        private void WindowSelectorAtStartupCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetWindowSelectorAtStartupEnabled(windowSelectorAtStartupCheckBox.IsChecked == true);
+        }
+
+        // Mirror "don't ask again" ticked in the startup window picker
+        public static void SyncWindowSelectorAtStartup()
+        {
+            var window = _instance;
+            if (window == null)
+                return;
+
+            window.windowSelectorAtStartupCheckBox.Checked -= window.WindowSelectorAtStartupCheckBox_CheckedChanged;
+            window.windowSelectorAtStartupCheckBox.Unchecked -= window.WindowSelectorAtStartupCheckBox_CheckedChanged;
+            window.windowSelectorAtStartupCheckBox.IsChecked = ConfigManager.Instance.IsWindowSelectorAtStartupEnabled();
+            window.windowSelectorAtStartupCheckBox.Checked += window.WindowSelectorAtStartupCheckBox_CheckedChanged;
+            window.windowSelectorAtStartupCheckBox.Unchecked += window.WindowSelectorAtStartupCheckBox_CheckedChanged;
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

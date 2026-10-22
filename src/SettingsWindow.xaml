@@ -1000,6 +1000,14 @@
                                          Checked="MultiSelectionAreaCheckBox_CheckedChanged"
                                          Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
 
+                                <!-- Game window picker at startup -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WindowSelectorAtStartup]}" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowSelectorAtStartup]}"/>
+                                <CheckBox x:Name="windowSelectorAtStartupCheckBox" Grid.Row="6" Grid.Column="1" Margin="0,5" IsChecked="True"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowSelectorAtStartup]}"
+                                         Checked="WindowSelectorAtStartupCheckBox_CheckedChanged"
+                                         Unchecked="WindowSelectorAtStartupCheckBox_CheckedChanged"/>
+
                                 <!-- Leave Translation Onscreen -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LeaveOnscreen]}" Grid.Row="5" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"
