@@ -197,7 +197,7 @@ namespace RSTGameTranslation
                 e.Cancel = true;  // Cancel the close
                 StopHotkeyCapture();
                 this.Hide();      // Just hide the window
-                MainWindow.Instance.settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
+                ToolbarButton.SetState(MainWindow.Instance.settingsButton, ToolbarState.Off);
             };
         }
 

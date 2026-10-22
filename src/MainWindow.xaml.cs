@@ -798,7 +798,7 @@ namespace RSTGameTranslation
             {
                 // Cancel translation region selection if active
                 isSelectingTranslationArea = false;
-                selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                ToolbarButton.Set(selectAreaButton, hasSelectedTranslationArea);
 
                 // Find and close the region selection window if currently open
                 foreach (Window window in System.Windows.Application.Current.Windows)
@@ -825,13 +825,13 @@ namespace RSTGameTranslation
                 isSelectingTranslationArea = false;
                 if (!hasSelectedTranslationArea)
                 {
-                    selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                    ToolbarButton.Set(selectAreaButton, hasSelectedTranslationArea);
                 }
             };
             selectorWindow.Show();
 
             isSelectingTranslationArea = true;
-            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+            ToolbarButton.SetState(selectAreaButton, ToolbarState.Busy);
         }
 
         // Toggle Audio Service (Start/Stop local Whisper) from main window button
@@ -932,17 +932,20 @@ namespace RSTGameTranslation
                     bool enabled = ConfigManager.Instance.IsTtsEnabled();
                     try
                     {
+                        // The dot on the button shows on/off; the tooltip spells it out
                         var baseLabel = LocalizationManager.Instance.Strings["Btn_TTS"];
                         var stateLabel = LocalizationManager.Instance.Strings[enabled ? "Btn_AudioService_On" : "Btn_AudioService_Off"];
-                        ttsToggleButton.Content = $"{baseLabel}: {stateLabel}";
+                        ttsToggleButton.Content = baseLabel;
+                        ttsToggleButton.ToolTip = $"{baseLabel}: {stateLabel}";
                     }
                     catch
                     {
                         // Fallback to simple english text if localization keys are missing
-                        ttsToggleButton.Content = enabled ? "TTS: On" : "TTS: Off";
+                        ttsToggleButton.Content = "TTS";
+                        ttsToggleButton.ToolTip = enabled ? "TTS: On" : "TTS: Off";
                     }
 
-                    ttsToggleButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(95, 95, 95));
+                    ToolbarButton.Set(ttsToggleButton, enabled);
                 });
             }
             catch (Exception ex)
@@ -963,15 +966,17 @@ namespace RSTGameTranslation
                         var baseLabel = LocalizationManager.Instance.Strings["Btn_AudioService"];
                         var stateLabelKey = enabled ? "Btn_AudioService_On" : "Btn_AudioService_Off";
                         var stateLabel = LocalizationManager.Instance.Strings[stateLabelKey];
-                        audioServiceButton.Content = $"{baseLabel}: {stateLabel}";
+                        audioServiceButton.Content = baseLabel;
+                        audioServiceButton.ToolTip = $"{baseLabel}: {stateLabel}";
                     }
                     catch
                     {
                         // Fallback to simple english text if localization keys are missing
-                        audioServiceButton.Content = enabled ? "Audio STT: On" : "Audio STT: Off";
+                        audioServiceButton.Content = "Audio STT";
+                        audioServiceButton.ToolTip = enabled ? "Audio STT: On" : "Audio STT: Off";
                     }
 
-                    audioServiceButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(95, 95, 95));
+                    ToolbarButton.Set(audioServiceButton, enabled);
                 });
             }
             catch (Exception ex)
@@ -1019,7 +1024,7 @@ namespace RSTGameTranslation
                     LocalizationManager.Instance.Strings["Msg_MaximumAreasAllowed"]);
             }
 
-            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+            ToolbarButton.SetState(selectAreaButton, ToolbarState.On);
 
             CoachMarkTour.Current?.OnAreaChosen();
         }
@@ -1089,7 +1094,7 @@ namespace RSTGameTranslation
             }
 
             UpdateCustomCaptureRect();
-            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+            ToolbarButton.SetState(selectAreaButton, ToolbarState.On);
         }
 
         /// <summary>Forget every translation area and go back to capturing the default area.</summary>
@@ -1101,7 +1106,7 @@ namespace RSTGameTranslation
             hasSelectedTranslationArea = false;
             currentAreaIndex = -1;
             _areaWindowAnchor = null;
-            selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+            ToolbarButton.Set(selectAreaButton, hasSelectedTranslationArea);
             UpdateCaptureRect();
         }
 
@@ -1631,7 +1636,7 @@ namespace RSTGameTranslation
                 Logic.Instance.ResetHash();
                 isStarted = false;
                 btn.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("Strings[Btn_Start]") { Source = LocalizationManager.Instance });
-                btn.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green                                                   
+                btn.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "SuccessBrush");
                 Logic.Instance.ClearAllTextObjects();
                 MonitorWindow.Instance.RefreshOverlays();
                 MonitorWindow.Instance.HideTranslationStatus();
@@ -1661,7 +1666,7 @@ namespace RSTGameTranslation
                     btn.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("Strings[Btn_Stop]") { Source = LocalizationManager.Instance });
                     UpdateCaptureRect();
                     SetOCRCheckIsWanted(true);
-                    btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+                    btn.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "DangerBrush");
                     ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStarted"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStarted_Details"]);
                     StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
                     StartStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
@@ -1888,7 +1893,7 @@ namespace RSTGameTranslation
 
                 SettingsWindow.Instance.Hide();
                 Console.WriteLine("Settings window hidden");
-                settingsButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(108, 117, 125));
+                ToolbarButton.SetState(settingsButton, ToolbarState.Off);
             }
             else
             {
@@ -1914,7 +1919,7 @@ namespace RSTGameTranslation
 
                 SettingsWindow.Instance.Show();
                 Console.WriteLine($"Settings window shown at position {SettingsWindow.Instance.Left}, {SettingsWindow.Instance.Top}");
-                settingsButton.Background = new SolidColorBrush(Color.FromRgb(176, 125, 69)); // Orange
+                ToolbarButton.SetState(settingsButton, ToolbarState.On);
             }
         }
 
@@ -2443,7 +2448,7 @@ namespace RSTGameTranslation
             {
                 // Hide log window
                 LogWindow.Instance.Hide();
-                logButton.Background = new SolidColorBrush(Color.FromRgb(153, 69, 176)); // Purple
+                ToolbarButton.SetState(logButton, ToolbarState.Off);
             }
             else
             {
@@ -2451,7 +2456,7 @@ namespace RSTGameTranslation
                 // Set MainWindow as owner to ensure Log window appears above it
                 LogWindow.Instance.Owner = this;
                 LogWindow.Instance.Show();
-                logButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 153)); // Pink/Red
+                ToolbarButton.SetState(logButton, ToolbarState.On);
             }
         }
 
@@ -2549,9 +2554,7 @@ namespace RSTGameTranslation
         // Update log button state (called from LogWindow when it's closed)
         public void updateLogButtonState(bool isVisible)
         {
-            logButton.Background = isVisible
-                ? new SolidColorBrush(Color.FromRgb(176, 69, 153)) // Pink/Red - visible
-                : new SolidColorBrush(Color.FromRgb(153, 69, 176)); // Purple - hidden
+            ToolbarButton.Set(logButton, isVisible);
         }
 
         // Remember the monitor window position
@@ -2562,7 +2565,7 @@ namespace RSTGameTranslation
         {
             MonitorWindow.Instance.imageScrollViewer.Visibility = Visibility.Collapsed;
             Console.WriteLine("Monitor window hidden from MainWindow toggle");
-            monitorButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+            ToolbarButton.SetState(monitorButton, ToolbarState.Off);
             if (notify)
             {
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayHidden"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayHidden_Details"]);
@@ -2581,7 +2584,7 @@ namespace RSTGameTranslation
             // {
             //     MonitorWindow.Instance.Show();
             //     Console.WriteLine("Monitor window shown from MainWindow toggle");
-            //     monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+            //     ToolbarButton.SetState(monitorButton, ToolbarState.On);
             // }
             else
             {
@@ -2628,7 +2631,7 @@ namespace RSTGameTranslation
                     // Refresh overlays
                     MonitorWindow.Instance.RefreshOverlays();
 
-                    monitorButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                    ToolbarButton.SetState(monitorButton, ToolbarState.On);
                     Console.WriteLine("MonitorWindow setup complete");
                     ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_OverlayVisible"], LocalizationManager.Instance.Strings["NotificationMessage_OverlayVisible_Details"]);
                     OverlayStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Green
@@ -2774,7 +2777,7 @@ namespace RSTGameTranslation
             {
                 // Cancel the selection mode if already selecting
                 isSelectingChatBoxArea = false;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
+                ToolbarButton.SetState(chatBoxButton, ToolbarState.Off);
 
                 // Find and close any existing selector window
                 foreach (Window window in System.Windows.Application.Current.Windows)
@@ -2817,7 +2820,7 @@ namespace RSTGameTranslation
                 }
 
                 isChatBoxVisible = false;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
+                ToolbarButton.SetState(chatBoxButton, ToolbarState.Off);
             }
             else if (!isChatBoxVisible && !recreateOnShow)
             {
@@ -2843,7 +2846,7 @@ namespace RSTGameTranslation
                     // Show the chatbox
                     chatBoxWindow.Show();
                     isChatBoxVisible = true;
-                    chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                    ToolbarButton.SetState(chatBoxButton, ToolbarState.On);
                 }
                 else
                 {
@@ -2881,15 +2884,15 @@ namespace RSTGameTranslation
                     // Only set button to blue if the ChatBox isn't visible (was cancelled)
                     if (!isChatBoxVisible || chatBoxWindow == null || !chatBoxWindow.IsVisible)
                     {
-                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 176, 105)); // Blue
+                        ToolbarButton.SetState(chatBoxButton, ToolbarState.Off);
                     }
                 };
                 selectorWindow.Show();
                 selectorWindow.Activate(); // Bring to front and ensure focus
 
-                // Set button to red while selector is active
+                // Mark the button as busy while the selector is open
                 isSelectingChatBoxArea = true;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red
+                ToolbarButton.SetState(chatBoxButton, ToolbarState.Busy);
             }
             catch (Exception ex)
             {
@@ -2903,7 +2906,7 @@ namespace RSTGameTranslation
             try
             {
                 isChatBoxVisible = false;
-                chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                ToolbarButton.SetState(chatBoxButton, ToolbarState.Off);
             }
             finally
             {
@@ -2933,7 +2936,7 @@ namespace RSTGameTranslation
                     else
                     {
                         isChatBoxVisible = false;
-                        chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
+                        ToolbarButton.SetState(chatBoxButton, ToolbarState.Off);
                     }
                 }
             }
@@ -3010,7 +3013,7 @@ namespace RSTGameTranslation
                 chatBoxWindow.Show();
             }
             isChatBoxVisible = true;
-            chatBoxButton.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red when active
+            ToolbarButton.SetState(chatBoxButton, ToolbarState.On);
 
             // The ChatBox will get its data from MainWindow.GetTranslationHistory()
             // No need to manually load entries, just trigger an update
@@ -3451,7 +3454,7 @@ namespace RSTGameTranslation
             {
                 selectWindowButton.SetBinding(ContentControl.ContentProperty,
                     new System.Windows.Data.Binding("Strings[Btn_SelectWindow]") { Source = LocalizationManager.Instance });
-                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(69, 107, 160)); // Blue
+                ToolbarButton.SetState(selectWindowButton, ToolbarState.Off);
                 UpdateCaptureRect();
                 if (!IsWindows10)
                 {
@@ -3591,7 +3594,7 @@ namespace RSTGameTranslation
                 }
 
                 selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
-                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+                ToolbarButton.SetState(selectWindowButton, ToolbarState.On);
 
                 Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
 
@@ -3830,7 +3833,7 @@ namespace RSTGameTranslation
         //     {
         //         isListening = true;
         //         btn.Content = "Stop Listening";
-        //         btn.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+        //         btn.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "DangerBrush");
         //         if (openAIRealtimeAudioService == null)
         //             openAIRealtimeAudioService = new OpenAIRealtimeAudioServiceWhisper();
         //         openAIRealtimeAudioService.StartRealtimeAudioService(OnOpenAITranscriptionReceived);

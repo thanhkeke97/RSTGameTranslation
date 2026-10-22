@@ -7,7 +7,7 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[App_Title]}"
-        Height="600" Width="1100"
+        Height="700" Width="1200"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -357,7 +357,136 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,6,0,0"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style> 
+        </Style>
+
+        <!-- Toolbar group header: "(1) CAPTURE AREA", top left of each group -->
+        <Style x:Key="ToolGroupHeader" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Step number in front of a group header -->
+        <Style x:Key="ToolStepBadge" TargetType="Border">
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Toolbar button with a state (local:ToolbarButton.State): a hollow dot when off, a filled
+             dot with an accent border when on, amber while the user is selecting something.
+             Colors come from the theme, so code only sets the state. -->
+        <Style x:Key="ToolbarToggleButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource NeutralBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="10,0,12,0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"/>
+                            <Border x:Name="tint" CornerRadius="6" Margin="1" Opacity="0"
+                                    Background="{DynamicResource AccentBrush}"/>
+                            <StackPanel Orientation="Horizontal" Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center">
+                                <Ellipse x:Name="dot" Width="7" Height="7" Margin="0,0,7,0" VerticalAlignment="Center"
+                                         Fill="Transparent" Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.5"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Surface3Brush}"/>
+                            </Trigger>
+                            <Trigger Property="local:ToolbarButton.State" Value="On">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="tint" Property="Opacity" Value="0.14"/>
+                                <Setter TargetName="dot" Property="Fill" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="dot" Property="Stroke" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="local:ToolbarButton.State" Value="Busy">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+                                <Setter TargetName="tint" Property="Background" Value="{DynamicResource WarningBrush}"/>
+                                <Setter TargetName="tint" Property="Opacity" Value="0.18"/>
+                                <Setter TargetName="dot" Property="Fill" Value="{DynamicResource WarningBrush}"/>
+                                <Setter TargetName="dot" Property="Stroke" Value="{DynamicResource WarningBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Small secondary toolbar action (Show / Clear): no state, quiet until hovered -->
+        <Style x:Key="ToolbarGhostButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Surface3Brush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- The one primary action: Start / Stop. Background is SuccessBrush or DangerBrush, set from code. -->
+        <Style x:Key="StartButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="136"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="1" Opacity="0.18"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <!-- Card Style -->
         <Style x:Key="CardStyle" TargetType="Border">
@@ -524,67 +653,114 @@
                     </Grid>
                 </Border>
                 <!-- ========== TOOLBAR ========== -->
-                <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" 
+                <!-- Groups follow the order of use: (1) capture area, (2) languages, (3) where results show,
+                     then the one primary action (Start) and the system windows. Buttons with a state use
+                     ToolbarToggleButton; code sets local:ToolbarButton.State instead of a color. -->
+                <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
-                    <WrapPanel Margin="12,10" Orientation="Horizontal">
-                        
-                        <!-- GROUP: Control -->
+                    <!-- Groups wrap like a WrapPanel, and each row is stretched to the full width.
+                         Right/bottom margins are smaller because every group adds 8 on those sides. -->
+                    <local:JustifiedWrapPanel Margin="12,10,4,2">
+
+                        <!-- GROUP 1: Capture Area -->
                         <Border Style="{StaticResource ToolGroupStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button x:Name="toggleButton" Style="{StaticResource ModernButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}"
-                                            Background="#22c55e" Click="OnStartButtonToggleClicked" 
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="▶ " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
-                                    <Button x:Name="audioServiceButton" Style="{StaticResource ModernButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"
-                                            Background="#6366f1" Click="AudioServiceButton_Click"
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🎤 " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
-                                    <Button x:Name="ttsToggleButton" Style="{StaticResource ModernButton}"
-                                            Content="TTS"
-                                            Background="#5f5f5f" Click="TtsToggleButton_Click"
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🔊 " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Border Style="{StaticResource ToolStepBadge}">
+                                        <TextBlock Text="1" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_CaptureArea]}"
+                                               Style="{StaticResource ToolGroupHeader}"/>
                                 </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Control]}" 
-                                           Style="{StaticResource ToolGroupLabel}"/>
-                                <!-- Hidden controls -->
-                                <Button x:Name="hideButton" Content="Hide" Visibility="Collapsed" Click="HideButton_Click"/>
-                            </StackPanel>
+                                <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="selectAreaButton" Style="{StaticResource ToolbarToggleButton}" Margin="0,0,6,0"
+                                                Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectArea]}"
+                                                Click="SelectAreaButton_Click"
+                                                WindowChrome.IsHitTestVisibleInChrome="True">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="⬚ " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button x:Name="selectWindowButton" Style="{StaticResource ToolbarToggleButton}" Margin="0,0,6,0"
+                                                Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectWindow]}"
+                                                Click="SelectWindowButton_Click"
+                                                WindowChrome.IsHitTestVisibleInChrome="True">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🖼 " FontSize="10" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button x:Name="showAreaButton" Style="{StaticResource ToolbarGhostButton}" Margin="0,0,6,0"
+                                                ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Show]}"
+                                                Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                            <TextBlock Text="👁" FontSize="12"/>
+                                        </Button>
+                                        <Button x:Name="btnClearSelectionArea" Style="{StaticResource ToolbarGhostButton}"
+                                                ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Clear]}"
+                                                Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                            <TextBlock Text="✖" FontSize="11"/>
+                                        </Button>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <ComboBox x:Name="screenSelectionComboBox"
+                                                  Width="230" Height="32"
+                                                  VerticalContentAlignment="Center"
+                                                  Padding="8,0"
+                                                  FontSize="12"
+                                                  ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Screen]}"
+                                                  SelectionChanged="ScreenSelectionComboBox_SelectionChanged"
+                                                  WindowChrome.IsHitTestVisibleInChrome="True"
+                                                  Style="{StaticResource ThemedComboBox}"/>
+                                        <CheckBox x:Name="multiAreaCheckBox" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="12,0,0,0"
+                                                  Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MultiSelection]}"
+                                                  ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MultiSelection]}"
+                                                  Foreground="{DynamicResource TextBrush}" FontSize="12"
+                                                  Click="MultiAreaCheckBox_Click"
+                                                  WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
                         </Border>
 
-                        <!-- GROUP: Translation Language (quick switch; also editable in Settings) -->
+                        <!-- GROUP 2: Translation Language (quick switch; also editable in Settings) -->
                         <Border Style="{StaticResource ToolGroupStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Border Style="{StaticResource ToolStepBadge}">
+                                        <TextBlock Text="2" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_TranslationLanguage]}"
+                                               Style="{StaticResource ToolGroupHeader}"/>
+                                </StackPanel>
+                                <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
                                     <ComboBox x:Name="sourceLanguageComboBox"
-                                              Width="150" Height="32"
+                                              Width="160" Height="32"
                                               VerticalContentAlignment="Center"
                                               FontSize="12"
                                               Style="{StaticResource ThemedComboBox}"
@@ -592,15 +768,8 @@
                                               ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SourceLanguage]}"
                                               WindowChrome.IsHitTestVisibleInChrome="True">
                                     </ComboBox>
-                                    <Button x:Name="swapLanguagesButton" Style="{StaticResource NeutralButton}"
-                                            MinWidth="0" Width="34" Height="32" Padding="0" Margin="4,0"
-                                            Click="SwapLanguagesButton_Click"
-                                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}"
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <TextBlock Text="⇄" FontSize="15" FontWeight="Bold"/>
-                                    </Button>
-                                    <ComboBox x:Name="targetLanguageComboBox"
-                                              Width="150" Height="32"
+                                    <ComboBox x:Name="targetLanguageComboBox" Grid.Row="1" Margin="0,6,0,0"
+                                              Width="160" Height="32"
                                               VerticalContentAlignment="Center"
                                               FontSize="12"
                                               Style="{StaticResource ThemedComboBox}"
@@ -608,103 +777,44 @@
                                               ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TargetLanguage]}"
                                               WindowChrome.IsHitTestVisibleInChrome="True">
                                     </ComboBox>
-                                </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_TranslationLanguage]}"
-                                           Style="{StaticResource ToolGroupLabel}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- GROUP: Capture Area -->
-                        <Border Style="{StaticResource ToolGroupStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button x:Name="selectAreaButton" Style="{StaticResource ModernButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectArea]}"
-                                            Background="#f59e0b" Foreground="Black" Click="SelectAreaButton_Click"
+                                    <Button x:Name="swapLanguagesButton" Grid.Column="1" Grid.RowSpan="2"
+                                            Style="{StaticResource ToolbarGhostButton}"
+                                            Width="30" Height="Auto" Padding="0" Margin="6,0,0,0"
+                                            Click="SwapLanguagesButton_Click"
+                                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}"
                                             WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="⬚ " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
+                                        <TextBlock Text="⇅" FontSize="15" FontWeight="Bold"/>
                                     </Button>
-                                    <Button x:Name="selectWindowButton" Style="{StaticResource AccentButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SelectWindow]}"
-                                            Click="SelectWindowButton_Click"
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🖼 " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
-                                            <Button x:Name="btnClearSelectionArea" Style="{StaticResource NeutralButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Clear]}"
-                                            Click="btnClearSelectionArea_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="✖ " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
-                                            <Button x:Name="showAreaButton" Style="{StaticResource NeutralButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Show]}"
-                                            Click="ShowAreaButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="👁 " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
-                                    <CheckBox x:Name="multiAreaCheckBox" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,4,0"
-                                              Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MultiSelection]}"
-                                              ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MultiSelection]}"
-                                              Foreground="{DynamicResource TextBrush}" FontSize="12"
-                                              Click="MultiAreaCheckBox_Click"
-                                              WindowChrome.IsHitTestVisibleInChrome="True"/>
-                                </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_CaptureArea]}" 
-                                           Style="{StaticResource ToolGroupLabel}"/>
-                            </StackPanel>
+                                </Grid>
+                            </Grid>
                         </Border>
 
-                        <!-- GROUP: Screen Selection -->
+                        <!-- GROUP 3: Where the results show -->
                         <Border Style="{StaticResource ToolGroupStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <ComboBox x:Name="screenSelectionComboBox" 
-                                              Width="160" Height="32"
-                                              VerticalContentAlignment="Center"
-                                              Padding="8,0"
-                                              FontSize="12"
-                                              SelectionChanged="ScreenSelectionComboBox_SelectionChanged"
-                                              WindowChrome.IsHitTestVisibleInChrome="True"
-                                              Style="{StaticResource ThemedComboBox}"/>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Border Style="{StaticResource ToolStepBadge}">
+                                        <TextBlock Text="3" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_DisplayResults]}"
+                                               Style="{StaticResource ToolGroupHeader}"/>
                                 </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Screen]}" 
-                                           Style="{StaticResource ToolGroupLabel}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- GROUP: Display -->
-                        <Border Style="{StaticResource ToolGroupStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button x:Name="monitorButton" Style="{StaticResource ModernButton}"
+                                <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Button x:Name="monitorButton" Style="{StaticResource ToolbarToggleButton}" Margin="0,0,6,6"
                                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}"
-                                            Background="#8b5cf6" Click="MonitorButton_Click"
+                                            Click="MonitorButton_Click"
                                             WindowChrome.IsHitTestVisibleInChrome="True">
                                         <Button.ContentTemplate>
                                             <DataTemplate>
@@ -715,9 +825,9 @@
                                             </DataTemplate>
                                         </Button.ContentTemplate>
                                     </Button>
-                                    <Button x:Name="chatBoxButton" Style="{StaticResource ModernButton}"
+                                    <Button x:Name="chatBoxButton" Grid.Column="1" Style="{StaticResource ToolbarToggleButton}" Margin="0,0,0,6"
                                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ChatBox]}"
-                                            Background="#10b981" Click="ChatBoxButton_Click"
+                                            Click="ChatBoxButton_Click"
                                             WindowChrome.IsHitTestVisibleInChrome="True">
                                         <Button.ContentTemplate>
                                             <DataTemplate>
@@ -728,32 +838,95 @@
                                             </DataTemplate>
                                         </Button.ContentTemplate>
                                     </Button>
-                                </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_DisplayResults]}" 
-                                           Style="{StaticResource ToolGroupLabel}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- GROUP: System -->
-                        <Border Style="{StaticResource ToolGroupStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button x:Name="settingsButton" Style="{StaticResource ModernButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Settings]}"
-                                            Background="#64748b" Click="SettingsButton_Click"
+                                    <Button x:Name="ttsToggleButton" Grid.Row="1" Style="{StaticResource ToolbarToggleButton}" Margin="0,0,6,0"
+                                            Content="TTS"
+                                            Click="TtsToggleButton_Click"
                                             WindowChrome.IsHitTestVisibleInChrome="True">
                                         <Button.ContentTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="⚙ " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="🔊 " FontSize="10" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </Button.ContentTemplate>
                                     </Button>
-                                    <Button x:Name="logButton" Style="{StaticResource ModernButton}"
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- GROUP: Control (the primary action) -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8" Height="16">
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_Control]}"
+                                               Style="{StaticResource ToolGroupHeader}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Button x:Name="toggleButton" Style="{StaticResource StartButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}"
+                                            Click="OnStartButtonToggleClicked"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="▶ " FontSize="12" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <Button x:Name="audioServiceButton" Style="{StaticResource ToolbarToggleButton}" Margin="0,6,0,0"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"
+                                            Click="AudioServiceButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🎤 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <!-- Hidden controls -->
+                                    <Button x:Name="hideButton" Content="Hide" Visibility="Collapsed" Click="HideButton_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- GROUP: System -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8" Height="16">
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_System]}"
+                                               Style="{StaticResource ToolGroupHeader}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Button x:Name="settingsButton" Style="{StaticResource ToolbarToggleButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Settings]}"
+                                            Click="SettingsButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="⚙ " FontSize="11" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <Button x:Name="logButton" Style="{StaticResource ToolbarToggleButton}" Margin="0,6,0,0"
                                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Log]}"
-                                            Background="#a855f7" Click="LogButton_Click"
+                                            Click="LogButton_Click"
                                             WindowChrome.IsHitTestVisibleInChrome="True">
                                         <Button.ContentTemplate>
                                             <DataTemplate>
@@ -765,16 +938,11 @@
                                         </Button.ContentTemplate>
                                     </Button>
                                 </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_System]}" 
-                                           Style="{StaticResource ToolGroupLabel}"/>
-                            </StackPanel>
+                            </Grid>
                         </Border>
 
-                        <!-- Spacer -->
-                        <Border Width="Auto" HorizontalAlignment="Stretch"/>
-
                         <!-- Right side actions moved into Hotkeys header -->
-                    </WrapPanel>
+                    </local:JustifiedWrapPanel>
                 </Border>
                 
                 <!-- ========== MAIN CONTENT ========== -->

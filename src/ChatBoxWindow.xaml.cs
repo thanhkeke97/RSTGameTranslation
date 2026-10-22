@@ -1080,7 +1080,7 @@ namespace RSTGameTranslation
         {
             // Instead of closing, hide the window (to match behavior with Log window)
             this.Hide();
-            MainWindow.Instance.chatBoxButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(69, 176, 105));
+            ToolbarButton.SetState(MainWindow.Instance.chatBoxButton, ToolbarState.Off);
 
             // The MainWindow will handle setting isChatBoxVisible to false in its event handler
         }
