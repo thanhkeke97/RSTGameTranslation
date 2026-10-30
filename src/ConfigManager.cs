@@ -181,6 +181,9 @@ namespace RSTGameTranslation
         public const string GOOGLE_FREE_FALLBACK_SERVICE = "google_free_fallback_service";
         public const string WINDOWS_TTS_SPEECH_RATE = "windows_tts_speech_rate";
         public const string TTS_AUTO_SPEEDUP = "tts_auto_speedup";
+        public const string TTS_VOLUME = "tts_volume";
+        public const int TTS_MIN_VOLUME = 0;
+        public const int TTS_MAX_VOLUME = 200;
         // One-time migration markers
         private const string MIGRATED_AUDIO_DEFAULTS_1000MS_5S = "migrated_audio_defaults_1000ms_5s";
         public const string WHISPER_THREAD_COUNT = "whisper_thread_count";
@@ -983,6 +986,20 @@ namespace RSTGameTranslation
         public void SetTtsAutoSpeedUpEnabled(bool enabled)
         {
             _configValues[TTS_AUTO_SPEEDUP] = enabled.ToString().ToLowerInvariant();
+            SaveConfig();
+        }
+
+        // TTS playback volume in percent, 0 .. 200, 100 = unchanged (applies to every TTS engine)
+        public int GetTtsVolume()
+        {
+            int volume = int.TryParse(GetValue(TTS_VOLUME, "100"), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+                ? value : 100;
+            return Math.Clamp(volume, TTS_MIN_VOLUME, TTS_MAX_VOLUME);
+        }
+
+        public void SetTtsVolume(int volume)
+        {
+            _configValues[TTS_VOLUME] = Math.Clamp(volume, TTS_MIN_VOLUME, TTS_MAX_VOLUME).ToString(CultureInfo.InvariantCulture);
             SaveConfig();
         }
 
@@ -2885,6 +2902,9 @@ namespace RSTGameTranslation
         // narrow.
         public const float SUPERTONIC_MIN_SPEED = 1.05f;
         public const float SUPERTONIC_MAX_SPEED = 2.0f;
+        // Auto speed-up (TTS lagging behind) never pushes Supertonic past this, for the reason above:
+        // faster lines came out with words cut off and replaced by a buzz
+        public const float SUPERTONIC_AUTO_SPEED_MAX = 1.3f;
 
         public float GetSupertonicSpeed()
         {

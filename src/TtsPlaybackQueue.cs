@@ -36,9 +36,27 @@ namespace RSTGameTranslation
         private const double SpeedStepPerSecond = 0.125;
         public const double MaxAutoSpeedFactor = 1.5;
 
+        // Gain applied to every sample on output (1.0 = unchanged). Cached here because the audio
+        // thread reads it on every buffer; changing it affects the clip already playing.
+        private static float s_volume = 1f;
+
         static TtsPlaybackQueue()
         {
             DeleteLegacyTempFiles();
+            try
+            {
+                SetVolumePercent(ConfigManager.Instance.GetTtsVolume());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TTS] Could not read TTS volume: {ex.Message}");
+            }
+        }
+
+        /// <summary>Set the TTS playback volume in percent (100 = unchanged). Takes effect immediately.</summary>
+        public static void SetVolumePercent(int percent)
+        {
+            Volatile.Write(ref s_volume, Math.Clamp(percent, ConfigManager.TTS_MIN_VOLUME, ConfigManager.TTS_MAX_VOLUME) / 100f);
         }
 
         /// <summary>Seconds of TTS audio queued or still to be played, across every queue.</summary>
@@ -408,8 +426,15 @@ namespace RSTGameTranslation
         /// <summary>The sample provider one output device plays: the sequencer, tagged with its session.</summary>
         private sealed class SessionTap : ISampleProvider
         {
+            // Peak limiter for volumes above 100%: hard-clipping loud peaks crackled audibly, so the
+            // gain is pulled down just enough to keep each peak under the ceiling, then eased back
+            private const float LimiterCeiling = 0.95f;
+            private const double LimiterReleaseSeconds = 0.08;
+            private static readonly float LimiterRelease = (float)(1 - Math.Exp(-1.0 / (LimiterReleaseSeconds * OutputRate)));
+
             private readonly ClipSequencer sequencer;
             private readonly int session;
+            private float limiterGain = 1f;
 
             public SessionTap(ClipSequencer sequencer, int session)
             {
@@ -419,7 +444,42 @@ namespace RSTGameTranslation
 
             public WaveFormat WaveFormat => OutputFormat;
 
-            public int Read(float[] buffer, int offset, int count) => sequencer.Read(session, buffer, offset, count);
+            public int Read(float[] buffer, int offset, int count)
+            {
+                int read = sequencer.Read(session, buffer, offset, count);
+                ApplyVolume(buffer, offset, read);
+                return read;
+            }
+
+            private void ApplyVolume(float[] buffer, int offset, int count)
+            {
+                float volume = Volatile.Read(ref s_volume);
+                if (volume == 1f && limiterGain == 1f) return;
+
+                int channels = OutputFormat.Channels;
+                for (int frame = offset; frame + channels <= offset + count; frame += channels)
+                {
+                    float peak = 0f;
+                    for (int c = 0; c < channels; c++)
+                    {
+                        peak = Math.Max(peak, Math.Abs(buffer[frame + c]));
+                    }
+                    peak *= volume;
+
+                    // Instant attack so no sample goes over the ceiling, smooth release afterwards
+                    float target = peak > LimiterCeiling ? LimiterCeiling / peak : 1f;
+                    if (target < limiterGain)
+                        limiterGain = target;
+                    else
+                        limiterGain = Math.Min(1f, limiterGain + (1f - limiterGain) * LimiterRelease);
+
+                    float gain = volume * limiterGain;
+                    for (int c = 0; c < channels; c++)
+                    {
+                        buffer[frame + c] = Math.Clamp(buffer[frame + c] * gain, -1f, 1f);
+                    }
+                }
+            }
         }
     }
 }

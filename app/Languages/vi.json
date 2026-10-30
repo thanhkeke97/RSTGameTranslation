@@ -595,6 +595,8 @@
   "Lbl_WindowsTtsRate": "Tốc độ đọc:",
   "Lbl_TtsAutoSpeedUp": "Tăng tốc khi đọc chậm:",
   "Tip_TtsAutoSpeedUp": "Khi bản dịch đến nhanh hơn tốc độ đọc, các câu tiếp theo sẽ được đọc nhanh hơn (tối đa 1.5 lần) để bắt kịp game.",
+  "Lbl_TtsVolume": "Âm lượng TTS:",
+  "Tip_TtsVolume": "Âm lượng giọng đọc của mọi dịch vụ TTS. 100% = giữ nguyên; trên 100% giúp giọng nhỏ to hơn. Không ảnh hưởng âm lượng game hay Windows.",
   "Lbl_GoogleFreeFallback": "Khi bị giới hạn:",
   "Tip_GoogleFreeFallback": "Google Dịch miễn phí có thể bị giới hạn tần suất (HTTP 429). Trong thời gian đó, câu sẽ được dịch bằng dịch vụ này. Chỉ áp dụng cho dịch vụ web miễn phí.",
   "GoogleFallback_None": "Không làm gì",

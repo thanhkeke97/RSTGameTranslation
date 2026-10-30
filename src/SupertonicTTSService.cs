@@ -368,10 +368,11 @@ namespace RSTGameTranslation.Supertonic
             foreach (var chunk in textList)
             {
                 var (wav, duration) = _Infer(new List<string> { chunk }, new List<string> { lang }, style, totalStep, speed);
+                var speech = TrimToDuration(wav, duration[0]);
 
                 if (wavCat.Count == 0)
                 {
-                    wavCat.AddRange(wav);
+                    wavCat.AddRange(speech);
                     durCat = duration[0];
                 }
                 else
@@ -379,12 +380,27 @@ namespace RSTGameTranslation.Supertonic
                     int silenceLen = (int)(silenceDuration * SampleRate);
                     var silence = new float[silenceLen];
                     wavCat.AddRange(silence);
-                    wavCat.AddRange(wav);
+                    wavCat.AddRange(speech);
                     durCat += duration[0] + silenceDuration;
                 }
             }
 
             return (wavCat.ToArray(), new float[] { durCat });
+        }
+
+        // The vocoder renders whole latent chunks, so its output runs past the predicted speech
+        // duration; that masked tail decodes to a buzz heard right after the line ends. Keep only
+        // the predicted duration (as the reference Supertonic code does) and fade out its last
+        // few milliseconds so the cut doesn't click.
+        private ArraySegment<float> TrimToDuration(float[] wav, float duration)
+        {
+            int length = Math.Clamp((int)(duration * SampleRate), 0, wav.Length);
+            int fade = Math.Min(length, (int)(0.01f * SampleRate));
+            for (int i = 0; i < fade; i++)
+            {
+                wav[length - fade + i] *= 1f - (i + 1) / (float)fade;
+            }
+            return new ArraySegment<float>(wav, 0, length);
         }
 
         public (float[] wav, float[] duration) Batch(
@@ -883,8 +899,10 @@ namespace RSTGameTranslation
                     if (speed > ConfigManager.SUPERTONIC_MAX_SPEED) speed = ConfigManager.SUPERTONIC_MAX_SPEED;
 
                     // Auto speed-up when lines pile up, decided once per line so every sentence
-                    // of it is read at the same pace.
-                    speed = Math.Min(ConfigManager.SUPERTONIC_MAX_SPEED, speed * (float)TtsPlaybackQueue.GetAutoSpeedFactor());
+                    // of it is read at the same pace. It stops at SUPERTONIC_AUTO_SPEED_MAX, where the
+                    // model starts garbling words; a faster speed the user chose is kept as is.
+                    float autoSpeed = Math.Min(ConfigManager.SUPERTONIC_AUTO_SPEED_MAX, speed * (float)TtsPlaybackQueue.GetAutoSpeedFactor());
+                    speed = Math.Max(speed, autoSpeed);
 
                     // Synthesize sentence by sentence and queue each clip as soon as it is ready,
                     // so playback starts after the first sentence instead of after the whole

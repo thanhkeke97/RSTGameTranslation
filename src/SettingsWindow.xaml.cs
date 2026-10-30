@@ -1209,6 +1209,8 @@ namespace RSTGameTranslation
             windowsTtsRateSlider.Value = WindowsTTSService.GetSpeechRate();
             windowsTtsRateValueText.Text = WindowsTTSService.GetSpeechRate().ToString(CultureInfo.InvariantCulture);
             ttsAutoSpeedUpCheckBox.IsChecked = ConfigManager.Instance.IsTtsAutoSpeedUpEnabled();
+            ttsVolumeSlider.Value = ConfigManager.Instance.GetTtsVolume();
+            ttsVolumeValueText.Text = $"{ConfigManager.Instance.GetTtsVolume()}%";
 
             // Set TTS service
             string ttsService = ConfigManager.Instance.GetTtsService();
@@ -5716,6 +5718,16 @@ namespace RSTGameTranslation
                 windowsTtsRateValueText.Text = rate.ToString(CultureInfo.InvariantCulture);
             if (_isInitializing) return;
             WindowsTTSService.SetSpeechRate(rate);
+        }
+
+        private void TtsVolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            int volume = (int)Math.Round(e.NewValue);
+            if (ttsVolumeValueText != null)
+                ttsVolumeValueText.Text = $"{volume}%";
+            if (_isInitializing) return;
+            TtsPlaybackQueue.SetVolumePercent(volume);
+            ConfigManager.Instance.SetTtsVolume(volume);
         }
 
         private void TtsAutoSpeedUpCheckBox_CheckedChanged(object sender, RoutedEventArgs e)

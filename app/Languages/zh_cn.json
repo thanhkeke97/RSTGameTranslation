@@ -590,6 +590,8 @@
   "Lbl_WindowsTtsRate": "朗读速度：",
   "Lbl_TtsAutoSpeedUp": "落后时加速：",
   "Tip_TtsAutoSpeedUp": "当译文到达速度快于朗读速度时，加快后续句子的朗读（最多 1.5 倍）以跟上游戏。",
+  "Lbl_TtsVolume": "TTS 音量：",
+  "Tip_TtsVolume": "所有 TTS 服务朗读语音的音量。100% = 原始音量；高于 100% 可让较小的语音更响亮。不会改变游戏或 Windows 的音量。",
   "Lbl_GoogleFreeFallback": "受限时：",
   "Tip_GoogleFreeFallback": "免费的 Google 翻译可能被限流（HTTP 429）。期间将改用此服务翻译。仅适用于免费网页服务。",
   "GoogleFallback_None": "不处理",

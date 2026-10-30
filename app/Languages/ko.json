@@ -593,6 +593,8 @@
   "Lbl_WindowsTtsRate": "읽기 속도:",
   "Lbl_TtsAutoSpeedUp": "밀리면 빠르게 읽기:",
   "Tip_TtsAutoSpeedUp": "번역이 읽는 속도보다 빨리 도착하면 다음 대사를 더 빠르게(최대 1.5배) 읽어 게임을 따라잡습니다.",
+  "Lbl_TtsVolume": "TTS 음량:",
+  "Tip_TtsVolume": "모든 TTS 서비스의 읽기 음성 음량입니다. 100% = 원래 음량, 100%보다 높으면 작은 음성이 더 커집니다. 게임이나 Windows 음량은 바뀌지 않습니다.",
   "Lbl_GoogleFreeFallback": "제한될 때:",
   "Tip_GoogleFreeFallback": "무료 Google 번역은 요청 제한(HTTP 429)을 받을 수 있습니다. 그동안 이 서비스로 번역합니다. 무료 웹 서비스에만 적용됩니다.",
   "GoogleFallback_None": "아무것도 하지 않음",

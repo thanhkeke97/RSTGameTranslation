@@ -593,6 +593,8 @@
   "Lbl_WindowsTtsRate": "読み上げ速度:",
   "Lbl_TtsAutoSpeedUp": "遅れたら速く読む:",
   "Tip_TtsAutoSpeedUp": "翻訳が読み上げより速く届くとき、次の台詞を速く(最大1.5倍)読んでゲームに追いつきます。",
+  "Lbl_TtsVolume": "TTS 音量:",
+  "Tip_TtsVolume": "すべての TTS サービスの読み上げ音量です。100% = 元の音量、100% を超えると小さい音声が大きくなります。ゲームや Windows の音量は変わりません。",
   "Lbl_GoogleFreeFallback": "制限されたとき:",
   "Tip_GoogleFreeFallback": "無料の Google 翻訳はレート制限(HTTP 429)を受けることがあります。その間はこのサービスで翻訳します。無料のウェブサービスにのみ適用されます。",
   "GoogleFallback_None": "何もしない",

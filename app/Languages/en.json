@@ -593,6 +593,8 @@
   "Lbl_WindowsTtsRate": "Speech rate:",
   "Lbl_TtsAutoSpeedUp": "Speed up when behind:",
   "Tip_TtsAutoSpeedUp": "When translated lines arrive faster than they can be read, read the next ones faster (up to 1.5x) to catch up with the game.",
+  "Lbl_TtsVolume": "TTS volume:",
+  "Tip_TtsVolume": "Volume of the voice read by every TTS service. 100% = original; above 100% makes quiet voices louder. Does not change the game or Windows volume.",
   "Lbl_GoogleFreeFallback": "When rate limited:",
   "Tip_GoogleFreeFallback": "The free Google Translate service can be rate limited (HTTP 429). Meanwhile, lines are translated with this service instead. Only applies to the free web service.",
   "GoogleFallback_None": "Do nothing",

@@ -1511,9 +1511,10 @@
                                     <RowDefinition Height="Auto"/> <!-- Row 5: Model -->
                                     <RowDefinition Height="Auto"/> <!-- Row 6: spacer -->
                                     <RowDefinition Height="Auto"/> <!-- Row 7: Exclude Character Name -->
-                                    <RowDefinition Height="Auto"/> <!-- Row 8: Windows TTS speech rate -->
-                                    <RowDefinition Height="Auto"/> <!-- Row 9: Auto speed-up -->
-                                    <RowDefinition Height="Auto"/> <!-- Row 10: Auto speed-up tip -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 8: TTS volume -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 9: Windows TTS speech rate -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 10: Auto speed-up -->
+                                    <RowDefinition Height="Auto"/> <!-- Row 11: Auto speed-up tip -->
                                 </Grid.RowDefinitions>
 
                                 <!-- TTS Enabled -->
@@ -1532,10 +1533,26 @@
                                          Checked="ExcludeCharacterNameCheckBox_CheckedChanged"
                                          Unchecked="ExcludeCharacterNameCheckBox_CheckedChanged"/>
 
+                                <!-- TTS volume (every service) -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TtsVolume]}" Grid.Row="8" Grid.Column="0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TtsVolume]}"
+                                          VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <Grid Grid.Row="8" Grid.Column="1" Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="40"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Slider x:Name="ttsVolumeSlider" Grid.Column="0" Minimum="0" Maximum="200" Value="100"
+                                            TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TtsVolume]}"
+                                            ValueChanged="TtsVolumeSlider_ValueChanged"/>
+                                    <TextBlock x:Name="ttsVolumeValueText" Grid.Column="1" Text="100%" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                </Grid>
+
                                 <!-- Windows TTS speech rate - Only visible when Windows TTS is selected -->
-                                <TextBlock x:Name="windowsTtsRateLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WindowsTtsRate]}" Grid.Row="8" Grid.Column="0"
+                                <TextBlock x:Name="windowsTtsRateLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WindowsTtsRate]}" Grid.Row="9" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,5,10,0" Visibility="Collapsed"/>
-                                <Grid x:Name="windowsTtsRateGrid" Grid.Row="8" Grid.Column="1" Margin="0,5" Visibility="Collapsed">
+                                <Grid x:Name="windowsTtsRateGrid" Grid.Row="9" Grid.Column="1" Margin="0,5" Visibility="Collapsed">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="40"/>
@@ -1547,12 +1564,12 @@
                                 </Grid>
 
                                 <!-- Auto speed-up when TTS falls behind -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TtsAutoSpeedUp]}" Grid.Row="9" Grid.Column="0"
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TtsAutoSpeedUp]}" Grid.Row="10" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="ttsAutoSpeedUpCheckBox" Grid.Row="9" Grid.Column="1" Margin="0,5"
+                                <CheckBox x:Name="ttsAutoSpeedUpCheckBox" Grid.Row="10" Grid.Column="1" Margin="0,5"
                                          Checked="TtsAutoSpeedUpCheckBox_CheckedChanged"
                                          Unchecked="TtsAutoSpeedUpCheckBox_CheckedChanged"/>
-                                <TextBlock Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="2"
+                                <TextBlock Grid.Row="11" Grid.Column="1" Grid.ColumnSpan="2"
                                         Margin="0,0,0,5"
                                         FontStyle="Italic"
                                         FontSize="11"
