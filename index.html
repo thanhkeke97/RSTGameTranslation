@@ -12,26 +12,34 @@
     
     <!-- SEO Meta Tags -->
     <title>RSTGameTranslation - Real-time Screen Translation for Gaming</title>
-    <meta name="description" content="RSTGameTranslation is a real-time screen translation tool for games using advanced AI, supporting multiple languages, working both offline and online with Gemini, ChatGPT, Ollama, LM Studio." />
+    <meta name="description" content="Free real-time game translator for Windows. OCR + AI (Gemini, ChatGPT, Ollama, LM Studio) translates game text and voice, online or 100% offline." />
     <meta name="keywords" content="game translation, real-time screen translation, RSTGameTranslation, game OCR, AI translation, OneOCR, Windows OCR, Gemini, ChatGPT, Ollama, LM Studio" />
     <meta name="author" content="thanhkeke97 (Thanh Pham)" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
-    
+
+    <!-- Language versions -->
+    <link rel="alternate" hreflang="en" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
+    <link rel="alternate" hreflang="vi" href="https://thanhkeke97.github.io/RSTGameTranslation/index_vi.html" />
+    <link rel="alternate" hreflang="x-default" href="https://thanhkeke97.github.io/RSTGameTranslation/" />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RSTGameTranslation" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="vi_VN" />
     <meta property="og:url" content="https://thanhkeke97.github.io/RSTGameTranslation/" />
     <meta property="og:title" content="RSTGameTranslation - Real-time Screen Translation for Gaming" />
     <meta property="og:description" content="Real-time screen translation tool for games using advanced AI, supporting multiple languages, working both offline and online." />
     <meta property="og:image" content="https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png" />
-    
+    <meta property="og:image:alt" content="RSTGameTranslation translation settings with Gemini" />
+
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://thanhkeke97.github.io/RSTGameTranslation/" />
-    <meta property="twitter:title" content="RSTGameTranslation - Real-time Screen Translation for Gaming" />
-    <meta property="twitter:description" content="Real-time screen translation tool for games using advanced AI, supporting multiple languages, working both offline and online." />
-    <meta property="twitter:image" content="https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png" />
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RSTGameTranslation - Real-time Screen Translation for Gaming" />
+    <meta name="twitter:description" content="Real-time screen translation tool for games using advanced AI, supporting multiple languages, working both offline and online." />
+    <meta name="twitter:image" content="https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png" />
+
     <style>
         :root {
             --primary-color: #3498db;
@@ -432,7 +440,9 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "RSTGameTranslation",
-        "description": "Real-time screen translation tool for games using advanced AI",
+        "url": "https://thanhkeke97.github.io/RSTGameTranslation/",
+        "description": "Real-time screen translation tool for games using OCR and AI (Gemini, ChatGPT, Groq, Mistral, Ollama, LM Studio, Google Translate), with speech-to-text and 100% offline mode.",
+        "inLanguage": "en",
         "operatingSystem": "Windows 10+",
         "applicationCategory": "UtilityApplication",
         "offers": {
@@ -440,14 +450,19 @@
             "price": "0",
             "priceCurrency": "USD"
         },
+        "isAccessibleForFree": true,
         "softwareVersion": "6.1",
         "author": {
             "@type": "Person",
-            "name": "thanhkeke97"
+            "name": "thanhkeke97",
+            "url": "https://github.com/thanhkeke97"
         },
         "datePublished": "2025-05-16",
-        "requirements": "Windows 10+, NVIDIA GPU recommended",
-        "softwareHelp": "https://github.com/thanhkeke97/RSTGameTranslation/issues"
+        "downloadUrl": "https://github.com/thanhkeke97/RSTGameTranslation/releases",
+        "screenshot": "https://thanhkeke97.github.io/RSTGameTranslation/media/settings_gemini.png",
+        "requirements": "Windows 10 or later; works on any GPU (AMD, Intel, NVIDIA) or CPU-only",
+        "softwareHelp": "https://github.com/thanhkeke97/RSTGameTranslation/issues",
+        "sameAs": ["https://github.com/thanhkeke97/RSTGameTranslation"]
     }
     </script>
 </head>
@@ -455,8 +470,8 @@
     <header>
         <div class="container">
             <div class="language-switch">
-                <a href="index.html" class="active">English</a> | 
-                <a href="index_vi.html">Tiếng Việt</a>
+                <a href="./" class="active" hreflang="en" lang="en" aria-current="page">English</a> |
+                <a href="index_vi.html" hreflang="vi" lang="vi">Tiếng Việt</a>
             </div>
             <h1>🎮 RSTGameTranslation</h1>
             <p>Real-time Screen Translation for Gaming</p>
@@ -469,7 +484,7 @@
         </div>
     </header>
 
-    <div class="container">
+    <main class="container">
         <nav>
             <h2>Quick Navigation</h2>
             <ul>
@@ -1116,7 +1131,7 @@
                 <h3>Setup Options:</h3>
                 <h4>🔵 Simple Setup (No Installation)</h4>
                 <ol>
-                    <li>Run `rst.exe`</li>
+                    <li>Run <code>rst.exe</code></li>
                     <li>Go to <strong>Settings</strong> → <strong>OCR</strong>: Select <strong>OneOCR</strong></li>
                     <li>Go to <strong>Settings</strong> → <strong>Language</strong>: Choose source and target languages</li>
                     <li>On Language tab, If you are using Windows OCR, please click the "Check" button to verify the language pack before starting</li>
@@ -1307,12 +1322,12 @@
                 </details>
             </div>
         </section>
-    </div>
+    </main>
 
     <footer>
         <p>RSTGameTranslation - Made with ❤️ for the gaming community</p>
         <p><a href="https://github.com/thanhkeke97/RSTGameTranslation" target="_blank" rel="noopener" style="color: white;">GitHub</a> | <a href="https://discord.gg/FusrDU5tdn" target="_blank" rel="noopener" style="color: white;">Discord</a></p>
-        <p>Version 5.7 | License: BSD</p>
+        <p>Version 6.1 | License: BSD</p>
     </footer>
 </body>
 </html>
