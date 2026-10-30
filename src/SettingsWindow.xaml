@@ -1222,17 +1222,32 @@
                                 <TextBlock Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
                                            Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HotKeyHint]}"/>
 
+                                <!-- Gamepad shortcuts (XInput), off by default -->
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <CheckBox x:Name="gamepadHotKeyEnableCheckBox" VerticalAlignment="Center"
+                                              Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GamepadHotKeyEnable]}"
+                                              Checked="GamepadHotKeyEnableCheckBox_CheckChange" Unchecked="GamepadHotKeyEnableCheckBox_CheckChange"/>
+                                    <TextBlock x:Name="gamepadStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GamepadHotKeyHint]}"/>
+
                                 <!-- Hotkey table: one row per function, click the shortcut to record a new one -->
                                 <Border Margin="0,10,0,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="5">
                                     <StackPanel>
                                         <Border Background="{DynamicResource NeutralBgBrush}" Padding="10,5" CornerRadius="5,5,0,0">
                                             <Grid>
+                                                <!-- Same column widths as the rows below -->
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="30"/>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="30"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_FunctionName]}" FontWeight="Bold"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Shortcut]}" FontWeight="Bold" Margin="0,0,40,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_Shortcut]}" FontWeight="Bold"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_GamepadShortcut]}" FontWeight="Bold"/>
                                             </Grid>
                                         </Border>
 
@@ -1243,8 +1258,10 @@
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="170"/>
-                                                                <ColumnDefinition Width="32"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="30"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="30"/>
                                                             </Grid.ColumnDefinitions>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition Height="Auto"/>
@@ -1277,9 +1294,40 @@
                                                             <Button Grid.Column="2" Content="✕" Padding="0" Margin="6,0,0,0" Width="24" Height="24" MinHeight="0"
                                                                     Click="ClearHotkeyButton_Click" Visibility="{Binding ClearVisibility}"
                                                                     ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HotKeyClear]}"/>
-                                                            <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="0,3,0,0" TextWrapping="Wrap"
-                                                                       Foreground="{DynamicResource WarningBrush}"
-                                                                       Text="{Binding ConflictText}" Visibility="{Binding ConflictVisibility}"/>
+                                                            <!-- Gamepad combo: hidden for functions that need the mouse -->
+                                                            <Button Grid.Column="3" Padding="6,3" Focusable="True"
+                                                                    Content="{Binding GamepadDisplayText}" Visibility="{Binding GamepadVisibility}"
+                                                                    Click="GamepadCaptureButton_Click"
+                                                                    PreviewKeyDown="GamepadCaptureButton_PreviewKeyDown"
+                                                                    LostKeyboardFocus="GamepadCaptureButton_LostKeyboardFocus">
+                                                                <Button.Style>
+                                                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsGamepadCapturing}" Value="True">
+                                                                                <Setter Property="FontWeight" Value="Normal"/>
+                                                                                <Setter Property="FontStyle" Value="Italic"/>
+                                                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                                                <Setter Property="BorderThickness" Value="2"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding HasGamepadHotkey}" Value="False">
+                                                                                <Setter Property="FontWeight" Value="Normal"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                            </Button>
+                                                            <Button Grid.Column="4" Content="✕" Padding="0" Margin="6,0,0,0" Width="24" Height="24" MinHeight="0"
+                                                                    Click="ClearGamepadHotkeyButton_Click" Visibility="{Binding GamepadClearVisibility}"
+                                                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HotKeyClear]}"/>
+                                                            <StackPanel Grid.Row="1" Grid.ColumnSpan="5">
+                                                                <TextBlock Margin="0,3,0,0" TextWrapping="Wrap"
+                                                                           Foreground="{DynamicResource WarningBrush}"
+                                                                           Text="{Binding ConflictText}" Visibility="{Binding ConflictVisibility}"/>
+                                                                <TextBlock Margin="0,3,0,0" TextWrapping="Wrap"
+                                                                           Foreground="{DynamicResource WarningBrush}"
+                                                                           Text="{Binding GamepadConflictText}" Visibility="{Binding GamepadConflictVisibility}"/>
+                                                            </StackPanel>
                                                         </Grid>
                                                     </Border>
                                                 </DataTemplate>

@@ -134,8 +134,54 @@ namespace RSTGameTranslation
 
         public Visibility ConflictVisibility => string.IsNullOrEmpty(_conflictText) ? Visibility.Collapsed : Visibility.Visible;
 
+        // ----- Gamepad combo (only for functions GamepadShortcuts supports) -----
+
+        private string _gamepadHotkey = "";
+        private bool _isGamepadCapturing;
+        private string? _gamepadCaptureText;
+        private string? _gamepadConflictText;
+
+        public bool SupportsGamepad => GamepadShortcuts.IsSupportedFunction(FunctionName);
+        public Visibility GamepadVisibility => SupportsGamepad ? Visibility.Visible : Visibility.Hidden;
+
+        public string GamepadHotkey
+        {
+            get => _gamepadHotkey;
+            set { _gamepadHotkey = value; Notify(nameof(GamepadHotkey), nameof(HasGamepadHotkey), nameof(GamepadDisplayText), nameof(GamepadClearVisibility)); }
+        }
+
+        public bool HasGamepadHotkey => !string.IsNullOrEmpty(_gamepadHotkey);
+
+        public bool IsGamepadCapturing
+        {
+            get => _isGamepadCapturing;
+            set { _isGamepadCapturing = value; Notify(nameof(IsGamepadCapturing), nameof(GamepadDisplayText), nameof(GamepadClearVisibility)); }
+        }
+
+        // Buttons held so far while recording, e.g. "Back + …"
+        public string? GamepadCaptureText
+        {
+            get => _gamepadCaptureText;
+            set { _gamepadCaptureText = value; Notify(nameof(GamepadCaptureText), nameof(GamepadDisplayText)); }
+        }
+
+        public string GamepadDisplayText =>
+            IsGamepadCapturing ? (GamepadCaptureText ?? LocalizationManager.Instance["Lbl_GamepadPress"])
+            : HasGamepadHotkey ? GamepadShortcuts.FormatForDisplay(_gamepadHotkey)
+            : LocalizationManager.Instance["Lbl_HotKeyNotSet"];
+
+        public Visibility GamepadClearVisibility => SupportsGamepad && HasGamepadHotkey && !IsGamepadCapturing ? Visibility.Visible : Visibility.Hidden;
+
+        public string? GamepadConflictText
+        {
+            get => _gamepadConflictText;
+            set { _gamepadConflictText = value; Notify(nameof(GamepadConflictText), nameof(GamepadConflictVisibility)); }
+        }
+
+        public Visibility GamepadConflictVisibility => string.IsNullOrEmpty(_gamepadConflictText) ? Visibility.Collapsed : Visibility.Visible;
+
         // Re-read localized texts after a language change
-        public void RefreshText() => Notify(nameof(Label), nameof(DisplayText));
+        public void RefreshText() => Notify(nameof(Label), nameof(DisplayText), nameof(GamepadDisplayText));
 
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 
@@ -972,6 +1018,8 @@ namespace RSTGameTranslation
 
             // Set hot key enable
             hotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsHotKeyEnabled();
+            gamepadHotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsGamepadHotKeyEnabled();
+            UpdateGamepadStatus();
 
             // Translation speed
             llmPreferSpeedCheckBox.IsChecked = ConfigManager.Instance.IsLlmPreferSpeedEnabled();
@@ -1324,6 +1372,18 @@ namespace RSTGameTranslation
                     row.RefreshText();
                 }
                 UpdateHotkeyConflicts();
+                UpdateGamepadStatus();
+            };
+
+            GamepadShortcuts.CaptureProgress += OnGamepadCaptureProgress;
+            GamepadShortcuts.CaptureCompleted += OnGamepadCaptureCompleted;
+            GamepadShortcuts.ConnectionChanged += OnGamepadConnectionChanged;
+            Closed += (s, e) =>
+            {
+                GamepadShortcuts.CaptureProgress -= OnGamepadCaptureProgress;
+                GamepadShortcuts.CaptureCompleted -= OnGamepadCaptureCompleted;
+                GamepadShortcuts.ConnectionChanged -= OnGamepadConnectionChanged;
+                StopHotkeyCapture();
             };
         }
 
@@ -1333,6 +1393,7 @@ namespace RSTGameTranslation
             foreach (var row in _hotkeyRows)
             {
                 row.Hotkey = ConfigManager.Instance.GetHotKey(row.FunctionName);
+                row.GamepadHotkey = row.SupportsGamepad ? ConfigManager.Instance.GetGamepadHotKey(row.FunctionName) : "";
 
                 if (MainWindow.Instance.FindName(row.MainWindowLabelName) is TextBlock mainWindowLabel)
                 {
@@ -1350,6 +1411,11 @@ namespace RSTGameTranslation
                 row.ConflictText = other == null
                     ? null
                     : string.Format(LocalizationManager.Instance["Lbl_HotKeyConflictWith"], other.Label);
+
+                var gamepadOther = _hotkeyRows.FirstOrDefault(r => r != row && GamepadShortcuts.AreSameCombo(r.GamepadHotkey, row.GamepadHotkey));
+                row.GamepadConflictText = gamepadOther == null
+                    ? null
+                    : string.Format(LocalizationManager.Instance["Lbl_GamepadConflictWith"], gamepadOther.Label);
             }
         }
 
@@ -1370,8 +1436,11 @@ namespace RSTGameTranslation
             System.Windows.Input.Keyboard.Focus(button);
         }
 
+        // Stop recording a keyboard hotkey or a gamepad combo, whichever is in progress
         private void StopHotkeyCapture()
         {
+            StopGamepadCapture();
+
             if (_capturingHotkeyRow == null)
                 return;
 
@@ -1499,9 +1568,154 @@ namespace RSTGameTranslation
             ApplyHotkeyChanges();
         }
 
+        // ----- Gamepad combos -----
+
+        private HotkeySettingRow? _capturingGamepadRow;
+
+        private void GamepadCaptureButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button { DataContext: HotkeySettingRow row } button || !row.SupportsGamepad)
+                return;
+
+            bool wasCapturingThisRow = _capturingGamepadRow == row;
+            StopHotkeyCapture();
+            if (wasCapturingThisRow)
+                return;
+
+            _capturingGamepadRow = row;
+            row.IsGamepadCapturing = true;
+            GamepadShortcuts.BeginCapture();
+            HideHotkeyStatus();
+            System.Windows.Input.Keyboard.Focus(button);
+        }
+
+        private void StopGamepadCapture()
+        {
+            if (_capturingGamepadRow == null)
+                return;
+
+            _capturingGamepadRow.IsGamepadCapturing = false;
+            _capturingGamepadRow.GamepadCaptureText = null;
+            _capturingGamepadRow = null;
+            GamepadShortcuts.EndCapture();
+        }
+
+        private void OnGamepadCaptureProgress(uint mask)
+        {
+            if (_capturingGamepadRow != null)
+            {
+                _capturingGamepadRow.GamepadCaptureText = GamepadShortcuts.FormatMaskForDisplay(mask) + " …";
+            }
+        }
+
+        private void OnGamepadCaptureCompleted(uint mask)
+        {
+            var row = _capturingGamepadRow;
+            if (row == null)
+                return;
+
+            if (GamepadShortcuts.CountButtons(mask) < GamepadShortcuts.MinComboButtons)
+            {
+                // Keep recording so the user can try again right away
+                row.GamepadCaptureText = null;
+                ShowHotkeyStatus(LocalizationManager.Instance["Msg_GamepadNeedTwoButtons"], isError: true);
+                return;
+            }
+
+            StopHotkeyCapture();
+            AssignGamepadHotkey(row, GamepadShortcuts.FormatCombo(mask));
+        }
+
+        // The keyboard still controls recording: Esc cancels, Backspace/Delete clears
+        private void GamepadCaptureButton_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            var row = _capturingGamepadRow;
+            if (row == null || (sender as FrameworkElement)?.DataContext != row)
+                return;
+
+            e.Handled = true;
+
+            var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
+            if (key == System.Windows.Input.Key.Escape)
+            {
+                StopHotkeyCapture();
+            }
+            else if (key == System.Windows.Input.Key.Back || key == System.Windows.Input.Key.Delete)
+            {
+                StopHotkeyCapture();
+                AssignGamepadHotkey(row, "");
+            }
+        }
+
+        private void GamepadCaptureButton_LostKeyboardFocus(object sender, System.Windows.Input.KeyboardFocusChangedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext == _capturingGamepadRow)
+            {
+                StopHotkeyCapture();
+            }
+        }
+
+        private void ClearGamepadHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext is HotkeySettingRow row)
+            {
+                StopHotkeyCapture();
+                AssignGamepadHotkey(row, "");
+            }
+        }
+
+        // Save a new gamepad combo for a row ("" clears it), asking before taking the combo from another function
+        private void AssignGamepadHotkey(HotkeySettingRow row, string combo)
+        {
+            if (!string.IsNullOrEmpty(combo))
+            {
+                var conflict = _hotkeyRows.FirstOrDefault(r => r != row && GamepadShortcuts.AreSameCombo(r.GamepadHotkey, combo));
+                if (conflict != null)
+                {
+                    var result = MessageBox.Show(
+                        string.Format(LocalizationManager.Instance["Msg_HotKeyConflict"], GamepadShortcuts.FormatForDisplay(combo), conflict.Label),
+                        LocalizationManager.Instance["Title_HotKeyConflict"],
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+                    if (result != MessageBoxResult.Yes)
+                        return;
+
+                    ConfigManager.Instance.SetGamepadHotKey(conflict.FunctionName, "");
+                }
+            }
+
+            ConfigManager.Instance.SetGamepadHotKey(row.FunctionName, combo);
+            ApplyHotkeyChanges();
+        }
+
+        private void GamepadHotKeyEnableCheckBox_CheckChange(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetGamepadHotKeyEnable(gamepadHotKeyEnableCheckBox.IsChecked == true);
+            UpdateGamepadStatus();
+        }
+
+        private void OnGamepadConnectionChanged(object? sender, EventArgs e) => UpdateGamepadStatus();
+
+        // Controllers are only polled while gamepad shortcuts are enabled, so the status is shown only then
+        private void UpdateGamepadStatus()
+        {
+            if (!ConfigManager.Instance.IsGamepadHotKeyEnabled())
+            {
+                gamepadStatusText.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            bool connected = GamepadShortcuts.IsAnyControllerConnected;
+            gamepadStatusText.Text = LocalizationManager.Instance[connected ? "Lbl_GamepadConnected" : "Lbl_GamepadNotConnected"];
+            gamepadStatusText.SetResourceReference(TextBlock.ForegroundProperty, connected ? "SuccessBrush" : "MutedBrush");
+            gamepadStatusText.Visibility = Visibility.Visible;
+        }
+
         private void ApplyHotkeyChanges()
         {
             KeyboardShortcuts.ReloadHotkeys();
+            GamepadShortcuts.RefreshCombos();
             ListHotKey_TextChanged();
             ShowHotkeyStatus(LocalizationManager.Instance["Msg_HotKeyUpdateSuccess"], isError: false);
         }

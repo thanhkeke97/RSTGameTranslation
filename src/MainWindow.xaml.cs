@@ -507,6 +507,9 @@ namespace RSTGameTranslation
             // Set up global keyboard hook to handle shortcuts even when console has focus
             KeyboardShortcuts.InitializeGlobalHook();
 
+            // Gamepad combos run the same hotkey functions; polling stays idle until enabled in Settings
+            GamepadShortcuts.Initialize();
+
             // Load exclude regions from config
             LoadExcludeRegions();
 
@@ -1848,6 +1851,7 @@ namespace RSTGameTranslation
         {
             // Remove global keyboard hook
             KeyboardShortcuts.CleanupGlobalHook();
+            GamepadShortcuts.Cleanup();
 
             // Clean up MouseManager resources
             MouseManager.Instance.Cleanup();

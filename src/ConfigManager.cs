@@ -216,6 +216,7 @@ namespace RSTGameTranslation
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
+        public const string GAMEPAD_HOT_KEY_ENABLE = "GamepadHotKeyEnable";
         public const string LLM_PREFER_SPEED = "llm_prefer_speed";
         public const string TRANSLATION_CACHE_ENABLED = "translation_cache_enabled";
         public const string TRANSLATION_PREFETCH = "translation_prefetch";
@@ -1241,15 +1242,40 @@ namespace RSTGameTranslation
             return _hotKeyEntries.TryGetValue(functionName, out var entry) ? entry.Default : "";
         }
 
-        // Restore every hotkey to its default, saving the config once
+        // Restore every hotkey to its default, saving the config once. Gamepad hotkeys have no default and are cleared.
         public void ResetHotKeysToDefault()
         {
             foreach (var entry in _hotKeyEntries.Values)
             {
                 _configValues[entry.ConfigKey] = entry.Default;
+                _configValues[GamepadHotKeyConfigKey(entry.ConfigKey)] = "";
             }
             SaveConfig();
             Console.WriteLine("Hotkeys reset to defaults");
+        }
+
+        // Gamepad combo of a hotkey function is stored next to its keyboard hotkey, e.g. "gamepad_hotkey_start_stop"
+        private static string GamepadHotKeyConfigKey(string hotKeyConfigKey) => "gamepad_" + hotKeyConfigKey;
+
+        // Set gamepad hotkey (an empty string means the function has no gamepad combo)
+        public void SetGamepadHotKey(string functionName, string combo)
+        {
+            if (!_hotKeyEntries.TryGetValue(functionName, out var entry))
+            {
+                Console.WriteLine($"Unknown hotkey function: {functionName}");
+                return;
+            }
+
+            _configValues[GamepadHotKeyConfigKey(entry.ConfigKey)] = combo;
+            SaveConfig();
+            Console.WriteLine($"Saving {functionName} to gamepad hotkey {combo}");
+        }
+
+        public string GetGamepadHotKey(string functionName)
+        {
+            return _hotKeyEntries.TryGetValue(functionName, out var entry)
+                ? GetValue(GamepadHotKeyConfigKey(entry.ConfigKey), "")
+                : "";
         }
 
         // Get Mistral API key
@@ -3564,6 +3590,19 @@ namespace RSTGameTranslation
             _configValues[HOT_KEY_ENABLE] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Hot key enable: {enabled}");
+        }
+
+        public bool IsGamepadHotKeyEnabled()
+        {
+            string value = GetValue(GAMEPAD_HOT_KEY_ENABLE, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetGamepadHotKeyEnable(bool enabled)
+        {
+            _configValues[GAMEPAD_HOT_KEY_ENABLE] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Gamepad hot key enable: {enabled}");
         }
 
         // Save translation areas to config
