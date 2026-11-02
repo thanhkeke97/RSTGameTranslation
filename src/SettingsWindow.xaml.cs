@@ -1126,6 +1126,7 @@ namespace RSTGameTranslation
 
             // Set leave translation onscreen setting
             leaveTranslationOnscreenCheckBox.IsChecked = ConfigManager.Instance.IsLeaveTranslationOnscreenEnabled();
+            hideStaleTranslationCheckBox.IsChecked = ConfigManager.Instance.IsHideStaleTranslationEnabled();
 
             // Set block detection settings directly from BlockDetectionManager
             // Temporarily remove event handlers to prevent triggering changes
@@ -5481,6 +5482,12 @@ namespace RSTGameTranslation
         {
             if (_isInitializing) return;
             ConfigManager.Instance.SetMinimizeOnSelectAreaEnabled(minimizeOnSelectAreaCheckBox.IsChecked == true);
+        }
+
+        private void HideStaleTranslationCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetHideStaleTranslationEnabled(hideStaleTranslationCheckBox.IsChecked == true);
         }
 
         // Mirror "don't ask again" ticked in the startup window picker

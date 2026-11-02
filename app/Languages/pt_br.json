@@ -609,6 +609,8 @@
   "Tip_WindowSelectorAtStartup": "Abre o seletor de janelas sempre que o RST inicia. Desativado, o RST captura a área da tela até você clicar em \"Selecionar aplicação\".",
   "Lbl_MinimizeOnSelectArea": "Minimizar o RST ao selecionar uma área",
   "Tip_MinimizeOnSelectArea": "Minimiza a janela principal enquanto você seleciona uma área de tradução ou de exclusão, para não cobrir o jogo.",
+  "Lbl_HideStaleTranslation": "Ocultar a tradução antiga quando o texto mudar",
+  "Tip_HideStaleTranslation": "Oculta a tradução assim que o texto na tela muda (rolagem, nova fala). Uma tradução ainda em andamento de um texto que já mudou não aparece na tela; ela vai para o histórico do ChatBox. Desativado, a tradução antiga fica até a nova estar pronta.",
   "SelectWindow_Win10Hint": "No Windows 10, a sobreposição só pode ser usada com uma janela de jogo selecionada. Caso contrário, o OCR leria as traduções exibidas na tela em vez do texto do jogo.",
   "Msg_Win10OverlayHiddenNoWindow": "A sobreposição foi desativada: no Windows 10 ela só pode ser usada com uma janela de jogo selecionada. Clique em \"Selecionar aplicação\" para selecionar a janela do jogo novamente.",
   "Welcome_GameWindowTitle": "Janela do jogo",

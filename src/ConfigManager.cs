@@ -217,6 +217,7 @@ namespace RSTGameTranslation
         public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
         public const string WINDOW_SELECTOR_AT_STARTUP = "window_selector_at_startup";
         public const string MINIMIZE_ON_SELECT_AREA = "minimize_on_select_area";
+        public const string HIDE_STALE_TRANSLATION = "hide_stale_translation";
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
@@ -628,6 +629,7 @@ namespace RSTGameTranslation
             _configValues[MULTI_SELECTION_AREA] = "false";
             _configValues[WINDOW_SELECTOR_AT_STARTUP] = "true";
             _configValues[MINIMIZE_ON_SELECT_AREA] = "true";
+            _configValues[HIDE_STALE_TRANSLATION] = "false";
             _configValues[HOTKEY_START_STOP] = "ALT+G";
             _configValues[HOTKEY_OVERLAY] = "ALT+F";
             _configValues[HOTKEY_SETTING] = "ALT+P";
@@ -3084,6 +3086,21 @@ namespace RSTGameTranslation
             _configValues[MINIMIZE_ON_SELECT_AREA] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Minimize on select area set to: {enabled}");
+        }
+
+        // Whether a translation is hidden as soon as the text on screen changes, and an unfinished one for text
+        // that already changed is dropped (it then only goes to the ChatBox history)
+        public bool IsHideStaleTranslationEnabled()
+        {
+            string value = GetValue(HIDE_STALE_TRANSLATION, "false");
+            return value.ToLower() == "true";
+        }
+
+        public void SetHideStaleTranslationEnabled(bool enabled)
+        {
+            _configValues[HIDE_STALE_TRANSLATION] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Hide stale translation set to: {enabled}");
         }
         // Get api key for service type
         public List<string> GetApiKeysList(string serviceType)

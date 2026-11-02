@@ -610,6 +610,8 @@
   "Tip_WindowSelectorAtStartup": "Open the window picker each time RST starts. When off, RST captures the screen area until you click \"Select Application\".",
   "Lbl_MinimizeOnSelectArea": "Minimize RST while selecting an area",
   "Tip_MinimizeOnSelectArea": "Minimize the main window while you select a translation area or exclude region, so it doesn't cover the game.",
+  "Lbl_HideStaleTranslation": "Hide old translation when the text changes",
+  "Tip_HideStaleTranslation": "Hide the translation as soon as the text on screen changes (scrolling, a new line). A translation still in progress for text that already changed is not shown on screen; it goes to the ChatBox history instead. When off, the old translation stays until the new one is ready.",
   "SelectWindow_Win10Hint": "On Windows 10 the overlay can only be used while a game window is selected. Otherwise OCR would read the translations shown on screen instead of the game text.",
   "Msg_Win10OverlayHiddenNoWindow": "The overlay was turned off: on Windows 10 it can only be used while a game window is selected. Click \"Select Application\" to select the game window again.",
   "Welcome_GameWindowTitle": "Game window",

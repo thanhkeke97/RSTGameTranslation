@@ -607,6 +607,8 @@
   "Tip_WindowSelectorAtStartup": "每次启动 RST 时打开窗口选择器。关闭后，RST 会捕获屏幕区域，直到你点击\"选择应用程序\"。",
   "Lbl_MinimizeOnSelectArea": "选择区域时最小化 RST",
   "Tip_MinimizeOnSelectArea": "选择翻译区域或排除区域时最小化主窗口，避免遮挡游戏。",
+  "Lbl_HideStaleTranslation": "文字变化时隐藏旧翻译",
+  "Tip_HideStaleTranslation": "屏幕上的文字一变化（滚动、下一句等）就隐藏翻译。对已变化文字仍在进行的翻译不会显示在屏幕上，而是加入 ChatBox 历史。关闭时，旧翻译会保留到新翻译完成。",
   "SelectWindow_Win10Hint": "在 Windows 10 上，只有选择了游戏窗口才能使用叠加层。否则 OCR 会读取屏幕上的译文，而不是游戏文字。",
   "Msg_Win10OverlayHiddenNoWindow": "叠加层已关闭：在 Windows 10 上，只有选择了游戏窗口才能使用叠加层。请点击\"选择应用程序\"重新选择游戏窗口。",
   "Welcome_GameWindowTitle": "游戏窗口",

@@ -950,8 +950,9 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                
+
                                 <!-- OCR Method -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OCRMethod]}" Grid.Row="0" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -1025,6 +1026,16 @@
                                          Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
                                          Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_LeaveOnscreen]}"/>
+
+                                <!-- Hide the translation as soon as the text on screen changes -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HideStaleTranslation]}" Grid.Row="11" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HideStaleTranslation]}"/>
+                                <CheckBox x:Name="hideStaleTranslationCheckBox" Grid.Row="11" Grid.Column="1"
+                                         Margin="0,5" IsChecked="False"
+                                         Checked="HideStaleTranslationCheckBox_CheckedChanged"
+                                         Unchecked="HideStaleTranslationCheckBox_CheckedChanged"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HideStaleTranslation]}"/>
 
                                 <!-- Manga Mode -->
                                 <TextBlock x:Name="MangaModeLabel" Text="Manga Mode:" Grid.Row="10" Grid.Column="0" 
