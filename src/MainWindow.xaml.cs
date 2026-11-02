@@ -579,7 +579,7 @@ namespace RSTGameTranslation
                 return;
             }
 
-            if (this.WindowState != WindowState.Minimized)
+            if (ConfigManager.Instance.IsMinimizeOnSelectAreaEnabled() && this.WindowState != WindowState.Minimized)
             {
                 this.WindowState = WindowState.Minimized;
             }
@@ -787,15 +787,18 @@ namespace RSTGameTranslation
             // Select Area pressed while a startup dialog is still up: minimizing this window would hide the
             // dialog with it while it keeps this window blocked, so the app could not be brought back.
             // Close the dialog now and show it again once the window is restored.
-            if (_openStartupDialog != null)
+            if (ConfigManager.Instance.IsMinimizeOnSelectAreaEnabled())
             {
-                _startupDialogInterrupted = true;
-                _openStartupDialog.Close();
-            }
+                if (_openStartupDialog != null)
+                {
+                    _startupDialogInterrupted = true;
+                    _openStartupDialog.Close();
+                }
 
-            if (this.WindowState != WindowState.Minimized)
-            {
-                this.WindowState = WindowState.Minimized;
+                if (this.WindowState != WindowState.Minimized)
+                {
+                    this.WindowState = WindowState.Minimized;
+                }
             }
             if (isSelectingTranslationArea)
             {

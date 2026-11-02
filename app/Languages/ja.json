@@ -608,6 +608,8 @@
   "SelectWindow_DontAskAtStartup": "起動時に今後表示しない（設定で再度オンにできます）",
   "Lbl_WindowSelectorAtStartup": "起動時にゲームウィンドウを選択",
   "Tip_WindowSelectorAtStartup": "RST の起動時に毎回ウィンドウ選択画面を開きます。オフの場合、「アプリケーションを選択」を押すまで画面領域をキャプチャします。",
+  "Lbl_MinimizeOnSelectArea": "領域選択中に RST を最小化",
+  "Tip_MinimizeOnSelectArea": "翻訳領域や除外領域を選択している間、メインウィンドウを最小化してゲームを隠さないようにします。",
   "SelectWindow_Win10Hint": "Windows 10 では、ゲームのウィンドウを選択している間だけオーバーレイを使用できます。選択しないと、OCR がゲームの文字ではなく画面上の翻訳を読み取ってしまいます。",
   "Msg_Win10OverlayHiddenNoWindow": "オーバーレイをオフにしました。Windows 10 では、ゲームのウィンドウを選択している間だけ使用できます。「アプリケーションを選択」をクリックして、ゲームのウィンドウを選び直してください。",
   "Welcome_GameWindowTitle": "ゲームのウィンドウ",

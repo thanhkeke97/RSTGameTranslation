@@ -605,6 +605,8 @@
   "SelectWindow_DontAskAtStartup": "打开应用时不再询问（可在设置中重新开启）",
   "Lbl_WindowSelectorAtStartup": "启动时选择游戏窗口",
   "Tip_WindowSelectorAtStartup": "每次启动 RST 时打开窗口选择器。关闭后，RST 会捕获屏幕区域，直到你点击\"选择应用程序\"。",
+  "Lbl_MinimizeOnSelectArea": "选择区域时最小化 RST",
+  "Tip_MinimizeOnSelectArea": "选择翻译区域或排除区域时最小化主窗口，避免遮挡游戏。",
   "SelectWindow_Win10Hint": "在 Windows 10 上，只有选择了游戏窗口才能使用叠加层。否则 OCR 会读取屏幕上的译文，而不是游戏文字。",
   "Msg_Win10OverlayHiddenNoWindow": "叠加层已关闭：在 Windows 10 上，只有选择了游戏窗口才能使用叠加层。请点击\"选择应用程序\"重新选择游戏窗口。",
   "Welcome_GameWindowTitle": "游戏窗口",

@@ -1008,6 +1008,14 @@
                                          Checked="WindowSelectorAtStartupCheckBox_CheckedChanged"
                                          Unchecked="WindowSelectorAtStartupCheckBox_CheckedChanged"/>
 
+                                <!-- Minimize the main window while selecting an area -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinimizeOnSelectArea]}" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MinimizeOnSelectArea]}"/>
+                                <CheckBox x:Name="minimizeOnSelectAreaCheckBox" Grid.Row="7" Grid.Column="1" Margin="0,5" IsChecked="True"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MinimizeOnSelectArea]}"
+                                         Checked="MinimizeOnSelectAreaCheckBox_CheckedChanged"
+                                         Unchecked="MinimizeOnSelectAreaCheckBox_CheckedChanged"/>
+
                                 <!-- Leave Translation Onscreen -->
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LeaveOnscreen]}" Grid.Row="5" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"

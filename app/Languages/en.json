@@ -608,6 +608,8 @@
   "SelectWindow_DontAskAtStartup": "Don't ask again when the app opens (you can turn it back on in Settings)",
   "Lbl_WindowSelectorAtStartup": "Ask for the game window at startup",
   "Tip_WindowSelectorAtStartup": "Open the window picker each time RST starts. When off, RST captures the screen area until you click \"Select Application\".",
+  "Lbl_MinimizeOnSelectArea": "Minimize RST while selecting an area",
+  "Tip_MinimizeOnSelectArea": "Minimize the main window while you select a translation area or exclude region, so it doesn't cover the game.",
   "SelectWindow_Win10Hint": "On Windows 10 the overlay can only be used while a game window is selected. Otherwise OCR would read the translations shown on screen instead of the game text.",
   "Msg_Win10OverlayHiddenNoWindow": "The overlay was turned off: on Windows 10 it can only be used while a game window is selected. Click \"Select Application\" to select the game window again.",
   "Welcome_GameWindowTitle": "Game window",

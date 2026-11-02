@@ -1091,6 +1091,7 @@ namespace RSTGameTranslation
             // Set multi selection area from config
             multiSelectionAreaCheckBox.IsChecked = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
             windowSelectorAtStartupCheckBox.IsChecked = ConfigManager.Instance.IsWindowSelectorAtStartupEnabled();
+            minimizeOnSelectAreaCheckBox.IsChecked = ConfigManager.Instance.IsMinimizeOnSelectAreaEnabled();
             if (!ConfigManager.Instance.IsMultiSelectionAreaEnabled())
             {
                 isNeedShowMessage = true;
@@ -1687,6 +1688,14 @@ namespace RSTGameTranslation
             }
 
             ConfigManager.Instance.SetGamepadHotKey(row.FunctionName, combo);
+
+            // Recording works while gamepad shortcuts are off, so turn them on when a combo is assigned;
+            // otherwise the new combo would silently never fire
+            if (!string.IsNullOrEmpty(combo) && gamepadHotKeyEnableCheckBox.IsChecked != true)
+            {
+                gamepadHotKeyEnableCheckBox.IsChecked = true;
+            }
+
             ApplyHotkeyChanges();
         }
 
@@ -5466,6 +5475,12 @@ namespace RSTGameTranslation
         {
             if (_isInitializing) return;
             ConfigManager.Instance.SetWindowSelectorAtStartupEnabled(windowSelectorAtStartupCheckBox.IsChecked == true);
+        }
+
+        private void MinimizeOnSelectAreaCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetMinimizeOnSelectAreaEnabled(minimizeOnSelectAreaCheckBox.IsChecked == true);
         }
 
         // Mirror "don't ask again" ticked in the startup window picker

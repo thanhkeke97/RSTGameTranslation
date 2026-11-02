@@ -607,6 +607,8 @@
   "SelectWindow_DontAskAtStartup": "Não perguntar ao abrir o app (pode ser reativado nas Configurações)",
   "Lbl_WindowSelectorAtStartup": "Perguntar pela janela do jogo ao iniciar",
   "Tip_WindowSelectorAtStartup": "Abre o seletor de janelas sempre que o RST inicia. Desativado, o RST captura a área da tela até você clicar em \"Selecionar aplicação\".",
+  "Lbl_MinimizeOnSelectArea": "Minimizar o RST ao selecionar uma área",
+  "Tip_MinimizeOnSelectArea": "Minimiza a janela principal enquanto você seleciona uma área de tradução ou de exclusão, para não cobrir o jogo.",
   "SelectWindow_Win10Hint": "No Windows 10, a sobreposição só pode ser usada com uma janela de jogo selecionada. Caso contrário, o OCR leria as traduções exibidas na tela em vez do texto do jogo.",
   "Msg_Win10OverlayHiddenNoWindow": "A sobreposição foi desativada: no Windows 10 ela só pode ser usada com uma janela de jogo selecionada. Clique em \"Selecionar aplicação\" para selecionar a janela do jogo novamente.",
   "Welcome_GameWindowTitle": "Janela do jogo",

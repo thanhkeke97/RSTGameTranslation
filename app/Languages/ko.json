@@ -608,6 +608,8 @@
   "SelectWindow_DontAskAtStartup": "앱을 열 때 다시 묻지 않기 (설정에서 다시 켤 수 있음)",
   "Lbl_WindowSelectorAtStartup": "시작 시 게임 창 선택",
   "Tip_WindowSelectorAtStartup": "RST를 시작할 때마다 창 선택 화면을 엽니다. 끄면 \"애플리케이션 선택\"을 누를 때까지 화면 영역을 캡처합니다.",
+  "Lbl_MinimizeOnSelectArea": "영역 선택 중 RST 최소화",
+  "Tip_MinimizeOnSelectArea": "번역 영역이나 제외 영역을 선택하는 동안 메인 창을 최소화하여 게임을 가리지 않게 합니다.",
   "SelectWindow_Win10Hint": "Windows 10에서는 게임 창을 선택한 동안에만 오버레이를 사용할 수 있습니다. 그렇지 않으면 OCR이 게임 텍스트 대신 화면에 표시된 번역을 읽게 됩니다.",
   "Msg_Win10OverlayHiddenNoWindow": "오버레이가 꺼졌습니다. Windows 10에서는 게임 창을 선택한 동안에만 사용할 수 있습니다. \"애플리케이션 선택\"을 클릭하여 게임 창을 다시 선택하세요.",
   "Welcome_GameWindowTitle": "게임 창",

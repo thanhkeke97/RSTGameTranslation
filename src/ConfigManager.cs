@@ -216,6 +216,7 @@ namespace RSTGameTranslation
         // Multi selection area
         public const string MULTI_SELECTION_AREA = "MultiSelectionArea";
         public const string WINDOW_SELECTOR_AT_STARTUP = "window_selector_at_startup";
+        public const string MINIMIZE_ON_SELECT_AREA = "minimize_on_select_area";
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
@@ -626,6 +627,7 @@ namespace RSTGameTranslation
             _configValues[OVERLAY_TEXT_COLOR] = "#FFFFFFFF";
             _configValues[MULTI_SELECTION_AREA] = "false";
             _configValues[WINDOW_SELECTOR_AT_STARTUP] = "true";
+            _configValues[MINIMIZE_ON_SELECT_AREA] = "true";
             _configValues[HOTKEY_START_STOP] = "ALT+G";
             _configValues[HOTKEY_OVERLAY] = "ALT+F";
             _configValues[HOTKEY_SETTING] = "ALT+P";
@@ -3068,6 +3070,20 @@ namespace RSTGameTranslation
             _configValues[WINDOW_SELECTOR_AT_STARTUP] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Window selector at startup set to: {enabled}");
+        }
+
+        // Whether the main window minimizes while a translation or exclude area is being selected
+        public bool IsMinimizeOnSelectAreaEnabled()
+        {
+            string value = GetValue(MINIMIZE_ON_SELECT_AREA, "true");
+            return value.ToLower() == "true";
+        }
+
+        public void SetMinimizeOnSelectAreaEnabled(bool enabled)
+        {
+            _configValues[MINIMIZE_ON_SELECT_AREA] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Minimize on select area set to: {enabled}");
         }
         // Get api key for service type
         public List<string> GetApiKeysList(string serviceType)
