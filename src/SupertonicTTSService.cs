@@ -703,6 +703,8 @@ namespace RSTGameTranslation
         // Max characters per synthesized clip. Sentences are packed up to this length; smaller
         // clips mean the first audio is heard sooner on long lines.
         private const int SentenceChunkMaxLen = 120;
+        // Most threads one synthesis may use, so the rest of the CPU stays free for the game and capture
+        private const int MaxInferenceThreads = 4;
 
         private static readonly string[] RequiredOnnxFiles =
         {
@@ -1003,7 +1005,16 @@ namespace RSTGameTranslation
                 if (!Directory.Exists(onnxDir))
                     throw new DirectoryNotFoundException($"ONNX dir not found: {onnxDir}");
 
-                var opts = new SessionOptions();
+                var opts = new SessionOptions
+                {
+                    // Left at its default, inference takes every core and keeps idle threads spinning
+                    // between operators, starving whatever else needs the CPU while a line is
+                    // synthesized (video capture, game streaming): the video stutters in step with speech
+                    IntraOpNumThreads = Math.Clamp(Environment.ProcessorCount / 2, 1, MaxInferenceThreads),
+                    InterOpNumThreads = 1,
+                    ExecutionMode = ExecutionMode.ORT_SEQUENTIAL
+                };
+                opts.AddSessionConfigEntry("session.intra_op.allow_spinning", "0");
                 // CPU only (Supertonic does not yet support GPU via its public ONNX assets)
                 var cfgs = Supertonic.StHelper.LoadCfgs(onnxDir);
                 var (dp, te, ve, vo) = Supertonic.StHelper.LoadOnnxAll(onnxDir, opts);
