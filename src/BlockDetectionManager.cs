@@ -169,6 +169,14 @@ namespace RSTGameTranslation
                 // PHASE 4: Group lines into paragraphs
                 var paragraphs = GroupLinesIntoParagraphs(lines, blockPower, isVertical);
                 //Console.WriteLine($"Grouped lines into {paragraphs.Count} paragraphs");
+
+                // A sentence the game wrapped onto a second line can land in two paragraphs; joined, it
+                // translates as one sentence instead of two meaningless halves
+                if (!isVertical && !ConfigManager.Instance.IsMangaModeEnabled())
+                {
+                    paragraphs = JoinUnfinishedSentences(paragraphs);
+                }
+
                 // PHASE 5: Apply manga-specific processing if manga mode is enabled.
                 // Skip manga processing for vertical (tategaki) text because GroupLinesIntoParagraphs
                 // already orders columns right-to-left correctly, and ProcessMangaSpecificBlocks
@@ -989,6 +997,80 @@ namespace RSTGameTranslation
             }
 
             return paragraphs;
+        }
+
+        // Sentence-continuation thresholds for horizontal text, relative to the line height
+        private const double SentenceJoinMaxGapEm = 1.5;        // max gap between the end of one paragraph and the start of the next
+        private const double SentenceJoinMaxLeftOffsetEm = 2.0; // max difference between the two paragraphs' left edges
+        private const double SentenceJoinMinFillRatio = 0.6;    // the unfinished last line must be this full compared to the wider paragraph
+        private const double SentenceJoinSizeTolerance = 0.25;  // max relative difference in line height
+
+        private const string SentenceEndChars = "。.!?！？…‥」』）)”\"’'〜~：:;；";
+
+        private static bool EndsSentence(string text)
+        {
+            string trimmed = text.TrimEnd();
+            return trimmed.Length == 0 || SentenceEndChars.IndexOf(trimmed[trimmed.Length - 1]) >= 0;
+        }
+
+        /// <summary>
+        /// Join a paragraph that stops mid-sentence with the paragraph directly below it. Short
+        /// unfinished text (a character name above the dialogue) is left alone: a wrapped line runs
+        /// close to the text box's full width, a name does not.
+        /// </summary>
+        private List<TextElement> JoinUnfinishedSentences(List<TextElement> paragraphs)
+        {
+            if (paragraphs.Count < 2)
+                return paragraphs;
+
+            var ordered = paragraphs.OrderBy(p => p.Bounds.Y).ThenBy(p => p.Bounds.X).ToList();
+            var result = new List<TextElement>();
+            var current = ordered[0];
+
+            for (int i = 1; i < ordered.Count; i++)
+            {
+                var next = ordered[i];
+                if (ContinuesSentence(current, next))
+                {
+                    Console.WriteLine($"Joining unfinished sentence: '{current.Text.Replace('\n', ' ')}' + '{next.Text.Replace('\n', ' ')}'");
+                    current = BuildParagraph(current.Children.Concat(next.Children));
+                }
+                else
+                {
+                    result.Add(current);
+                    current = next;
+                }
+            }
+            result.Add(current);
+            return result;
+        }
+
+        private static bool ContinuesSentence(TextElement upper, TextElement lower)
+        {
+            if (upper.Children.Count == 0 || lower.Children.Count == 0 || EndsSentence(upper.Text))
+                return false;
+
+            var lastLine = upper.Children.Last();
+            var firstLine = lower.Children.First();
+
+            double lineHeight = (lastLine.Bounds.Height + firstLine.Bounds.Height) * 0.5;
+            if (lineHeight <= 0 ||
+                Math.Abs(lastLine.Bounds.Height - firstLine.Bounds.Height) > lineHeight * SentenceJoinSizeTolerance)
+                return false;
+
+            double gap = firstLine.Bounds.Y - (lastLine.Bounds.Y + lastLine.Bounds.Height);
+            if (gap > lineHeight * SentenceJoinMaxGapEm)
+                return false;
+
+            // Lower paragraph must be below, not beside, and start roughly under the upper one
+            if (firstLine.Bounds.Y < lastLine.Bounds.Y + lastLine.Bounds.Height * 0.5)
+                return false;
+            if (Math.Abs(firstLine.Bounds.X - lastLine.Bounds.X) > lineHeight * SentenceJoinMaxLeftOffsetEm &&
+                Math.Abs((firstLine.Bounds.X + firstLine.Bounds.Width / 2) - (lastLine.Bounds.X + lastLine.Bounds.Width / 2)) > lineHeight * SentenceJoinMaxLeftOffsetEm)
+                return false;
+
+            double widest = Math.Max(upper.Children.Max(l => l.Bounds.Width), lower.Children.Max(l => l.Bounds.Width));
+            return lastLine.Bounds.Width >= widest * SentenceJoinMinFillRatio;
         }
 
         // Vertical (tategaki) grouping thresholds, relative to the columns' glyph size (em)
