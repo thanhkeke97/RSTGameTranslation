@@ -907,11 +907,27 @@ namespace RSTGameTranslation
         private void TtsToggleButton_Click(object sender, RoutedEventArgs e)
         {
             bool enabled = !ConfigManager.Instance.IsTtsEnabled();
+            if (enabled && !CanEnableTts())
+                return;
             ConfigManager.Instance.SetTtsEnabled(enabled);
             // Turning TTS off also silences the line being read and everything queued behind it
             if (!enabled) StopAllSpeech();
             UpdateTtsButtonUI();
             SettingsWindow.SyncTtsEnabled();
+        }
+
+        /// <summary>
+        /// False (with a notice) when the selected TTS engine cannot speak yet: Supertonic needs its
+        /// model downloaded first, and without it TTS would be on but silent.
+        /// </summary>
+        public bool CanEnableTts()
+        {
+            if (ConfigManager.Instance.GetTtsService() != "Supertonic" || SupertonicTTSService.IsModelInstalled())
+                return true;
+
+            ShowFastNotification("Supertonic model missing",
+                "Open Settings → TTS and click \"Download model\" before turning TTS on.", 6000);
+            return false;
         }
 
         /// <summary>Stop the speech queue and every TTS engine, dropping anything not yet spoken.</summary>

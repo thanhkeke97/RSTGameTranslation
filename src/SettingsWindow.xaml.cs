@@ -3762,6 +3762,12 @@ namespace RSTGameTranslation
                     return;
 
                 bool isEnabled = ttsEnabledCheckBox.IsChecked ?? false;
+                if (isEnabled && MainWindow.Instance != null && !MainWindow.Instance.CanEnableTts())
+                {
+                    // Put the checkbox back to off without re-running this handler
+                    SyncTtsEnabled();
+                    return;
+                }
                 ConfigManager.Instance.SetTtsEnabled(isEnabled);
                 Console.WriteLine($"TTS enabled: {isEnabled}");
                 if (!isEnabled) MainWindow.StopAllSpeech();
@@ -3783,7 +3789,7 @@ namespace RSTGameTranslation
 
                 if (ttsServiceComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    string service = selectedItem.Content.ToString() ?? "ElevenLabs";
+                    string service = selectedItem.Content.ToString() ?? "Supertonic";
                     ConfigManager.Instance.SetTtsService(service);
                     Console.WriteLine($"TTS service set to: {service}");
 

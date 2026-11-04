@@ -590,7 +590,7 @@ namespace RSTGameTranslation
             _configValues[ELEVENLABS_API_KEY] = "<your API key here>";
             _configValues[ELEVENLABS_VOICE] = "21m00Tcm4TlvDq8ikWAM";
             _configValues[ELEVENLABS_MODEL] = "eleven_flash_v2_5";
-            _configValues[TTS_SERVICE] = "Windows TTS";
+            _configValues[TTS_SERVICE] = "Supertonic";
             _configValues[GOOGLE_TTS_API_KEY] = "<your API key here>";
             _configValues[GOOGLE_TTS_VOICE] = "ja-JP-Neural2-B";
             _configValues[WINDOWS_TTS_VOICE] = "Microsoft David (en-US, Male)";
@@ -2745,7 +2745,7 @@ namespace RSTGameTranslation
         // Get/Set TTS service
         public string GetTtsService()
         {
-            return GetValue(TTS_SERVICE, "ElevenLabs"); // Default to ElevenLabs
+            return GetValue(TTS_SERVICE, "Supertonic"); // Default to Supertonic
         }
 
         public void SetTtsService(string service)
