@@ -3055,14 +3055,29 @@ namespace RSTGameTranslation
 
         public void AddTranslationToHistory(string originalText, string translatedText, bool fromClipboard = false)
         {
-            // Check for duplicate with most recent entry
             if (_translationHistory.Count > 0)
             {
-                var lastEntry = _translationHistory.Last();
-                if (lastEntry.OriginalText == originalText)
+                if (_translationHistory.Last().OriginalText == originalText)
                 {
                     Console.WriteLine("Skipping duplicate translation entry");
                     return;
+                }
+
+                // A log-style text box keeps old lines on screen while new ones are added below, so
+                // every OCR pass returns the old lines again alongside the new one: skip a line that
+                // was already added a moment ago, otherwise it is shown and read out again
+                if (!fromClipboard)
+                {
+                    string normalized = NormalizeForDuplicateCheck(originalText);
+                    bool alreadyShown = normalized.Length > 0 && _translationHistory.Reverse()
+                        .Take(RecentDuplicateEntriesToCheck)
+                        .Any(e => (DateTime.Now - e.Timestamp).TotalSeconds <= RecentDuplicateMaxAgeSeconds &&
+                                  NormalizeForDuplicateCheck(e.OriginalText) == normalized);
+                    if (alreadyShown)
+                    {
+                        Console.WriteLine("Skipping translation entry already shown recently");
+                        return;
+                    }
                 }
             }
 
@@ -3090,6 +3105,12 @@ namespace RSTGameTranslation
             //Console.WriteLine($"Translation added to history. History size: {_translationHistory.Count}");
             ChatBoxWindow.Instance!.OnTranslationWasAdded(originalText, translatedText, fromClipboard);
         }
+
+        private const int RecentDuplicateEntriesToCheck = 6;
+        private const int RecentDuplicateMaxAgeSeconds = 60;
+
+        private static string NormalizeForDuplicateCheck(string text) =>
+            string.Concat(text.Where(c => !char.IsWhiteSpace(c)));
 
         // Typewriter dialogue can be translated while it is still typing out, then again once complete.
         // The complete line replaces the half-typed entry instead of adding a second one, and TTS reads

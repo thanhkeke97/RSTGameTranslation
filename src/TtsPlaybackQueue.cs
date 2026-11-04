@@ -142,12 +142,21 @@ namespace RSTGameTranslation
         /// <summary>Stop the clip being played and drop everything queued.</summary>
         public void Stop()
         {
+            WaveOutEvent? toStop;
             lock (gate)
             {
                 pending.Clear();
                 generation++;
                 sequencer.Clear();
+                toStop = output;
             }
+
+            // Clearing the sequencer only stops new audio from being fed: the device still plays the
+            // buffers it already holds, which sounded like a stutter before it went quiet. Resetting
+            // it drops them at once; the next clip opens a fresh device. Outside the gate because
+            // stopping raises PlaybackStopped, which takes it.
+            try { toStop?.Stop(); }
+            catch (Exception ex) { Console.WriteLine($"[TTS:{name}] Stop error: {ex.Message}"); }
         }
 
         private void FeedLoop()
