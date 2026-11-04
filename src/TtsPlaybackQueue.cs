@@ -309,6 +309,9 @@ namespace RSTGameTranslation
         private sealed class ClipSequencer
         {
             private const int IdleFramesBeforeStop = OutputRate * 3;
+            // A device that has just been opened swallows its first moments of audio while it wakes
+            // up, which cut the first word off short lines. Silence goes out first to absorb that.
+            private const int LeadInFrames = OutputRate / 5;
 
             private readonly string name;
             private readonly object sync = new object();
@@ -316,6 +319,7 @@ namespace RSTGameTranslation
             private Clip? current;
             private int session;
             private long idleFrames;
+            private int leadInFramesLeft;
 
             public ClipSequencer(string name)
             {
@@ -336,6 +340,7 @@ namespace RSTGameTranslation
                 {
                     session++;
                     idleFrames = 0;
+                    leadInFramesLeft = LeadInFrames;
                     Drained = false;
                     return session;
                 }
@@ -373,6 +378,13 @@ namespace RSTGameTranslation
 
                     int channels = OutputFormat.Channels;
                     int written = 0;
+                    if (leadInFramesLeft > 0 && (current != null || clips.Count > 0))
+                    {
+                        int silentFrames = Math.Min(leadInFramesLeft, count / channels);
+                        Array.Clear(buffer, offset, silentFrames * channels);
+                        written = silentFrames * channels;
+                        leadInFramesLeft -= silentFrames;
+                    }
                     while (written < count)
                     {
                         if (current == null)
