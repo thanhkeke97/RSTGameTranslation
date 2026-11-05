@@ -24,13 +24,17 @@ namespace RSTGameTranslation
         public int ScreenIndex { get; set; }
         public double DpiScaleX { get; set; }
         public double DpiScaleY { get; set; }
-        
-        public TranslationAreaInfo(Rect bounds, int screenIndex, double dpiScaleX, double dpiScaleY)
+        // Windows device name of the screen ("\\.\DISPLAY2"). Unlike the index it survives monitors
+        // being plugged in or reordered; empty in areas saved by older versions.
+        public string ScreenDevice { get; set; }
+
+        public TranslationAreaInfo(Rect bounds, int screenIndex, double dpiScaleX, double dpiScaleY, string screenDevice = "")
         {
             Bounds = bounds;
             ScreenIndex = screenIndex;
             DpiScaleX = dpiScaleX;
             DpiScaleY = dpiScaleY;
+            ScreenDevice = screenDevice;
         }
         
         public double X => Bounds.X;

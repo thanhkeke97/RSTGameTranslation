@@ -471,8 +471,8 @@ namespace RSTGameTranslation
                 // Store the DPI scale at the time of selection for future reference
                 DpiHelper.SetKnownDpiScale(_dpiScaleX, _dpiScaleY, screenIndex);
                 
-                var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
-                
+                var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY, GetActiveScreen().DeviceName);
+
                 // Notify listeners
                 SelectionComplete?.Invoke(this, areaInfo);
             }
@@ -492,8 +492,8 @@ namespace RSTGameTranslation
                     );
                     
                     int screenIndex = ConfigManager.Instance.GetSelectedScreenIndex();
-                    var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY);
-                    
+                    var areaInfo = new TranslationAreaInfo(selectionRect, screenIndex, _dpiScaleX, _dpiScaleY, GetActiveScreen().DeviceName);
+
                     SelectionComplete?.Invoke(this, areaInfo);
                 }
                 catch (Exception ex2)

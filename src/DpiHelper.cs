@@ -1,5 +1,6 @@
 // DpiHelper.cs - Helper class for DPI scaling operations
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using Point = System.Windows.Point;
@@ -359,6 +360,77 @@ namespace RSTGameTranslation
             GetDpiForSelectedScreen(out scaleX, out scaleY);
         }
         
+        /// <summary>
+        /// Match a saved translation area to the screens connected now. The screen is found by its
+        /// device name (the index shifts when monitors are plugged in or reordered), and an area that
+        /// no longer lies inside that screen, because the layout or resolution changed since it was
+        /// saved, is moved back into it instead of capturing the wrong spot or nothing at all.
+        /// </summary>
+        public static TranslationAreaInfo FitAreaToScreens(TranslationAreaInfo area, out bool adjusted)
+        {
+            adjusted = false;
+            var screens = Screen.AllScreens;
+            if (screens.Length == 0)
+                return area;
+
+            var bounds = area.Bounds;
+            int centerX = (int)(bounds.X + bounds.Width / 2);
+            int centerY = (int)(bounds.Y + bounds.Height / 2);
+            var center = new System.Drawing.Point(centerX, centerY);
+
+            Screen? target = null;
+            if (!string.IsNullOrEmpty(area.ScreenDevice))
+                target = screens.FirstOrDefault(s => string.Equals(s.DeviceName, area.ScreenDevice, StringComparison.OrdinalIgnoreCase));
+
+            // Areas from older versions have no device name: where the area is now is the best guess
+            target ??= screens.FirstOrDefault(s => s.Bounds.Contains(center));
+
+            if (target == null)
+            {
+                int selected = ConfigManager.Instance.GetSelectedScreenIndex();
+                target = selected >= 0 && selected < screens.Length ? screens[selected] : (Screen.PrimaryScreen ?? screens[0]);
+            }
+
+            var screenBounds = target.Bounds;
+            double width = Math.Min(bounds.Width, screenBounds.Width);
+            double height = Math.Min(bounds.Height, screenBounds.Height);
+            double x = Math.Clamp(bounds.X, screenBounds.Left, screenBounds.Right - width);
+            double y = Math.Clamp(bounds.Y, screenBounds.Top, screenBounds.Bottom - height);
+
+            var fitted = new Rect(x, y, width, height);
+            adjusted = Math.Abs(x - bounds.X) > 0.5 || Math.Abs(y - bounds.Y) > 0.5 ||
+                       Math.Abs(width - bounds.Width) > 0.5 || Math.Abs(height - bounds.Height) > 0.5;
+            if (adjusted)
+            {
+                Console.WriteLine($"DpiHelper: area {bounds} does not fit {target.DeviceName} {screenBounds}; moved to {fitted}");
+            }
+
+            GetDpiForScreen(target, out double scaleX, out double scaleY);
+            return new TranslationAreaInfo(fitted, Array.IndexOf(screens, target), scaleX, scaleY, target.DeviceName);
+        }
+
+        /// <summary>
+        /// Place a window in a corner of a screen's work area using physical pixels, so it lands on the
+        /// right monitor whatever DPI that monitor (or the primary one) uses. The window's size is given
+        /// in DIPs and converted with the target screen's DPI.
+        /// </summary>
+        public static void PlaceInWorkAreaCorner(Window window, Screen screen, bool right, bool bottom, int marginX, int marginY)
+        {
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(window).EnsureHandle();
+            GetDpiForScreen(screen, out double scaleX, out double scaleY);
+
+            int width = (int)Math.Round(window.Width * scaleX);
+            int height = (int)Math.Round(window.Height * scaleY);
+            var work = screen.WorkingArea;
+
+            int x = right ? work.Right - width - marginX : work.Left + marginX;
+            int y = bottom ? work.Bottom - height - marginY : work.Top + marginY;
+            x = Math.Max(work.Left, x);
+            y = Math.Max(work.Top, y);
+
+            PositionWindowPhysical(hwnd, x, y, width, height);
+        }
+
         /// <summary>
         /// Get the physical screen-pixel bounding rectangle of a window via Win32 GetWindowRect.
         /// Returns (left, top, width, height) in physical pixels.

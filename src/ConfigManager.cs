@@ -3663,7 +3663,7 @@ namespace RSTGameTranslation
         {
             try
             {
-                // Format: X,Y,Width,Height,ScreenIndex,DpiScaleX,DpiScaleY|...
+                // Format: X,Y,Width,Height,ScreenIndex,DpiScaleX,DpiScaleY,ScreenDevice+...
                 StringBuilder sb = new StringBuilder();
 
                 foreach (var area in areas)
@@ -3682,6 +3682,8 @@ namespace RSTGameTranslation
                     sb.Append(area.DpiScaleX.ToString(CultureInfo.InvariantCulture));
                     sb.Append(',');
                     sb.Append(area.DpiScaleY.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(',');
+                    sb.Append(area.ScreenDevice ?? string.Empty);
                     sb.Append('+');
                 }
 
@@ -3738,8 +3740,9 @@ namespace RSTGameTranslation
                                     double.TryParse(parts[5], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleX);
                                     double.TryParse(parts[6], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleY);
                                 }
+                                string screenDevice = parts.Length >= 8 ? parts[7].Trim() : string.Empty;
 
-                                areas.Add(new TranslationAreaInfo(new Rect(x, y, width, height), screenIndex, dpiScaleX, dpiScaleY));
+                                areas.Add(new TranslationAreaInfo(new Rect(x, y, width, height), screenIndex, dpiScaleX, dpiScaleY, screenDevice));
                             }
                         }
                     }

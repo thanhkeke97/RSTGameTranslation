@@ -4783,6 +4783,19 @@ namespace RSTGameTranslation
                     MainWindow.Instance.ReloadExcludeRegionsFromConfig();
                     if (areas.Count > 0)
                     {
+                        // The screens may be arranged differently than when the profile was saved
+                        int adjustedCount = 0;
+                        for (int i = 0; i < areas.Count; i++)
+                        {
+                            areas[i] = DpiHelper.FitAreaToScreens(areas[i], out bool adjusted);
+                            if (adjusted) adjustedCount++;
+                        }
+                        if (adjustedCount > 0)
+                        {
+                            MainWindow.Instance.ShowFastNotification("Translation area moved",
+                                $"{adjustedCount} area(s) no longer fit the current screen layout and were moved back onto the screen. Check them and re-select if needed.", 6000);
+                        }
+
                         // Update our areas list
                         MainWindow.Instance.SetTranslationAreas(areas);
                     }

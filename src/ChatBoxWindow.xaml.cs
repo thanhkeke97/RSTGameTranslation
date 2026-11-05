@@ -764,12 +764,15 @@ namespace RSTGameTranslation
             // This check ensures we don't overwrite loaded/saved positions
             if (this.Left == 0 && this.Top == 0)
             {
-                var screenWidth = SystemParameters.PrimaryScreenWidth;
-                var screenHeight = SystemParameters.PrimaryScreenHeight;
-
-                // Default to bottom right corner
-                this.Left = screenWidth - this.Width - 20;
-                this.Top = screenHeight - this.Height - 40;
+                // Default to the bottom right corner of the capture screen, placed in physical pixels:
+                // Left/Top in DIPs land on the wrong spot when that screen's DPI differs from the primary's
+                var screens = System.Windows.Forms.Screen.AllScreens;
+                int selectedScreen = ConfigManager.Instance.GetSelectedScreenIndex();
+                var targetScreen = selectedScreen >= 0 && selectedScreen < screens.Length
+                    ? screens[selectedScreen]
+                    : System.Windows.Forms.Screen.PrimaryScreen;
+                if (targetScreen != null)
+                    DpiHelper.PlaceInWorkAreaCorner(this, targetScreen, right: true, bottom: true, marginX: 20, marginY: 40);
             }
 
             // Create the click-through overlay window for the toggle button

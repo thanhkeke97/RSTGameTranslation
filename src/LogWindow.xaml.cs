@@ -45,7 +45,19 @@ namespace RSTGameTranslation
             WindowStartupLocation = WindowStartupLocation.Manual;
             Left = SystemParameters.PrimaryScreenWidth - Width - 50;
             Top = 50;
-            
+            // The DIP position above only fits the primary screen: once shown, place it again in
+            // physical pixels on the capture screen, where the game and the other tool windows are
+            Loaded += (_, _) =>
+            {
+                var screens = System.Windows.Forms.Screen.AllScreens;
+                int selectedScreen = ConfigManager.Instance.GetSelectedScreenIndex();
+                var targetScreen = selectedScreen >= 0 && selectedScreen < screens.Length
+                    ? screens[selectedScreen]
+                    : System.Windows.Forms.Screen.PrimaryScreen;
+                if (targetScreen != null)
+                    DpiHelper.PlaceInWorkAreaCorner(this, targetScreen, right: true, bottom: false, marginX: 50, marginY: 50);
+            };
+
             // Handle window closing to hide instead of dispose
             Closing += LogWindow_Closing;
             
