@@ -1047,7 +1047,66 @@
                                          Visibility="Collapsed"/>
                             </Grid>
                         </GroupBox>
-                        
+
+                        <!-- Text color filter: keep only subtitle-colored pixels before OCR (removes faint watermarks) -->
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_TextColorFilter]}" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="0,0,0,8"
+                                           Foreground="{DynamicResource MutedBrush}"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Hint_TextColorFilter]}"/>
+
+                                <!-- Enable -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TextColorFilterEnabled]}" Grid.Row="1" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterEnabled]}"/>
+                                <CheckBox x:Name="textColorFilterCheckBox" Grid.Row="1" Grid.Column="1" Margin="0,5"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterEnabled]}"
+                                         Checked="TextColorFilterCheckBox_CheckedChanged"
+                                         Unchecked="TextColorFilterCheckBox_CheckedChanged"/>
+
+                                <!-- Text color -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TextColorFilterColor]}" Grid.Row="2" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterColor]}"/>
+                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,5">
+                                    <Button x:Name="textColorFilterColorButton" Width="28" Height="22" Margin="0,0,8,0" Background="White"
+                                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterColor]}"
+                                            Click="TextColorFilterColorButton_Click"/>
+                                    <TextBox x:Name="textColorFilterColorTextBox" Width="90" Text="#FFFFFF"
+                                             ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterColor]}"
+                                             LostFocus="TextColorFilterColorTextBox_LostFocus"/>
+                                </StackPanel>
+
+                                <!-- Tolerance -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TextColorFilterTolerance]}" Grid.Row="3" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterTolerance]}"/>
+                                <TextBox x:Name="textColorFilterToleranceTextBox" Grid.Row="3" Grid.Column="1" Margin="0,5" Text="60"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterTolerance]}"
+                                         LostFocus="TextColorFilterToleranceTextBox_LostFocus"/>
+
+                                <!-- Preview -->
+                                <Button Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Margin="0,5" Padding="10,3"
+                                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TextColorFilterPreview]}"
+                                        Click="TextColorFilterPreviewButton_Click">
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_TextColorFilterPreview]}"/>
+                                </Button>
+                            </Grid>
+                        </GroupBox>
+
                         <!-- OCR Methods Comparison -->
                         <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCRComparison]}" Margin="0,0,0,15" Padding="10">
                             <Grid>

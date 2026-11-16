@@ -123,6 +123,9 @@ namespace RSTGameTranslation
         public const string AUTO_OCR = "auto_ocr";
         public const string MANGA_MODE = "manga_mode";
         public const string HDR_SUPPORT = "hdr_support";
+        public const string TEXT_COLOR_FILTER_ENABLED = "text_color_filter_enabled";
+        public const string TEXT_COLOR_FILTER_COLOR = "text_color_filter_color";
+        public const string TEXT_COLOR_FILTER_TOLERANCE = "text_color_filter_tolerance";
 
         // Text-to-Speech configuration keys
         public const string TTS_ENABLED = "tts_enabled";
@@ -655,6 +658,9 @@ namespace RSTGameTranslation
             _configValues[LANGUAGE_FONT_SIZE_MIN] = (10).ToString(CultureInfo.InvariantCulture);
             _configValues[LANGUAGE_FONT_SIZE_MAX] = (68).ToString(CultureInfo.InvariantCulture);
             _configValues[HDR_SUPPORT] = "false";
+            _configValues[TEXT_COLOR_FILTER_ENABLED] = "false";
+            _configValues[TEXT_COLOR_FILTER_COLOR] = "#FFFFFF";
+            _configValues[TEXT_COLOR_FILTER_TOLERANCE] = DEFAULT_TEXT_COLOR_FILTER_TOLERANCE.ToString(CultureInfo.InvariantCulture);
             _configValues[LANGUAGE_INTERFACE] = "en";
             _configValues[CUSTOM_API_KEY] = "";
             _configValues[CUSTOM_API_URL] = "";
@@ -1860,6 +1866,52 @@ namespace RSTGameTranslation
             _configValues[HDR_SUPPORT] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"HDR support enabled: {enabled}");
+        }
+
+        // Text color filter: before OCR keep only pixels close to the subtitle color (removes faint watermarks)
+        public const int DEFAULT_TEXT_COLOR_FILTER_TOLERANCE = 60;
+
+        public bool IsTextColorFilterEnabled()
+        {
+            return GetValue(TEXT_COLOR_FILTER_ENABLED, "false").ToLower() == "true";
+        }
+
+        public void SetTextColorFilterEnabled(bool enabled)
+        {
+            _configValues[TEXT_COLOR_FILTER_ENABLED] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Text color filter enabled: {enabled}");
+        }
+
+        public System.Drawing.Color GetTextColorFilterColor()
+        {
+            return TextColorFilter.TryParseColor(GetValue(TEXT_COLOR_FILTER_COLOR, "#FFFFFF"), out var color)
+                ? color
+                : System.Drawing.Color.White;
+        }
+
+        public void SetTextColorFilterColor(System.Drawing.Color color)
+        {
+            _configValues[TEXT_COLOR_FILTER_COLOR] = TextColorFilter.ToHex(color);
+            SaveConfig();
+            Console.WriteLine($"Text color filter color set to: {TextColorFilter.ToHex(color)}");
+        }
+
+        public int GetTextColorFilterTolerance()
+        {
+            string value = GetValue(TEXT_COLOR_FILTER_TOLERANCE, DEFAULT_TEXT_COLOR_FILTER_TOLERANCE.ToString(CultureInfo.InvariantCulture));
+            if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int tolerance) && tolerance >= 0 && tolerance <= 255)
+                return tolerance;
+            return DEFAULT_TEXT_COLOR_FILTER_TOLERANCE;
+        }
+
+        public void SetTextColorFilterTolerance(int value)
+        {
+            if (value < 0 || value > 255)
+                return;
+            _configValues[TEXT_COLOR_FILTER_TOLERANCE] = value.ToString(CultureInfo.InvariantCulture);
+            SaveConfig();
+            Console.WriteLine($"Text color filter tolerance set to: {value}");
         }
 
         // Check if need show quick start

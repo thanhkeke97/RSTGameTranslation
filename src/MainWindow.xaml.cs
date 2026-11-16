@@ -699,14 +699,22 @@ namespace RSTGameTranslation
             // Clone() copies lazily, so this costs almost nothing unless the frame is sampled.
             Logic.Instance.SetOcrSourceFrame(ConfigManager.Instance.IsAutoSetOverlayBackground() ? (Bitmap)image.Clone() : null);
 
+            // Optional: keep only subtitle-colored pixels so a faint watermark behind the text isn't read.
+            // The overlay background above is still sampled from the unfiltered frame.
+            Stopwatch filterWatch = Stopwatch.StartNew();
+            using Bitmap? colorFiltered = TextColorFilter.ApplyIfEnabled(image);
+            Bitmap ocrImage = colorFiltered ?? image;
+            if (colorFiltered != null)
+                Console.WriteLine($"Text color filter: {filterWatch.ElapsedMilliseconds}ms ({image.Width}x{image.Height})");
+
             string sourceLanguage = (sourceLanguageComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString()!;
             if (GetSelectedOcrMethod() == "Windows OCR")
             {
-                Logic.Instance.ProcessWithWindowsOCR(image, sourceLanguage);
+                Logic.Instance.ProcessWithWindowsOCR(ocrImage, sourceLanguage);
             }
             else
             {
-                Logic.Instance.ProcessWithOneOCR(image, sourceLanguage);
+                Logic.Instance.ProcessWithOneOCR(ocrImage, sourceLanguage, colorFiltered != null ? image : null);
             }
 
             stopwatch.Stop();

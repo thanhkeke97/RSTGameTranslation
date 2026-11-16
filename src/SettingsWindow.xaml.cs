@@ -1016,6 +1016,11 @@ namespace RSTGameTranslation
             // Set HDR support
             hdrSupportCheckBox.IsChecked = ConfigManager.Instance.IsHDRSupportEnabled();
 
+            // Set text color filter
+            textColorFilterCheckBox.IsChecked = ConfigManager.Instance.IsTextColorFilterEnabled();
+            ShowTextColorFilterColor(ConfigManager.Instance.GetTextColorFilterColor());
+            textColorFilterToleranceTextBox.Text = ConfigManager.Instance.GetTextColorFilterTolerance().ToString(CultureInfo.InvariantCulture);
+
             // Set hot key enable
             hotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsHotKeyEnabled();
             gamepadHotKeyEnableCheckBox.IsChecked = ConfigManager.Instance.IsGamepadHotKeyEnabled();
@@ -5675,6 +5680,88 @@ namespace RSTGameTranslation
             bool enabled = hdrSupportCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetHDRSupportEnabled(enabled);
             Console.WriteLine($"HDR support set to {enabled}");
+        }
+
+        private void TextColorFilterCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            bool enabled = textColorFilterCheckBox.IsChecked ?? false;
+            if (enabled == ConfigManager.Instance.IsTextColorFilterEnabled())
+                return;
+            ConfigManager.Instance.SetTextColorFilterEnabled(enabled);
+            Logic.Instance.ResetHash();
+        }
+
+        private void ShowTextColorFilterColor(System.Drawing.Color color)
+        {
+            textColorFilterColorTextBox.Text = TextColorFilter.ToHex(color);
+            textColorFilterColorButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(color.R, color.G, color.B));
+        }
+
+        private void SetTextColorFilterColor(System.Drawing.Color color)
+        {
+            ShowTextColorFilterColor(color);
+            if (color.ToArgb() == ConfigManager.Instance.GetTextColorFilterColor().ToArgb())
+                return;
+            ConfigManager.Instance.SetTextColorFilterColor(color);
+            Logic.Instance.ResetHash();
+        }
+
+        private void TextColorFilterColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            var current = ConfigManager.Instance.GetTextColorFilterColor();
+            using var colorDialog = new System.Windows.Forms.ColorDialog
+            {
+                Color = current,
+                FullOpen = true
+            };
+            if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                SetTextColorFilterColor(System.Drawing.Color.FromArgb(colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B));
+            }
+        }
+
+        private void TextColorFilterColorTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing)
+                return;
+
+            if (TextColorFilter.TryParseColor(textColorFilterColorTextBox.Text, out var color))
+                SetTextColorFilterColor(color);
+            else
+                ShowTextColorFilterColor(ConfigManager.Instance.GetTextColorFilterColor());
+        }
+
+        private void TextColorFilterToleranceTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing)
+                return;
+
+            if (int.TryParse(textColorFilterToleranceTextBox.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int tolerance)
+                && tolerance >= 0 && tolerance <= 255)
+            {
+                if (tolerance != ConfigManager.Instance.GetTextColorFilterTolerance())
+                {
+                    ConfigManager.Instance.SetTextColorFilterTolerance(tolerance);
+                    Logic.Instance.ResetHash();
+                }
+            }
+            else
+            {
+                textColorFilterToleranceTextBox.Text = ConfigManager.Instance.GetTextColorFilterTolerance().ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
+        private void TextColorFilterPreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ConfigManager.Instance.IsTextColorFilterEnabled())
+            {
+                textColorFilterCheckBox.IsChecked = true;
+            }
+            string path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "RSTGameTranslation", "text_color_filter_preview.png");
+            TextColorFilter.RequestPreview(path);
+            // Make the next captured frame go through OCR even if the screen hasn't changed
+            Logic.Instance.ResetHash();
+            MainWindow.Instance.SetOCRCheckIsWanted(true);
         }
 
         private void SilenceThresholdTextBox_LostFocus(object sender, RoutedEventArgs e)

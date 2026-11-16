@@ -1763,7 +1763,9 @@ namespace RSTGameTranslation
         }
 
         // Process bitmap directly with Windows OCR (no file saving)
-        public async void ProcessWithOneOCR(System.Drawing.Bitmap bitmap, string sourceLanguage)
+        // sceneBitmap: the unfiltered frame, when bitmap was preprocessed for OCR (text color filter).
+        // Speech bubble detection needs the real scene: on a filtered frame everything but the text is white.
+        public async void ProcessWithOneOCR(System.Drawing.Bitmap bitmap, string sourceLanguage, System.Drawing.Bitmap? sceneBitmap = null)
         {
             try
             {
@@ -1773,7 +1775,7 @@ namespace RSTGameTranslation
                     var textLines = await OneOCRManager.Instance.GetOcrLinesFromBitmapAsync(bitmap);
 
                     // Process the OCR results with language code
-                    await OneOCRManager.Instance.ProcessOneOcrResults(textLines, sourceLanguage, bitmap);
+                    await OneOCRManager.Instance.ProcessOneOcrResults(textLines, sourceLanguage, sceneBitmap ?? bitmap);
                 }
                 catch (Exception ex)
                 {
