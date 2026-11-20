@@ -662,6 +662,45 @@
                          Right/bottom margins are smaller because every group adds 8 on those sides. -->
                     <local:JustifiedWrapPanel Margin="12,10,4,2">
 
+                        <!-- GAME PROFILE: picking one fills in the steps below in one go -->
+                        <Border Style="{StaticResource ToolGroupStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Border Style="{StaticResource ToolStepBadge}">
+                                        <TextBlock Text="★" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_GameProfile]}"
+                                               Style="{StaticResource ToolGroupHeader}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ComboBox x:Name="profileQuickComboBox"
+                                              Width="190" Height="32"
+                                              VerticalContentAlignment="Center"
+                                              FontSize="12"
+                                              Style="{StaticResource ThemedComboBox}"
+                                              SelectionChanged="ProfileQuickComboBox_SelectionChanged"
+                                              ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ProfileQuickPick]}"
+                                              WindowChrome.IsHitTestVisibleInChrome="True"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+                                        <Button x:Name="saveProfileQuickButton" Style="{StaticResource ToolbarGhostButton}" Margin="0,0,6,0"
+                                                ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_SaveProfileQuick]}"
+                                                Click="SaveProfileQuickButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveProfileQuick]}" FontSize="12"/>
+                                        </Button>
+                                        <Button Style="{StaticResource ToolbarGhostButton}"
+                                                ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_ManageProfiles]}"
+                                                Click="ManageProfilesButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ManageProfiles]}" FontSize="12"/>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
                         <!-- GROUP 1: Capture Area -->
                         <Border Style="{StaticResource ToolGroupStyle}">
                             <Grid>

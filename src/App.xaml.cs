@@ -63,8 +63,100 @@ public partial class App : Application
         catch { /* last resort — nothing we can do */ }
     }
 
+    // ===== Single instance =====
+    // Opening rst.exe again while it runs brings the running window to the front instead of starting
+    // a second session (two sessions would fight over the config file, hotkeys and the OCR port).
+    // Restart and update wait for this process to exit before starting the new one, so they still work.
+
+    private const string SingleInstanceId = @"Local\RSTGameTranslation-SingleInstance";
+    private const string ShowWindowEventId = @"Local\RSTGameTranslation-ShowWindow";
+    private static Mutex? _instanceMutex;          // held for the whole life of the process
+    private static EventWaitHandle? _showWindowEvent;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool AllowSetForegroundWindow(int processId);
+    private const int ASFW_ANY = -1;
+
+    // Returns false when another instance is already running; that instance has been asked to show itself.
+    private bool AcquireSingleInstance()
+    {
+        _instanceMutex = new Mutex(true, SingleInstanceId, out bool createdNew);
+        if (!createdNew)
+        {
+            bool acquired;
+            try
+            {
+                acquired = _instanceMutex.WaitOne(0);
+            }
+            catch (AbandonedMutexException)
+            {
+                acquired = true; // the previous instance crashed without releasing it
+            }
+
+            if (!acquired)
+            {
+                try
+                {
+                    // This process was just started by the user, so it may hand the foreground to the other one
+                    AllowSetForegroundWindow(ASFW_ANY);
+                    if (EventWaitHandle.TryOpenExisting(ShowWindowEventId, out EventWaitHandle? showEvent))
+                    {
+                        using (showEvent)
+                            showEvent.Set();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Could not ask the running instance to show itself: {ex.Message}");
+                }
+
+                _instanceMutex.Dispose();
+                _instanceMutex = null;
+                return false;
+            }
+        }
+
+        _showWindowEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowWindowEventId);
+        var listener = new Thread(() =>
+        {
+            while (_showWindowEvent.WaitOne())
+                Dispatcher.BeginInvoke(new Action(BringMainWindowToFront));
+        })
+        {
+            IsBackground = true,
+            Name = "SingleInstanceListener"
+        };
+        listener.Start();
+        return true;
+    }
+
+    private void BringMainWindowToFront()
+    {
+        var window = _mainWindow;
+        // Still on the splash screen: the main window shows by itself when it closes
+        if (window == null || !window.IsLoaded)
+            return;
+
+        if (!window.IsVisible)
+            window.Show(); // hidden to the tray
+        if (window.WindowState == WindowState.Minimized)
+            window.WindowState = WindowState.Normal;
+
+        window.Activate();
+        // Windows may refuse to move another process's window to the front; a topmost flip gets past that
+        window.Topmost = true;
+        window.Topmost = false;
+        window.Focus();
+    }
+
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (!AcquireSingleInstance())
+        {
+            Shutdown(0);
+            return;
+        }
+
         // Catch ALL exceptions during startup, including assembly load / WinRT activation failures.
         // Without this, the app silently exits on systems where WinRT components are missing.
         try

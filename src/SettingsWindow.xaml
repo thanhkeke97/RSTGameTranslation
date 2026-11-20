@@ -357,7 +357,7 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <TabControl SelectedIndex="1">
+        <TabControl x:Name="settingsTabControl" SelectedIndex="1">
             <TabItem Style="{StaticResource NavSection}" Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Nav_Basics]}"/>
 
             <!-- Translation Service Tab -->
@@ -2159,91 +2159,128 @@
             </TabItem>
 
             <!--  Game Profile Tab -->
-            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_GameProfile]}">
+            <TabItem x:Name="gameProfileTab" Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_GameProfile]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
-                        <!-- Audio Processing Settings -->
-                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ProfileSettings]}" Margin="0,0,0,15" Padding="10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ProfileName]}" Grid.Row="0" Grid.Column="0" 
-                                          Margin="0,10,10,0"/>
-                                <TextBox x:Name="profileNameTextBox" Grid.Row="0" Grid.Column="1" 
-                                          Margin="0,5"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectProfile]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="profileComboBox" Grid.Row="1" Grid.Column="1" Margin="0,5">
-                                </ComboBox>
-                                <Button Grid.Row="0" Grid.Column="2" Click="CreateProfileButton_Click"
-                                        Width="100" Margin="10,0">
-                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_CreateProfile]}"/>
-                                </Button>
-                                <Button Grid.Row="2" Grid.Column="1" Click="UpdateProfileButton_Click"
-                                        Width="100" Margin="10,0">
-                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_UpdateProfile]}"/>
-                                </Button>
-                                <Button Grid.Row="1" Grid.Column="2" Click="RemoveProfileButton_Click"
-                                        Width="100" Margin="10,0">
-                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RemoveProfile]}"/>
-                                </Button>
-                                <Button Grid.Row="2" Grid.Column="2" Click="LoadProfileButton_Click"
-                                        Width="100" Margin="10,0">
-                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_LoadProfile]}"/>
-                                </Button>
-                                <TextBlock x:Name="statusUpdateGameProfile" Foreground="{DynamicResource SuccessBrush}" Text="" HorizontalAlignment="Center"
-                                    Grid.Row="3" Grid.Column="1" Margin="0,20,0,0"/>
-                            </Grid>
+                        <!-- What a profile is, for people who have never used one -->
+                        <Border Background="{DynamicResource Surface2Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="6" Padding="10,8" Margin="0,0,0,12">
+                            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+                                       Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Hint_GameProfile]}"/>
+                        </Border>
+
+                        <!-- Profile in use -->
+                        <Border BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" Margin="0,0,8,0"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ActiveProfile]}"/>
+                                <TextBlock x:Name="activeProfileText" VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock x:Name="statusUpdateGameProfile" Text="" TextWrapping="Wrap" Margin="2,0,0,10" Visibility="Collapsed"/>
+
+                        <!-- Use a saved profile -->
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_UseProfile]}" Margin="0,0,0,15" Padding="10">
+                            <StackPanel>
+                                <TextBlock x:Name="noProfilesText" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Visibility="Collapsed"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_NoProfilesYet]}"/>
+                                <StackPanel x:Name="profilePickerPanel">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="profileComboBox" Grid.Column="0" VerticalContentAlignment="Center"
+                                                  SelectionChanged="ProfileComboBox_SelectionChanged"/>
+                                        <Button x:Name="loadProfileButton" Grid.Column="1" Margin="8,0,0,0" MinWidth="110"
+                                                Background="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBrush}" Foreground="White"
+                                                ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_LoadProfile]}"
+                                                Click="LoadProfileButton_Click">
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_LoadProfile]}"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- What the selected profile holds -->
+                                    <TextBlock x:Name="profileSummaryText" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="2,6,0,0"/>
+
+                                    <WrapPanel Margin="0,8,0,0">
+                                        <Button x:Name="updateProfileButton" Margin="0,0,6,0"
+                                                ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_UpdateProfile]}"
+                                                Click="UpdateProfileButton_Click">
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_UpdateProfile]}"/>
+                                        </Button>
+                                        <Button x:Name="renameProfileButton" Margin="0,0,6,0" Click="RenameProfileButton_Click">
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RenameProfile]}"/>
+                                        </Button>
+                                        <Button x:Name="removeProfileButton" Foreground="{DynamicResource DangerBrush}" Click="RemoveProfileButton_Click">
+                                            <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RemoveProfile]}"/>
+                                        </Button>
+                                    </WrapPanel>
+
+                                    <!-- Inline rename, shown by the Rename button -->
+                                    <StackPanel x:Name="renameProfilePanel" Margin="0,8,0,0" Visibility="Collapsed">
+                                        <TextBlock Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,4"
+                                                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_NewProfileName]}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="renameProfileTextBox" Grid.Column="0" VerticalContentAlignment="Center"
+                                                     TextChanged="RenameProfileTextBox_TextChanged" KeyDown="RenameProfileTextBox_KeyDown"/>
+                                            <Button Grid.Column="1" Margin="8,0,0,0" Click="ConfirmRenameProfileButton_Click">
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_RenameConfirm]}"/>
+                                            </Button>
+                                            <Button Grid.Column="2" Margin="6,0,0,0" Click="CancelRenameProfileButton_Click">
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Common_Btn_Cancel]}"/>
+                                            </Button>
+                                        </Grid>
+                                        <TextBlock x:Name="renameProfileError" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" Margin="2,4,0,0" Visibility="Collapsed"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
                         </GroupBox>
-                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ProfileDetails]}" Margin="0,0,0,15" Padding="10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CreateProfileBold]}" HorizontalAlignment="Left"
-                                    Grid.Row="0" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CreateProfileGuide]}" 
-                                    HorizontalAlignment="Left" TextWrapping="Wrap"
-                                    Grid.Row="0" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_ProfileNameNote]}" 
-                                    HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="{DynamicResource DangerBrush}"
-                                    Grid.Row="1" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_RemoveProfileBold]}" HorizontalAlignment="Left"
-                                    Grid.Row="2" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_RemoveProfileGuide]}" 
-                                    HorizontalAlignment="Left" TextWrapping="Wrap"
-                                    Grid.Row="2" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_UpdateProfileBold]}" HorizontalAlignment="Left"
-                                    Grid.Row="3" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_UpdateProfileGuide]}" 
-                                    HorizontalAlignment="Left" TextWrapping="Wrap"
-                                    Grid.Row="3" Grid.Column="1" Margin="10,10,0,0"/>
-                                <TextBlock FontWeight="Bold" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LoadProfileBold]}" HorizontalAlignment="Left"
-                                    Grid.Row="4" Grid.Column="0" Margin="0,10,0,0"/>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_LoadProfileGuide]}" 
-                                    HorizontalAlignment="Left" TextWrapping="Wrap"
-                                    Grid.Row="4" Grid.Column="1" Margin="10,10,0,0"/>
-                            </Grid>
+
+                        <!-- Create a new profile -->
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_CreateProfile]}" Margin="0,0,0,15" Padding="10">
+                            <StackPanel>
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,8"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CreateProfileSteps]}"/>
+                                <TextBlock Margin="0,0,0,4" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ProfileName]}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="profileNameTextBox" Grid.Column="0" VerticalContentAlignment="Center"
+                                             TextChanged="ProfileNameTextBox_TextChanged" KeyDown="ProfileNameTextBox_KeyDown"/>
+                                    <Button x:Name="createProfileButton" Grid.Column="1" Margin="8,0,0,0" MinWidth="110"
+                                            Background="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBrush}" Foreground="White"
+                                            Click="CreateProfileButton_Click">
+                                        <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_CreateProfile]}"/>
+                                    </Button>
+                                </Grid>
+                                <TextBlock x:Name="profileNameError" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" Margin="2,4,0,0" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- What goes into a profile -->
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ProfileContents]}" Margin="0,0,0,15" Padding="10">
+                            <StackPanel>
+                                <TextBlock TextWrapping="Wrap" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_ProfileContents]}"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,0"
+                                           Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_ProfileNotContents]}"/>
+                                <Button HorizontalAlignment="Left" Margin="0,10,0,0" Click="OpenProfileFolderButton_Click"
+                                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_OpenProfileFolder]}">
+                                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_OpenProfileFolder]}"/>
+                                </Button>
+                            </StackPanel>
                         </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
+
 
             <TabItem Style="{StaticResource NavSection}" Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Nav_Advanced]}"/>
 

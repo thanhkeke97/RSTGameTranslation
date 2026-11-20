@@ -1127,6 +1127,201 @@ namespace RSTGameTranslation
             ToolbarButton.SetState(selectAreaButton, ToolbarState.On);
         }
 
+        // ===== Game profiles =====
+
+        private bool _refreshingProfilePicker;
+
+        /// <summary>
+        /// Load a game profile and apply it right away. Used by the toolbar picker and by Settings.
+        /// Returns false (after telling the user) when the profile could not be read.
+        /// </summary>
+        public bool LoadGameProfile(string name)
+        {
+            List<TranslationAreaInfo> areas;
+            try
+            {
+                areas = ConfigManager.Instance.LoadProfile(name);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading game profile '{name}': {ex}");
+                ShowFastNotification(LocalizationManager.Instance.Strings["Title_Error"],
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ProfileLoadFailed"], name), 6000);
+                RefreshProfileQuickPicker();
+                return false;
+            }
+
+            int movedAreas = ApplyGameProfile(areas);
+            SettingsWindow.RefreshIfOpen();
+
+            if (movedAreas > 0)
+            {
+                ShowFastNotification(LocalizationManager.Instance.Strings["Title_AreasMoved"],
+                    string.Format(LocalizationManager.Instance.Strings["Msg_AreasMovedToScreen"], movedAreas), 6000);
+            }
+            else
+            {
+                ShowFastNotification(LocalizationManager.Instance.Strings["Title_GameProfile"],
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ProfileLoaded"], name), 3000);
+            }
+            return true;
+        }
+
+        // At startup the settings of the profile in use are already in the config; only its translation
+        // areas need to be put back
+        private void RestoreActiveProfileAreas()
+        {
+            try
+            {
+                if (ConfigManager.Instance.GetActiveProfile().Length == 0)
+                    return;
+                List<TranslationAreaInfo> areas = ConfigManager.Instance.GetSavedTranslationAreas();
+                if (areas.Count == 0)
+                    return;
+                for (int i = 0; i < areas.Count; i++)
+                    areas[i] = DpiHelper.FitAreaToScreens(areas[i], out _);
+                SetTranslationAreas(areas);
+                OnMultiAreaModeChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error restoring translation areas of the active profile: {ex.Message}");
+            }
+        }
+
+        // Toolbar picker: a "no profile" entry, then every profile; the one in use is selected
+        private void RefreshProfileQuickPicker()
+        {
+            if (profileQuickComboBox == null)
+                return;
+
+            _refreshingProfilePicker = true;
+            try
+            {
+                string active = ConfigManager.Instance.GetActiveProfile();
+                List<string> names = ConfigManager.Instance.GetProfileNames();
+
+                profileQuickComboBox.Items.Clear();
+                var placeholder = new ComboBoxItem
+                {
+                    Content = LocalizationManager.Instance.Strings[names.Count == 0 ? "Lbl_NoProfilesShort" : "Lbl_PickProfile"],
+                    IsEnabled = false,
+                };
+                placeholder.SetResourceReference(ForegroundProperty, "MutedBrush");
+                profileQuickComboBox.Items.Add(placeholder);
+
+                ComboBoxItem? selected = placeholder;
+                foreach (string name in names)
+                {
+                    var item = new ComboBoxItem { Content = name, Tag = name };
+                    profileQuickComboBox.Items.Add(item);
+                    if (string.Equals(name, active, StringComparison.OrdinalIgnoreCase))
+                        selected = item;
+                }
+                profileQuickComboBox.SelectedItem = selected;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error refreshing the profile picker: {ex.Message}");
+            }
+            finally
+            {
+                _refreshingProfilePicker = false;
+            }
+        }
+
+        private void ProfileQuickComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_refreshingProfilePicker)
+                return;
+            if (profileQuickComboBox.SelectedItem is not ComboBoxItem { Tag: string name })
+                return;
+            if (string.Equals(name, ConfigManager.Instance.GetActiveProfile(), StringComparison.OrdinalIgnoreCase))
+                return;
+
+            LoadGameProfile(name);
+        }
+
+        // Save the current areas and settings into the profile in use; without one, open the page to create it
+        private void SaveProfileQuickButton_Click(object sender, RoutedEventArgs e)
+        {
+            string active = ConfigManager.Instance.GetActiveProfile();
+            if (active.Length == 0)
+            {
+                OpenGameProfileSettings();
+                return;
+            }
+
+            if (System.Windows.MessageBox.Show(string.Format(LocalizationManager.Instance.Strings["Msg_ConfirmUpdateProfileNamed"], active),
+                    LocalizationManager.Instance.Strings["Title_Confirm"], MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                ConfigManager.Instance.SaveProfile(active, new List<TranslationAreaInfo>(savedTranslationAreas));
+                ShowFastNotification(LocalizationManager.Instance.Strings["Title_GameProfile"],
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ProfileUpdated"], active), 3000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving game profile '{active}': {ex}");
+                ShowFastNotification(LocalizationManager.Instance.Strings["Title_Error"],
+                    string.Format(LocalizationManager.Instance.Strings["Msg_ProfileSaveFailed"], active, ex.Message), 6000);
+            }
+        }
+
+        private void ManageProfilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenGameProfileSettings();
+        }
+
+        private void OpenGameProfileSettings()
+        {
+            if (!SettingsWindow.Instance.IsVisible)
+                ToggleSettingsWindow();
+            SettingsWindow.Instance.ShowGameProfileTab();
+            SettingsWindow.Instance.Activate();
+        }
+
+        /// <summary>
+        /// A game profile was just loaded into the config: apply what is cached outside it (language
+        /// pickers, OCR engine, block detection scale, exclude regions) and use its translation areas.
+        /// Returns how many areas had to be moved back onto the current screens.
+        /// </summary>
+        public int ApplyGameProfile(List<TranslationAreaInfo> areas)
+        {
+            if (FindLanguageItem(sourceLanguageComboBox, ConfigManager.Instance.GetSourceLanguage()) is ComboBoxItem sourceItem)
+                sourceLanguageComboBox.SelectedItem = sourceItem;
+            if (FindLanguageItem(targetLanguageComboBox, ConfigManager.Instance.GetTargetLanguage()) is ComboBoxItem targetItem)
+                targetLanguageComboBox.SelectedItem = targetItem;
+
+            SetOcrMethod(ConfigManager.Instance.GetOcrMethod());
+            BlockDetectionManager.Instance.SetBlockDetectionScale(ConfigManager.Instance.GetBlockDetectionScale());
+            ReloadExcludeRegionsFromConfig();
+
+            // The screens may be arranged differently than when the profile was saved
+            int adjustedCount = 0;
+            for (int i = 0; i < areas.Count; i++)
+            {
+                areas[i] = DpiHelper.FitAreaToScreens(areas[i], out bool adjusted);
+                if (adjusted) adjustedCount++;
+            }
+
+            if (areas.Count > 0)
+                SetTranslationAreas(areas);
+            else
+                ClearTranslationAreas();
+            OnMultiAreaModeChanged();
+
+            Logic.Instance.ClearAllTextObjects();
+            Logic.Instance.ResetHash();
+            MonitorWindow.Instance.RefreshOverlays();
+            SetOCRCheckIsWanted(true);
+            return adjustedCount;
+        }
+
         /// <summary>Forget every translation area and go back to capturing the default area.</summary>
         public void ClearTranslationAreas()
         {
@@ -1386,6 +1581,13 @@ namespace RSTGameTranslation
 
             // Load language settings from config
             LoadLanguageSettingsFromConfig();
+
+            // Game profile picker on the toolbar; the profile in use also brings back its translation areas
+            // Deferred: a profile picked in the toolbar raises this from inside the picker's own SelectionChanged
+            ConfigManager.Instance.ProfilesChanged += (s, args) => Dispatcher.BeginInvoke(new Action(RefreshProfileQuickPicker));
+            LocalizationManager.Instance.PropertyChanged += (s, args) => RefreshProfileQuickPicker();
+            RestoreActiveProfileAreas();
+            RefreshProfileQuickPicker();
 
             // status OCR
             if(savedOcrMethod == "Windows OCR" || savedOcrMethod == "OneOCR")

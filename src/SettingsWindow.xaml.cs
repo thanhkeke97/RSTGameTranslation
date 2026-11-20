@@ -200,8 +200,6 @@ namespace RSTGameTranslation
 
         public static bool _isLanguagePackInstall = false;
 
-        public string profileName = "";
-
         public static SettingsWindow Instance
         {
             get
@@ -228,6 +226,8 @@ namespace RSTGameTranslation
             LocalizationManager.Instance.PropertyChanged += (s, e) => MatchTypeOptions.ForEach(option => option.RefreshText());
             // The list follows changes made anywhere: hotkey selection, profile load, Settings buttons
             MainWindow.Instance.ExcludeRegionsChanged += (s, e) => LoadExcludeRegions();
+            ConfigManager.Instance.ProfilesChanged += (s, e) => { if (_instance == this) LoadAllProfile(); };
+            LocalizationManager.Instance.PropertyChanged += (s, e) => { if (_instance == this) LoadAllProfile(); };
             LocalizationManager.Instance.PropertyChanged += (s, e) => LoadExcludeRegions();
             LoadAvailableScreens();
             LoadAllProfile();
@@ -4584,268 +4584,388 @@ namespace RSTGameTranslation
 
         }
 
+        // ===== Game profiles =====
+
+        private bool _refreshingProfiles;
+        private System.Windows.Threading.DispatcherTimer? _profileStatusTimer;
+
+        private static string L(string key) => LocalizationManager.Instance.Strings[key];
+
+        private string? SelectedProfileName => profileComboBox.SelectedItem as string;
+
+        // Open Settings on the game profile page (from the MainWindow toolbar)
+        public void ShowGameProfileTab()
+        {
+            settingsTabControl.SelectedItem = gameProfileTab;
+        }
+
+        // Settings shows values read when it opened: refresh them after a profile was loaded elsewhere
+        public static void RefreshIfOpen()
+        {
+            var window = _instance;
+            if (window != null && IsWindowValid(window) && window.IsVisible)
+                window.ReloadSetting();
+        }
+
+        // Refresh the profile list and everything shown about it
+        private void LoadAllProfile()
+        {
+            _refreshingProfiles = true;
+            try
+            {
+                string? keep = SelectedProfileName;
+                string active = ConfigManager.Instance.GetActiveProfile();
+                List<string> names = ConfigManager.Instance.GetProfileNames();
+
+                profileComboBox.Items.Clear();
+                foreach (string name in names)
+                    profileComboBox.Items.Add(name);
+
+                profileComboBox.SelectedItem =
+                    names.FirstOrDefault(n => string.Equals(n, keep, StringComparison.OrdinalIgnoreCase)) ??
+                    names.FirstOrDefault(n => string.Equals(n, active, StringComparison.OrdinalIgnoreCase)) ??
+                    names.FirstOrDefault();
+
+                bool hasProfiles = names.Count > 0;
+                noProfilesText.Visibility = hasProfiles ? Visibility.Collapsed : Visibility.Visible;
+                profilePickerPanel.Visibility = hasProfiles ? Visibility.Visible : Visibility.Collapsed;
+
+                activeProfileText.Text = active.Length > 0 ? active : L("Lbl_NoActiveProfile");
+                activeProfileText.SetResourceReference(TextBlock.ForegroundProperty, active.Length > 0 ? "TextBrush" : "MutedBrush");
+
+                if (string.IsNullOrWhiteSpace(profileNameTextBox.Text))
+                    profileNameTextBox.Text = SuggestProfileName();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading game profiles: {ex.Message}");
+            }
+            finally
+            {
+                _refreshingProfiles = false;
+            }
+
+            UpdateSelectedProfileDetails();
+            HideRenameProfilePanel();
+        }
+
+        // The captured game window's title is a good default name for a new profile
+        private static string SuggestProfileName()
+        {
+            string title = MainWindow.Instance.CapturedWindowTitle ?? "";
+            var invalid = Path.GetInvalidFileNameChars();
+            string name = new string(title.Where(c => !invalid.Contains(c)).ToArray()).Trim().Trim('.');
+            if (name.Length > 40)
+                name = name.Substring(0, 40).Trim();
+            if (ConfigManager.ValidateProfileName(name) != null || ConfigManager.Instance.ProfileExists(name))
+                return "";
+            return name;
+        }
+
+        private void UpdateSelectedProfileDetails()
+        {
+            string? name = SelectedProfileName;
+            bool selected = name != null;
+            loadProfileButton.IsEnabled = selected;
+            updateProfileButton.IsEnabled = selected;
+            renameProfileButton.IsEnabled = selected;
+            removeProfileButton.IsEnabled = selected;
+
+            if (name == null)
+            {
+                profileSummaryText.Text = "";
+                return;
+            }
+
+            var summary = ConfigManager.Instance.GetProfileSummary(name);
+            if (summary == null)
+            {
+                profileSummaryText.Text = L("Msg_ProfileUnreadable");
+                return;
+            }
+
+            // "2 areas · Japanese → Vietnamese · OneOCR · saved 11/20 12:18"; parts the profile doesn't have are left out
+            var parts = new List<string> { string.Format(L("Msg_ProfileAreaCount"), summary.AreaCount) };
+            if (summary.SourceLanguage.Length > 0 && summary.TargetLanguage.Length > 0)
+                parts.Add($"{LanguageDisplay.GetShortName(summary.SourceLanguage)} → {LanguageDisplay.GetShortName(summary.TargetLanguage)}");
+            if (summary.OcrMethod.Length > 0)
+                parts.Add(summary.OcrMethod);
+            parts.Add(string.Format(L("Msg_ProfileSavedAt"), summary.LastSaved.ToString("g", CultureInfo.CurrentCulture)));
+            profileSummaryText.Text = string.Join(" · ", parts);
+        }
+
+        private void ShowProfileStatus(string message, bool isError = false)
+        {
+            statusUpdateGameProfile.Text = message;
+            statusUpdateGameProfile.SetResourceReference(TextBlock.ForegroundProperty, isError ? "DangerBrush" : "SuccessBrush");
+            statusUpdateGameProfile.Visibility = Visibility.Visible;
+
+            _profileStatusTimer?.Stop();
+            _profileStatusTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(isError ? 8 : 4) };
+            _profileStatusTimer.Tick += (s, e) =>
+            {
+                statusUpdateGameProfile.Visibility = Visibility.Collapsed;
+                _profileStatusTimer?.Stop();
+            };
+            _profileStatusTimer.Start();
+        }
+
+        private static void ShowFieldError(TextBlock target, string? messageKey)
+        {
+            target.Text = messageKey == null ? "" : L(messageKey);
+            target.Visibility = messageKey == null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void SelectProfileInList(string name)
+        {
+            foreach (var item in profileComboBox.Items)
+            {
+                if (item is string text && string.Equals(text, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    profileComboBox.SelectedItem = item;
+                    return;
+                }
+            }
+        }
+
+        private void ProfileComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_refreshingProfiles)
+                return;
+            UpdateSelectedProfileDetails();
+            HideRenameProfilePanel();
+        }
+
+        private void ProfileNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Point out a bad name while typing, but don't complain about an empty box
+            string text = profileNameTextBox.Text.Trim();
+            ShowFieldError(profileNameError, text.Length == 0 ? null : ConfigManager.ValidateProfileName(text));
+        }
+
+        private void ProfileNameTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                CreateProfileButton_Click(sender, e);
+                e.Handled = true;
+            }
+        }
+
         private void CreateProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is System.Windows.Controls.Button button)
+            string name = profileNameTextBox.Text.Trim();
+            string? error = ConfigManager.ValidateProfileName(name);
+            if (error != null)
             {
-                profileName = profileNameTextBox.Text.Trim();
+                ShowFieldError(profileNameError, error);
+                profileNameTextBox.Focus();
+                return;
+            }
 
-                if (string.IsNullOrEmpty(profileName))
-                {
-                    MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_PleaseEnterProfileName"],
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                }
-                else
-                {
-                    // Create profile with current config
-                    ConfigManager.Instance.SaveTranslationAreas(MainWindow.Instance.savedTranslationAreas, profileName);
-                    // Add to combo box
-                    bool exists = false;
-                    foreach (var item in profileComboBox.Items)
-                    {
-                        if (item.ToString() == profileName)
-                        {
-                            profileComboBox.SelectedItem = item;
-                            exists = true;
-                            break;
-                        }
-                    }
+            if (ConfigManager.Instance.ProfileExists(name) &&
+                MessageBox.Show(string.Format(L("Msg_ConfirmOverwriteProfile"), name), L("Title_Confirm"),
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
 
+            if (MainWindow.Instance.savedTranslationAreas.Count == 0 &&
+                MessageBox.Show(L("Msg_ProfileNoAreas"), L("Title_Confirm"),
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
 
-                    if (!exists)
-                    {
-                        profileComboBox.Items.Add(profileName);
-                        profileComboBox.SelectedIndex = profileComboBox.Items.Count - 1;
-                    }
-                    // Show status
-                    statusUpdateGameProfile.Visibility = Visibility.Visible;
-                    statusUpdateGameProfile.Text = $"Create {profileName} successfully!";
-                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Green);
+            try
+            {
+                ConfigManager.Instance.SaveProfile(name, new List<TranslationAreaInfo>(MainWindow.Instance.savedTranslationAreas));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating profile '{name}': {ex}");
+                ShowProfileStatus(string.Format(L("Msg_ProfileSaveFailed"), name, ex.Message), isError: true);
+                return;
+            }
 
-                    // Auto close status after 1.5 second
-                    var timer = new System.Windows.Threading.DispatcherTimer
-                    {
-                        Interval = TimeSpan.FromSeconds(1.5)
-                    };
+            profileNameTextBox.Text = "";
+            SelectProfileInList(name);
+            ShowProfileStatus(string.Format(L("Msg_ProfileCreated"), name));
+        }
 
-                    timer.Tick += (s, e) =>
-                    {
-                        statusUpdateGameProfile.Text = "";
-                        timer.Stop();
-                    };
+        private void UpdateProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            string? name = SelectedProfileName;
+            if (name == null)
+                return;
 
-                    timer.Start();
-                }
+            if (MessageBox.Show(string.Format(L("Msg_ConfirmUpdateProfileNamed"), name), L("Title_Confirm"),
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                ConfigManager.Instance.SaveProfile(name, new List<TranslationAreaInfo>(MainWindow.Instance.savedTranslationAreas));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating profile '{name}': {ex}");
+                ShowProfileStatus(string.Format(L("Msg_ProfileSaveFailed"), name, ex.Message), isError: true);
+                return;
+            }
+
+            SelectProfileInList(name);
+            ShowProfileStatus(string.Format(L("Msg_ProfileUpdated"), name));
+        }
+
+        private void LoadProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            string? name = SelectedProfileName;
+            if (name == null)
+                return;
+
+            if (MainWindow.Instance.LoadGameProfile(name))
+            {
+                SelectProfileInList(name);
+                ShowProfileStatus(string.Format(L("Msg_ProfileLoaded"), name));
+            }
+            else
+            {
+                ShowProfileStatus(string.Format(L("Msg_ProfileLoadFailed"), name), isError: true);
             }
         }
 
         private void RemoveProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (profileComboBox.SelectedItem != null)
+            string? name = SelectedProfileName;
+            if (name == null)
+                return;
+
+            if (MessageBox.Show(string.Format(L("Msg_ConfirmRemoveProfileNamed"), name), L("Title_Confirm"),
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             {
-                string? selectedText = profileComboBox.SelectedItem.ToString();
-                string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
-                if (File.Exists(filePath))
-                {
-                    MessageBoxResult result = MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_ConfirmRemoveProfile"],
-                        LocalizationManager.Instance.Strings["Title_Confirm"],
-                        MessageBoxButton.OKCancel,
-                        MessageBoxImage.Information
-                    );
-                    if (result == MessageBoxResult.OK)
-                    {
-                        File.Delete(filePath);
-                        Console.WriteLine("Profile deleted successfully!");
-                        profileComboBox.Items.Remove(selectedText);
-                        profileComboBox.SelectedIndex = -1;
-                        // Clear all save selection areas
-                        MainWindow.Instance.ClearTranslationAreas();
-                        // Show status
-                        statusUpdateGameProfile.Visibility = Visibility.Visible;
-                        statusUpdateGameProfile.Text = $"Remove {profileName} successfully!";
-                        statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Red);
-
-                        // Auto close status after 1.5 second
-                        var timer = new System.Windows.Threading.DispatcherTimer
-                        {
-                            Interval = TimeSpan.FromSeconds(1.5)
-                        };
-
-                        timer.Tick += (s, e) =>
-                        {
-                            statusUpdateGameProfile.Text = "";
-                            timer.Stop();
-                        };
-
-                        timer.Start();
-                    }
-                }
-                else
-                {
-                    MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_ProfileNotFound"],
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                }
+                return;
             }
-            else
+
+            try
             {
-                MessageBox.Show(
-                    LocalizationManager.Instance.Strings["Msg_NoProfileSelected"],
-                    LocalizationManager.Instance.Strings["Title_Error"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                ConfigManager.Instance.DeleteProfile(name);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting profile '{name}': {ex}");
+                ShowProfileStatus(string.Format(L("Msg_ProfileDeleteFailed"), name, ex.Message), isError: true);
+                return;
+            }
+
+            ShowProfileStatus(string.Format(L("Msg_ProfileRemoved"), name));
+        }
+
+        private void RenameProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            string? name = SelectedProfileName;
+            if (name == null)
+                return;
+
+            renameProfileTextBox.Text = name;
+            ShowFieldError(renameProfileError, null);
+            renameProfilePanel.Visibility = Visibility.Visible;
+            renameProfileTextBox.Focus();
+            renameProfileTextBox.SelectAll();
+        }
+
+        private void HideRenameProfilePanel()
+        {
+            renameProfilePanel.Visibility = Visibility.Collapsed;
+            ShowFieldError(renameProfileError, null);
+        }
+
+        private void RenameProfileTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string text = renameProfileTextBox.Text.Trim();
+            string? error = text.Length == 0 ? null : ConfigManager.ValidateProfileName(text);
+            if (error == null && text.Length > 0 && SelectedProfileName is string current &&
+                !string.Equals(text, current, StringComparison.OrdinalIgnoreCase) && ConfigManager.Instance.ProfileExists(text))
+            {
+                error = "Msg_ProfileNameExists";
+            }
+            ShowFieldError(renameProfileError, error);
+        }
+
+        private void RenameProfileTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                ConfirmRenameProfileButton_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                HideRenameProfilePanel();
+                e.Handled = true;
             }
         }
 
-        private void UpdateProfileButton_Click(object sender, RoutedEventArgs e)
+        private void CancelRenameProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (profileComboBox.SelectedItem != null)
-            {
-                string selectedText = profileComboBox.SelectedItem.ToString() ?? "Default";
-                string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
-                if (File.Exists(filePath))
-                {
-                    MessageBoxResult result = MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_ConfirmUpdateProfile"],
-                        LocalizationManager.Instance.Strings["Title_Confirm"],
-                        MessageBoxButton.OKCancel,
-                        MessageBoxImage.Information
-                    );
-                    if (result == MessageBoxResult.OK)
-                    {
-                        if (MainWindow.Instance.savedTranslationAreas.Count > 0)
-                        {
-                            ConfigManager.Instance.SaveTranslationAreas(MainWindow.Instance.savedTranslationAreas, selectedText);
-                            Console.WriteLine($"Saved {selectedText}.txt {MainWindow.Instance.savedTranslationAreas.Count} translation areas to config");
-                        }
-                        else
-                        {
-                            // Clear saved areas in config if we have none
-                            ConfigManager.Instance.SaveTranslationAreas(new List<TranslationAreaInfo>(), selectedText);
-                            Console.WriteLine("Cleared translation areas in config");
-                        }
-                        // Show status
-                        statusUpdateGameProfile.Visibility = Visibility.Visible;
-                        statusUpdateGameProfile.Text = $"Update {profileName} successfully!";
-                        statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Orange);
-
-                        // Auto close status after 1.5 second
-                        var timer = new System.Windows.Threading.DispatcherTimer
-                        {
-                            Interval = TimeSpan.FromSeconds(1.5)
-                        };
-
-                        timer.Tick += (s, e) =>
-                        {
-                            statusUpdateGameProfile.Text = "";
-                            timer.Stop();
-                        };
-
-                        timer.Start();
-                    }
-
-                }
-                else
-                {
-                    MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_ProfileNotFoundCreate"],
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                }
-            }
-            else
-            {
-                MessageBox.Show(
-                    LocalizationManager.Instance.Strings["Msg_NoProfileSelected"],
-                    LocalizationManager.Instance.Strings["Title_Error"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-            }
+            HideRenameProfilePanel();
         }
 
-        private void LoadProfileButton_Click(object sender, RoutedEventArgs e)
+        private void ConfirmRenameProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (profileComboBox.SelectedItem != null)
+            string? oldName = SelectedProfileName;
+            if (oldName == null)
+                return;
+
+            string newName = renameProfileTextBox.Text.Trim();
+            if (newName == oldName)
             {
-                string? selectedText = profileComboBox.SelectedItem.ToString();
-                string filePath = Path.Combine(ConfigManager.Instance._profileFolderPath, $"{selectedText}.txt");
-                if (File.Exists(filePath))
-                {
-                    // Get saved areas from config (this loads the whole profile config)
-                    List<TranslationAreaInfo> areas = ConfigManager.Instance.GetTranslationAreas(filePath);
-                    MainWindow.Instance.ReloadExcludeRegionsFromConfig();
-                    if (areas.Count > 0)
-                    {
-                        // The screens may be arranged differently than when the profile was saved
-                        int adjustedCount = 0;
-                        for (int i = 0; i < areas.Count; i++)
-                        {
-                            areas[i] = DpiHelper.FitAreaToScreens(areas[i], out bool adjusted);
-                            if (adjusted) adjustedCount++;
-                        }
-                        if (adjustedCount > 0)
-                        {
-                            MainWindow.Instance.ShowFastNotification("Translation area moved",
-                                $"{adjustedCount} area(s) no longer fit the current screen layout and were moved back onto the screen. Check them and re-select if needed.", 6000);
-                        }
-
-                        // Update our areas list
-                        MainWindow.Instance.SetTranslationAreas(areas);
-                    }
-                    else
-                    {
-                        Console.WriteLine("No translation areas found in config");
-                    }
-                    // Show status
-                    statusUpdateGameProfile.Visibility = Visibility.Visible;
-                    statusUpdateGameProfile.Text = $"Load {profileName} successfully!";
-                    statusUpdateGameProfile.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Violet);
-                    ReloadSetting();
-
-                    // Auto close status after 1.5 second
-                    var timer = new System.Windows.Threading.DispatcherTimer
-                    {
-                        Interval = TimeSpan.FromSeconds(1.5)
-                    };
-
-                    timer.Tick += (s, e) =>
-                    {
-                        statusUpdateGameProfile.Text = "";
-                        timer.Stop();
-                    };
-
-                    timer.Start();
-                }
-                else
-                {
-                    MessageBox.Show(
-                        LocalizationManager.Instance.Strings["Msg_ProfileNotFoundCreate"],
-                        LocalizationManager.Instance.Strings["Title_Error"],
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                }
+                HideRenameProfilePanel();
+                return;
             }
-            else
+
+            string? error = ConfigManager.ValidateProfileName(newName);
+            if (error == null && !string.Equals(newName, oldName, StringComparison.OrdinalIgnoreCase) &&
+                ConfigManager.Instance.ProfileExists(newName))
             {
-                MessageBox.Show(
-                    LocalizationManager.Instance.Strings["Msg_NoProfileSelected"],
-                    LocalizationManager.Instance.Strings["Title_Error"],
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                error = "Msg_ProfileNameExists";
+            }
+            if (error != null)
+            {
+                ShowFieldError(renameProfileError, error);
+                renameProfileTextBox.Focus();
+                return;
+            }
+
+            try
+            {
+                ConfigManager.Instance.RenameProfile(oldName, newName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error renaming profile '{oldName}' to '{newName}': {ex}");
+                ShowProfileStatus(string.Format(L("Msg_ProfileRenameFailed"), oldName, ex.Message), isError: true);
+                return;
+            }
+
+            SelectProfileInList(newName);
+            HideRenameProfilePanel();
+            ShowProfileStatus(string.Format(L("Msg_ProfileRenamed"), oldName, newName));
+        }
+
+        private void OpenProfileFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string folder = ConfigManager.Instance.ProfileFolderPath;
+                Directory.CreateDirectory(folder);
+                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{folder}\"") { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error opening profile folder: {ex.Message}");
             }
         }
 
@@ -4909,32 +5029,6 @@ namespace RSTGameTranslation
                     {
                         audioProcessingModelComboBox.Items.Add(new ComboBoxItem { Content = name });
                     }
-                }
-            }
-        }
-
-        private void LoadAllProfile()
-        {
-            if (!Directory.Exists(ConfigManager.Instance._profileFolderPath))
-            {
-                Directory.CreateDirectory(ConfigManager.Instance._profileFolderPath);
-            }
-
-            profileComboBox.Items.Clear();
-
-            HashSet<string> uniqueNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            List<string?> fileNames = Directory.GetFiles(ConfigManager.Instance._profileFolderPath, "*.txt")
-                .Select(Path.GetFileNameWithoutExtension)
-                .Where(name => !string.IsNullOrEmpty(name))
-                .OrderBy(name => name)
-                .ToList();
-
-            foreach (string? name in fileNames)
-            {
-                if (!string.IsNullOrEmpty(name) && uniqueNames.Add(name))
-                {
-                    profileComboBox.Items.Add(name);
                 }
             }
         }

@@ -739,8 +739,9 @@ namespace RSTGameTranslation
         }
 
         // Process multiline values enclosed in tags
-        private void ProcessMultilineValues(string content)
+        private void ProcessMultilineValues(string content, Dictionary<string, string>? target = null)
         {
+            var values = target ?? _configValues;
             try
             {
                 // Use regex to find content between tags like <key_start>content<key_end>
@@ -757,7 +758,7 @@ namespace RSTGameTranslation
                         string value = match.Groups[2].Value;
 
                         // Store the value
-                        _configValues[key] = value;
+                        values[key] = value;
 
                         // Console.WriteLine($"Loaded multiline config: {key} ({value.Length} chars)");
                     }
@@ -770,8 +771,9 @@ namespace RSTGameTranslation
         }
 
         // Process single-line key-value pairs
-        private void ProcessSingleLineValues(string content)
+        private void ProcessSingleLineValues(string content, Dictionary<string, string>? target = null)
         {
+            var values = target ?? _configValues;
             try
             {
                 // Remove sections with multiline tags to avoid parsing them as single-line entries
@@ -805,20 +807,13 @@ namespace RSTGameTranslation
                             if (phraseValue.EndsWith("|"))
                                 phraseValue = phraseValue.Substring(0, phraseValue.Length - 1);
 
-                            _configValues[key] = phraseValue;
+                            values[key] = phraseValue;
                             // Console.WriteLine($"Loaded ignore phrases config: {key}");
                             continue;
                         }
 
                         // Normal key-value pairs
-                        string value = parts[1].Trim();
-
-                        // Only add if not already added by multiline processing
-                        if (!_configValues.ContainsKey(key) || key != "TRANSLATION_AREAS")
-                        {
-                            _configValues[key] = value;
-                            // Console.WriteLine($"Loaded config: {key}={value}");
-                        }
+                        values[key] = parts[1].Trim();
                     }
                 }
             }
@@ -839,33 +834,14 @@ namespace RSTGameTranslation
 
             try
             {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("# Configuration file for WPFScreenCapture");
-                sb.AppendLine("# Format for single-line values: key|value|");
-                sb.AppendLine("# Format for multiline values: <key_start>multiple lines of content<key_end>");
-                sb.AppendLine();
-
-                // First add single-line entries
-                foreach (var entry in _configValues.Where(e => !ShouldBeMultiline(e.Key)))
-                {
-                    sb.AppendLine($"{entry.Key}|{entry.Value}|");
-                }
-
-                // Then add multiline entries
-                foreach (var entry in _configValues.Where(e => ShouldBeMultiline(e.Key)))
-                {
-                    sb.AppendLine();
-                    sb.AppendLine($"<{entry.Key}_start>");
-                    sb.AppendLine(entry.Value);
-                    sb.AppendLine($"<{entry.Key}_end>");
-                }
+                string text = BuildConfigText(_configValues, "Configuration file for WPFScreenCapture");
 
                 // Write to file
                 if (filePath == "Default")
-                    File.WriteAllText(_configFilePath, sb.ToString());
+                    File.WriteAllText(_configFilePath, text);
                 else
                 {
-                    File.WriteAllText(filePath, sb.ToString());
+                    File.WriteAllText(filePath, text);
                 }
 
                 Console.WriteLine($"Saved config to {_configFilePath}");
@@ -876,6 +852,32 @@ namespace RSTGameTranslation
                 MessageBox.Show($"Error saving configuration: {ex.Message}", "Configuration Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private string BuildConfigText(IEnumerable<KeyValuePair<string, string>> entries, string title)
+        {
+            var list = entries.ToList();
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"# {title}");
+            sb.AppendLine("# Format for single-line values: key|value|");
+            sb.AppendLine("# Format for multiline values: <key_start>multiple lines of content<key_end>");
+            sb.AppendLine();
+
+            // First add single-line entries
+            foreach (var entry in list.Where(e => !ShouldBeMultiline(e.Key)))
+            {
+                sb.AppendLine($"{entry.Key}|{entry.Value}|");
+            }
+
+            // Then add multiline entries
+            foreach (var entry in list.Where(e => ShouldBeMultiline(e.Key)))
+            {
+                sb.AppendLine();
+                sb.AppendLine($"<{entry.Key}_start>");
+                sb.AppendLine(entry.Value);
+                sb.AppendLine($"<{entry.Key}_end>");
+            }
+            return sb.ToString();
         }
 
         // Determine if a key should be stored as multiline
@@ -3710,103 +3712,276 @@ namespace RSTGameTranslation
             Console.WriteLine($"Gamepad hot key enable: {enabled}");
         }
 
-        // Save translation areas to config
-        public void SaveTranslationAreas(List<TranslationAreaInfo> areas, string profileName)
+        // ===== Game profiles =====
+        // A profile keeps only the settings that belong to one game. API keys, hotkeys, the interface
+        // language, TTS/audio and the other app-wide settings stay out of it, so loading an old profile
+        // never brings back an old key, and a profile file can be shared safely.
+
+        public const string ACTIVE_PROFILE = "active_profile";
+        public const int MaxProfileNameLength = 60;
+
+        private static readonly string[] ProfileKeyList =
+        {
+            // Where to read
+            TRANSLATION_AREAS, MULTI_SELECTION_AREA, SELECTED_SCREEN_INDEX, EXCLUDE_REGIONS, SHOW_EXCLUDE_REGIONS,
+            // Languages
+            SOURCE_LANGUAGE, TARGET_LANGUAGE,
+            // OCR
+            OCR_METHOD, AUTO_OCR, MANGA_MODE, HDR_SUPPORT,
+            TEXT_COLOR_FILTER_ENABLED, TEXT_COLOR_FILTER_COLOR, TEXT_COLOR_FILTER_TOLERANCE,
+            MIN_LETTER_CONFIDENCE, MIN_LINE_CONFIDENCE, MIN_TEXT_FRAGMENT_SIZE,
+            BLOCK_DETECTION_SCALE, BLOCK_DETECTION_SETTLE_TIME, LINE_SPACING_FACTOR, TEXTSIMILAR_THRESHOLD,
+            // Text handling
+            IGNORE_PHRASES, EXCLUDE_CHARACTER_NAME, GAME_INFO,
+            // Overlay
+            OVERLAY_BACKGROUND_COLOR, OVERLAY_TEXT_COLOR, IS_AUTO_SET_OVERLAY_BACKGROUND, AUTO_MERGE_OVERLAPPING_TEXT,
+            AUTO_SIZE_TEXT_BLOCKS, LEAVE_TRANSLATION_ONSCREEN, KEEP_TRANSLATED_TEXT_UNTIL_REPLACED, HIDE_STALE_TRANSLATION,
+        };
+        private static readonly HashSet<string> ProfileKeys = new HashSet<string>(ProfileKeyList, StringComparer.Ordinal);
+
+        public sealed class ProfileSummary
+        {
+            public string Name { get; init; } = "";
+            public int AreaCount { get; init; }
+            public string SourceLanguage { get; init; } = "";
+            public string TargetLanguage { get; init; } = "";
+            public string OcrMethod { get; init; } = "";
+            public DateTime LastSaved { get; init; }
+        }
+
+        public string ProfileFolderPath => _profileFolderPath;
+
+        // Raised after a profile is saved, loaded, renamed or deleted (on the calling thread)
+        public event EventHandler? ProfilesChanged;
+        private void OnProfilesChanged() => ProfilesChanged?.Invoke(this, EventArgs.Empty);
+
+        public string GetProfilePath(string name) => Path.Combine(_profileFolderPath, $"{name}.txt");
+
+        public bool ProfileExists(string name) => File.Exists(GetProfilePath(name));
+
+        public List<string> GetProfileNames()
+        {
+            Directory.CreateDirectory(_profileFolderPath);
+            // The EndsWith check is not redundant: "*.txt" also matches longer extensions through 8.3 aliases
+            return Directory.GetFiles(_profileFolderPath, "*.txt")
+                .Where(path => path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Select(name => name!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+        }
+
+        // Name of the profile last loaded or saved; empty when none is in use
+        public string GetActiveProfile()
+        {
+            string name = GetValue(ACTIVE_PROFILE, "");
+            return name.Length > 0 && ProfileExists(name) ? name : "";
+        }
+
+        private void SetActiveProfile(string name)
+        {
+            _configValues[ACTIVE_PROFILE] = name;
+            SaveConfig();
+        }
+
+        // Returns the localization key of the problem with the name, or null when it can be used.
+        // Spaces and accented letters are fine; only what Windows does not allow in a file name is refused.
+        public static string? ValidateProfileName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "Msg_PleaseEnterProfileName";
+            if (name.Length > MaxProfileNameLength)
+                return "Msg_ProfileNameTooLong";
+            if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.EndsWith(".") || name.StartsWith("."))
+                return "Msg_ProfileNameInvalidChars";
+
+            string[] reserved = { "CON", "PRN", "AUX", "NUL",
+                "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+                "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" };
+            if (reserved.Contains(name.Trim(), StringComparer.OrdinalIgnoreCase))
+                return "Msg_ProfileNameInvalidChars";
+            return null;
+        }
+
+        private Dictionary<string, string> ReadConfigFile(string path)
+        {
+            var values = new Dictionary<string, string>();
+            string content = File.ReadAllText(path);
+            ProcessMultilineValues(content, values);
+            ProcessSingleLineValues(content, values);
+            return values;
+        }
+
+        private void WriteProfileFile(string name, IEnumerable<KeyValuePair<string, string>> values)
+        {
+            Directory.CreateDirectory(_profileFolderPath);
+            var entries = values.Where(e => ProfileKeys.Contains(e.Key));
+            File.WriteAllText(GetProfilePath(name), BuildConfigText(entries, $"RST game profile: {name} (game settings only, no API keys)"));
+        }
+
+        // Save the current game settings and translation areas as a profile (creates or overwrites it).
+        // Throws when the file cannot be written.
+        public void SaveProfile(string name, List<TranslationAreaInfo> areas)
+        {
+            _configValues[TRANSLATION_AREAS] = SerializeTranslationAreas(areas);
+            WriteProfileFile(name, _configValues);
+            SetActiveProfile(name);
+            Console.WriteLine($"Saved game profile '{name}' with {areas.Count} translation areas");
+            OnProfilesChanged();
+        }
+
+        // Apply a profile's game settings to the current config and return its translation areas.
+        // Throws when the file cannot be read.
+        public List<TranslationAreaInfo> LoadProfile(string name)
+        {
+            var values = ReadConfigFile(GetProfilePath(name));
+
+            foreach (var entry in values)
+            {
+                if (ProfileKeys.Contains(entry.Key))
+                    _configValues[entry.Key] = entry.Value;
+            }
+            // A profile without areas or exclude regions has none: don't keep the previous game's
+            if (!values.ContainsKey(TRANSLATION_AREAS))
+                _configValues[TRANSLATION_AREAS] = "";
+            if (!values.ContainsKey(EXCLUDE_REGIONS))
+                _configValues[EXCLUDE_REGIONS] = "";
+
+            _ignorePhraseSet = null;
+            SetActiveProfile(name); // also saves the config, so the profile is still in use after a restart
+
+            // Profiles made by older versions were a copy of the whole config, API keys included
+            if (values.Keys.Any(key => !ProfileKeys.Contains(key)))
+            {
+                try
+                {
+                    WriteProfileFile(name, values);
+                    Console.WriteLine($"Removed app-wide settings and API keys from old profile '{name}'");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Could not clean up old profile '{name}': {ex.Message}");
+                }
+            }
+
+            List<TranslationAreaInfo> areas = ParseTranslationAreas(GetValue(TRANSLATION_AREAS, ""));
+            Console.WriteLine($"Loaded game profile '{name}' with {areas.Count} translation areas");
+            OnProfilesChanged();
+            return areas;
+        }
+
+        public void DeleteProfile(string name)
+        {
+            File.Delete(GetProfilePath(name));
+            if (string.Equals(GetValue(ACTIVE_PROFILE, ""), name, StringComparison.OrdinalIgnoreCase))
+                SetActiveProfile("");
+            OnProfilesChanged();
+        }
+
+        public void RenameProfile(string oldName, string newName)
+        {
+            string from = GetProfilePath(oldName);
+            string to = GetProfilePath(newName);
+            if (string.Equals(oldName, newName, StringComparison.OrdinalIgnoreCase))
+            {
+                // Only the letter case changes: go through a temporary name, Windows names ignore case
+                string temp = Path.Combine(_profileFolderPath, $"{Guid.NewGuid():N}.tmp");
+                File.Move(from, temp);
+                File.Move(temp, to);
+            }
+            else
+            {
+                File.Move(from, to);
+            }
+
+            if (string.Equals(GetValue(ACTIVE_PROFILE, ""), oldName, StringComparison.OrdinalIgnoreCase))
+                SetActiveProfile(newName);
+            OnProfilesChanged();
+        }
+
+        // Translation areas stored in the config (those of the profile last loaded or saved)
+        public List<TranslationAreaInfo> GetSavedTranslationAreas() => ParseTranslationAreas(GetValue(TRANSLATION_AREAS, ""));
+
+        public ProfileSummary? GetProfileSummary(string name)
         {
             try
             {
-                // Format: X,Y,Width,Height,ScreenIndex,DpiScaleX,DpiScaleY,ScreenDevice+...
-                StringBuilder sb = new StringBuilder();
-
-                foreach (var area in areas)
+                string path = GetProfilePath(name);
+                var values = ReadConfigFile(path);
+                return new ProfileSummary
                 {
-                    // Use invariant culture to ensure consistent decimal formatting
-                    sb.Append(area.X.ToString(CultureInfo.InvariantCulture));
-                    sb.Append(',');
-                    sb.Append(area.Y.ToString(CultureInfo.InvariantCulture));
-                    sb.Append(',');
-                    sb.Append(area.Width.ToString(CultureInfo.InvariantCulture));
-                    sb.Append(',');
-                    sb.Append(area.Height.ToString(CultureInfo.InvariantCulture));
-                    sb.Append(',');
-                    sb.Append(area.ScreenIndex.ToString());
-                    sb.Append(',');
-                    sb.Append(area.DpiScaleX.ToString(CultureInfo.InvariantCulture));
-                    sb.Append(',');
-                    sb.Append(area.DpiScaleY.ToString(CultureInfo.InvariantCulture));
-                    sb.Append(',');
-                    sb.Append(area.ScreenDevice ?? string.Empty);
-                    sb.Append('+');
-                }
-
-                // Save to config
-                _configValues[TRANSLATION_AREAS] = sb.ToString();
-
-                string pathProfile = Path.Combine(_profileFolderPath, $"{profileName}.txt");
-                // Save config to file
-                SaveConfig(pathProfile);
-
-                Console.WriteLine($"Saved {areas.Count} translation areas to config");
+                    Name = name,
+                    AreaCount = ParseTranslationAreas(values.GetValueOrDefault(TRANSLATION_AREAS, "")).Count,
+                    SourceLanguage = values.GetValueOrDefault(SOURCE_LANGUAGE, ""),
+                    TargetLanguage = values.GetValueOrDefault(TARGET_LANGUAGE, ""),
+                    OcrMethod = values.GetValueOrDefault(OCR_METHOD, ""),
+                    LastSaved = File.GetLastWriteTime(path),
+                };
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving translation areas: {ex.Message}");
+                Console.WriteLine($"Could not read profile '{name}': {ex.Message}");
+                return null;
             }
         }
 
+        // Format: X,Y,Width,Height,ScreenIndex,DpiScaleX,DpiScaleY,ScreenDevice+...
+        private static string SerializeTranslationAreas(List<TranslationAreaInfo> areas)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var area in areas)
+            {
+                // Use invariant culture to ensure consistent decimal formatting
+                sb.Append(area.X.ToString(CultureInfo.InvariantCulture)).Append(',');
+                sb.Append(area.Y.ToString(CultureInfo.InvariantCulture)).Append(',');
+                sb.Append(area.Width.ToString(CultureInfo.InvariantCulture)).Append(',');
+                sb.Append(area.Height.ToString(CultureInfo.InvariantCulture)).Append(',');
+                sb.Append(area.ScreenIndex.ToString(CultureInfo.InvariantCulture)).Append(',');
+                sb.Append(area.DpiScaleX.ToString(CultureInfo.InvariantCulture)).Append(',');
+                sb.Append(area.DpiScaleY.ToString(CultureInfo.InvariantCulture)).Append(',');
+                sb.Append(area.ScreenDevice ?? string.Empty);
+                sb.Append('+');
+            }
+            return sb.ToString();
+        }
 
-        // Get translation areas from config
-        public List<TranslationAreaInfo> GetTranslationAreas(string filePath)
+        private static List<TranslationAreaInfo> ParseTranslationAreas(string value)
         {
             List<TranslationAreaInfo> areas = new List<TranslationAreaInfo>();
-            LoadConfig(filePath);
-            try
-            {
-                string value = GetValue(TRANSLATION_AREAS, "");
+            if (string.IsNullOrEmpty(value))
+                return areas;
 
-                if (!string.IsNullOrEmpty(value))
+            foreach (string areaString in value.Split(new[] { '+' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = areaString.Split(',');
+
+                // Old format has 4 parts, newer ones 7 or 8
+                if (parts.Length < 4)
+                    continue;
+
+                // Parse using invariant culture to handle different decimal separators
+                if (double.TryParse(parts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out double x) &&
+                    double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out double y) &&
+                    double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out double width) &&
+                    double.TryParse(parts[3], NumberStyles.Any, CultureInfo.InvariantCulture, out double height))
                 {
-                    string[] areaStrings = value.Split(new[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
+                    int screenIndex = 0;
+                    double dpiScaleX = 1.0;
+                    double dpiScaleY = 1.0;
 
-                    foreach (string areaString in areaStrings)
+                    if (parts.Length >= 7)
                     {
-                        string[] parts = areaString.Split(',');
-
-                        // Support old format (4 parts) and new format (7 parts)
-                        if (parts.Length >= 4)
-                        {
-                            // Parse using invariant culture to handle different decimal separators
-                            if (double.TryParse(parts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out double x) &&
-                                double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out double y) &&
-                                double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out double width) &&
-                                double.TryParse(parts[3], NumberStyles.Any, CultureInfo.InvariantCulture, out double height))
-                            {
-                                int screenIndex = 0;
-                                double dpiScaleX = 1.0;
-                                double dpiScaleY = 1.0;
-
-                                // Parse new fields if available
-                                if (parts.Length >= 7)
-                                {
-                                    int.TryParse(parts[4], out screenIndex);
-                                    double.TryParse(parts[5], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleX);
-                                    double.TryParse(parts[6], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleY);
-                                }
-                                string screenDevice = parts.Length >= 8 ? parts[7].Trim() : string.Empty;
-
-                                areas.Add(new TranslationAreaInfo(new Rect(x, y, width, height), screenIndex, dpiScaleX, dpiScaleY, screenDevice));
-                            }
-                        }
+                        int.TryParse(parts[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out screenIndex);
+                        double.TryParse(parts[5], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleX);
+                        double.TryParse(parts[6], NumberStyles.Any, CultureInfo.InvariantCulture, out dpiScaleY);
                     }
+                    string screenDevice = parts.Length >= 8 ? parts[7].Trim() : string.Empty;
+
+                    areas.Add(new TranslationAreaInfo(new Rect(x, y, width, height), screenIndex, dpiScaleX, dpiScaleY, screenDevice));
                 }
-
-                Console.WriteLine($"Loaded {areas.Count} translation areas from config");
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading translation areas: {ex.Message}");
-            }
-
             return areas;
         }
 
