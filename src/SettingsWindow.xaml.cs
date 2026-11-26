@@ -1026,6 +1026,10 @@ namespace RSTGameTranslation
             closeButtonActionComboBox.SelectedItem = closeButtonActionComboBox.Items.OfType<ComboBoxItem>()
                 .FirstOrDefault(item => (string)item.Tag == closeAction);
 
+            // Start with Windows: the scheduled task is the setting
+            startWithWindowsCheckBox.IsChecked = StartupManager.IsEnabled();
+            autostartMinimizedCheckBox.IsChecked = ConfigManager.Instance.IsAutostartMinimizedEnabled();
+
             // Set text color filter
             textColorFilterCheckBox.IsChecked = ConfigManager.Instance.IsTextColorFilterEnabled();
             ShowTextColorFilterColor(ConfigManager.Instance.GetTextColorFilterColor());
@@ -5784,6 +5788,35 @@ namespace RSTGameTranslation
             bool enabled = hdrSupportCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetHDRSupportEnabled(enabled);
             Console.WriteLine($"HDR support set to {enabled}");
+        }
+
+        private void StartWithWindowsCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+
+            bool enable = startWithWindowsCheckBox.IsChecked == true;
+            string? error = enable ? StartupManager.Enable() : StartupManager.Disable();
+            if (error == null)
+                return;
+
+            Console.WriteLine($"Start with Windows ({enable}) failed: {error}");
+            // Show what Windows actually has
+            startWithWindowsCheckBox.Checked -= StartWithWindowsCheckBox_CheckedChanged;
+            startWithWindowsCheckBox.Unchecked -= StartWithWindowsCheckBox_CheckedChanged;
+            startWithWindowsCheckBox.IsChecked = StartupManager.IsEnabled();
+            startWithWindowsCheckBox.Checked += StartWithWindowsCheckBox_CheckedChanged;
+            startWithWindowsCheckBox.Unchecked += StartWithWindowsCheckBox_CheckedChanged;
+
+            System.Windows.MessageBox.Show(this,
+                string.Format(LocalizationManager.Instance.Strings["Msg_StartWithWindowsFailed"], error),
+                LocalizationManager.Instance.Strings["Title_Error"],
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        private void AutostartMinimizedCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetAutostartMinimizedEnabled(autostartMinimizedCheckBox.IsChecked == true);
         }
 
         private void CloseButtonActionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -78,7 +78,7 @@ public partial class App : Application
     private const int ASFW_ANY = -1;
 
     // Returns false when another instance is already running; that instance has been asked to show itself.
-    private bool AcquireSingleInstance()
+    private bool AcquireSingleInstance(bool showRunningInstance)
     {
         _instanceMutex = new Mutex(true, SingleInstanceId, out bool createdNew);
         if (!createdNew)
@@ -95,19 +95,22 @@ public partial class App : Application
 
             if (!acquired)
             {
-                try
+                if (showRunningInstance)
                 {
-                    // This process was just started by the user, so it may hand the foreground to the other one
-                    AllowSetForegroundWindow(ASFW_ANY);
-                    if (EventWaitHandle.TryOpenExisting(ShowWindowEventId, out EventWaitHandle? showEvent))
+                    try
                     {
-                        using (showEvent)
-                            showEvent.Set();
+                        // This process was just started by the user, so it may hand the foreground to the other one
+                        AllowSetForegroundWindow(ASFW_ANY);
+                        if (EventWaitHandle.TryOpenExisting(ShowWindowEventId, out EventWaitHandle? showEvent))
+                        {
+                            using (showEvent)
+                                showEvent.Set();
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Could not ask the running instance to show itself: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Could not ask the running instance to show itself: {ex.Message}");
+                    }
                 }
 
                 _instanceMutex.Dispose();
@@ -142,7 +145,11 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        if (!AcquireSingleInstance())
+        bool startedWithWindows = Array.Exists(e.Args,
+            arg => string.Equals(arg, StartupManager.AutostartArgument, StringComparison.OrdinalIgnoreCase));
+
+        // Started at sign-in while RST is already open: nothing to do, and no reason to pop its window up
+        if (!AcquireSingleInstance(showRunningInstance: !startedWithWindows))
         {
             Shutdown(0);
             return;
@@ -152,7 +159,7 @@ public partial class App : Application
         // Without this, the app silently exits on systems where WinRT components are missing.
         try
         {
-            StartupCore(e);
+            StartupCore(e, startedWithWindows);
         }
         catch (Exception ex)
         {
@@ -170,7 +177,7 @@ public partial class App : Application
         }
     }
 
-    private void StartupCore(StartupEventArgs e)
+    private void StartupCore(StartupEventArgs e, bool startedWithWindows)
     {
         base.OnStartup(e);
 
@@ -191,6 +198,19 @@ public partial class App : Application
 
         // We'll hook keyboard events in the main window and other windows instead
         // of at the application level (which isn't supported in this context)
+
+        // Keep the start with Windows task pointing at this rst.exe if the RST folder was moved
+        System.Threading.Tasks.Task.Run(StartupManager.RepairIfMoved);
+
+        // Started with Windows: straight to the tray, without the splash screen or the main window
+        if (startedWithWindows && ConfigManager.Instance.IsAutostartMinimizedEnabled())
+        {
+            new ChatBoxWindow();
+            _mainWindow = new MainWindow();
+            LocalizationManager.Instance.CurrentLanguage = ConfigManager.Instance.GetLanguageInterface();
+            _mainWindow.StartInTray();
+            return;
+        }
 
         // Show splash screen first
         SplashManager.Instance.ShowSplash();

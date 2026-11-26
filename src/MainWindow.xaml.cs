@@ -4220,6 +4220,23 @@ namespace RSTGameTranslation
             Focus();
         }
 
+        /// <summary>
+        /// Started with Windows: load the window (the tray icon, hotkeys and clipboard monitor need it) without
+        /// showing it, then leave only the tray icon. Startup dialogs wait until the window is opened.
+        /// </summary>
+        public void StartInTray()
+        {
+            ShowActivated = false;
+            WindowState = WindowState.Minimized;
+            Loaded += (_, _) => Dispatcher.BeginInvoke(() =>
+            {
+                ShowActivated = true;
+                if (WindowState == WindowState.Minimized)
+                    Hide();
+            }, DispatcherPriority.ApplicationIdle);
+            Show();
+        }
+
         // ===== Close button: exit, or keep running in the tray =====
 
         private bool _trayHintShown;

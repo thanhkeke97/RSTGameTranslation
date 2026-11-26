@@ -222,6 +222,7 @@ namespace RSTGameTranslation
         public const string MINIMIZE_ON_SELECT_AREA = "minimize_on_select_area";
         public const string HIDE_STALE_TRANSLATION = "hide_stale_translation";
         public const string CLOSE_BUTTON_ACTION = "close_button_action";
+        public const string AUTOSTART_MINIMIZED = "autostart_minimized";
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
@@ -3164,6 +3165,19 @@ namespace RSTGameTranslation
             };
             SaveConfig();
             Console.WriteLine($"Close button action set to: {action}");
+        }
+
+        // Whether RST started with Windows goes straight to the tray (no splash screen, no window)
+        public bool IsAutostartMinimizedEnabled()
+        {
+            return GetValue(AUTOSTART_MINIMIZED, "true").ToLowerInvariant() == "true";
+        }
+
+        public void SetAutostartMinimizedEnabled(bool enabled)
+        {
+            _configValues[AUTOSTART_MINIMIZED] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Autostart minimized set to: {enabled}");
         }
 
         // Whether a translation is hidden as soon as the text on screen changes, and an unfinished one for text

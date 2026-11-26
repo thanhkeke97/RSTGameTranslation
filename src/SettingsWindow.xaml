@@ -1415,6 +1415,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <!-- Game window picker at startup -->
@@ -1444,6 +1446,26 @@
                                     <ComboBoxItem Tag="tray" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_CloseAction_Tray]}"/>
                                     <ComboBoxItem Tag="exit" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_CloseAction_Exit]}"/>
                                 </ComboBox>
+
+                                <!-- Start with Windows (a Task Scheduler task, so no UAC prompt at sign-in) -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartWithWindows]}" Grid.Row="3" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_StartWithWindows]}"/>
+                                <CheckBox x:Name="startWithWindowsCheckBox" Grid.Row="3" Grid.Column="1" Margin="0,5"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_StartWithWindows]}"
+                                         Checked="StartWithWindowsCheckBox_CheckedChanged"
+                                         Unchecked="StartWithWindowsCheckBox_CheckedChanged"/>
+
+                                <!-- Started with Windows: go straight to the tray -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutostartMinimized]}" Grid.Row="4" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          IsEnabled="{Binding IsChecked, ElementName=startWithWindowsCheckBox}"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_AutostartMinimized]}"/>
+                                <CheckBox x:Name="autostartMinimizedCheckBox" Grid.Row="4" Grid.Column="1" Margin="0,5" IsChecked="True"
+                                         IsEnabled="{Binding IsChecked, ElementName=startWithWindowsCheckBox}"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_AutostartMinimized]}"
+                                         Checked="AutostartMinimizedCheckBox_CheckedChanged"
+                                         Unchecked="AutostartMinimizedCheckBox_CheckedChanged"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
