@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RSTGameTranslation
@@ -13,6 +14,36 @@ namespace RSTGameTranslation
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
         private static int _consecutiveFailures = 0;
         private int delayMS = 100;
+
+        private const string ChatCompletionsPath = "/chat/completions";
+
+        // The path of an API base URL: ends with a version (/v1, /v1beta, /api/v3, /compatible-mode/v1)
+        // or with /openai (Gemini's .../v1beta/openai)
+        private static readonly Regex BaseUrlPath = new Regex(@"/(v\d+[a-z0-9]*|openai)$", RegexOptions.IgnoreCase);
+
+        /// <summary>
+        /// The URL requests are sent to. Users often enter the API base URL the way OpenAI SDKs take it
+        /// (https://api.deepseek.com, https://api.openai.com/v1); /chat/completions is added to those.
+        /// Any other URL is used as entered, so full endpoints and proxies with their own path keep working.
+        /// </summary>
+        public static string ResolveEndpoint(string url)
+        {
+            url = url.Trim();
+            // "api.deepseek.com" without a scheme
+            if (url.Length > 0 && !url.Contains("://"))
+                url = "https://" + url;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                return url;
+
+            string path = uri.AbsolutePath.TrimEnd('/');
+            if (path.EndsWith(ChatCompletionsPath, StringComparison.OrdinalIgnoreCase))
+                return url;
+            if (path.Length > 0 && !BaseUrlPath.IsMatch(path))
+                return url;
+
+            return new UriBuilder(uri) { Path = path + ChatCompletionsPath }.Uri.AbsoluteUri;
+        }
 
         /// <summary>
         /// Translate text using the Custom API
@@ -56,7 +87,7 @@ namespace RSTGameTranslation
                 string requestJson = JsonSerializer.Serialize(requestContent, jsonOptions);
                 var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-                string url = ConfigManager.Instance.GetCustomApiUrl().Trim();
+                string url = ResolveEndpoint(ConfigManager.Instance.GetCustomApiUrl());
                 // The key goes on this request only: the HttpClient is shared by concurrent requests
                 using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
                 request.Headers.Add("Authorization", $"Bearer {apiKey}");
@@ -79,6 +110,17 @@ namespace RSTGameTranslation
                     string errorMessage = await response.Content.ReadAsStringAsync();
                     _consecutiveFailures++;
                     Console.WriteLine($"Custom API error: {response.StatusCode}, {errorMessage}, error count: {_consecutiveFailures}");
+
+                    // Wrong URL: retrying will not fix it, so say so right away and show where the request went
+                    if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.MethodNotAllowed)
+                    {
+                        System.IO.File.WriteAllText("custom_api_last_error.txt", $"Custom API error: {response.StatusCode}\nURL: {url}\n\nFull response: {errorMessage}");
+                        TranslationErrorNotifier.ShowOnce("Custom API",
+                            string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiUrlNotFound"], (int)response.StatusCode, url),
+                            LocalizationManager.Instance.Strings["Title_CustomApiError"]);
+                        await Task.Delay(delayMS);
+                        return null;
+                    }
 
                     // Rate limit, quota or invalid key: retry with another key
                     if (ApiKeyRotation.ShouldSwitchApiKey(response.StatusCode, errorMessage) &&

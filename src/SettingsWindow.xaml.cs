@@ -229,6 +229,7 @@ namespace RSTGameTranslation
             ConfigManager.Instance.ProfilesChanged += (s, e) => { if (_instance == this) LoadAllProfile(); };
             LocalizationManager.Instance.PropertyChanged += (s, e) => { if (_instance == this) LoadAllProfile(); };
             LocalizationManager.Instance.PropertyChanged += (s, e) => LoadExcludeRegions();
+            LocalizationManager.Instance.PropertyChanged += (s, e) => UpdateCustomApiEndpointHint();
             LoadAvailableScreens();
             LoadAllProfile();
             LoadAllAudioProcessingModel();
@@ -1015,6 +1016,8 @@ namespace RSTGameTranslation
 
             // Set HDR support
             hdrSupportCheckBox.IsChecked = ConfigManager.Instance.IsHDRSupportEnabled();
+
+            translateAfterSelectAreaCheckBox.IsChecked = ConfigManager.Instance.IsTranslateAfterSelectAreaEnabled();
 
             // Close button behaviour
             string closeAction = ConfigManager.Instance.GetCloseButtonAction() switch
@@ -2409,6 +2412,7 @@ namespace RSTGameTranslation
                     // Temporarily remove event handlers to avoid triggering changes
                     customApiUrlTextBox.LostFocus -= CustomApiUrlTextBox_LostFocus;
                     customApiUrlTextBox.Text = ConfigManager.Instance.GetCustomApiUrl();
+                    UpdateCustomApiEndpointHint();
 
                     // Temporarily remove event handlers to avoid triggering changes
                     customApiModelTextBox.TextChanged -= CustomApiModelTextBox_TextChanged;
@@ -3095,8 +3099,18 @@ namespace RSTGameTranslation
             }
         }
 
+        // Shows the URL requests are sent to, so a base URL turning into .../chat/completions is not a surprise
+        private void UpdateCustomApiEndpointHint()
+        {
+            string url = customApiUrlTextBox.Text?.Trim() ?? "";
+            customApiEndpointHint.Text = url.Length == 0
+                ? LocalizationManager.Instance.Strings["Msg_CustomApiUrlExample"]
+                : string.Format(LocalizationManager.Instance.Strings["Msg_CustomApiSendsTo"], CustomApiTranslationService.ResolveEndpoint(url));
+        }
+
         private void CustomApiUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            UpdateCustomApiEndpointHint();
             try
             {
                 // Skip if initializing
@@ -5608,6 +5622,12 @@ namespace RSTGameTranslation
         {
             if (_isInitializing) return;
             ConfigManager.Instance.SetWindowSelectorAtStartupEnabled(windowSelectorAtStartupCheckBox.IsChecked == true);
+        }
+
+        private void TranslateAfterSelectAreaCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetTranslateAfterSelectAreaEnabled(translateAfterSelectAreaCheckBox.IsChecked == true);
         }
 
         private void MinimizeOnSelectAreaCheckBox_CheckedChanged(object sender, RoutedEventArgs e)

@@ -480,7 +480,11 @@
                                     <TextBox x:Name="customApiUrlTextBox" Grid.Row="0"
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
                                              LostFocus="CustomApiUrlTextBox_LostFocus"
-                                             TextChanged="CustomApiUrlTextBox_TextChanged"/>
+                                             TextChanged="CustomApiUrlTextBox_TextChanged"
+                                             ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_CustomApiUrl]}"/>
+                                    <!-- Where requests actually go: /chat/completions is added to an API base URL -->
+                                    <TextBlock x:Name="customApiEndpointHint" Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11"
+                                               Foreground="{DynamicResource MutedBrush}"/>
                                 </Grid>
 
                                 <!-- Custom API Key - Only visible when Custom API is selected -->
@@ -946,6 +950,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <!-- OCR Method -->
@@ -987,20 +992,29 @@
                                          Checked="AutoTranslateCheckBox_CheckedChanged"
                                          Unchecked="AutoTranslateCheckBox_CheckedChanged"/>
 
+                                <!-- Translate as soon as an area is selected (no separate Start) -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslateAfterSelectArea]}" Grid.Row="5" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TranslateAfterSelectArea]}"/>
+                                <CheckBox x:Name="translateAfterSelectAreaCheckBox" Grid.Row="5" Grid.Column="1" Margin="0,5"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_TranslateAfterSelectArea]}"
+                                         Checked="TranslateAfterSelectAreaCheckBox_CheckedChanged"
+                                         Unchecked="TranslateAfterSelectAreaCheckBox_CheckedChanged"/>
+
                                 <!-- HDR support -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HDRSupport]}" Grid.Row="5" Grid.Column="0"
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HDRSupport]}" Grid.Row="6" Grid.Column="0"
                                           ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HDRSupport]}"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="hdrSupportCheckBox" Grid.Row="5" Grid.Column="1"
+                                <CheckBox x:Name="hdrSupportCheckBox" Grid.Row="6" Grid.Column="1"
                                          Margin="0,5"
                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HDRSupport]}"
                                          Checked="HDRSupportCheckBox_CheckedChanged"
                                          Unchecked="HDRSupportCheckBox_CheckedChanged"/>
 
                                 <!-- Manga Mode (shown only for some source languages) -->
-                                <TextBlock x:Name="MangaModeLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MangaMode]}" Grid.Row="6" Grid.Column="0"
+                                <TextBlock x:Name="MangaModeLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MangaMode]}" Grid.Row="7" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0" Visibility="Collapsed"/>
-                                <CheckBox x:Name="MangaModeCheckBox" Grid.Row="6" Grid.Column="1"
+                                <CheckBox x:Name="MangaModeCheckBox" Grid.Row="7" Grid.Column="1"
                                          Checked="MangaModeCheckBox_CheckedChanged"
                                          Unchecked="MangaModeCheckBox_CheckedChanged"
                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MangaMode]}"

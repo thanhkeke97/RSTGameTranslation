@@ -1057,6 +1057,26 @@ namespace RSTGameTranslation
             ToolbarButton.SetState(selectAreaButton, ToolbarState.On);
 
             CoachMarkTour.Current?.OnAreaChosen();
+
+            // After the selector has closed, so it is not in the first capture
+            if (ConfigManager.Instance.IsTranslateAfterSelectAreaEnabled())
+                Dispatcher.BeginInvoke(TranslateSelectedArea, DispatcherPriority.ApplicationIdle);
+        }
+
+        // "Translate right after selecting an area": one hotkey instead of Select Area, then Start
+        private void TranslateSelectedArea()
+        {
+            if (!isStarted)
+            {
+                OnStartButtonToggleClicked(toggleButton, new RoutedEventArgs());
+            }
+            else if (!ConfigManager.Instance.IsAutoOCREnabled())
+            {
+                // Single-shot mode already ran its pass: run one more for the new area
+                Logic.Instance.ResetHash();
+                isStopOCR = false;
+            }
+            // With Auto OCR on, the running loop already captures the new area
         }
 
         private const int MaxTranslationAreas = 5;
@@ -1279,10 +1299,8 @@ namespace RSTGameTranslation
 
         private void OpenGameProfileSettings()
         {
-            if (!SettingsWindow.Instance.IsVisible)
-                ToggleSettingsWindow();
+            ShowSettingsWindow(SettingsWindow.Instance);
             SettingsWindow.Instance.ShowGameProfileTab();
-            SettingsWindow.Instance.Activate();
         }
 
         /// <summary>
@@ -2121,45 +2139,67 @@ namespace RSTGameTranslation
         // Show/hide the settings window
         private void ToggleSettingsWindow()
         {
-            // Check if settings window is visible
-            if (SettingsWindow.Instance.IsVisible)
+            SettingsWindow settings = SettingsWindow.Instance;
+
+            // Hide it only when the user can see it. A minimized or off-screen window also counts as visible:
+            // hiding it would make the button seem to do nothing, so it is brought back instead.
+            if (settings.IsVisible && settings.WindowState != WindowState.Minimized && DpiHelper.IsOnScreen(settings))
             {
                 // Store current position before hiding
-                settingsWindowLeft = SettingsWindow.Instance.Left;
-                settingsWindowTop = SettingsWindow.Instance.Top;
+                settingsWindowLeft = settings.Left;
+                settingsWindowTop = settings.Top;
 
                 Console.WriteLine($"Saving settings position: {settingsWindowLeft}, {settingsWindowTop}");
 
-                SettingsWindow.Instance.Hide();
+                settings.Hide();
                 Console.WriteLine("Settings window hidden");
                 ToolbarButton.SetState(settingsButton, ToolbarState.Off);
+                return;
             }
-            else
+
+            ShowSettingsWindow(settings);
+        }
+
+        private void ShowSettingsWindow(SettingsWindow settings)
+        {
+            if (!settings.IsVisible)
             {
-                SettingsWindow.Instance.ReloadSetting();
+                // A failure here must not keep the window from opening: it would then never open again
+                try
+                {
+                    settings.ReloadSetting();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error reloading settings before showing them: {ex}");
+                }
+
                 // Always use the remembered position if it has been set
                 if (settingsWindowLeft != -1 || settingsWindowTop != -1)
                 {
-                    // Restore previous position
-                    SettingsWindow.Instance.Left = settingsWindowLeft;
-                    SettingsWindow.Instance.Top = settingsWindowTop;
+                    settings.Left = settingsWindowLeft;
+                    settings.Top = settingsWindowTop;
                     Console.WriteLine($"Restoring settings position to: {settingsWindowLeft}, {settingsWindowTop}");
                 }
                 else
                 {
                     // Position to the center of mainwindow
-                    double mainCenter = this.Left + this.ActualWidth / 2;
-                    double mainTop = this.Top;
-
-                    SettingsWindow.Instance.Left = mainCenter;
-                    SettingsWindow.Instance.Top = mainTop;
+                    settings.Left = this.Left + this.ActualWidth / 2;
+                    settings.Top = this.Top;
                     Console.WriteLine("No saved position, positioning settings window to the right");
                 }
 
-                SettingsWindow.Instance.Show();
-                Console.WriteLine($"Settings window shown at position {SettingsWindow.Instance.Left}, {SettingsWindow.Instance.Top}");
-                ToolbarButton.SetState(settingsButton, ToolbarState.On);
+                settings.Show();
             }
+
+            if (settings.WindowState == WindowState.Minimized)
+                settings.WindowState = WindowState.Normal;
+
+            // The remembered position may be off screen after a resolution or monitor change
+            DpiHelper.MoveOntoScreenIfLost(settings);
+            settings.Activate();
+            Console.WriteLine($"Settings window shown at position {settings.Left}, {settings.Top}");
+            ToolbarButton.SetState(settingsButton, ToolbarState.On);
         }
 
         [DllImport("dwmapi.dll")]
@@ -4020,7 +4060,7 @@ namespace RSTGameTranslation
 
             if (welcomeWindow.OpenSettingsRequested)
             {
-                SettingsButton_Click(settingsButton, new RoutedEventArgs());
+                ShowSettingsWindow(SettingsWindow.Instance);
             }
             return true;
         }
@@ -4189,7 +4229,8 @@ namespace RSTGameTranslation
 
         private void TraySettings_Click(object sender, RoutedEventArgs e)
         {
-            SettingsButton_Click(settingsButton, e);
+            // From the tray the user wants Settings open, not toggled off
+            ShowSettingsWindow(SettingsWindow.Instance);
         }
 
         private void TrayExit_Click(object sender, RoutedEventArgs e)

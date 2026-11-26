@@ -223,6 +223,7 @@ namespace RSTGameTranslation
         public const string HIDE_STALE_TRANSLATION = "hide_stale_translation";
         public const string CLOSE_BUTTON_ACTION = "close_button_action";
         public const string AUTOSTART_MINIMIZED = "autostart_minimized";
+        public const string TRANSLATE_AFTER_SELECT_AREA = "translate_after_select_area";
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
@@ -3165,6 +3166,19 @@ namespace RSTGameTranslation
             };
             SaveConfig();
             Console.WriteLine($"Close button action set to: {action}");
+        }
+
+        // Whether selecting a translation area starts translating it right away (no separate Start)
+        public bool IsTranslateAfterSelectAreaEnabled()
+        {
+            return GetValue(TRANSLATE_AFTER_SELECT_AREA, "false").ToLowerInvariant() == "true";
+        }
+
+        public void SetTranslateAfterSelectAreaEnabled(bool enabled)
+        {
+            _configValues[TRANSLATE_AFTER_SELECT_AREA] = enabled.ToString().ToLower();
+            SaveConfig();
+            Console.WriteLine($"Translate after select area set to: {enabled}");
         }
 
         // Whether RST started with Windows goes straight to the tray (no splash screen, no window)

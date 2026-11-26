@@ -432,6 +432,46 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
+        /// Whether enough of the window's title bar is on a screen for the user to see and drag it.
+        /// </summary>
+        public static bool IsOnScreen(Window window)
+        {
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+            if (hwnd == IntPtr.Zero)
+                return false;
+
+            var (left, top, width, height) = GetWindowPhysicalRect(hwnd);
+            var titleBar = new System.Drawing.Rectangle(left, top, width, Math.Min(height, 40));
+            foreach (Screen screen in Screen.AllScreens)
+            {
+                var visible = System.Drawing.Rectangle.Intersect(screen.WorkingArea, titleBar);
+                if (visible.Width >= Math.Min(100, width) && visible.Height >= Math.Min(20, titleBar.Height))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Moves a window that cannot be reached (its title bar is off every screen, e.g. after a game changed
+        /// the resolution or a monitor was unplugged) to the middle of the nearest screen's work area.
+        /// </summary>
+        public static void MoveOntoScreenIfLost(Window window)
+        {
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+            if (hwnd == IntPtr.Zero || IsOnScreen(window))
+                return;
+
+            var (left, top, width, height) = GetWindowPhysicalRect(hwnd);
+            var work = Screen.FromRectangle(new System.Drawing.Rectangle(left, top, width, height)).WorkingArea;
+            int newWidth = Math.Min(width, work.Width);
+            int newHeight = Math.Min(height, work.Height);
+            int x = work.Left + (work.Width - newWidth) / 2;
+            int y = work.Top + (work.Height - newHeight) / 2;
+            Console.WriteLine($"{window.GetType().Name} was off screen at ({left}, {top}); moved to ({x}, {y})");
+            PositionWindowPhysical(hwnd, x, y, newWidth, newHeight);
+        }
+
+        /// <summary>
         /// Get the physical screen-pixel bounding rectangle of a window via Win32 GetWindowRect.
         /// Returns (left, top, width, height) in physical pixels.
         /// </summary>
