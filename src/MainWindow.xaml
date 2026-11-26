@@ -528,19 +528,33 @@
         </Style>
 
         <!-- Window Control Button Style -->
+        <!-- Round window buttons. The symbol (Tag: path data) is always drawn so the buttons read as
+             minimize / close; the whole 24x24 square is clickable, not only the 16px dot. -->
         <Style x:Key="WindowControlButton" TargetType="Button">
-            <Setter Property="Width" Value="14"/>
-            <Setter Property="Height" Value="14"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="Margin" Value="2,0,0,0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#99000000"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Ellipse x:Name="circle" Fill="{TemplateBinding Background}"/>
+                        <Grid Background="Transparent">
+                            <Ellipse x:Name="circle" Width="16" Height="16" Fill="{TemplateBinding Background}"/>
+                            <Path x:Name="glyph" Data="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                  Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  SnapsToDevicePixels="False"/>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="circle" Property="Opacity" Value="0.8"/>
+                                <Setter TargetName="circle" Property="Opacity" Value="0.85"/>
+                                <Setter TargetName="glyph" Property="Stroke" Value="#DD000000"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="circle" Property="Opacity" Value="0.7"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -554,9 +568,13 @@
         <tb:TaskbarIcon x:Name="MyNotifyIcon"
                         IconSource="/media/AppIcon.ico"
                         ToolTipText="RSTGameTranslation"
-                        TrayMouseDoubleClick="TrayIcon_DoubleClick">
+                        TrayLeftMouseUp="TrayIcon_Click"
+                        TrayMouseDoubleClick="TrayIcon_Click">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
+                    <MenuItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tray_OpenMainWindow]}"
+                              FontWeight="Bold" Click="TrayIcon_Click" />
+                    <Separator />
                     <MenuItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Start]}" Click="TrayStartStop_Click" />
                     <MenuItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}" Click="TrayOverlay_Click" />
                     <Separator />
@@ -644,11 +662,13 @@
                             </Button>
 
                             <Button x:Name="minimizeButton" Style="{StaticResource WindowControlButton}"
-                                    Background="#ffbd2e" Click="MinimizeButton_Click" 
-                                    WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize"/>
-                            <Button Style="{StaticResource WindowControlButton}" Background="#ff5f57" 
-                                    Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True"
-                                    ToolTip="Close"/>
+                                    Background="#ffbd2e" Tag="M0,0 L7,0" Click="MinimizeButton_Click"
+                                    WindowChrome.IsHitTestVisibleInChrome="True"
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowMinimize]}"/>
+                            <Button x:Name="closeButton" Style="{StaticResource WindowControlButton}"
+                                    Background="#ff5f57" Tag="M0,0 L6,6 M6,0 L0,6" Click="CloseButton_Click"
+                                    WindowChrome.IsHitTestVisibleInChrome="True"
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowClose]}"/>
                         </StackPanel>
                     </Grid>
                 </Border>

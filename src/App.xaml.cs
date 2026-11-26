@@ -137,16 +137,7 @@ public partial class App : Application
         if (window == null || !window.IsLoaded)
             return;
 
-        if (!window.IsVisible)
-            window.Show(); // hidden to the tray
-        if (window.WindowState == WindowState.Minimized)
-            window.WindowState = WindowState.Normal;
-
-        window.Activate();
-        // Windows may refuse to move another process's window to the front; a topmost flip gets past that
-        window.Topmost = true;
-        window.Topmost = false;
-        window.Focus();
+        window.ShowFromTray();
     }
 
     protected override void OnStartup(StartupEventArgs e)

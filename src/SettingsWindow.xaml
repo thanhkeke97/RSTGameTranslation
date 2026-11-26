@@ -946,102 +946,62 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <!-- OCR Method -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OCRMethod]}" Grid.Row="0" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OCRMethod]}" Grid.Row="0" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="ocrMethodComboBox" Grid.Row="0" Grid.Column="1" 
+                                <ComboBox x:Name="ocrMethodComboBox" Grid.Row="0" Grid.Column="1"
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="OcrMethodComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Windows OCR"/>
                                     <ComboBoxItem Content="OneOCR"/>
                                 </ComboBox>
-                                <!-- HDR support -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HDRSupport]}" Grid.Row="9" Grid.Column="0" 
-                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HDRSupport]}"
-                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="hdrSupportCheckBox" Grid.Row="9" Grid.Column="1" 
-                                         Margin="0,5"
-                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HDRSupport]}"
-                                         Checked="HDRSupportCheckBox_CheckedChanged" 
-                                         Unchecked="HDRSupportCheckBox_CheckedChanged"/>
-                                
+
                                 <!-- Select Screen -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectScreen]}" Grid.Row="8" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectScreen]}" Grid.Row="1" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="screenComboBox" Grid.Row="8" Grid.Column="1" 
+                                <ComboBox x:Name="screenComboBox" Grid.Row="1" Grid.Column="1"
                                          Margin="0,5" SelectedIndex="1" SelectionChanged="ScreenComboBox_SelectionChanged">
                                 </ComboBox>
 
+                                <!-- Multi Selection Area -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MultiSelection]}" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MultiSelection]}"/>
+                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="2" Grid.Column="1" Margin="0,5"
+                                         Checked="MultiSelectionAreaCheckBox_CheckedChanged"
+                                         Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
+
                                 <!-- Auto OCR -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoOCR]}" Grid.Row="2" Grid.Column="0" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoOCR]}" Grid.Row="3" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="AutoOCRCheckBox" Grid.Row="2" Grid.Column="1" Margin="0,5"
-                                         Checked="AutoOCRCheckBox_CheckedChanged" 
+                                <CheckBox x:Name="AutoOCRCheckBox" Grid.Row="3" Grid.Column="1" Margin="0,5"
+                                         Checked="AutoOCRCheckBox_CheckedChanged"
                                          Unchecked="AutoOCRCheckBox_CheckedChanged"
                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_AutoOCR]}"/>
 
-                                <!-- Auto Translate -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoTranslate]}" Grid.Row="3" Grid.Column="0"
+                                <!-- Auto Translate: the step after OCR in the automatic loop -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_AutoTranslate]}" Grid.Row="4" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="3" Grid.Column="1"
+                                <CheckBox x:Name="autoTranslateCheckBox" Grid.Row="4" Grid.Column="1"
                                          Margin="0,5" IsChecked="True"
                                          Checked="AutoTranslateCheckBox_CheckedChanged"
                                          Unchecked="AutoTranslateCheckBox_CheckedChanged"/>
 
-                                <!-- Multi Selection Area -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MultiSelection]}" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
-                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MultiSelection]}"/>
-                                <CheckBox x:Name="multiSelectionAreaCheckBox" Grid.Row="4" Grid.Column="1" Margin="0,5"
-                                         Checked="MultiSelectionAreaCheckBox_CheckedChanged"
-                                         Unchecked="MultiSelectionAreaCheckBox_CheckedChanged"/>
+                                <!-- HDR support -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HDRSupport]}" Grid.Row="5" Grid.Column="0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HDRSupport]}"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="hdrSupportCheckBox" Grid.Row="5" Grid.Column="1"
+                                         Margin="0,5"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HDRSupport]}"
+                                         Checked="HDRSupportCheckBox_CheckedChanged"
+                                         Unchecked="HDRSupportCheckBox_CheckedChanged"/>
 
-                                <!-- Game window picker at startup -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WindowSelectorAtStartup]}" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
-                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowSelectorAtStartup]}"/>
-                                <CheckBox x:Name="windowSelectorAtStartupCheckBox" Grid.Row="6" Grid.Column="1" Margin="0,5" IsChecked="True"
-                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowSelectorAtStartup]}"
-                                         Checked="WindowSelectorAtStartupCheckBox_CheckedChanged"
-                                         Unchecked="WindowSelectorAtStartupCheckBox_CheckedChanged"/>
-
-                                <!-- Minimize the main window while selecting an area -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinimizeOnSelectArea]}" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
-                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MinimizeOnSelectArea]}"/>
-                                <CheckBox x:Name="minimizeOnSelectAreaCheckBox" Grid.Row="7" Grid.Column="1" Margin="0,5" IsChecked="True"
-                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MinimizeOnSelectArea]}"
-                                         Checked="MinimizeOnSelectAreaCheckBox_CheckedChanged"
-                                         Unchecked="MinimizeOnSelectAreaCheckBox_CheckedChanged"/>
-
-                                <!-- Leave Translation Onscreen -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LeaveOnscreen]}" Grid.Row="5" Grid.Column="0"
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_LeaveOnscreen]}"/>
-                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="5" Grid.Column="1"
-                                         Margin="0,5" IsChecked="False"
-                                         Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
-                                         Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
-                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_LeaveOnscreen]}"/>
-
-                                <!-- Hide the translation as soon as the text on screen changes -->
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HideStaleTranslation]}" Grid.Row="11" Grid.Column="0"
-                                          VerticalAlignment="Center" Margin="0,0,10,0"
-                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HideStaleTranslation]}"/>
-                                <CheckBox x:Name="hideStaleTranslationCheckBox" Grid.Row="11" Grid.Column="1"
-                                         Margin="0,5" IsChecked="False"
-                                         Checked="HideStaleTranslationCheckBox_CheckedChanged"
-                                         Unchecked="HideStaleTranslationCheckBox_CheckedChanged"
-                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HideStaleTranslation]}"/>
-
-                                <!-- Manga Mode -->
-                                <TextBlock x:Name="MangaModeLabel" Text="Manga Mode:" Grid.Row="10" Grid.Column="0" 
+                                <!-- Manga Mode (shown only for some source languages) -->
+                                <TextBlock x:Name="MangaModeLabel" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MangaMode]}" Grid.Row="6" Grid.Column="0"
                                           VerticalAlignment="Center" Margin="0,0,10,0" Visibility="Collapsed"/>
-                                <CheckBox x:Name="MangaModeCheckBox" Grid.Row="10" Grid.Column="1" 
-                                         Checked="MangaModeCheckBox_CheckedChanged" 
+                                <CheckBox x:Name="MangaModeCheckBox" Grid.Row="6" Grid.Column="1"
+                                         Checked="MangaModeCheckBox_CheckedChanged"
                                          Unchecked="MangaModeCheckBox_CheckedChanged"
                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MangaMode]}"
                                          Visibility="Collapsed"/>
@@ -1272,6 +1232,26 @@
                                          Margin="20,8,0,0" IsChecked="True" Padding="5,3"
                                          Checked="AutoMergeOverlappingTextCheckBox_CheckedChanged" 
                                          Unchecked="AutoMergeOverlappingTextCheckBox_CheckedChanged"/>
+
+                                <!-- Leave Translation Onscreen -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_LeaveOnscreen]}" Grid.Row="4" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,8,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_LeaveOnscreen]}"/>
+                                <CheckBox x:Name="leaveTranslationOnscreenCheckBox" Grid.Row="4" Grid.Column="1"
+                                         Margin="20,8,0,0" IsChecked="False" Padding="5,3"
+                                         Checked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
+                                         Unchecked="LeaveTranslationOnscreenCheckBox_CheckedChanged"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_LeaveOnscreen]}"/>
+
+                                <!-- Hide the translation as soon as the text on screen changes -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_HideStaleTranslation]}" Grid.Row="5" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,8,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HideStaleTranslation]}"/>
+                                <CheckBox x:Name="hideStaleTranslationCheckBox" Grid.Row="5" Grid.Column="1"
+                                         Margin="20,8,0,0" IsChecked="False" Padding="5,3"
+                                         Checked="HideStaleTranslationCheckBox_CheckedChanged"
+                                         Unchecked="HideStaleTranslationCheckBox_CheckedChanged"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_HideStaleTranslation]}"/>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
@@ -1416,6 +1396,55 @@
 
                                 <TextBlock x:Name="statusUpdateHotKey" Margin="0,8,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
                             </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- General Tab: how the app window behaves (not tied to OCR, translation or the overlay) -->
+            <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_General]}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_AppWindow]}" Margin="0,0,0,15" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Game window picker at startup -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_WindowSelectorAtStartup]}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowSelectorAtStartup]}"/>
+                                <CheckBox x:Name="windowSelectorAtStartupCheckBox" Grid.Row="0" Grid.Column="1" Margin="0,5" IsChecked="True"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_WindowSelectorAtStartup]}"
+                                         Checked="WindowSelectorAtStartupCheckBox_CheckedChanged"
+                                         Unchecked="WindowSelectorAtStartupCheckBox_CheckedChanged"/>
+
+                                <!-- Minimize the main window while selecting an area -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_MinimizeOnSelectArea]}" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MinimizeOnSelectArea]}"/>
+                                <CheckBox x:Name="minimizeOnSelectAreaCheckBox" Grid.Row="1" Grid.Column="1" Margin="0,5" IsChecked="True"
+                                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_MinimizeOnSelectArea]}"
+                                         Checked="MinimizeOnSelectAreaCheckBox_CheckedChanged"
+                                         Unchecked="MinimizeOnSelectAreaCheckBox_CheckedChanged"/>
+
+                                <!-- What the main window's close button does -->
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CloseButtonAction]}" Grid.Row="2" Grid.Column="0"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_CloseButtonAction]}"/>
+                                <ComboBox x:Name="closeButtonActionComboBox" Grid.Row="2" Grid.Column="1" Margin="0,5"
+                                          ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tip_CloseButtonAction]}"
+                                          SelectionChanged="CloseButtonActionComboBox_SelectionChanged">
+                                    <ComboBoxItem Tag="ask" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_CloseAction_Ask]}"/>
+                                    <ComboBoxItem Tag="tray" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_CloseAction_Tray]}"/>
+                                    <ComboBoxItem Tag="exit" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Cmb_CloseAction_Exit]}"/>
+                                </ComboBox>
+                            </Grid>
                         </GroupBox>
                     </StackPanel>
                 </ScrollViewer>

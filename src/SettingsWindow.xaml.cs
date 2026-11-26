@@ -1016,6 +1016,16 @@ namespace RSTGameTranslation
             // Set HDR support
             hdrSupportCheckBox.IsChecked = ConfigManager.Instance.IsHDRSupportEnabled();
 
+            // Close button behaviour
+            string closeAction = ConfigManager.Instance.GetCloseButtonAction() switch
+            {
+                CloseButtonAction.MinimizeToTray => "tray",
+                CloseButtonAction.Exit => "exit",
+                _ => "ask",
+            };
+            closeButtonActionComboBox.SelectedItem = closeButtonActionComboBox.Items.OfType<ComboBoxItem>()
+                .FirstOrDefault(item => (string)item.Tag == closeAction);
+
             // Set text color filter
             textColorFilterCheckBox.IsChecked = ConfigManager.Instance.IsTextColorFilterEnabled();
             ShowTextColorFilterColor(ConfigManager.Instance.GetTextColorFilterColor());
@@ -5774,6 +5784,21 @@ namespace RSTGameTranslation
             bool enabled = hdrSupportCheckBox.IsChecked ?? true;
             ConfigManager.Instance.SetHDRSupportEnabled(enabled);
             Console.WriteLine($"HDR support set to {enabled}");
+        }
+
+        private void CloseButtonActionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (closeButtonActionComboBox.SelectedItem is not ComboBoxItem { Tag: string tag })
+                return;
+
+            CloseButtonAction action = tag switch
+            {
+                "tray" => CloseButtonAction.MinimizeToTray,
+                "exit" => CloseButtonAction.Exit,
+                _ => CloseButtonAction.Ask,
+            };
+            if (action != ConfigManager.Instance.GetCloseButtonAction())
+                ConfigManager.Instance.SetCloseButtonAction(action);
         }
 
         private void TextColorFilterCheckBox_CheckedChanged(object sender, RoutedEventArgs e)

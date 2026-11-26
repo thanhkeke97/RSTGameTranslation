@@ -1,0 +1,70 @@
+<Window x:Class="RSTGameTranslation.CloseChoiceDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:RSTGameTranslation"
+        Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Title_CloseChoice]}"
+        Width="460" SizeToContent="Height"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        Background="{DynamicResource SurfaceBrush}"
+        Foreground="{DynamicResource TextBrush}"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource Surface3Brush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="MinWidth" Value="90"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="18,16,18,14">
+        <TextBlock FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"
+                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CloseChoiceQuestion]}"/>
+        <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CloseChoiceDetail]}"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <!-- Keeping RST running is the default: Enter picks it -->
+            <Button x:Name="trayButton" IsDefault="True" Margin="0"
+                    Background="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBrush}" Foreground="White"
+                    Click="TrayButton_Click">
+                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_MinimizeToTray]}"/>
+            </Button>
+            <Button x:Name="exitButton" Click="ExitButton_Click">
+                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_ExitCompletely]}"/>
+            </Button>
+            <Button IsCancel="True">
+                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Common_Btn_Cancel]}"/>
+            </Button>
+        </StackPanel>
+
+        <TextBlock Margin="0,14,0,0" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource MutedBrush}"
+                   Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Msg_CloseChoiceSettingHint]}"/>
+    </StackPanel>
+</Window>

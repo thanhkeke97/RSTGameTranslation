@@ -1922,8 +1922,7 @@ namespace RSTGameTranslation
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            localWhisperService.Instance.StopForExit();
-            this.Close();
+            HandleUserCloseRequest();
         }
 
         // Override OnClosing to ensure the application shuts down completely
@@ -2061,6 +2060,12 @@ namespace RSTGameTranslation
             if (msg == 0x0312) // WM_HOTKEY
             {
                 handled = KeyboardShortcuts.ProcessHotKey(wParam);
+            }
+            else if (msg == 0x0112 && ((long)wParam & 0xFFF0) == SC_CLOSE) // WM_SYSCOMMAND: Alt+F4, taskbar "Close window"
+            {
+                handled = true;
+                // Not from inside the message hook: the dialog would run a nested message loop here
+                Dispatcher.BeginInvoke(new Action(HandleUserCloseRequest));
             }
 
             return IntPtr.Zero;
@@ -2481,8 +2486,8 @@ namespace RSTGameTranslation
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            // this.WindowState = WindowState.Minimized;
-            this.Hide();
+            // Down to the taskbar like any other window; keeping it running in the tray is the close button's choice
+            WindowState = WindowState.Minimized;
         }
 
         // private void AutoTranslateCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
@@ -4191,16 +4196,67 @@ namespace RSTGameTranslation
         {
             System.Windows.Application.Current.Shutdown();
         }
-        private void TrayIcon_DoubleClick(object sender, RoutedEventArgs e)
+        // Single click, double click and "Open RST" in the tray menu all bring the window back
+        private void TrayIcon_Click(object sender, RoutedEventArgs e)
         {
-            this.Show();
+            ShowFromTray();
+        }
 
-            if (this.WindowState == WindowState.Minimized)
+        /// <summary>
+        /// Show the main window whether it is hidden in the tray, minimized or behind other windows.
+        /// Also used when RST is started again while it is running.
+        /// </summary>
+        public void ShowFromTray()
+        {
+            if (!IsVisible)
+                Show();
+            if (WindowState == WindowState.Minimized)
+                WindowState = WindowState.Normal;
+
+            Activate();
+            // Windows may refuse to bring another process's window to the front; a topmost flip gets past that
+            Topmost = true;
+            Topmost = false;
+            Focus();
+        }
+
+        // ===== Close button: exit, or keep running in the tray =====
+
+        private bool _trayHintShown;
+
+        // The close button, Alt+F4 and "Close window" on the taskbar all come here.
+        // Other ways out (tray Exit, restart, update, reset) close the app directly.
+        private void HandleUserCloseRequest()
+        {
+            CloseButtonAction action = ConfigManager.Instance.GetCloseButtonAction();
+            if (action == CloseButtonAction.Ask)
             {
-                this.WindowState = WindowState.Normal;
+                action = CloseChoiceDialog.Ask(this);
+                if (action == CloseButtonAction.Ask)
+                    return; // cancelled
             }
 
-            this.Activate();
+            if (action == CloseButtonAction.MinimizeToTray)
+                HideToTray();
+            else
+                ExitApplication();
+        }
+
+        private void HideToTray()
+        {
+            Hide();
+            if (!_trayHintShown)
+            {
+                _trayHintShown = true;
+                ShowFastNotification(LocalizationManager.Instance.Strings["Title_StillRunningInTray"],
+                    LocalizationManager.Instance.Strings["Msg_StillRunningInTray"], 6000);
+            }
+        }
+
+        private void ExitApplication()
+        {
+            localWhisperService.Instance.StopForExit();
+            Close();
         }
 
         #region Clipboard Auto-Translate

@@ -221,6 +221,7 @@ namespace RSTGameTranslation
         public const string WINDOW_SELECTOR_AT_STARTUP = "window_selector_at_startup";
         public const string MINIMIZE_ON_SELECT_AREA = "minimize_on_select_area";
         public const string HIDE_STALE_TRANSLATION = "hide_stale_translation";
+        public const string CLOSE_BUTTON_ACTION = "close_button_action";
 
         // Hot key enable
         public const string HOT_KEY_ENABLE = "HotKeyEnable";
@@ -3140,6 +3141,29 @@ namespace RSTGameTranslation
             _configValues[MINIMIZE_ON_SELECT_AREA] = enabled.ToString().ToLower();
             SaveConfig();
             Console.WriteLine($"Minimize on select area set to: {enabled}");
+        }
+
+        // What the main window's close button (and Alt+F4) does: ask every time, keep running in the tray, or exit
+        public CloseButtonAction GetCloseButtonAction()
+        {
+            return GetValue(CLOSE_BUTTON_ACTION, "ask").ToLowerInvariant() switch
+            {
+                "tray" => CloseButtonAction.MinimizeToTray,
+                "exit" => CloseButtonAction.Exit,
+                _ => CloseButtonAction.Ask,
+            };
+        }
+
+        public void SetCloseButtonAction(CloseButtonAction action)
+        {
+            _configValues[CLOSE_BUTTON_ACTION] = action switch
+            {
+                CloseButtonAction.MinimizeToTray => "tray",
+                CloseButtonAction.Exit => "exit",
+                _ => "ask",
+            };
+            SaveConfig();
+            Console.WriteLine($"Close button action set to: {action}");
         }
 
         // Whether a translation is hidden as soon as the text on screen changes, and an unfinished one for text
